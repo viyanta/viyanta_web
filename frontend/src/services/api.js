@@ -58,11 +58,23 @@ class ApiService {
     return response.blob();
   }
 
-  async previewFile(fileId) {
-    const response = await fetch(`${API_BASE_URL}/files/preview/${fileId}`);
+  async previewFile(fileId, full = false) {
+    const url = `${API_BASE_URL}/files/preview/${fileId}${full ? '?full=true' : ''}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error('Failed to preview file');
+    }
+
+    return response.json();
+  }
+
+  async previewOriginalFile(fileId, full = false) {
+    const url = `${API_BASE_URL}/files/preview/original/${fileId}${full ? '?full=true' : ''}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error('Failed to preview original file');
     }
 
     return response.json();

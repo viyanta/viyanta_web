@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@email.com",
+    "age": 30,
+    "department": "Engineering",
+    "salary": 75000,
+    "join_date": "2020-01-15",
+    "skills": ["Python", "JavaScript", "SQL"],
+    "is_active": true
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@email.com",
+    "age": 28,
+    "department": "Marketing",
+    "salary": 65000,
+    "join_date": "2021-03-10",
+    "skills": ["Digital Marketing", "Analytics", "SEO"],
+    "is_active": true
+  },
+  {
+    "id": 3,
+    "name": "Mike Johnson",
+    "email": "mike.johnson@email.com",
+    "age": 35,
+    "department": "Engineering",
+    "salary": 85000,
+    "join_date": "2019-07-20",
+    "skills": ["Java", "Spring Boot", "Microservices"],
+    "is_active": true
+  },
+  {
+    "id": 4,
+    "name": "Sarah Wilson",
+    "email": "sarah.wilson@email.com",
+    "age": 32,
+    "department": "HR",
+    "salary": 70000,
+    "join_date": "2020-11-05",
+    "skills": ["Recruitment", "Training", "Employee Relations"],
+    "is_active": false
+  },
+  {
+    "id": 5,
+    "name": "David Brown",
+    "email": "david.brown@email.com",
+    "age": 29,
+    "department": "Finance",
+    "salary": 68000,
+    "join_date": "2022-02-14",
+    "skills": ["Financial Analysis", "Excel", "QuickBooks"],
+    "is_active": true
+  }
+]

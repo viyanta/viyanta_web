@@ -2,6 +2,7 @@ import React from 'react'
 import Button from '../utils/Button.jsx'
 import ApiService from '../services/api.js'
 import { useStats } from '../context/StatsContext.jsx'
+import DataTable from '../components/DataTable.jsx'
 
 function Explorer() {
     const { refreshStats } = useStats();
@@ -381,61 +382,32 @@ function Explorer() {
             </div>
         </div>
 
-        {/* Data Preview Section */}
+        {/* Data Comparison Section: Source vs Parquet */}
         {previewData && (
             <div style={{ marginTop: '2rem' }}>
-                <h2 style={{ marginBottom: '1.5rem' }}>Data Preview</h2>
-                <div className="card">
-                    <div className="card-header">
-                        <h3>First 10 Rows</h3>
-                        <p style={{ margin: 0, fontSize: '0.875rem' }}>
-                            Total: {previewData.total_rows.toLocaleString()} rows, {previewData.columns.length} columns
-                        </p>
+                <h2 style={{ marginBottom: '1.5rem', borderBottom: '3px solid var(--main-color)', paddingBottom: '0.5rem', letterSpacing: '0.5px' }}>Compare Source & Parquet Data</h2>
+                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
+                    {/* Source File Table */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <DataTable
+                            columns={previewData.columns}
+                            data={previewData.preview}
+                            title={uploadResult?.original_file?.filename ? `Source File: ${uploadResult.original_file.filename}` : 'Source File'}
+                        />
                     </div>
-                    
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ 
-                            width: '100%', 
-                            borderCollapse: 'collapse',
-                            fontSize: '0.875rem'
-                        }}>
-                            <thead>
-                                <tr style={{ backgroundColor: 'var(--background-color)' }}>
-                                    {previewData.columns.map((col, index) => (
-                                        <th key={index} style={{ 
-                                            padding: '0.75rem', 
-                                            textAlign: 'left',
-                                            borderBottom: '2px solid #e9ecef',
-                                            fontWeight: '600'
-                                        }}>
-                                            {col}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {previewData.preview.map((row, rowIndex) => (
-                                    <tr key={rowIndex} style={{ 
-                                        borderBottom: '1px solid #e9ecef',
-                                        backgroundColor: rowIndex % 2 === 0 ? 'white' : 'var(--background-color)'
-                                    }}>
-                                        {previewData.columns.map((col, colIndex) => (
-                                            <td key={colIndex} style={{ 
-                                                padding: '0.75rem',
-                                                maxWidth: '200px',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>
-                                                {String(row[col] || '')}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    {/* Vertical Divider */}
+                    <div style={{ width: '2px', background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', height: '100%', borderRadius: '2px', margin: '0 1rem' }} />
+                    {/* Parquet File Table */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <DataTable
+                            columns={previewData.columns}
+                            data={previewData.preview}
+                            title={uploadResult?.parquet_file?.filename ? `Parquet File: ${uploadResult.parquet_file.filename}` : 'Parquet File'}
+                        />
                     </div>
                 </div>
+                {/* Horizontal Bar for separation */}
+                <div style={{ margin: '2rem 0 0 0', height: '6px', width: '100%', background: 'linear-gradient(to right, var(--main-color), var(--sub-color))', borderRadius: '3px' }} />
             </div>
         )}
     </div>
