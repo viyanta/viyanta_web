@@ -1,0 +1,84 @@
+const API_BASE_URL = 'http://localhost:8000/api';
+
+class ApiService {
+  async uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/files/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
+  async getFiles() {
+    const response = await fetch(`${API_BASE_URL}/files/files`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch files');
+    }
+
+    return response.json();
+  }
+
+  async getStats() {
+    const response = await fetch(`${API_BASE_URL}/files/stats`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+
+    return response.json();
+  }
+
+  async downloadOriginalFile(fileId) {
+    const response = await fetch(`${API_BASE_URL}/files/download/original/${fileId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to download file');
+    }
+
+    return response.blob();
+  }
+
+  async downloadParquetFile(fileId) {
+    const response = await fetch(`${API_BASE_URL}/files/download/parquet/${fileId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to download parquet file');
+    }
+
+    return response.blob();
+  }
+
+  async previewFile(fileId) {
+    const response = await fetch(`${API_BASE_URL}/files/preview/${fileId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to preview file');
+    }
+
+    return response.json();
+  }
+
+  // Helper method to download blob as file
+  downloadBlob(blob, filename) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+}
+
+export default new ApiService();
