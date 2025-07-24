@@ -1,0 +1,257 @@
+[
+  {
+    "id": 1,
+    "employee_info": {
+      "name": "John Doe",
+      "position": "Senior Software Engineer",
+      "department": "Engineering",
+      "hire_date": "2020-01-15"
+    },
+    "contact": {
+      "email": "john.doe@company.com",
+      "phone": "+1-555-0101",
+      "address": {
+        "street": "123 Main St",
+        "city": "Tech City",
+        "state": "CA",
+        "zip": "12345"
+      }
+    },
+    "skills": ["Python", "JavaScript", "React", "Node.js", "SQL", "Docker"],
+    "projects": [
+      {
+        "name": "E-commerce Platform",
+        "role": "Lead Developer",
+        "duration": "6 months",
+        "technologies": ["React", "Node.js", "MongoDB"]
+      },
+      {
+        "name": "API Gateway",
+        "role": "Backend Developer", 
+        "duration": "3 months",
+        "technologies": ["Python", "FastAPI", "PostgreSQL"]
+      }
+    ],
+    "performance": {
+      "rating": 4.8,
+      "reviews_completed": 12,
+      "goals_achieved": 15,
+      "is_top_performer": true
+    },
+    "salary": 95000,
+    "benefits": {
+      "health_insurance": true,
+      "dental": true,
+      "vision": false,
+      "retirement_401k": true,
+      "stock_options": 1000
+    },
+    "notes": "Excellent technical skills and leadership capabilities. Consistently delivers high-quality code and mentors junior developers. Strong problem-solving abilities and great team collaboration.",
+    "last_promotion": "2023-03-15",
+    "is_active": true
+  },
+  {
+    "id": 2,
+    "employee_info": {
+      "name": "Sarah Johnson",
+      "position": "UX/UI Designer",
+      "department": "Design",
+      "hire_date": "2021-06-20"
+    },
+    "contact": {
+      "email": "sarah.johnson@company.com",
+      "phone": "+1-555-0202",
+      "address": {
+        "street": "456 Design Ave",
+        "city": "Creative City", 
+        "state": "NY",
+        "zip": "67890"
+      }
+    },
+    "skills": ["Figma", "Adobe Creative Suite", "Sketch", "InVision", "HTML/CSS", "User Research"],
+    "projects": [
+      {
+        "name": "Mobile App Redesign",
+        "role": "Lead Designer",
+        "duration": "4 months",
+        "technologies": ["Figma", "Principle", "InVision"]
+      },
+      {
+        "name": "Website Refresh",
+        "role": "UI Designer",
+        "duration": "2 months", 
+        "technologies": ["Adobe XD", "Figma", "CSS"]
+      }
+    ],
+    "performance": {
+      "rating": 4.6,
+      "reviews_completed": 8,
+      "goals_achieved": 12,
+      "is_top_performer": true
+    },
+    "salary": 78000,
+    "benefits": {
+      "health_insurance": true,
+      "dental": true,
+      "vision": true,
+      "retirement_401k": true,
+      "stock_options": 500
+    },
+    "notes": "Creative and detail-oriented designer with excellent user experience insights. Strong collaboration with development teams and consistently produces innovative design solutions.",
+    "last_promotion": "2023-08-10",
+    "is_active": true
+  },
+  {
+    "id": 3,
+    "employee_info": {
+      "name": "Michael Chen",
+      "position": "DevOps Engineer", 
+      "department": "Infrastructure",
+      "hire_date": "2019-09-12"
+    },
+    "contact": {
+      "email": "michael.chen@company.com",
+      "phone": "+1-555-0303",
+      "address": {
+        "street": "789 Cloud Blvd",
+        "city": "Server Town",
+        "state": "TX",
+        "zip": "54321"
+      }
+    },
+    "skills": ["AWS", "Docker", "Kubernetes", "Terraform", "Jenkins", "Python", "Bash", "Monitoring"],
+    "projects": [
+      {
+        "name": "Cloud Migration",
+        "role": "Infrastructure Lead",
+        "duration": "8 months",
+        "technologies": ["AWS", "Terraform", "Docker"]
+      },
+      {
+        "name": "CI/CD Pipeline",
+        "role": "DevOps Engineer",
+        "duration": "3 months",
+        "technologies": ["Jenkins", "Docker", "Kubernetes"]
+      }
+    ],
+    "performance": {
+      "rating": 4.9,
+      "reviews_completed": 15,
+      "goals_achieved": 18,
+      "is_top_performer": true
+    },
+    "salary": 105000,
+    "benefits": {
+      "health_insurance": true,
+      "dental": true,
+      "vision": true,
+      "retirement_401k": true,
+      "stock_options": 1500
+    },
+    "notes": "Exceptional infrastructure expertise and automation skills. Reduced deployment time by 75% and improved system reliability significantly. Great mentor for cloud technologies.",
+    "last_promotion": "2022-12-01",
+    "is_active": true
+  },
+  {
+    "id": 4,
+    "employee_info": {
+      "name": "Emily Rodriguez",
+      "position": "Data Scientist",
+      "department": "Analytics", 
+      "hire_date": "2022-03-08"
+    },
+    "contact": {
+      "email": "emily.rodriguez@company.com",
+      "phone": "+1-555-0404",
+      "address": {
+        "street": "321 Analytics Way",
+        "city": "Data City",
+        "state": "WA",
+        "zip": "98765"
+      }
+    },
+    "skills": ["Python", "R", "SQL", "Machine Learning", "TensorFlow", "Pandas", "Jupyter", "Tableau"],
+    "projects": [
+      {
+        "name": "Customer Segmentation",
+        "role": "Data Scientist",
+        "duration": "5 months",
+        "technologies": ["Python", "Scikit-learn", "Pandas"]
+      },
+      {
+        "name": "Predictive Analytics",
+        "role": "ML Engineer",
+        "duration": "6 months",
+        "technologies": ["TensorFlow", "Python", "Docker"]
+      }
+    ],
+    "performance": {
+      "rating": 4.4,
+      "reviews_completed": 6,
+      "goals_achieved": 9,
+      "is_top_performer": false
+    },
+    "salary": 92000,
+    "benefits": {
+      "health_insurance": true,
+      "dental": false,
+      "vision": true,
+      "retirement_401k": true,
+      "stock_options": 750
+    },
+    "notes": "Strong analytical skills and machine learning expertise. Delivered valuable insights that increased customer retention by 20%. Shows great potential for leadership roles.",
+    "last_promotion": null,
+    "is_active": true
+  },
+  {
+    "id": 5,
+    "employee_info": {
+      "name": "David Kim",
+      "position": "Product Manager",
+      "department": "Product",
+      "hire_date": "2020-11-30"
+    },
+    "contact": {
+      "email": "david.kim@company.com", 
+      "phone": "+1-555-0505",
+      "address": {
+        "street": "654 Product Plaza",
+        "city": "Innovation Hub",
+        "state": "CA",
+        "zip": "13579"
+      }
+    },
+    "skills": ["Product Strategy", "Agile", "Scrum", "Data Analysis", "User Research", "Roadmapping"],
+    "projects": [
+      {
+        "name": "Feature Roadmap 2024",
+        "role": "Product Manager",
+        "duration": "12 months",
+        "technologies": ["Jira", "Confluence", "Analytics"]
+      },
+      {
+        "name": "User Experience Optimization",
+        "role": "Product Lead",
+        "duration": "4 months",
+        "technologies": ["A/B Testing", "Analytics", "Research"]
+      }
+    ],
+    "performance": {
+      "rating": 4.7,
+      "reviews_completed": 10,
+      "goals_achieved": 14,
+      "is_top_performer": true
+    },
+    "salary": 110000,
+    "benefits": {
+      "health_insurance": true,
+      "dental": true,
+      "vision": true,
+      "retirement_401k": true,
+      "stock_options": 2000
+    },
+    "notes": "Strategic thinker with excellent stakeholder management skills. Successfully launched 3 major features that increased user engagement by 35%. Strong cross-functional collaboration.",
+    "last_promotion": "2023-01-20",
+    "is_active": true
+  }
+]

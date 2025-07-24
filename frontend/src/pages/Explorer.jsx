@@ -3,6 +3,7 @@ import Button from '../utils/Button.jsx'
 import ApiService from '../services/api.js'
 import { useStats } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
+import SourceFileViewer from '../components/SourceFileViewer.jsx'
 
 function Explorer() {
     const { refreshStats } = useStats();
@@ -12,6 +13,7 @@ function Explorer() {
     const [uploadSuccess, setUploadSuccess] = React.useState(false);
     const [error, setError] = React.useState(null);
     const [previewData, setPreviewData] = React.useState(null);
+    const [sourcePreview, setSourcePreview] = React.useState(null);
 
     const handleFileUpload = (event) => {
         const selectedFile = event.target.files[0];
@@ -21,6 +23,7 @@ function Explorer() {
             setUploadResult(null);
             setError(null);
             setPreviewData(null);
+            setSourcePreview(null);
             console.log(`File selected: ${selectedFile.name}`);
         }
     };
@@ -43,8 +46,13 @@ function Explorer() {
             // Load preview data
             if (result.file_id) {
                 try {
-                    const preview = await ApiService.previewFile(result.file_id);
-                    setPreviewData(preview);
+                    // Load both source and parquet previews
+                    const [sourceData, parquetData] = await Promise.all([
+                        ApiService.previewOriginalFile(result.file_id),
+                        ApiService.previewFile(result.file_id)
+                    ]);
+                    setSourcePreview(sourceData);
+                    setPreviewData(parquetData);
                 } catch (previewError) {
                     console.warn('Preview failed:', previewError.message);
                 }
@@ -382,30 +390,45 @@ function Explorer() {
             </div>
         </div>
 
-        {/* Data Comparison Section: Source vs Parquet */}
-        {previewData && (
+        {/* Data Comparison Section: Original File vs Parquet File */}
+        {previewData && sourcePreview && (
             <div style={{ marginTop: '2rem' }}>
-                <h2 style={{ marginBottom: '1.5rem', borderBottom: '3px solid var(--main-color)', paddingBottom: '0.5rem', letterSpacing: '0.5px' }}>Compare Source & Parquet Data</h2>
+                <h2 style={{ marginBottom: '1.5rem', borderBottom: '3px solid var(--main-color)', paddingBottom: '0.5rem', letterSpacing: '0.5px' }}>
+                    Compare Source File vs Parquet File
+                </h2>
                 <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
-                    {/* Source File Table */}
+                    {/* Source File in Original Format */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <DataTable
-                            columns={previewData.columns}
-                            data={previewData.preview}
-                            title={uploadResult?.original_file?.filename ? `Source File: ${uploadResult.original_file.filename}` : 'Source File'}
+                        <SourceFileViewer
+                            file={{
+                                original_filename: uploadResult?.original_file?.filename || file?.name,
+                                file_id: uploadResult?.file_id,
+                                file_size: file?.size,
+                                upload_timestamp: uploadResult?.upload_time
+                            }}
+                            title={uploadResult?.original_file?.filename ? `Source: ${uploadResult.original_file.filename}` : 'Source File (Original Format)'}
                         />
                     </div>
                     {/* Vertical Divider */}
-                    <div style={{ width: '2px', background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', height: '100%', borderRadius: '2px', margin: '0 1rem' }} />
-                    {/* Parquet File Table */}
+                    <div style={{ width: '3px', background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', minHeight: '400px', borderRadius: '2px', margin: '0 1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    {/* Parquet File */}
                     <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ marginBottom: '1rem', color: 'var(--sub-color)' }}>
+                        📊 Parquet Data Preview (Table Format)
+                       </h3>
                         <DataTable
-                            columns={previewData.columns}
-                            data={previewData.preview}
-                            title={uploadResult?.parquet_file?.filename ? `Parquet File: ${uploadResult.parquet_file.filename}` : 'Parquet File'}
-                        />
+                        columns={previewData.columns}
+                        data={previewData.preview}
+                        title="Parquet Data Table"
+                        fileType={previewData.file_type}
+                        maxHeight="500px"
+                        showFullData={false}
+                    />
                     </div>
                 </div>
+            
+
+                
                 {/* Horizontal Bar for separation */}
                 <div style={{ margin: '2rem 0 0 0', height: '6px', width: '100%', background: 'linear-gradient(to right, var(--main-color), var(--sub-color))', borderRadius: '3px' }} />
             </div>

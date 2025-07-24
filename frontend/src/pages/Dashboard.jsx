@@ -1,13 +1,92 @@
-
-
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../utils/Button.jsx';
 import { useStats } from '../context/StatsContext.jsx';
 import Modal from '../components/Modal.jsx';
 import DataTable from '../components/DataTable.jsx';
+import SourceFileViewer from '../components/SourceFileViewer.jsx';
 import ApiService from '../services/api.js';
+
+// Component to display Parquet data in table format
+function ParquetDataViewer({ fileId, fileName, title }) {
+  const [parquetData, setParquetData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    const loadParquetData = async () => {
+      if (!fileId) return;
+      
+      setLoading(true);
+      try {
+        const data = await ApiService.previewFile(fileId, false);
+        setParquetData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParquetData();
+  }, [fileId]);
+
+  if (loading) {
+    return (
+      <div style={{ 
+        padding: '2rem', 
+        textAlign: 'center', 
+        color: 'var(--text-color-light)',
+        border: '2px dashed #e9ecef',
+        borderRadius: 'var(--border-radius)'
+      }}>
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+        <p>Loading parquet data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        padding: '2rem', 
+        textAlign: 'center', 
+        color: 'var(--error-color)',
+        border: '2px dashed #e9ecef',
+        borderRadius: 'var(--border-radius)'
+      }}>
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>❌</div>
+        <p>Error loading data: {error}</p>
+      </div>
+    );
+  }
+
+  if (!parquetData) {
+    return (
+      <div style={{ 
+        padding: '2rem', 
+        textAlign: 'center', 
+        color: 'var(--text-color-light)',
+        border: '2px dashed #e9ecef',
+        borderRadius: 'var(--border-radius)'
+      }}>
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
+        <p>No data available</p>
+      </div>
+    );
+  }
+
+  return (
+    <DataTable
+      columns={parquetData.columns}
+      data={parquetData.preview}
+      title={title}
+      fileType="parquet"
+      maxHeight="500px"
+      showFullData={false}
+    />
+  );
+}
 
 function Dashboard() {
   const { stats, files, loading } = useStats();
@@ -18,6 +97,8 @@ function Dashboard() {
   const [modalLoading, setModalLoading] = useState(false);
   const [showFullData, setShowFullData] = useState(false);
   const [currentFileId, setCurrentFileId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [viewMode, setViewMode] = useState('comparison'); // 'comparison', 'original', or 'files'
 
   const loadFullData = async () => {
     if (!currentFileId) return;
@@ -152,6 +233,17 @@ function Dashboard() {
               </div>
             ) : (
               <div>
+                <div style={{ 
+                  marginBottom: '1rem', 
+                  padding: '0.75rem', 
+                  backgroundColor: 'var(--background-color)', 
+                  borderRadius: 'var(--border-radius)',
+                  fontSize: '0.75rem',
+                  color: 'var(--text-color-light)',
+                  border: '1px solid #e9ecef'
+                }}>
+                  💡 <strong>Tip:</strong> Click any file to view both source file and parquet comparison
+                </div>
                 {files.slice(0, 5).map((file, index) => (
                   <div key={file.file_id || index} style={{
                     display: 'flex',
@@ -161,27 +253,13 @@ function Dashboard() {
                     borderBottom: index < 4 ? '1px solid #e9ecef' : 'none',
                     cursor: 'pointer'
                   }}
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      setSelectedFile(file);
                       setCurrentFileId(file.file_id);
                       setModalOpen(true);
-                      setModalTitle(`Data Comparison: Source vs Parquet - ${file.original_filename}`);
-                      setShowFullData(false); // Start with preview
-                      setModalLoading(true);
-                      try {
-                        // Fetch both original and parquet previews
-                        const [sourceData, parquetData] = await Promise.all([
-                          ApiService.previewOriginalFile(file.file_id, false),
-                          ApiService.previewFile(file.file_id, false)
-                        ]);
-                        setSourcePreview(sourceData);
-                        setParquetPreview(parquetData);
-                      } catch (err) {
-                        console.error('Preview error:', err);
-                        setSourcePreview(null);
-                        setParquetPreview(null);
-                      } finally {
-                        setModalLoading(false);
-                      }
+                      setModalTitle(`Files Comparison: ${file.original_filename}`);
+                      setViewMode('files');
+                      setModalLoading(false);
                     }}>
                     <div>
                       <div style={{ fontWeight: '500', fontSize: '0.875rem' }}>
@@ -271,10 +349,72 @@ function Dashboard() {
             </div>
           </div>
         </div>
-        {/* Data Comparison Section: Source vs Parquet - Complete File Analysis */}
+        {/* Modal for File Display */}
         <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle}>
           <div>
-            {modalLoading ? (
+            {viewMode === 'original' && selectedFile ? (
+              <SourceFileViewer 
+                file={selectedFile}
+                title={selectedFile.original_filename}
+              />
+            ) : viewMode === 'files' && selectedFile ? (
+              <div>
+                {/* Files Comparison Header */}
+                <div style={{ 
+                  marginBottom: '1.5rem', 
+                  padding: '1rem', 
+                  backgroundColor: 'var(--background-color)', 
+                  borderRadius: 'var(--border-radius)',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
+                    📁 File Comparison View
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-color-light)' }}>
+                    Compare original source file with processed parquet data
+                  </p>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                  {/* Source File */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <SourceFileViewer
+                      file={selectedFile}
+                      title={`Source: ${selectedFile.original_filename}`}
+                    />
+                  </div>
+                  {/* Vertical Divider */}
+                  <div style={{ 
+                    width: '3px', 
+                    background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', 
+                    minHeight: '400px', 
+                    borderRadius: '2px', 
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+                  }} />
+                  {/* Parquet Data Table */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {selectedFile.parquet_filename ? (
+                      <ParquetDataViewer 
+                        fileId={selectedFile.file_id}
+                        fileName={selectedFile.parquet_filename}
+                        title={`Parquet Data: ${selectedFile.parquet_filename}`}
+                      />
+                    ) : (
+                      <div style={{
+                        padding: '2rem',
+                        textAlign: 'center',
+                        color: 'var(--text-color-light)',
+                        border: '2px dashed #e9ecef',
+                        borderRadius: 'var(--border-radius)'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+                        <p>Parquet file not available yet</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : modalLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
                 <p>Loading {showFullData ? 'complete' : 'preview'} file data for comparison...</p>
@@ -362,7 +502,7 @@ function Dashboard() {
                   </div>
                 </div>
                 
-                {/* Side-by-side Data Tables with scrollbars */}
+                {/* Side-by-side Data Display: Original Format vs Table */}
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: '1fr 3px 1fr',
@@ -371,13 +511,10 @@ function Dashboard() {
                   minHeight: '400px'
                 }}>
                   <div style={{ overflow: 'hidden' }}>
-                    <DataTable
-                      columns={sourcePreview.columns}
-                      data={sourcePreview.preview}
-                      title={`Source File ${showFullData ? 'Complete Data' : 'Preview'}`}
+                    <SourceFileViewer
+                      fileData={sourcePreview}
                       fileType={sourcePreview.file_type}
-                      maxHeight={showFullData ? '600px' : '400px'}
-                      showFullData={showFullData}
+                      title={`Source File ${showFullData ? 'Complete Data' : 'Preview'} (Original Format)`}
                     />
                   </div>
                   <div style={{ 
@@ -390,7 +527,7 @@ function Dashboard() {
                     <DataTable
                       columns={parquetPreview.columns}
                       data={parquetPreview.preview}
-                      title={`Parquet File ${showFullData ? 'Complete Data' : 'Preview'}`}
+                      title={`Parquet File ${showFullData ? 'Complete Data' : 'Preview'} (Table Format)`}
                       fileType={parquetPreview.file_type}
                       maxHeight={showFullData ? '600px' : '400px'}
                       showFullData={showFullData}

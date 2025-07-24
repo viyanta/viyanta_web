@@ -206,6 +206,50 @@ async def get_statistics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving stats: {str(e)}")
 
+@router.get("/original/{file_id}")
+async def serve_original_file(file_id: str):
+    """Serve the original file exactly as it was uploaded"""
+    try:
+        # Get file record from database
+        file_record = get_file_by_id(file_id)
+        if not file_record:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Construct the original file path
+        original_filename = file_record['stored_filename']
+        original_path = os.path.join(UPLOAD_DIR, original_filename)
+        
+        if not os.path.exists(original_path):
+            raise HTTPException(status_code=404, detail="Original file not found on disk")
+        
+        # Get file extension to set proper media type
+        file_extension = os.path.splitext(file_record['original_filename'])[1].lower()
+        
+        media_type_map = {
+            '.pdf': 'application/pdf',
+            '.json': 'application/json',
+            '.csv': 'text/csv',
+            '.txt': 'text/plain'
+        }
+        
+        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+        
+        # Return the file with appropriate headers for inline viewing
+        headers = {
+            "Content-Disposition": "inline",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        
+        return FileResponse(
+            path=original_path,
+            media_type=media_type,
+            headers=headers
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to serve original file: {str(e)}")
+
 @router.get("/download/original/{file_id}")
 async def download_original_file(file_id: str):
     """Download original uploaded file"""

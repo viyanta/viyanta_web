@@ -9,7 +9,7 @@ app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],  # Allow frontend origins
+    allow_origins=["*"],  # Allow frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
