@@ -80,6 +80,60 @@ class ApiService {
     return response.json();
   }
 
+  async getDropdownData() {
+    const response = await fetch(`${API_BASE_URL}/files/dropdown-data`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch dropdown data');
+    }
+
+    return response.json();
+  }
+
+  async generateReport(filters) {
+    const response = await fetch(`${API_BASE_URL}/files/generate-report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(filters),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to generate report');
+    }
+
+    return response.json();
+  }
+
+  async getCompanyLforms(companyName) {
+    const response = await fetch(`${API_BASE_URL}/files/company-lforms/${encodeURIComponent(companyName)}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch company L-forms');
+    }
+
+    return response.json();
+  }
+
+  async generateLformReport(filters) {
+    const response = await fetch(`${API_BASE_URL}/files/generate-lform-report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(filters),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to generate L-form report');
+    }
+
+    return response.json();
+  }
+
   // Helper method to download blob as file
   downloadBlob(blob, filename) {
     const url = window.URL.createObjectURL(blob);

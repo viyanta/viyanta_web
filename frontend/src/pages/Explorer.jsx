@@ -104,7 +104,7 @@ function Explorer() {
     <div className="fade-in" style={{ padding: '1rem' }}>
         {/* Header Section */}
         <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ marginBottom: '0.5rem' }}>File Explorer</h1>
+            <h1 style={{ marginBottom: '0.5rem' }}>Checker and Maker </h1>
             <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
                 Upload your files and convert them to Parquet format for efficient data processing.
             </p>
