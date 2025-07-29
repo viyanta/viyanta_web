@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routes.files import router as files_router
+from routes.upload import router as upload_router
+from routes.download import router as download_router
+from routes.preview import router as preview_router
+from routes.stats import router as stats_router
+from routes.dropdown import router as dropdown_router
+from routes.report import router as report_router
+from routes.company_lforms import router as company_lforms_router
+from routes.extraction import router as extract_router
 import os
 
 app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
@@ -16,11 +23,20 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(files_router, prefix="/api/files", tags=["files"])
+app.include_router(upload_router, prefix="/api/files", tags=["upload"])
+app.include_router(download_router, prefix="/api/files", tags=["download"])
+app.include_router(preview_router, prefix="/api/files", tags=["preview"])
+app.include_router(stats_router, prefix="/api/files", tags=["stats"])
+app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
+app.include_router(report_router, prefix="/api/files", tags=["report"])
+app.include_router(company_lforms_router,
+                   prefix="/api/files", tags=["company_lforms"])
+app.include_router(extract_router, prefix="/api/extract", tags=["extract"])
 
 # Serve static files (uploads and converted files)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/converted", StaticFiles(directory="converted"), name="converted")
+
 
 @app.get("/")
 def read_root():
@@ -37,9 +53,11 @@ def read_root():
         }
     }
 
+
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "message": "API is running"}
+
 
 if __name__ == "__main__":
     import uvicorn
