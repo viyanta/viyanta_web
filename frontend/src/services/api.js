@@ -134,6 +134,23 @@ class ApiService {
     return response.json();
   }
 
+  async extractPdf(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/extract/extract-pdf`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'PDF extraction failed');
+    }
+
+    return response.json();
+  }
+
   // Helper method to download blob as file
   downloadBlob(blob, filename) {
     const url = window.URL.createObjectURL(blob);

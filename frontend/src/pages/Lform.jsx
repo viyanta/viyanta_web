@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ApiService from '../services/api'
+import DataTable from '../components/DataTable.jsx'
 
 function Lform() {
     const [dropdownData, setDropdownData] = useState({
@@ -116,6 +117,15 @@ function Lform() {
         const { table } = reportData;
         const { headers, rows, title } = table;
 
+        // Convert row array format to object format for DataTable
+        const convertedData = rows.map(row => {
+            const rowObj = {};
+            headers.forEach((header, index) => {
+                rowObj[header] = row[index] || '';
+            });
+            return rowObj;
+        });
+
         return (
             <div style={{
                 marginTop: '30px',
@@ -125,20 +135,6 @@ function Lform() {
                 border: '1px solid #dee2e6',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '20px'
-                }}>
-                    <h3 style={{margin: 0}}>
-                        {title}
-                    </h3>
-                    <div style={{fontSize: '14px', color: '#666'}}>
-                        Total Rows: {table.total_rows}
-                    </div>
-                </div>
-                
                 <div style={{
                     marginBottom: '15px',
                     padding: '10px',
@@ -154,61 +150,14 @@ function Lform() {
                     <strong>Source Files:</strong> {reportData.metadata.source_files.join(', ')}
                 </div>
 
-                <div style={{
-                    overflowX: 'auto',
-                    maxHeight: '600px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                }}>
-                    <table style={{
-                        width: '100%',
-                        borderCollapse: 'collapse',
-                        fontSize: '14px'
-                    }}>
-                        <thead style={{
-                            backgroundColor: '#f8f9fa',
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 1
-                        }}>
-                            <tr>
-                                {headers.map((header, index) => (
-                                    <th key={index} style={{
-                                        padding: '12px 8px',
-                                        textAlign: 'left',
-                                        borderBottom: '2px solid #dee2e6',
-                                        fontWeight: '600',
-                                        whiteSpace: 'nowrap',
-                                        minWidth: '100px'
-                                    }}>
-                                        {header.toUpperCase()}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rows.map((row, rowIndex) => (
-                                <tr key={rowIndex} style={{
-                                    backgroundColor: rowIndex % 2 === 0 ? '#fff' : '#f9f9f9',
-                                    ':hover': { backgroundColor: '#e3f2fd' }
-                                }}>
-                                    {row.map((cell, colIndex) => (
-                                        <td key={colIndex} style={{
-                                            padding: '8px',
-                                            borderBottom: '1px solid #eee',
-                                            verticalAlign: 'top',
-                                            maxWidth: '200px',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}>
-                                            {String(cell || '')}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <DataTable
+                    title={title}
+                    columns={headers}
+                    data={convertedData}
+                    maxHeight="600px"
+                    showFullData={true}
+                    fileType="lform"
+                />
 
                 {rows.length === 0 && (
                     <div style={{
