@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useStats } from '../context/StatsContext.jsx';
 import dashboardData from '../data/dashboardData.json';
 import companyDistributionData from '../data/companyDistribution.json';
-
+import './InsuranceDashboard.css';
 
 // Chart Component for Monthly Trends
-const MonthlyChart = ({ data, title, color }) => {
+const MonthlyChart = ({ data, title, color, metricType }) => {
   const maxValue = Math.max(...data.map(d => d.value));
   const yAxisSteps = 5;
   
@@ -23,37 +23,15 @@ const MonthlyChart = ({ data, title, color }) => {
   };
   
   return (
-    <div style={{ 
-      backgroundColor: 'white', 
-      borderRadius: '6px', 
-      padding: '0.5rem',
-      border: '1px solid #e9ecef',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      minHeight: `${chartHeight}px`,
-      transition: 'all 0.2s ease',
-      overflow: 'hidden'
-    }}>
+    <div className="monthly-chart" style={{ minHeight: `${chartHeight}px` }}>
       {/* Y-axis and Chart Container */}
-      <div style={{ 
-        display: 'flex', 
-        height: `${chartHeight - 30}px`,
-        position: 'relative'
-      }}>
+      <div className="chart-container" style={{ height: `${chartHeight - 30}px` }}>
         {/* Y-axis Labels */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          width: '40px',
-          paddingRight: '0.25rem',
-          fontSize: '0.55rem',
-          color: '#666',
-          fontWeight: '500'
-        }}>
+        <div className="y-axis-labels">
           {Array.from({ length: yAxisSteps + 1 }, (_, i) => {
             const value = displayMaxValue - (i * (displayMaxValue / yAxisSteps));
             return (
-              <div key={i} style={{ textAlign: 'right' }}>
+              <div key={i} className="y-axis-label">
                 {value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
               </div>
             );
@@ -61,84 +39,39 @@ const MonthlyChart = ({ data, title, color }) => {
         </div>
         
         {/* Chart Bars */}
-        <div style={{ 
-          flex: 1, 
-          display: 'flex', 
-          alignItems: 'end', 
-          gap: '0.1rem',
-          paddingLeft: '0.1rem',
-          paddingRight: '0.1rem',
-          position: 'relative',
-          justifyContent: 'space-between'
-        }}>
+        <div className="chart-bars">
           {/* Y-axis Grid Lines */}
           {Array.from({ length: yAxisSteps + 1 }, (_, i) => (
             <div
               key={i}
+              className="y-axis-grid-line"
               style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                top: `${(i / yAxisSteps) * 100}%`,
-                height: '1px',
-                backgroundColor: '#e9ecef',
-                zIndex: 1
+                top: `${(i / yAxisSteps) * 100}%`
               }}
             />
           ))}
           
           {data.map((item, index) => (
-            <div key={index} style={{ 
-              flex: 1, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center',
-              position: 'relative',
-              zIndex: 2,
-              maxWidth: '50px'
-            }}>
-              <div style={{
-                width: '70%',
-                height: `${getBarHeight(item.value)}px`,
-                backgroundColor: color,
-                borderRadius: '3px 3px 0 0',
-                minHeight: '4px',
-                transition: 'all 0.2s ease'
-              }} />
+            <div key={index} className="bar-container">
+              <div 
+                className={`bar ${metricType}`}
+                style={{
+                  height: `${getBarHeight(item.value)}px`
+                }}
+              />
             </div>
           ))}
         </div>
       </div>
       
       {/* X-axis Labels Below Chart */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginTop: '0.5rem',
-        paddingLeft: '40px',
-        paddingRight: '0.25rem'
-      }}>
+      <div className="x-axis-labels">
         {data.map((item, index) => (
-          <div key={index} style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.2rem',
-            maxWidth: '50px'
-          }}>
-            <div style={{ 
-              fontSize: '0.6rem', 
-              color: '#666',
-              textAlign: 'center'
-            }}>
+          <div key={index} className="x-axis-item">
+            <div className="month-label">
               {item.month}
             </div>
-            <div style={{ 
-              fontSize: '0.7rem', 
-              fontWeight: 'bold',
-              color: '#333'
-            }}>
+            <div className="value-label">
               {item.value >= 1000 ? `${(item.value / 1000).toFixed(0)}K` : item.value}
             </div>
           </div>
@@ -154,67 +87,26 @@ const CompanyDistributionChart = ({ data, title, color }) => {
   const total = sortedData.reduce((sum, item) => sum + item.percentage, 0);
   
   return (
-    <div style={{ 
-      backgroundColor: 'white', 
-      borderRadius: '6px', 
-      padding: '0.5rem',
-      border: '1px solid #e9ecef',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      overflow: 'hidden'
-    }}>
-
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '2px',
-        minHeight: '100px',
-        padding: '0.2rem'
-      }}>
+    <div className="company-distribution-chart">
+      <div className="company-boxes">
         {sortedData.map((item, index) => {
           const width = Math.max((item.percentage / total) * 100, 12); // Minimum 12% width
           
           return (
             <div
               key={item.name}
+              className="company-box"
               style={{
                 backgroundColor: item.color,
-                padding: '0.5rem 0.3rem',
-                borderRadius: '4px',
                 minWidth: `${width}%`,
-                flex: `1 1 ${width}%`,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                color: 'white',
-                fontSize: '0.65rem',
-                fontWeight: '600',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '30px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                transition: 'all 0.15s ease'
+                flex: `1 1 ${width}%`
               }}
               title={`${item.name}: ${item.percentage}%`}
             >
-              <div style={{
-                fontWeight: 'bold',
-                fontSize: '0.6rem',
-                marginBottom: '0.2rem',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                lineHeight: '1.1'
-              }}>
+              <div className="company-name">
                 {item.name}
               </div>
-              <div style={{
-                fontSize: '0.55rem',
-                opacity: 0.95,
-                fontWeight: '500'
-              }}>
+              <div className="company-percentage">
                 {item.percentage}%
               </div>
             </div>
@@ -226,111 +118,41 @@ const CompanyDistributionChart = ({ data, title, color }) => {
 };
 
 // KPI Card Component
-const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) => {
+const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, metricType }) => {
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '1.5rem',
-      border: `2px solid ${color}20`,
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      transform: 'translateZ(0)'
-    }}>
+    <div className={`kpi-card ${metricType}`}>
       {/* KPI Row Layout - Responsive */}
-      <div style={{ 
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '1rem',
-        alignItems: 'stretch',
-        padding: '0.5rem 0',
-        position: 'relative'
-      }}>
+      <div className="kpi-row-layout">
         {/* Left: Metric Info */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.75rem',
-          padding: '0.5rem',
-          flexWrap: 'wrap',
-          minHeight: '80px',
-          position: 'relative'
-        }}>
-          <div style={{
-            width: '45px',
-            height: '45px',
-            backgroundColor: color,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.3rem',
-            color: 'white',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-            flexShrink: 0
-          }}>
+        <div className="metric-info">
+          <div className={`metric-icon ${metricType}`}>
             {icon}
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '1.3rem', 
-              color: '#36659b', 
-              fontWeight: '600',
-              marginBottom: '0.4rem',
-              wordBreak: 'break-word',
-              lineHeight: '1.2'
-            }}>
+          <div className="metric-details">
+            <h3 className="metric-title">
               {title}
             </h3>
-            <div style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
-              color: color,
-              marginBottom: '0.2rem',
-              lineHeight: '1',
-              wordBreak: 'break-word'
-            }}>
+            <div className={`metric-value ${metricType}`}>
               {value.toLocaleString()}
             </div>
-            <div style={{ 
-              fontSize: '0.8rem', 
-              color: '#666',
-              fontWeight: '500'
-            }}>
+            <div className="metric-unit">
               {unit}
             </div>
           </div>
         </div>
         
         {/* Middle: Monthly Trend Chart */}
-        <div style={{ 
-          height: '100%',
-          padding: '0.25rem',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          minHeight: '180px',
-          position: 'relative'
-        }}>
+        <div className="chart-section">
           <MonthlyChart 
             data={monthlyData} 
             title="" 
             color={color}
+            metricType={metricType}
           />
         </div>
         
         {/* Right: Company Distribution */}
-        <div style={{ 
-          height: '100%',
-          padding: '0.25rem',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          minHeight: '180px',
-          position: 'relative'
-        }}>
+        <div className="chart-section">
           <CompanyDistributionChart 
             data={companyData} 
             title="" 
@@ -347,27 +169,11 @@ const TreemapSection = ({ title, data, colors }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   
   return (
-    <div style={{
-      marginBottom: '2rem',
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      padding: '1.5rem',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{
-        margin: '0 0 1rem 0',
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        color: '#36659b'
-      }}>
+    <div className="treemap-section">
+      <h3 className="treemap-title">
         {title}
       </h3>
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '2px',
-        minHeight: '120px'
-      }}>
+      <div className="treemap-container">
         {data.map((item, index) => {
           const percentage = ((item.value / total) * 100).toFixed(1);
           const width = Math.max((item.value / total) * 100, 8); // Minimum 8% width
@@ -375,40 +181,18 @@ const TreemapSection = ({ title, data, colors }) => {
           return (
             <div
               key={item.name}
+              className="treemap-box"
               style={{
                 backgroundColor: colors[index % colors.length],
-                padding: '0.5rem',
-                borderRadius: '4px',
                 minWidth: `${width}%`,
-                flex: `1 1 ${width}%`,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                color: 'white',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                position: 'relative',
-                overflow: 'hidden'
+                flex: `1 1 ${width}%`
               }}
               title={`${item.name}: ${percentage}%`}
             >
-              <div style={{
-                fontWeight: 'bold',
-                fontSize: '0.7rem',
-                marginBottom: '0.25rem',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                width: '100%'
-              }}>
+              <div className="treemap-name">
                 {item.name}
               </div>
-              <div style={{
-                fontSize: '0.65rem',
-                opacity: 0.9
-              }}>
+              <div className="treemap-percentage">
                 {percentage}%
               </div>
             </div>
@@ -438,88 +222,28 @@ function InsuranceDashboard() {
   ];
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      backgroundColor: 'white',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      position: 'relative',
-      overflow: 'hidden',
-      paddingTop: '0',
-      marginTop: '0',
-      top: '0',
-      left: '0',
-      right: '0'
-    }}>
+    <div className="insurance-dashboard">
       {/* Dashboard Header - At the very top */}
-      <div style={{ 
-        padding: '1.5rem 1.5rem 1rem 1.5rem',
-        backgroundColor: 'white'
-      }}>
-        <h1 style={{ 
-          margin: '0 0 0.5rem 0', 
-          color: '#36659b',
-          fontSize: '2rem',
-          fontWeight: '700',
-          wordBreak: 'break-word'
-        }}>
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">
           Insurance Dashboard
         </h1>
-        <p style={{ 
-          margin: 0, 
-          color: '#666',
-          fontSize: '1rem',
-          lineHeight: '1.4'
-        }}>
+        <p className="dashboard-subtitle">
           Comprehensive view of key performance indicators and market analysis
         </p>
       </div>
 
       {/* Top Navigation Bar */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '0 1rem',
-        position: 'sticky',
-        top: '0',
-        zIndex: 999,
-        transform: 'translateZ(0)',
-        marginTop: '0',
-        width: '100%',
-        overflow: 'hidden'
-      }}>
+      <div className="top-navigation">
         {/* Navigation Tabs Only */}
-        <div style={{
-          display: 'flex',
-          gap: '0',
-          alignItems: 'center',
-          padding: '0 1.5rem'
-        }}>
+        <div className="navigation-tabs-container">
           {/* Navigation Tabs */}
-          <div style={{
-            display: 'flex',
-            overflowX: 'auto',
-            gap: '0',
-            flex: 1,
-            padding: '0.5rem 0'
-          }}>
+          <div className="navigation-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                style={{
-                  padding: '1rem 1.5rem',
-                  border: 'none',
-                  backgroundColor: activeTab === tab ? '#36659b' : 'transparent',
-                  color: activeTab === tab ? 'white' : '#666',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: activeTab === tab ? '600' : '500',
-                  borderBottom: 'none',
-                  transition: 'all 0.3s ease',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  borderRadius: '6px 6px 0 0',
-                  marginRight: '0.25rem'
-                }}
+                className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
               >
                 {tab}
               </button>
@@ -528,38 +252,16 @@ function InsuranceDashboard() {
         </div>
 
         {/* Multiple Dropdowns Section */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '1.5rem',
-          padding: '1.5rem',
-          backgroundColor: 'white',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'flex-start'
-        }}>
+        <div className="dropdowns-section">
           {/* Select Company */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ 
-              fontSize: '0.75rem', 
-              fontWeight: '600', 
-              color: '#36659b',
-              whiteSpace: 'nowrap'
-            }}>
+          <div className="dropdown-container">
+            <label className="dropdown-label">
               Select Company
             </label>
             <select
               value={selectedCompany}
               onChange={(e) => setSelectedCompany(e.target.value)}
-              style={{
-                padding: '0.5rem 0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                fontSize: '0.75rem',
-                minWidth: '180px',
-                cursor: 'pointer'
-              }}
+              className="dropdown-select"
             >
               <option value="">Select a company...</option>
               <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
@@ -570,27 +272,14 @@ function InsuranceDashboard() {
           </div>
 
           {/* Company Information */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ 
-              fontSize: '0.75rem', 
-              fontWeight: '600', 
-              color: '#36659b',
-              whiteSpace: 'nowrap'
-            }}>
+          <div className="dropdown-container">
+            <label className="dropdown-label">
               Company Information
             </label>
             <select
               value={selectedInfoSection}
               onChange={(e) => setSelectedInfoSection(e.target.value)}
-              style={{
-                padding: '0.5rem 0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                fontSize: '0.75rem',
-                minWidth: '180px',
-                cursor: 'pointer'
-              }}
+              className="dropdown-select"
             >
               <option value="">Select information type...</option>
               {sidebarItems.map((item, index) => (
@@ -600,34 +289,15 @@ function InsuranceDashboard() {
               ))}
             </select>
           </div>
-
-
         </div>
-              </div>
+      </div>
 
       {/* Main Content */}
-      <div style={{ 
-        minHeight: 'calc(100vh - 120px)',
-        position: 'relative',
-        zIndex: 1,
-        marginTop: '0',
-        paddingTop: '0'
-      }}>
+      <div className="main-content">
         {/* Main Dashboard Content */}
-        <div style={{ 
-          flex: 1, 
-          padding: '1rem',
-          backgroundColor: 'white',
-          position: 'relative'
-        }}>
-
+        <div className="dashboard-content">
           {/* KPI Rows */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            marginBottom: '1rem'
-          }}>
+          <div className="kpi-rows">
             <KPICard
               title="Premium Value"
               value={currentCompanyData.metrics.premiumValue.total}
@@ -636,6 +306,7 @@ function InsuranceDashboard() {
               color="#28a745"
               monthlyData={currentCompanyData.metrics.premiumValue.monthlyData}
               companyData={companyDistributionData.premiumValue.companies}
+              metricType="premium-value"
             />
 
             <KPICard
@@ -646,6 +317,7 @@ function InsuranceDashboard() {
               color="#17a2b8"
               monthlyData={currentCompanyData.metrics.sumAssured.monthlyData}
               companyData={companyDistributionData.sumAssured.companies}
+              metricType="sum-assured"
             />
 
             <KPICard
@@ -656,6 +328,7 @@ function InsuranceDashboard() {
               color="#ffc107"
               monthlyData={currentCompanyData.metrics.numberOfLives.monthlyData}
               companyData={companyDistributionData.numberOfLives.companies}
+              metricType="number-of-lives"
             />
 
             <KPICard
@@ -666,12 +339,9 @@ function InsuranceDashboard() {
               color="#BD0B50"
               monthlyData={currentCompanyData.metrics.numberOfPolicies.monthlyData}
               companyData={companyDistributionData.numberOfPolicies.companies}
+              metricType="number-of-policies"
             />
           </div>
-
-        
-
-
         </div>
       </div>
     </div>
