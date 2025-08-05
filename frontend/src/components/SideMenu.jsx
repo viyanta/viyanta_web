@@ -10,6 +10,7 @@ function SideMenu() {
     { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics' },
     { path: '/explorer', label: 'Explorer', icon: '📁', description: 'Checker and Maker' },
     { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
+    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
     { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings' }
   ];
 

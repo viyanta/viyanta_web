@@ -7,6 +7,7 @@ import Explorer from './pages/Explorer.jsx'
 import Profile from './pages/Profile.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import Lform from './pages/Lform.jsx'
+import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/explorer" element={<Explorer />} />
                 <Route path="/lform" element={<Lform />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/insurance-dashboard" element={<InsuranceDashboard />} />
               </Routes>
             </main>
           </div>

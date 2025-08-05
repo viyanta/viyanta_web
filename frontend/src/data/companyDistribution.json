@@ -1,0 +1,82 @@
+{
+  "premiumValue": {
+    "title": "Premium Value Distribution",
+    "companies": [
+      { "name": "HDFC Life", "percentage": 25.5, "color": "#1f77b4" },
+      { "name": "SBI Life", "percentage": 18.2, "color": "#ff7f0e" },
+      { "name": "LIC", "percentage": 15.8, "color": "#2ca02c" },
+      { "name": "ICICI Pru", "percentage": 12.4, "color": "#d62728" },
+      { "name": "Max Life", "percentage": 8.9, "color": "#9467bd" },
+      { "name": "Bajaj Allianz", "percentage": 7.2, "color": "#8c564b" },
+      { "name": "Tata AIA", "percentage": 6.1, "color": "#e377c2" },
+      { "name": "Kotak Life", "percentage": 4.8, "color": "#7f7f7f" },
+      { "name": "Reliance Nippon", "percentage": 2.4, "color": "#bcbd22" },
+      { "name": "Bharti AXA", "percentage": 2.1, "color": "#17becf" },
+      { "name": "Ageas Federal", "percentage": 1.9, "color": "#a6cee3" },
+      { "name": "Aditya Birla", "percentage": 1.6, "color": "#fb9a99" },
+      { "name": "India First", "percentage": 1.2, "color": "#fdbf6f" },
+      { "name": "LIC of India", "percentage": 1.0, "color": "#cab2d6" },
+      { "name": "Aviva", "percentage": 0.8, "color": "#ff9896" }
+    ]
+  },
+  "sumAssured": {
+    "title": "Sum Assured Distribution",
+    "companies": [
+      { "name": "HDFC Life", "percentage": 28.3, "color": "#1f77b4" },
+      { "name": "SBI Life", "percentage": 20.1, "color": "#ff7f0e" },
+      { "name": "LIC", "percentage": 17.5, "color": "#2ca02c" },
+      { "name": "ICICI Pru", "percentage": 13.8, "color": "#d62728" },
+      { "name": "Max Life", "percentage": 9.2, "color": "#9467bd" },
+      { "name": "Bajaj Allianz", "percentage": 7.8, "color": "#8c564b" },
+      { "name": "Tata AIA", "percentage": 6.5, "color": "#e377c2" },
+      { "name": "Kotak Life", "percentage": 5.1, "color": "#7f7f7f" },
+      { "name": "Reliance Nippon", "percentage": 3.2, "color": "#bcbd22" },
+      { "name": "Bharti AXA", "percentage": 2.8, "color": "#17becf" },
+      { "name": "Ageas Federal", "percentage": 2.4, "color": "#a6cee3" },
+      { "name": "Aditya Birla", "percentage": 2.1, "color": "#fb9a99" },
+      { "name": "India First", "percentage": 1.8, "color": "#fdbf6f" },
+      { "name": "LIC of India", "percentage": 1.5, "color": "#cab2d6" },
+      { "name": "Aviva", "percentage": 1.2, "color": "#ff9896" }
+    ]
+  },
+  "numberOfLives": {
+    "title": "Number of Lives Distribution",
+    "companies": [
+      { "name": "HDFC Life", "percentage": 22.4, "color": "#1f77b4" },
+      { "name": "SBI Life", "percentage": 19.8, "color": "#ff7f0e" },
+      { "name": "LIC", "percentage": 16.8, "color": "#2ca02c" },
+      { "name": "ICICI Pru", "percentage": 12.1, "color": "#d62728" },
+      { "name": "Max Life", "percentage": 9.7, "color": "#9467bd" },
+      { "name": "Bajaj Allianz", "percentage": 8.4, "color": "#8c564b" },
+      { "name": "Tata AIA", "percentage": 7.3, "color": "#e377c2" },
+      { "name": "Kotak Life", "percentage": 5.9, "color": "#7f7f7f" },
+      { "name": "Reliance Nippon", "percentage": 3.8, "color": "#bcbd22" },
+      { "name": "Bharti AXA", "percentage": 3.2, "color": "#17becf" },
+      { "name": "Ageas Federal", "percentage": 2.9, "color": "#a6cee3" },
+      { "name": "Aditya Birla", "percentage": 2.6, "color": "#fb9a99" },
+      { "name": "India First", "percentage": 2.3, "color": "#fdbf6f" },
+      { "name": "LIC of India", "percentage": 2.0, "color": "#cab2d6" },
+      { "name": "Aviva", "percentage": 1.7, "color": "#ff9896" }
+    ]
+  },
+  "numberOfPolicies": {
+    "title": "Number of Policies Distribution",
+    "companies": [
+      { "name": "HDFC Life", "percentage": 24.6, "color": "#1f77b4" },
+      { "name": "SBI Life", "percentage": 21.3, "color": "#ff7f0e" },
+      { "name": "LIC", "percentage": 18.7, "color": "#2ca02c" },
+      { "name": "ICICI Pru", "percentage": 13.2, "color": "#d62728" },
+      { "name": "Max Life", "percentage": 10.1, "color": "#9467bd" },
+      { "name": "Bajaj Allianz", "percentage": 8.9, "color": "#8c564b" },
+      { "name": "Tata AIA", "percentage": 7.6, "color": "#e377c2" },
+      { "name": "Kotak Life", "percentage": 6.3, "color": "#7f7f7f" },
+      { "name": "Reliance Nippon", "percentage": 4.1, "color": "#bcbd22" },
+      { "name": "Bharti AXA", "percentage": 3.7, "color": "#17becf" },
+      { "name": "Ageas Federal", "percentage": 3.4, "color": "#a6cee3" },
+      { "name": "Aditya Birla", "percentage": 3.1, "color": "#fb9a99" },
+      { "name": "India First", "percentage": 2.8, "color": "#fdbf6f" },
+      { "name": "LIC of India", "percentage": 2.5, "color": "#cab2d6" },
+      { "name": "Aviva", "percentage": 2.2, "color": "#ff9896" }
+    ]
+  }
+} 
