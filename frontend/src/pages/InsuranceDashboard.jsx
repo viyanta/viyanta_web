@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useStats } from '../context/StatsContext.jsx';
 import dashboardData from '../data/dashboardData.json';
 import companyDistributionData from '../data/companyDistribution.json';
 
+
 // Chart Component for Monthly Trends
-const MonthlyChart = ({ data, color }) => {
+const MonthlyChart = ({ data, title, color }) => {
   const maxValue = Math.max(...data.map(d => d.value));
   const yAxisSteps = 5;
-  const displayMaxValue = maxValue;
   
+  // Use the actual max value for precise scaling
+  const actualMaxValue = Math.max(...data.map(d => d.value));
+  const displayMaxValue = actualMaxValue; // Use exact max value for perfect scaling
+  
+  // Calculate dynamic height based on the highest bar
+  const maxBarHeight = Math.max(...data.map(d => (d.value / displayMaxValue) * 100));
+  const chartHeight = Math.max(100, maxBarHeight + 50); // Reduced minimum height
+  
+  // Ensure bars are properly scaled to match the Y-axis
   const getBarHeight = (value) => {
-    return Math.max(4, (value / displayMaxValue) * 100);
+    return Math.max(4, (value / displayMaxValue) * (chartHeight - 30));
   };
   
   return (
@@ -19,13 +29,14 @@ const MonthlyChart = ({ data, color }) => {
       padding: '0.5rem',
       border: '1px solid #e9ecef',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      minHeight: '120px',
+      minHeight: `${chartHeight}px`,
       transition: 'all 0.2s ease',
       overflow: 'hidden'
     }}>
+      {/* Y-axis and Chart Container */}
       <div style={{ 
         display: 'flex', 
-        height: '70px',
+        height: `${chartHeight - 30}px`,
         position: 'relative'
       }}>
         {/* Y-axis Labels */}
@@ -60,6 +71,22 @@ const MonthlyChart = ({ data, color }) => {
           position: 'relative',
           justifyContent: 'space-between'
         }}>
+          {/* Y-axis Grid Lines */}
+          {Array.from({ length: yAxisSteps + 1 }, (_, i) => (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: `${(i / yAxisSteps) * 100}%`,
+                height: '1px',
+                backgroundColor: '#e9ecef',
+                zIndex: 1
+              }}
+            />
+          ))}
+          
           {data.map((item, index) => (
             <div key={index} style={{ 
               flex: 1, 
@@ -83,7 +110,7 @@ const MonthlyChart = ({ data, color }) => {
         </div>
       </div>
       
-      {/* X-axis Labels */}
+      {/* X-axis Labels Below Chart */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -122,8 +149,9 @@ const MonthlyChart = ({ data, color }) => {
 };
 
 // Company Distribution Chart
-const CompanyDistributionChart = ({ data }) => {
-  const sortedData = [...data].sort((a, b) => b.percentage - a.percentage).slice(0, 10);
+const CompanyDistributionChart = ({ data, title, color }) => {
+  const sortedData = [...data].sort((a, b) => b.percentage - a.percentage).slice(0, 10); // Reduced to 10 items
+  const total = sortedData.reduce((sum, item) => sum + item.percentage, 0);
   
   return (
     <div style={{ 
@@ -134,6 +162,7 @@ const CompanyDistributionChart = ({ data }) => {
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
       overflow: 'hidden'
     }}>
+
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -142,7 +171,7 @@ const CompanyDistributionChart = ({ data }) => {
         padding: '0.2rem'
       }}>
         {sortedData.map((item, index) => {
-          const width = Math.max((item.percentage / 100) * 100, 12);
+          const width = Math.max((item.percentage / total) * 100, 12); // Minimum 12% width
           
           return (
             <div
@@ -209,6 +238,7 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
       position: 'relative',
       transform: 'translateZ(0)'
     }}>
+      {/* KPI Row Layout - Responsive */}
       <div style={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -217,7 +247,7 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
         padding: '0.5rem 0',
         position: 'relative'
       }}>
-        {/* Metric Info */}
+        {/* Left: Metric Info */}
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -274,7 +304,7 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
           </div>
         </div>
         
-        {/* Monthly Chart */}
+        {/* Middle: Monthly Trend Chart */}
         <div style={{ 
           height: '100%',
           padding: '0.25rem',
@@ -286,11 +316,12 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
         }}>
           <MonthlyChart 
             data={monthlyData} 
+            title="" 
             color={color}
           />
         </div>
         
-        {/* Company Distribution */}
+        {/* Right: Company Distribution */}
         <div style={{ 
           height: '100%',
           padding: '0.25rem',
@@ -301,7 +332,9 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
           position: 'relative'
         }}>
           <CompanyDistributionChart 
-            data={companyData}
+            data={companyData} 
+            title="" 
+            color={color}
           />
         </div>
       </div>
@@ -309,16 +342,99 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData }) 
   );
 };
 
-// Main Dashboard Component
-const InsuranceDashboard = () => {
+// Treemap Component
+const TreemapSection = ({ title, data, colors }) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  
+  return (
+    <div style={{
+      marginBottom: '2rem',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      padding: '1.5rem',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h3 style={{
+        margin: '0 0 1rem 0',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        color: '#36659b'
+      }}>
+        {title}
+      </h3>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '2px',
+        minHeight: '120px'
+      }}>
+        {data.map((item, index) => {
+          const percentage = ((item.value / total) * 100).toFixed(1);
+          const width = Math.max((item.value / total) * 100, 8); // Minimum 8% width
+          
+          return (
+            <div
+              key={item.name}
+              style={{
+                backgroundColor: colors[index % colors.length],
+                padding: '0.5rem',
+                borderRadius: '4px',
+                minWidth: `${width}%`,
+                flex: `1 1 ${width}%`,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                color: 'white',
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              title={`${item.name}: ${percentage}%`}
+            >
+              <div style={{
+                fontWeight: 'bold',
+                fontSize: '0.7rem',
+                marginBottom: '0.25rem',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                width: '100%'
+              }}>
+                {item.name}
+              </div>
+              <div style={{
+                fontSize: '0.65rem',
+                opacity: 0.9
+              }}>
+                {percentage}%
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+function InsuranceDashboard() {
   const [selectedCompany, setSelectedCompany] = useState('HDFC Life');
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [selectedInfoSection, setSelectedInfoSection] = useState('Industry Metrics');
   
+  // Get the current company's data
   const currentCompanyData = dashboardData.companies[selectedCompany] || dashboardData.companies['HDFC Life'];
-  
+
   const tabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'
+  ];
+
+  const sidebarItems = [
+    'Industry Metrics', 'Industry Aggregates', 'Economy', 
+    'Report Generator', 'Screener', 'IRDAI Monthly Data', 'Products - Life'
   ];
 
   return (
@@ -334,7 +450,7 @@ const InsuranceDashboard = () => {
       left: '0',
       right: '0'
     }}>
-      {/* Dashboard Header */}
+      {/* Dashboard Header - At the very top */}
       <div style={{ 
         padding: '1.5rem 1.5rem 1rem 1.5rem',
         backgroundColor: 'white'
@@ -358,7 +474,7 @@ const InsuranceDashboard = () => {
         </p>
       </div>
 
-      {/* Navigation Bar */}
+      {/* Top Navigation Bar */}
       <div style={{
         backgroundColor: 'white',
         padding: '0 1rem',
@@ -370,12 +486,14 @@ const InsuranceDashboard = () => {
         width: '100%',
         overflow: 'hidden'
       }}>
+        {/* Navigation Tabs Only */}
         <div style={{
           display: 'flex',
           gap: '0',
           alignItems: 'center',
           padding: '0 1.5rem'
         }}>
+          {/* Navigation Tabs */}
           <div style={{
             display: 'flex',
             overflowX: 'auto',
@@ -408,50 +526,84 @@ const InsuranceDashboard = () => {
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Dropdowns Section */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '1.5rem',
-        padding: '1.5rem',
-        backgroundColor: 'white',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-      }}>
-        {/* Select Company */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <label style={{ 
-            fontSize: '0.75rem', 
-            fontWeight: '600', 
-            color: '#36659b',
-            whiteSpace: 'nowrap'
-          }}>
-            Select Company
-          </label>
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            style={{
-              padding: '0.5rem 0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: 'white',
-              fontSize: '0.75rem',
-              minWidth: '180px',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="">Select a company...</option>
-            <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
-            <option value="SBI Life">SBI Life Insurance Company Limited</option>
-            <option value="ICICI Pru">ICICI Prudential Life Insurance Company Limited</option>
-            <option value="LIC">Life Insurance Corporation of India</option>
-          </select>
+        {/* Multiple Dropdowns Section */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '1.5rem',
+          padding: '1.5rem',
+          backgroundColor: 'white',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'flex-start'
+        }}>
+          {/* Select Company */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label style={{ 
+              fontSize: '0.75rem', 
+              fontWeight: '600', 
+              color: '#36659b',
+              whiteSpace: 'nowrap'
+            }}>
+              Select Company
+            </label>
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                backgroundColor: 'white',
+                fontSize: '0.75rem',
+                minWidth: '180px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">Select a company...</option>
+              <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
+              <option value="SBI Life">SBI Life Insurance Company Limited</option>
+              <option value="ICICI Pru">ICICI Prudential Life Insurance Company Limited</option>
+              <option value="LIC">Life Insurance Corporation of India</option>
+            </select>
+          </div>
+
+          {/* Company Information */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label style={{ 
+              fontSize: '0.75rem', 
+              fontWeight: '600', 
+              color: '#36659b',
+              whiteSpace: 'nowrap'
+            }}>
+              Company Information
+            </label>
+            <select
+              value={selectedInfoSection}
+              onChange={(e) => setSelectedInfoSection(e.target.value)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                backgroundColor: 'white',
+                fontSize: '0.75rem',
+                minWidth: '180px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">Select information type...</option>
+              {sidebarItems.map((item, index) => (
+                <option key={index} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+
         </div>
-      </div>
+              </div>
 
       {/* Main Content */}
       <div style={{ 
@@ -461,13 +613,15 @@ const InsuranceDashboard = () => {
         marginTop: '0',
         paddingTop: '0'
       }}>
+        {/* Main Dashboard Content */}
         <div style={{ 
           flex: 1, 
           padding: '1rem',
           backgroundColor: 'white',
           position: 'relative'
         }}>
-          {/* KPI Cards */}
+
+          {/* KPI Rows */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -514,10 +668,14 @@ const InsuranceDashboard = () => {
               companyData={companyDistributionData.numberOfPolicies.companies}
             />
           </div>
+
+        
+
+
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default InsuranceDashboard; 
