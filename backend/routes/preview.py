@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException
 from .database import get_file_by_id
 import os
 import pandas as pd
-from .shared import extract_text_from_pdf
+import json
+from .shared import extract_text_from_pdf, get_parquet_file_path
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
@@ -21,8 +22,8 @@ async def preview_parquet_data(file_id: str, full: bool = False):
             raise HTTPException(
                 status_code=400, detail="File not processed yet")
 
-        parquet_path = os.path.join(
-            CONVERTED_DIR, file_record['parquet_filename'])
+        # Get parquet file path (checks both converted and extracted directories)
+        parquet_path = get_parquet_file_path(file_record['parquet_filename'])
         if not os.path.exists(parquet_path):
             raise HTTPException(
                 status_code=404, detail="Processed file not found")

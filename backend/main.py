@@ -9,6 +9,7 @@ from routes.dropdown import router as dropdown_router
 from routes.report import router as report_router
 from routes.company_lforms import router as company_lforms_router
 from routes.extraction import router as extract_router
+# from routes.pdf_upload import router as pdf_upload_router
 import os
 
 app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
@@ -33,9 +34,11 @@ app.include_router(company_lforms_router,
                    prefix="/api/files", tags=["company_lforms"])
 app.include_router(extract_router, prefix="/api/extract", tags=["extract"])
 
-# Serve static files (uploads and converted files)
+# app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
+
+# Serve static files (uploads and extracted files)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/converted", StaticFiles(directory="converted"), name="converted")
+app.mount("/extracted", StaticFiles(directory="extracted"), name="extracted")
 
 
 @app.get("/")

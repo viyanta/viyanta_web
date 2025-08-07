@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from .database import get_file_by_id
+from .shared import get_parquet_file_path
 import os
 
 router = APIRouter()
@@ -42,8 +43,8 @@ async def download_parquet_file(file_id: str):
             raise HTTPException(
                 status_code=404, detail="Parquet file not found")
 
-        file_path = os.path.join(
-            CONVERTED_DIR, file_record['parquet_filename'])
+        # Get parquet file path (checks both converted and extracted directories)
+        file_path = get_parquet_file_path(file_record['parquet_filename'])
         if not os.path.exists(file_path):
             raise HTTPException(
                 status_code=404, detail="Parquet file not found on disk")

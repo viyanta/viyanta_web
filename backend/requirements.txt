@@ -5,3 +5,12 @@ pandas
 pyarrow
 PyPDF2==3.0.1
 python-json-logger==2.0.7
+tabula-py
+requests
+numpy
+PyMuPDF
+python-dotenv
+aiofiles
+celery
+redis
+pytest

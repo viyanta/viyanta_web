@@ -7,6 +7,10 @@ import Explorer from './pages/Explorer.jsx'
 import Profile from './pages/Profile.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import Lform from './pages/Lform.jsx'
+import PDFExtraction from './pages/PDFExtraction.jsx'
+
+import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
+
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 
 function App() {
@@ -32,6 +36,8 @@ function App() {
                 <Route path="/explorer" element={<Explorer />} />
                 <Route path="/lform" element={<Lform />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/smart-extraction" element={<SmartPDFExtraction />} />
+                <Route path="/extraction" element={<PDFExtraction />} />
                 <Route path="/insurance-dashboard" element={<InsuranceDashboard />} />
               </Routes>
             </main>
