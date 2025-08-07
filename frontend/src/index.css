@@ -8,7 +8,7 @@
     --input-focus-color: rgb(146, 179, 245);
     --text-color-dark: #000;
     --text-color-light: #666;
-    --text-color: #F9F7F7;
+    --text-color: #f7f6f6;
     --border-radius: 4px;
     --transition: all 0.3s ease;
     --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -101,7 +101,7 @@ li {
 
 .dropdown:hover .dropdown-content {
     display: block;
-    border-radius: var(--border-radius) ;
+    border-radius: var(--border-radius);
     background-color: var(--input-focus-color);
 
 }

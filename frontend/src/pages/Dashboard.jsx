@@ -81,9 +81,6 @@ function ParquetDataViewer({ fileId, fileName, title }) {
       columns={parquetData.columns}
       data={parquetData.preview}
       title={title}
-      fileType="parquet"
-      maxHeight="500px"
-      showFullData={false}
     />
   );
 }
@@ -528,9 +525,6 @@ function Dashboard() {
                       columns={parquetPreview.columns}
                       data={parquetPreview.preview}
                       title={`Parquet File ${showFullData ? 'Complete Data' : 'Preview'} (Table Format)`}
-                      fileType={parquetPreview.file_type}
-                      maxHeight={showFullData ? '600px' : '400px'}
-                      showFullData={showFullData}
                     />
                   </div>
                 </div>

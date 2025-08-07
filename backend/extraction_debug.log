@@ -1,0 +1,346 @@
+2025-08-07 10:06:24,815 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:06:24,815 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:06:24,822 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:06:24,822 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:06:24,822 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:06:24,826 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:06:24,826 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[163:291]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[293:11337]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[11338:16384]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2785]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[2787:12623]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[12625:103968]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[103969:117115]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[117116:123690]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[123691:160808]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[160809:166200]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,827 - multipart.multipart - DEBUG - Calling on_part_data with data[166201:262144]
+2025-08-07 10:06:24,838 - multipart.multipart - DEBUG - Calling on_part_data with data[0:69259]
+2025-08-07 10:06:24,839 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,841 - multipart.multipart - DEBUG - Calling on_part_data with data[69260:96718]
+2025-08-07 10:06:24,841 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,841 - multipart.multipart - DEBUG - Calling on_part_data with data[96719:135189]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[135190:245935]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[245936:262144]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:28676]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[28677:114426]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[114427:125633]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[125635:125984]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[125986:125991]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_field with data[126037:126056]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_value with data[126058:126088]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[126092:126096]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_field with data[126140:126159]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_value with data[126161:126192]
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:06:24,842 - multipart.multipart - DEBUG - Calling on_part_data with data[126196:126200]
+2025-08-07 10:06:24,855 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:06:24,855 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:08:34,289 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:08:34,290 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:08:34,291 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:08:34,291 - multipart.multipart - DEBUG - Calling on_part_data with data[163:291]
+2025-08-07 10:08:34,291 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,292 - multipart.multipart - DEBUG - Calling on_part_data with data[293:16384]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:3226]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[3228:3819]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[3820:4080]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[4082:4506]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[4508:46853]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[46854:90581]
+2025-08-07 10:08:34,293 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[90582:169024]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[169025:262144]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:136795]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[136796:262144]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:5850]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[5851:44525]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[44526:50931]
+2025-08-07 10:08:34,297 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[50932:79334]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[79335:125984]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[125986:125991]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_field with data[126037:126056]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_value with data[126058:126088]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[126092:126096]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_field with data[126140:126159]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_value with data[126161:126192]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_data with data[126196:126200]
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:08:34,305 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:10:39,043 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:39,043 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:10:39,043 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:10:39,045 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:39,045 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:10:39,046 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:10:39,046 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[163:255]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[257:299]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[301:16384]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2785]
+2025-08-07 10:10:39,047 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,051 - multipart.multipart - DEBUG - Calling on_part_data with data[2787:162100]
+2025-08-07 10:10:39,051 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,051 - multipart.multipart - DEBUG - Calling on_part_data with data[162101:165764]
+2025-08-07 10:10:39,051 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,051 - multipart.multipart - DEBUG - Calling on_part_data with data[165765:192911]
+2025-08-07 10:10:39,053 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,054 - multipart.multipart - DEBUG - Calling on_part_data with data[192912:225665]
+2025-08-07 10:10:39,054 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,054 - multipart.multipart - DEBUG - Calling on_part_data with data[225666:253041]
+2025-08-07 10:10:39,058 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,058 - multipart.multipart - DEBUG - Calling on_part_data with data[253042:262144]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[0:51475]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[51476:107122]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[107123:251338]
+2025-08-07 10:10:39,060 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,065 - multipart.multipart - DEBUG - Calling on_part_data with data[251339:262144]
+2025-08-07 10:10:39,067 - multipart.multipart - DEBUG - Calling on_part_data with data[0:27767]
+2025-08-07 10:10:39,067 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,067 - multipart.multipart - DEBUG - Calling on_part_data with data[27769:85339]
+2025-08-07 10:10:39,068 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:39,068 - multipart.multipart - DEBUG - Calling on_part_data with data[85340:125984]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_data with data[125986:125991]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_header_field with data[126037:126056]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_header_value with data[126058:126088]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_data with data[126092:126096]
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:39,069 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:39,072 - multipart.multipart - DEBUG - Calling on_header_field with data[126140:126159]
+2025-08-07 10:10:39,072 - multipart.multipart - DEBUG - Calling on_header_value with data[126161:126192]
+2025-08-07 10:10:39,072 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:39,072 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:39,075 - multipart.multipart - DEBUG - Calling on_part_data with data[126196:126200]
+2025-08-07 10:10:39,075 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:39,075 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:10:40,609 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:40,610 - multipart.multipart - DEBUG - Calling on_part_data with data[163:291]
+2025-08-07 10:10:40,612 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,613 - multipart.multipart - DEBUG - Calling on_part_data with data[293:20063]
+2025-08-07 10:10:40,613 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,622 - multipart.multipart - DEBUG - Calling on_part_data with data[20065:245760]
+2025-08-07 10:10:40,625 - multipart.multipart - DEBUG - Calling on_part_data with data[0:170]
+2025-08-07 10:10:40,626 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,628 - multipart.multipart - DEBUG - Calling on_part_data with data[171:2532]
+2025-08-07 10:10:40,629 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,630 - multipart.multipart - DEBUG - Calling on_part_data with data[2533:61102]
+2025-08-07 10:10:40,630 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,630 - multipart.multipart - DEBUG - Calling on_part_data with data[61103:106257]
+2025-08-07 10:10:40,635 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,636 - multipart.multipart - DEBUG - Calling on_part_data with data[106258:148658]
+2025-08-07 10:10:40,636 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,638 - multipart.multipart - DEBUG - Calling on_part_data with data[148659:262144]
+2025-08-07 10:10:40,638 - multipart.multipart - DEBUG - Calling on_part_data with data[0:61444]
+2025-08-07 10:10:40,638 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[61445:92397]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[92398:112102]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[112103:156618]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[156620:158732]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[158736:158752]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[158754:158759]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_header_field with data[158805:158824]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_header_value with data[158826:158856]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_data with data[158860:158864]
+2025-08-07 10:10:40,640 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:40,646 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:40,646 - multipart.multipart - DEBUG - Calling on_header_field with data[158908:158927]
+2025-08-07 10:10:40,647 - multipart.multipart - DEBUG - Calling on_header_value with data[158929:158960]
+2025-08-07 10:10:40,647 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:40,647 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:40,648 - multipart.multipart - DEBUG - Calling on_part_data with data[158964:158968]
+2025-08-07 10:10:40,648 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:40,648 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:10:52,129 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:52,130 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:10:52,130 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:10:52,130 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[163:291]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[293:19610]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[19612:20464]
+2025-08-07 10:10:52,131 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,137 - multipart.multipart - DEBUG - Calling on_part_data with data[20466:20890]
+2025-08-07 10:10:52,138 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,138 - multipart.multipart - DEBUG - Calling on_part_data with data[20892:32768]
+2025-08-07 10:10:52,140 - multipart.multipart - DEBUG - Calling on_part_data with data[0:44647]
+2025-08-07 10:10:52,141 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,142 - multipart.multipart - DEBUG - Calling on_part_data with data[44648:93494]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[93496:107306]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[107307:114210]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[114211:135521]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,143 - multipart.multipart - DEBUG - Calling on_part_data with data[135522:262144]
+2025-08-07 10:10:52,155 - multipart.multipart - DEBUG - Calling on_part_data with data[0:30699]
+2025-08-07 10:10:52,156 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,156 - multipart.multipart - DEBUG - Calling on_part_data with data[30700:57105]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[57106:118805]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[118806:262144]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[0:11375]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,158 - multipart.multipart - DEBUG - Calling on_part_data with data[11377:109600]
+2025-08-07 10:10:52,170 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,170 - multipart.multipart - DEBUG - Calling on_part_data with data[109602:109607]
+2025-08-07 10:10:52,171 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:10:52,171 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:52,173 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:52,173 - multipart.multipart - DEBUG - Calling on_header_field with data[109653:109672]
+2025-08-07 10:10:52,173 - multipart.multipart - DEBUG - Calling on_header_value with data[109674:109704]
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_part_data with data[109708:109712]
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_header_field with data[109756:109775]
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_header_value with data[109777:109808]
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_part_data with data[109812:109816]
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:10:52,175 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:13:14,674 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:13:14,675 - multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
+2025-08-07 10:13:14,675 - multipart.multipart - DEBUG - Calling on_header_value with data[63:128]
+2025-08-07 10:13:14,675 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_header_field with data[130:142]
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_header_value with data[144:159]
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_part_data with data[163:291]
+2025-08-07 10:13:14,677 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:13:14,679 - multipart.multipart - DEBUG - Calling on_part_data with data[293:16384]
+2025-08-07 10:13:14,680 - multipart.multipart - DEBUG - Calling on_part_data with data[0:130594]
+2025-08-07 10:13:14,680 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:13:14,683 - multipart.multipart - DEBUG - Calling on_part_data with data[130595:262144]
+2025-08-07 10:13:14,685 - multipart.multipart - DEBUG - Calling on_part_data with data[0:128851]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[128852:146832]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[146833:251338]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[251339:262144]
+2025-08-07 10:13:14,686 - multipart.multipart - DEBUG - Calling on_part_data with data[0:24909]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[0:1]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[24910:27777]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[27779:125984]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[125986:125991]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_data with data[0:2]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_header_field with data[126037:126056]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_header_value with data[126058:126088]
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:13:14,693 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:13:14,698 - multipart.multipart - DEBUG - Calling on_part_data with data[126092:126096]
+2025-08-07 10:13:14,698 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:13:14,698 - multipart.multipart - DEBUG - Calling on_part_begin with no data
+2025-08-07 10:13:14,699 - multipart.multipart - DEBUG - Calling on_header_field with data[126140:126159]
+2025-08-07 10:13:14,699 - multipart.multipart - DEBUG - Calling on_header_value with data[126161:126192]
+2025-08-07 10:13:14,699 - multipart.multipart - DEBUG - Calling on_header_end with no data
+2025-08-07 10:13:14,699 - multipart.multipart - DEBUG - Calling on_headers_finished with no data
+2025-08-07 10:13:14,700 - multipart.multipart - DEBUG - Calling on_part_data with data[126196:126200]
+2025-08-07 10:13:14,700 - multipart.multipart - DEBUG - Calling on_part_end with no data
+2025-08-07 10:13:14,701 - multipart.multipart - DEBUG - Calling on_end with no data
+2025-08-07 10:13:14,707 - gemini_verifier - INFO - Gemini AI initialized successfully with direct API access
+2025-08-07 10:13:14,707 - services.pdf_extraction_service - INFO - Extracting tables using stream method from temp\fb737f31-2f64-467e-88a0-672ec2cdc773\HDFC Life  S FY2023 9M - 3.pdf
+2025-08-07 10:13:14,710 - tabula.backend - WARNING - Failed to import jpype dependencies. Fallback to subprocess.
+2025-08-07 10:13:14,710 - tabula.backend - WARNING - No module named 'jpype'
+2025-08-07 10:13:16,522 - services.pdf_extraction_service - INFO - Extracting tables using lattice method from temp\fb737f31-2f64-467e-88a0-672ec2cdc773\HDFC Life  S FY2023 9M - 3.pdf
+2025-08-07 10:13:18,274 - services.pdf_extraction_service - INFO - Extracted 2 valid tables from temp\fb737f31-2f64-467e-88a0-672ec2cdc773\HDFC Life  S FY2023 9M - 3.pdf
+2025-08-07 10:13:18,357 - gemini_verifier - INFO - Starting Gemini verification for HDFC Life  S FY2023 9M - 3.pdf
+2025-08-07 10:13:18,408 - gemini_verifier - ERROR - Gemini verification failed: Invalid format specifier ' "<an integer from 0-100>",
+            "issues_found": ["List specific errors found, such as 'Misaligned data in columns for NON-LINKED BUSINESS'"],
+            "missing_data": ["List any data points (rows or columns) that were completely missing"],
+            "confidence_level": "high|medium|low"
+        ' for object of type 'str'

@@ -1,6 +1,7 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 class ApiService {
+  // Legacy file upload methods
   async uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
@@ -13,6 +14,121 @@ class ApiService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
+  // PDF Table Extraction Methods
+  async extractBulkPDFs(files, extractMode = 'both') {
+    const formData = new FormData();
+    
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('extract_mode', extractMode);
+
+    const response = await fetch(`${API_BASE_URL}/extraction/extract/bulk`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Bulk extraction failed');
+    }
+
+    return response.json();
+  }
+
+  async extractSinglePDF(file, extractMode = 'both', returnFormat = 'both') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('extract_mode', extractMode);
+    formData.append('return_format', returnFormat);
+
+    console.log(`Extracting single PDF: ${file.name}, mode: ${extractMode}, format: ${returnFormat}`);
+
+    const response = await fetch(`${API_BASE_URL}/extract/extract/single`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'PDF extraction failed');
+    }
+
+    return response.json();
+  }
+
+  async getJobStatus(jobId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/status/${jobId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch job status');
+    }
+
+    return response.json();
+  }
+
+  async getJobResults(jobId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/results/${jobId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch job results');
+    }
+
+    return response.json();
+  }
+
+  async downloadJobResults(jobId, format = 'json') {
+    const response = await fetch(`${API_BASE_URL}/extraction/download/${jobId}?format=${format}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to download results');
+    }
+
+    return response.blob();
+  }
+
+  async listJobFiles(jobId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/files/${jobId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to list job files');
+    }
+
+    return response.json();
+  }
+
+  async downloadSpecificFile(jobId, filename) {
+    const response = await fetch(`${API_BASE_URL}/extraction/file/${jobId}/${filename}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to download file');
+    }
+
+    return response.blob();
+  }
+
+  async listAllJobs() {
+    const response = await fetch(`${API_BASE_URL}/extraction/jobs`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to list jobs');
+    }
+
+    return response.json();
+  }
+
+  async cleanupJob(jobId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/cleanup/${jobId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to cleanup job');
     }
 
     return response.json();
