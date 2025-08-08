@@ -348,7 +348,7 @@ function Dashboard() {
         </div>
         {/* Modal for File Display */}
         <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle}>
-          <div>
+          <div className="modal-body">
             {viewMode === 'original' && selectedFile ? (
               <SourceFileViewer 
                 file={selectedFile}
@@ -372,9 +372,9 @@ function Dashboard() {
                   </p>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                <div className="split-layout">
                   {/* Source File */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="split-pane">
                     <SourceFileViewer
                       file={selectedFile}
                       title={`Source: ${selectedFile.original_filename}`}
@@ -389,7 +389,7 @@ function Dashboard() {
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
                   }} />
                   {/* Parquet Data Table */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="split-pane">
                     {selectedFile.parquet_filename ? (
                       <ParquetDataViewer 
                         fileId={selectedFile.file_id}
@@ -514,12 +514,7 @@ function Dashboard() {
                       title={`Source File ${showFullData ? 'Complete Data' : 'Preview'} (Original Format)`}
                     />
                   </div>
-                  <div style={{ 
-                    background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', 
-                    borderRadius: '2px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    alignSelf: 'stretch'
-                  }} />
+                                    <div className="split-divider" />
                   <div style={{ overflow: 'hidden' }}>
                     <DataTable
                       columns={parquetPreview.columns}

@@ -1,4 +1,4 @@
-import { useEffect, useState, React } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import SideMenu from './components/SideMenu.jsx'
@@ -47,30 +47,25 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  const closeSidebar = () => setSidebarOpen(false);
+  const openSidebar = () => setSidebarOpen(true);
+
   return (
     <StatsProvider>
       <Router>
-        <div style={{ 
-          minHeight: '100vh',
-          backgroundColor: 'var(--background-color)'
-        }}>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/login" element={<Login />} />
-            
-            {/* Protected Routes */}
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <Navbar />
-                <div style={{ display: 'flex', minHeight: 'calc(100vh - 80px)' }}>
-                  <SideMenu />
-                  <main style={{ 
-                    flex: 1, 
-                    padding: '2rem',
-                    backgroundColor: 'white',
-                    minHeight: 'calc(100vh - 80px)',
-                    overflowY: 'auto'
-                  }}>
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
+          {/* Protected Routes */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <div className="app-container">
+                <Navbar onMenuClick={openSidebar} />
+                <div className="layout">
+                  <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+                  <main className="main-content" onClick={closeSidebar}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/explorer" element={<Explorer />} />
@@ -82,10 +77,12 @@ function App() {
                     </Routes>
                   </main>
                 </div>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </div>
+                {/* Mobile backdrop */}
+                <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
+              </div>
+            </ProtectedRoute>
+          } />
+        </Routes>
       </Router>
     </StatsProvider>
   )

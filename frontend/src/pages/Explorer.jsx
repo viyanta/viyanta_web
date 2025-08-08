@@ -396,9 +396,9 @@ function Explorer() {
                 <h2 style={{ marginBottom: '1.5rem', borderBottom: '3px solid var(--main-color)', paddingBottom: '0.5rem', letterSpacing: '0.5px' }}>
                     Compare Source File vs Parquet File
                 </h2>
-                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
+                <div className="split-layout" style={{ position: 'relative' }} >
                     {/* Source File in Original Format */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="split-pane">
                         <SourceFileViewer
                             file={{
                                 original_filename: uploadResult?.original_file?.filename || file?.name,
@@ -410,9 +410,9 @@ function Explorer() {
                         />
                     </div>
                     {/* Vertical Divider */}
-                    <div style={{ width: '3px', background: 'linear-gradient(to bottom, var(--main-color), var(--sub-color))', minHeight: '400px', borderRadius: '2px', margin: '0 1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                    {/* Parquet File */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="split-divider" />
+                                          {/* Parquet File */}
+                      <div className="split-pane">
                         <h3 style={{ marginBottom: '1rem', color: 'var(--sub-color)' }}>
                         📊 Parquet Data Preview (Table Format)
                        </h3>

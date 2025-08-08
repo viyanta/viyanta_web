@@ -2,7 +2,7 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useStats } from '../context/StatsContext.jsx'
 
-function SideMenu() {
+function SideMenu({ isOpen = false, onClose = () => {} }) {
   const location = useLocation();
   const { stats } = useStats();
 
@@ -16,17 +16,24 @@ function SideMenu() {
   ];
 
   return (
-    <aside style={{ 
-      width: '280px', 
-      height: 'calc(100vh - 80px)', 
-      backgroundColor: 'white', 
-      padding: '2rem 1rem',
-      borderRight: '1px solid #e9ecef',
-      position: 'sticky',
-      top: '80px',
-      boxShadow: 'var(--shadow-light)',
-      overflowY: 'auto'
-    }}>
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`} role="navigation" aria-label="Sidebar Navigation">
+      {/* Mobile-only header */}
+      <div className="mobile-header">
+        <button
+          onClick={onClose}
+          aria-label="Close menu"
+          style={{
+            background: 'rgba(0,0,0,0.05)',
+            border: '1px solid #e9ecef',
+            borderRadius: 6,
+            padding: '0.35rem 0.5rem',
+            cursor: 'pointer'
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
       <div style={{ marginBottom: '2rem' }}>
         <h2 style={{ 
           marginBottom: '0.5rem', 
@@ -51,6 +58,7 @@ function SideMenu() {
             <li key={item.path} style={{ marginBottom: '0.5rem' }}>
               <Link 
                 to={item.path}
+                onClick={onClose}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
