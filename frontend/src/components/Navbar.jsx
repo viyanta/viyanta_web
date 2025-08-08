@@ -1,21 +1,42 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-function Navbar() {
+function Navbar({ onMenuClick }) {
   return (
     <nav style={{ 
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
+      left: 0,
+      right: 0,
       zIndex: 1000,
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center',
-      padding: '1rem 2rem', 
+      padding: '1rem 1rem', 
       backgroundColor: 'var(--main-color)', 
       color: 'var(--text-color)', 
       boxShadow: 'var(--shadow-medium)',
       borderBottom: '1px solid rgba(255,255,255,0.1)'
     }}>
+        {/* Mobile hamburger */}
+        <button
+          className="show-on-mobile"
+          aria-label="Open menu"
+          onClick={onMenuClick}
+          style={{
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            color: 'white',
+            borderRadius: '8px',
+            padding: '0.5rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '0.5rem'
+          }}
+        >
+          ☰
+        </button>
         <Link 
           to="/" 
           style={{ 
@@ -40,23 +61,23 @@ function Navbar() {
           </div>
           <h1 style={{ 
             margin: 0, 
-            fontSize: '1.8rem',
+            fontSize: '1.5rem',
             fontWeight: '700',
             color: 'var(--text-color)'
           }}>
-            Viyanta
+            AssureLife
           </h1>
         </Link>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="hide-on-mobile" style={{
             padding: '0.5rem 1rem',
             backgroundColor: 'rgba(255,255,255,0.1)',
             borderRadius: 'var(--border-radius)',
             fontSize: '0.875rem',
             color: 'var(--text-color)'
           }}>
-            Welcome, Viyanta User
+            Welcome, AssureLife User
           </div>
           
           <Link 
