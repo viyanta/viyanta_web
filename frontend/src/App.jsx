@@ -14,23 +14,19 @@ import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  const closeSidebar = () => setSidebarOpen(false);
+  const openSidebar = () => setSidebarOpen(true);
+
   return (
     <StatsProvider>
       <Router>
-        <div style={{ 
-          minHeight: '100vh',
-          backgroundColor: 'var(--background-color)'
-        }}>
-          <Navbar />
-          <div style={{ display: 'flex', minHeight: 'calc(100vh - 80px)' }}>
-            <SideMenu />
-            <main style={{ 
-              flex: 1, 
-              padding: '2rem',
-              backgroundColor: 'white',
-              minHeight: 'calc(100vh - 80px)',
-              overflowY: 'auto'
-            }}>
+        <div className="app-container">
+          <Navbar onMenuClick={openSidebar} />
+          <div className="layout">
+            <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+            <main className="main-content" onClick={closeSidebar}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/explorer" element={<Explorer />} />
@@ -42,6 +38,8 @@ function App() {
               </Routes>
             </main>
           </div>
+          {/* Mobile backdrop */}
+          <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
         </div>
       </Router>
     </StatsProvider>
