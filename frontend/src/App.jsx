@@ -61,12 +61,12 @@ function App() {
           {/* Protected Routes */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="app-container">
-                <Navbar onMenuClick={openSidebar} />
-                <div className="layout">
-                  <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
-                  <main className="main-content" onClick={() => sidebarOpen && closeSidebar()}>
-                    <Routes>
+        <div className="app-container">
+          <Navbar onMenuClick={openSidebar} />
+          <div className="layout">
+            <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+                  <main className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} onClick={() => sidebarOpen && closeSidebar()}>
+              <Routes>
                       <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
                       <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
                       <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
@@ -74,12 +74,12 @@ function App() {
                       <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
                       <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
                       <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
-                    </Routes>
-                  </main>
-                </div>
-                {/* Mobile backdrop */}
-                <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
-              </div>
+              </Routes>
+            </main>
+          </div>
+          {/* Mobile backdrop */}
+          <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
+        </div>
             </ProtectedRoute>
           } />
         </Routes>

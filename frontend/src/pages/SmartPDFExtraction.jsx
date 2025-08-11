@@ -257,7 +257,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
           >
             ☰
           </button>
-          <h1 style={{ margin: 0 }}>Smart PDF Table Extraction</h1>
+        <h1 style={{ margin: 0 }}>Smart PDF Table Extraction</h1>
         </div>
         <p style={{ color: 'var(--text-color-light)', marginTop: '0.25rem' }}>
           Extract, verify, and analyze table data from PDF documents with AI-powered accuracy

@@ -501,7 +501,7 @@ function Dashboard({ onMenuClick }) {
                   border: '1px solid #e9ecef'
                 }}>
                   <div style={{ textAlign: 'center', flex: 1 }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)', whiteSpace: 'nowrap' }}>
                       📄 Original File
                     </h4>
                     <p style={{ margin: 0, fontSize: '0.875rem' }}>

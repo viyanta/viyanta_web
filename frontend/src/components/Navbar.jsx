@@ -71,52 +71,52 @@ function Navbar({ onMenuClick }) {
         {/* Left side - Logo and Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* AssureLife Logo and Name */}
-          <Link 
-            to="/" 
-            style={{ 
-              textDecoration: 'none', 
-              color: 'var(--text-color)',
-              display: 'flex',
-              alignItems: 'center',
+        <Link 
+          to="/" 
+          style={{ 
+            textDecoration: 'none', 
+            color: 'var(--text-color)',
+            display: 'flex',
+            alignItems: 'center',
               gap: '0.75rem'
-            }}
-          >
-            <div style={{
+          }}
+        >
+          <div style={{
               width: '42px',
               height: '42px',
-              backgroundColor: 'var(--sub-color)',
+            backgroundColor: 'var(--sub-color)',
               borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
               fontSize: '1.6rem',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }}>
-              📊
-            </div>
-            <h1 style={{ 
-              margin: 0, 
+          }}>
+            📊
+          </div>
+          <h1 style={{ 
+            margin: 0, 
               fontSize: '1.75rem',
-              fontWeight: '700',
+            fontWeight: '700',
               color: 'var(--text-color)',
               letterSpacing: '0.5px'
-            }}>
+          }}>
               AssureLife v0.1
-            </h1>
-          </Link>
+          </h1>
+        </Link>
         </div>
         
         {/* Right side - User info and Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {user && (
-            <div className="hide-on-mobile" style={{
+          <div className="hide-on-mobile" style={{
               padding: '0.75rem 1.25rem',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: 'var(--border-radius)',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: 'var(--border-radius)',
               fontSize: '0.9rem',
               color: 'var(--text-color)',
               fontWeight: '500'
-            }}>
+          }}>
               Welcome, {user.displayName || 'User'}
             </div>
           )}
@@ -126,29 +126,29 @@ function Navbar({ onMenuClick }) {
               style={{ 
                 background: 'none',
                 border: '1px solid rgba(255,255,255,0.2)',
-                color: 'var(--text-color)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
+              color: 'var(--text-color)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
-                borderRadius: 'var(--border-radius)',
+              borderRadius: 'var(--border-radius)',
                 cursor: 'pointer',
-                transition: 'var(--transition)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+              transition: 'var(--transition)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
                 fontSize: '1rem',
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,0.3)'
@@ -180,7 +180,7 @@ function Navbar({ onMenuClick }) {
                     {user?.displayName ? user.displayName.split(' ').map(n => n[0]).join('') : '👤'}
                   </div>
                 )}
-              </div>
+            </div>
               <span style={{ fontSize: '1rem', fontWeight: '500' }}>
                 {user?.displayName?.split(' ')[0] || 'User'}
               </span>
@@ -217,7 +217,7 @@ function Navbar({ onMenuClick }) {
                   }}
                 >
                   👤 Profile
-                </Link>
+          </Link>
                 <button
                   onClick={handleLogout}
                   style={{

@@ -366,15 +366,24 @@ li {
   position: fixed;
   top: 80px;
   left: -100%;
-  box-shadow: var(--shadow-light);
+  box-shadow: var(--shadow-medium);
   overflow-y: auto;
   transition: left 0.3s ease, transform 0.3s ease;
   z-index: 1100;
 }
 
+.sidebar.open {
+  left: 0;
+}
+
 /* Mobile-only header inside sidebar */
 .sidebar .mobile-header {
-  display: none;
+  display: flex;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 /* Main content */
@@ -384,59 +393,32 @@ li {
   background-color: white;
   min-height: calc(100vh - 80px);
   overflow-y: auto;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-open {
+  margin-left: 280px;
 }
 
 /* Visibility helpers */
 .show-on-mobile { display: none; }
 .hide-on-mobile { display: inherit; }
 
-/* Backdrop for mobile sidebar */
+/* Backdrop for sidebar */
 .backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.35);
-  z-index: 1000;
+  z-index: 1050;
   display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .backdrop.show {
   display: block;
-}
-
-/* Sidebar open state - visible on all screen sizes */
-.sidebar.open {
-  left: 0;
-}
-
-/* Mobile responsiveness for sidebar and layout */
-@media (max-width: 768px) {
-  .layout {
-    min-height: auto;
-  }
-
-  .main-content {
-    padding: 1rem;
-    min-height: auto;
-  }
-
-  .sidebar {
-    width: 80vw;
-    max-width: 320px;
-    padding: 1rem;
-    box-shadow: var(--shadow-medium);
-  }
-
-  .sidebar .mobile-header {
-    display: flex;
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .show-on-mobile { display: inline-flex; }
-  .hide-on-mobile { display: none !important; }
+  opacity: 1;
 }
 
 /* Split layout utilities (used in modals and side-by-side views) */
@@ -478,4 +460,29 @@ li {
   .modal-body {
     padding: 0.25rem;
   }
+}
+
+/* Mobile responsiveness for sidebar and layout */
+@media (max-width: 768px) {
+  .layout {
+    min-height: auto;
+  }
+
+  .main-content {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .sidebar {
+    width: 80vw;
+    max-width: 320px;
+    padding: 1rem;
+  }
+
+  .main-content.sidebar-open {
+    margin-left: 0;
+  }
+
+  .show-on-mobile { display: inline-flex; }
+  .hide-on-mobile { display: none !important; }
 }

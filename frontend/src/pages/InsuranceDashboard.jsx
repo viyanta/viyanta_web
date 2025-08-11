@@ -264,8 +264,8 @@ function InsuranceDashboard({ onMenuClick }) {
             ☰
           </button>
           <h1 className="dashboard-title" style={{ margin: 0 }}>
-            Insurance Dashboard
-          </h1>
+          Insurance Dashboard
+        </h1>
         </div>
         <p className="dashboard-subtitle">
           Comprehensive view of key performance indicators and market analysis
