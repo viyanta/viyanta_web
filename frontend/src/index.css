@@ -363,11 +363,13 @@ li {
   background-color: white;
   padding: 2rem 1rem;
   border-right: 1px solid #e9ecef;
-  position: sticky;
+  position: fixed;
   top: 80px;
+  left: -100%;
   box-shadow: var(--shadow-light);
   overflow-y: auto;
   transition: left 0.3s ease, transform 0.3s ease;
+  z-index: 1100;
 }
 
 /* Mobile-only header inside sidebar */
@@ -401,6 +403,11 @@ li {
   display: block;
 }
 
+/* Sidebar open state - visible on all screen sizes */
+.sidebar.open {
+  left: 0;
+}
+
 /* Mobile responsiveness for sidebar and layout */
 @media (max-width: 768px) {
   .layout {
@@ -413,19 +420,10 @@ li {
   }
 
   .sidebar {
-    position: fixed;
-    top: 80px; /* Account for fixed navbar */
-    left: -100%;
-    height: calc(100vh - 80px);
     width: 80vw;
     max-width: 320px;
     padding: 1rem;
-    z-index: 1100;
     box-shadow: var(--shadow-medium);
-  }
-
-  .sidebar.open {
-    left: 0;
   }
 
   .sidebar .mobile-header {

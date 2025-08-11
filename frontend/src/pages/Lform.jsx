@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ApiService from '../services/api'
 
-function Lform() {
+function Lform({ onMenuClick }) {
     const [dropdownData, setDropdownData] = useState({
         companies: [],
         companyInfo: [],
@@ -255,7 +255,45 @@ function Lform() {
 
     return (
         <div style={{padding: '20px'}}>
-            <h1>L-Form Data Selection</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                {/* Hamburger Menu Icon */}
+                <button
+                    onClick={() => {
+                        console.log('Lform hamburger clicked!');
+                        if (onMenuClick) {
+                            onMenuClick();
+                        } else {
+                            console.log('onMenuClick is not defined');
+                        }
+                    }}
+                    style={{
+                        background: 'rgba(63, 114, 175, 0.1)',
+                        border: '1px solid rgba(63, 114, 175, 0.3)',
+                        color: 'var(--main-color)',
+                        borderRadius: '6px',
+                        padding: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        minWidth: '36px',
+                        minHeight: '36px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+                        e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+                        e.target.style.transform = 'scale(1)';
+                    }}
+                >
+                    ☰
+                </button>
+                <h1 style={{ margin: 0 }}>L-Form Data Selection</h1>
+            </div>
             <div style={{display:'flex', justifyContent:'space-between', gap: '20px', flexWrap: 'wrap'}}>
                 <div className='dropdown' style={{minWidth: '200px'}}>
                     <h3>Select Company</h3>
