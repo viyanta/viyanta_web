@@ -71,16 +71,16 @@ const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
   };
 
   const buttonStyle = {
-    padding: '14px 24px',
+    padding: '0.75rem 1.5rem',
     margin: '0 4px',
-    border: '2px solid #e9ecef',
-    borderRadius: '10px',
+    border: '1px solid #e9ecef',
+    borderRadius: 'var(--border-radius)',
     cursor: 'pointer',
-    fontSize: '15px',
+    fontSize: '0.875rem',
     fontWeight: '600',
     transition: 'var(--transition)',
     outline: 'none',
-    minWidth: '140px'
+    minWidth: '120px'
   };
 
   const activeButtonStyle = {
@@ -99,59 +99,57 @@ const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
   };
 
   const dropZoneStyle = {
-    border: `3px dashed ${dragActive ? 'var(--sub-color)' : '#e9ecef'}`,
-    borderRadius: '16px',
-    padding: '3rem 2rem',
-    textAlign: 'center',
+    border: `2px dashed ${dragActive ? 'var(--sub-color)' : '#e9ecef'}`,
+    borderRadius: 'var(--border-radius)',
+    padding: '2rem',
+    textAlign: 'left',
     background: dragActive ? 'rgba(63, 114, 175, 0.05)' : 'var(--background-color)',
     transition: 'var(--transition)',
     cursor: 'pointer',
-    minHeight: '280px',
+    minHeight: '200px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: '1.5rem',
-    maxWidth: '600px',
-    marginLeft: 'auto',
-    marginRight: 'auto'
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginTop: '1rem',
+    maxWidth: '100%'
   };
 
   return (
     <div style={{ margin: '0' }}>
-      <div style={{ marginBottom: '2.5rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
         <h3 style={{ 
-          marginBottom: '2rem', 
+          marginBottom: '1.5rem', 
           color: 'var(--main-color)',
-          fontSize: '1.5rem',
-          fontWeight: '700',
-          textAlign: 'center'
+          fontSize: '1.25rem',
+          fontWeight: '600',
+          textAlign: 'left'
         }}>
           Smart PDF Extraction
         </h3>
         
         {/* Upload Mode Selection */}
         <div style={{ 
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1rem'
+          alignItems: 'flex-start',
+          gap: '0.75rem'
         }}>
           <label style={{ 
             color: 'var(--text-color-dark)', 
             fontWeight: '600',
-            fontSize: '16px',
-            marginBottom: '0.75rem',
-            textAlign: 'center'
+            fontSize: '0.875rem',
+            marginBottom: '0.5rem',
+            textAlign: 'left'
           }}>
             Upload Mode:
           </label>
           <div style={{ 
             display: 'flex', 
-            gap: '1rem', 
+            gap: '0.75rem', 
             flexWrap: 'wrap',
-            justifyContent: 'center'
+            justifyContent: 'flex-start'
           }}>
             <button
               style={uploadMode === 'single' ? activeButtonStyle : inactiveButtonStyle}
@@ -170,26 +168,26 @@ const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
 
         {/* Extract Mode Selection */}
         <div style={{ 
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1rem'
+          alignItems: 'flex-start',
+          gap: '0.75rem'
         }}>
           <label style={{ 
             color: 'var(--text-color-dark)', 
             fontWeight: '600',
-            fontSize: '16px',
-            marginBottom: '0.75rem',
-            textAlign: 'center'
+            fontSize: '0.875rem',
+            marginBottom: '0.5rem',
+            textAlign: 'left'
           }}>
             Extraction Method:
           </label>
           <div style={{ 
             display: 'flex', 
-            gap: '1rem', 
+            gap: '0.75rem', 
             flexWrap: 'wrap',
-            justifyContent: 'center'
+            justifyContent: 'flex-start'
           }}>
             <button
               style={extractMode === 'both' ? activeButtonStyle : inactiveButtonStyle}
@@ -240,7 +238,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
               borderTop: '4px solid var(--sub-color)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
-              margin: '0 auto 1rem'
+              margin: '0 0 1rem 0'
             }} />
             <p style={{ color: 'var(--sub-color)', fontWeight: '600' }}>
               {uploadMode === 'single' ? 'Processing PDF...' : 'Uploading files...'}

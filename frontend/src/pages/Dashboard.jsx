@@ -85,7 +85,7 @@ function ParquetDataViewer({ fileId, fileName, title }) {
   );
 }
 
-function Dashboard() {
+function Dashboard({ onMenuClick }) {
   const { stats, files, loading } = useStats();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
@@ -170,7 +170,45 @@ function Dashboard() {
       <div className="fade-in" style={{ padding: '1rem' }}>
         {/* Header Section */}
         <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ marginBottom: '0.5rem' }}>Dashboard</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            {/* Hamburger Menu Icon */}
+            <button
+              onClick={() => {
+                console.log('Dashboard hamburger clicked!');
+                if (onMenuClick) {
+                  onMenuClick();
+                } else {
+                  console.log('onMenuClick is not defined');
+                }
+              }}
+              style={{
+                background: 'rgba(63, 114, 175, 0.1)',
+                border: '1px solid rgba(63, 114, 175, 0.3)',
+                color: 'var(--main-color)',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                minWidth: '36px',
+                minHeight: '36px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+                e.target.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ☰
+            </button>
+            <h1 style={{ margin: 0 }}>Dashboard</h1>
+          </div>
           <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
             Welcome to your file processing dashboard. Monitor your uploads and conversions in real-time.
           </p>

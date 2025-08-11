@@ -26,15 +26,15 @@ function App() {
           <Navbar onMenuClick={openSidebar} />
           <div className="layout">
             <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
-            <main className="main-content" onClick={closeSidebar}>
+            <main className="main-content" onClick={() => sidebarOpen && closeSidebar()}>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/explorer" element={<Explorer />} />
-                <Route path="/lform" element={<Lform />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/smart-extraction" element={<SmartPDFExtraction />} />
-                <Route path="/extraction" element={<PDFExtraction />} />
-                <Route path="/insurance-dashboard" element={<InsuranceDashboard />} />
+                <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
+                <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
+                <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
+                <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
+                <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
+                <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
               </Routes>
             </main>
           </div>

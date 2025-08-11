@@ -6,7 +6,7 @@ import JobStatusTracker from '../components/JobStatusTracker';
 import ExtractionResults from '../components/ExtractionResults';
 import apiService from '../services/api';
 
-const SmartPDFExtraction = () => {
+const SmartPDFExtraction = ({ onMenuClick }) => {
   const [currentResults, setCurrentResults] = useState(null);
   const [currentJob, setCurrentJob] = useState(null);
   const [jobResults, setJobResults] = useState(null);
@@ -134,41 +134,40 @@ const SmartPDFExtraction = () => {
   const containerStyle = {
     minHeight: '100%',
     background: 'white',
-    padding: '2rem',
-    maxWidth: '1000px',
-    margin: '0 auto'
+    padding: '1rem',
+    width: '100%'
   };
 
   const headerStyle = {
-    marginBottom: '2.5rem',
-    textAlign: 'center',
+    marginBottom: '2rem',
+    textAlign: 'left',
     color: 'var(--main-color)'
   };
 
   const tabsWrapperStyle = {
     marginBottom: '2rem',
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'flex-start'
   };
 
   const tabsStyle = {
     display: 'flex',
     gap: '1rem',
     flexWrap: 'wrap',
-    justifyContent: 'center'
+    justifyContent: 'flex-start'
   };
 
   const tabButtonBase = {
-    padding: '14px 24px',
-    borderRadius: '10px',
+    padding: '0.75rem 1.5rem',
+    borderRadius: 'var(--border-radius)',
     border: '2px solid #e9ecef',
     background: 'white',
     color: 'var(--text-color-dark)',
-    fontWeight: 600,
+    fontWeight: '600',
     cursor: 'pointer',
     transition: 'var(--transition)',
-    fontSize: '15px',
-    minWidth: '120px'
+    fontSize: '0.9rem',
+    minWidth: '100px'
   };
 
   const activeTabStyle = {
@@ -183,11 +182,11 @@ const SmartPDFExtraction = () => {
 
   const cardStyle = {
     background: 'white',
-    borderRadius: '16px',
+    borderRadius: 'var(--border-radius)',
     border: '1px solid #e9ecef',
     boxShadow: 'var(--shadow-light)',
-    padding: '2.5rem',
-    maxWidth: '100%'
+    padding: '1.5rem',
+    width: '100%'
   };
 
   const errorStyle = {
@@ -221,7 +220,45 @@ const SmartPDFExtraction = () => {
     <div style={containerStyle}>
       {/* Header */}
       <div style={headerStyle}>
-        <h1 style={{ margin: 0 }}>Smart PDF Table Extraction</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => {
+              console.log('SmartPDFExtraction hamburger clicked!');
+              if (onMenuClick) {
+                onMenuClick();
+              } else {
+                console.log('onMenuClick is not defined');
+              }
+            }}
+            style={{
+              background: 'rgba(63, 114, 175, 0.1)',
+              border: '1px solid rgba(63, 114, 175, 0.3)',
+              color: 'var(--main-color)',
+              borderRadius: '6px',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minWidth: '36px',
+              minHeight: '36px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            ☰
+          </button>
+          <h1 style={{ margin: 0 }}>Smart PDF Table Extraction</h1>
+        </div>
         <p style={{ color: 'var(--text-color-light)', marginTop: '0.25rem' }}>
           Extract, verify, and analyze table data from PDF documents with AI-powered accuracy
         </p>
@@ -284,22 +321,20 @@ const SmartPDFExtraction = () => {
 
             {/* Quick Tips */}
             <div style={{
-              marginTop: '2.5rem',
-              padding: '2rem',
+              marginTop: '2rem',
+              padding: '1.5rem',
               background: 'var(--background-color)',
-              borderRadius: '16px',
+              borderRadius: 'var(--border-radius)',
               border: '1px solid #e9ecef',
               boxShadow: 'var(--shadow-light)',
-              maxWidth: '800px',
-              marginLeft: 'auto',
-              marginRight: 'auto'
+              maxWidth: '100%'
             }}>
               <h4 style={{ 
-                margin: '0 0 1.5rem 0', 
+                margin: '0 0 1rem 0', 
                 color: 'var(--main-color)',
-                fontSize: '1.2rem',
-                fontWeight: '700',
-                textAlign: 'center'
+                fontSize: '1rem',
+                fontWeight: '600',
+                textAlign: 'left'
               }}>
                 💡 Quick Tips:
               </h4>
@@ -307,8 +342,8 @@ const SmartPDFExtraction = () => {
                 margin: 0, 
                 paddingLeft: '1.5rem', 
                 color: 'var(--text-color-light)',
-                lineHeight: '1.8',
-                fontSize: '15px'
+                lineHeight: '1.6',
+                fontSize: '0.875rem'
               }}>
                 <li style={{ marginBottom: '0.75rem' }}>
                   <strong>Single File Mode:</strong> Get instant results with AI verification
@@ -319,7 +354,7 @@ const SmartPDFExtraction = () => {
                 <li style={{ marginBottom: '0.75rem' }}>
                   <strong>Extraction Methods:</strong> 'Both' gives best results, 'Stream' for simple tables, 'Lattice' for complex layouts
                 </li>
-                <li>
+                <li style={{ marginBottom: '0' }}>
                   <strong>AI Verification:</strong> Gemini AI automatically corrects and improves extraction accuracy
                 </li>
               </ul>

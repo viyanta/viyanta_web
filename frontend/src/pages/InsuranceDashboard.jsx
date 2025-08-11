@@ -203,10 +203,11 @@ const TreemapSection = ({ title, data, colors }) => {
   );
 };
 
-function InsuranceDashboard() {
+function InsuranceDashboard({ onMenuClick }) {
+  const { stats } = useStats();
+  const [activeTab, setActiveTab] = useState('Industry Metrics');
   const [selectedCompany, setSelectedCompany] = useState('HDFC Life');
-  const [activeTab, setActiveTab] = useState('Dashboard');
-  const [selectedInfoSection, setSelectedInfoSection] = useState('Industry Metrics');
+  const [selectedInfoSection, setSelectedInfoSection] = useState('');
   
   // Get the current company's data
   const currentCompanyData = dashboardData.companies[selectedCompany] || dashboardData.companies['HDFC Life'];
@@ -225,9 +226,47 @@ function InsuranceDashboard() {
     <div className="insurance-dashboard">
       {/* Dashboard Header - At the very top */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">
-          Insurance Dashboard
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => {
+              console.log('InsuranceDashboard hamburger clicked!');
+              if (onMenuClick) {
+                onMenuClick();
+              } else {
+                console.log('onMenuClick is not defined');
+              }
+            }}
+            style={{
+              background: 'rgba(63, 114, 175, 0.1)',
+              border: '1px solid rgba(63, 114, 175, 0.3)',
+              color: 'var(--main-color)',
+              borderRadius: '6px',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minWidth: '36px',
+              minHeight: '36px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            ☰
+          </button>
+          <h1 className="dashboard-title" style={{ margin: 0 }}>
+            Insurance Dashboard
+          </h1>
+        </div>
         <p className="dashboard-subtitle">
           Comprehensive view of key performance indicators and market analysis
         </p>
