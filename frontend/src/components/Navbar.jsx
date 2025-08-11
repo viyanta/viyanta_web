@@ -101,7 +101,7 @@ function Navbar({ onMenuClick }) {
               color: 'var(--text-color)',
               letterSpacing: '0.5px'
             }}>
-              AssureLife
+              AssureLife v0.1
             </h1>
           </Link>
         </div>
@@ -193,9 +193,9 @@ function Navbar({ onMenuClick }) {
                 right: 0,
                 marginTop: '0.5rem',
                 backgroundColor: 'white',
-                border: '1px solid var(--border-color)',
+                border: '1px solid var(--input-border-color)',
                 borderRadius: 'var(--border-radius)',
-                boxShadow: 'var(--shadow-large)',
+                boxShadow: 'var(--shadow-heavy)',
                 minWidth: '200px',
                 zIndex: 1001
               }}>
@@ -207,7 +207,7 @@ function Navbar({ onMenuClick }) {
                     padding: '0.75rem 1rem',
                     textDecoration: 'none',
                     color: 'var(--text-color-dark)',
-                    borderBottom: '1px solid var(--border-color)'
+                    borderBottom: '1px solid var(--input-border-color)'
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.backgroundColor = 'var(--background-color)';
