@@ -23,7 +23,7 @@
 .dashboard-title {
   margin: 0 0 0.5rem 0;
   color: #36659b;
-  font-size: 2rem;
+  font-size: clamp(18px, 5vw, 28px);
   font-weight: 700;
   word-break: break-word;
 }

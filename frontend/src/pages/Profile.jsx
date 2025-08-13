@@ -112,7 +112,11 @@ function Profile({ onMenuClick }) {
           >
             ☰
           </button>
-          <h1 style={{ margin: 0 }}>User Profile</h1>
+          <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
+                    lineHeight: '1.2'
+                }}>User Profile</h1>
         </div>
         <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
           Manage your account information and preferences.

@@ -47,7 +47,7 @@ h1 {
 }
 
 h2 {
-    font-size: 2rem;
+    font-size: clamp(18px, 5vw, 28px);
     font-weight: 600;
     color: var(--main-color);
     margin-bottom: 0.75rem;
@@ -331,7 +331,7 @@ li {
     }
 
     h1 {
-        font-size: 2rem;
+        font-size: clamp(18px, 5vw, 28px);
     }
 
     h2 {

@@ -118,7 +118,7 @@ const PDFExtraction = ({ onMenuClick }) => {
   };
 
   const titleStyle = {
-    fontSize: '2.5rem',
+    fontSize: 'clamp(18px, 5vw, 28px)',
     fontWeight: '700',
     color: 'white',
     margin: 0,

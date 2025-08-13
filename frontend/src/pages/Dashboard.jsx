@@ -207,7 +207,11 @@ function Dashboard({ onMenuClick }) {
             >
               ☰
             </button>
-            <h1 style={{ margin: 0 }}>Dashboard</h1>
+            <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
+                    lineHeight: '1.2'
+                }}>Dashboard</h1>
           </div>
           <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
             Welcome to your file processing dashboard. Monitor your uploads and conversions in real-time.

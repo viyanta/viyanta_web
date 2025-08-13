@@ -116,58 +116,136 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
 
   if (!data || Object.keys(data).length === 0) {
     return (
-      <div className="insurance-table-container">
+      <div className="insurance-table-container" style={{
+        padding: 'clamp(15px, 4vw, 20px)',
+        textAlign: 'center'
+      }}>
         <div className="no-data">
-          <h3>No data available</h3>
-          <p>Please provide insurance data to display the table.</p>
+          <h3 style={{
+            fontSize: 'clamp(18px, 5vw, 28px)',
+            marginBottom: 'clamp(10px, 3vw, 15px)'
+          }}>Insurance Data Table</h3>
+          <p style={{
+            fontSize: 'clamp(14px, 3.5vw, 16px)',
+            color: '#666'
+          }}>Please provide insurance data to display the table.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="insurance-table-container">
-
-
-
+    <div className="insurance-table-container" style={{
+      padding: 'clamp(10px, 3vw, 20px)',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
+    }}>
 
       {/* Breadcrumb Navigation */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.5rem',
-        padding: '1rem 0',
-        marginBottom: '2rem',
-        fontSize: '0.875rem',
+        justifyContent: window.innerWidth <= 768 ? 'flex-start' : 'center',
+        gap: 'clamp(0.3rem, 1.5vw, 0.5rem)',
+        padding: 'clamp(0.8rem, 2vw, 1rem) 0',
+        marginBottom: 'clamp(1.5rem, 4vw, 2rem)',
+        fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)',
         color: '#666',
-        borderBottom: 'none'
+        borderBottom: 'none',
+        overflowX: 'auto',
+        whiteSpace: 'nowrap',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '6px',
+        paddingLeft: 'clamp(10px, 3vw, 15px)',
+        paddingRight: 'clamp(10px, 3vw, 15px)'
       }}>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}>L Forms</span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}> &gt; </span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}>{selectedCompany || 'Select Company'}</span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}> &gt; </span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}>L-4 Premium Schedule</span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}> &gt; </span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}>Standalone</span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}> &gt; </span>
-        <span style={{ color: 'var(--main-color)', fontWeight: '500', cursor: 'pointer' }}>{selectedMonth}</span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          fontSize: 'clamp(12px, 3vw, 14px)'
+        }}>L Forms</span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          margin: '0 clamp(4px, 1vw, 8px)'
+        }}> &gt; </span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          fontSize: 'clamp(12px, 3vw, 14px)'
+        }}>{selectedCompany || 'Select Company'}</span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          margin: '0 clamp(4px, 1vw, 8px)'
+        }}> &gt; </span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          fontSize: 'clamp(12px, 3vw, 14px)'
+        }}>L-4 Premium Schedule</span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          margin: '0 clamp(4px, 1vw, 8px)'
+        }}> &gt; </span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          fontSize: 'clamp(12px, 3vw, 14px)'
+        }}>Standalone</span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          margin: '0 clamp(4px, 1vw, 8px)'
+        }}> &gt; </span>
+        <span style={{ 
+          color: 'var(--main-color)', 
+          fontWeight: '500', 
+          cursor: 'pointer',
+          fontSize: 'clamp(12px, 3vw, 14px)'
+        }}>{selectedMonth}</span>
       </div>
 
       {/* Main Content with Sidebar */}
-      <div style={{ display: 'flex', gap: '2rem' }}>
-                     {/* Company Information Sidebar */}
-             <CompanyInformationSidebar />
+      <div style={{ 
+        display: 'flex', 
+        gap: 'clamp(1rem, 3vw, 2rem)',
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
+      }}>
+        {/* Company Information Sidebar */}
+        <CompanyInformationSidebar />
 
         {/* Main Content */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           {/* Filter Controls Section */}
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ 
+            marginBottom: 'clamp(1.5rem, 4vw, 2rem)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: 'clamp(1rem, 3vw, 2rem)', 
+              alignItems: 'center',
+              flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+              alignItems: window.innerWidth <= 768 ? 'stretch' : 'center'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 'clamp(0.3rem, 1.5vw, 0.5rem)',
+                width: window.innerWidth <= 768 ? '100%' : 'auto'
+              }}>
                 <label htmlFor="company-select" style={{ 
                   color: 'var(--main-color)', 
-                  fontSize: '0.9rem', 
+                  fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
                   fontWeight: '500',
                   textTransform: 'lowercase'
                 }}>
@@ -178,11 +256,12 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                   value={selectedCompany} 
                   onChange={(e) => handleCompanyChange(e.target.value)}
                   style={{
-                    padding: '0.5rem',
+                    padding: 'clamp(0.4rem, 2vw, 0.5rem)',
                     border: '1px solid #e0e0e0',
                     borderRadius: '4px',
-                    fontSize: '0.9rem',
-                    minWidth: '200px'
+                    fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
+                    minWidth: window.innerWidth <= 768 ? '100%' : '200px',
+                    width: window.innerWidth <= 768 ? '100%' : 'auto'
                   }}
                 >
                   {companies.map(company => (
@@ -191,10 +270,15 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                 </select>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 'clamp(0.3rem, 1.5vw, 0.5rem)',
+                width: window.innerWidth <= 768 ? '100%' : 'auto'
+              }}>
                 <label htmlFor="year-select" style={{ 
                   color: 'var(--main-color)', 
-                  fontSize: '0.9rem', 
+                  fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
                   fontWeight: '500',
                   textTransform: 'lowercase'
                 }}>
@@ -205,11 +289,12 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                   value={selectedYear} 
                   onChange={(e) => handleYearChange(e.target.value)}
                   style={{
-                    padding: '0.5rem',
+                    padding: 'clamp(0.4rem, 2vw, 0.5rem)',
                     border: '1px solid #e0e0e0',
                     borderRadius: '4px',
-                    fontSize: '0.9rem',
-                    minWidth: '120px'
+                    fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
+                    minWidth: window.innerWidth <= 768 ? '100%' : '120px',
+                    width: window.innerWidth <= 768 ? '100%' : 'auto'
                   }}
                 >
                   {years.map(year => (
@@ -218,10 +303,15 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                 </select>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 'clamp(0.3rem, 1.5vw, 0.5rem)',
+                width: window.innerWidth <= 768 ? '100%' : 'auto'
+              }}>
                 <label htmlFor="month-select" style={{ 
                   color: 'var(--main-color)', 
-                  fontSize: '0.9rem', 
+                  fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', 
                   fontWeight: '500',
                   textTransform: 'lowercase'
                 }}>
@@ -232,11 +322,12 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                   value={selectedMonth} 
                   onChange={(e) => handleMonthChange(e.target.value)}
                   style={{
-                    padding: '0.5rem',
+                    padding: 'clamp(0.4rem, 2vw, 0.5rem)',
                     border: '1px solid #e0e0e0',
                     borderRadius: '4px',
-                    fontSize: '0.9rem',
-                    minWidth: '120px'
+                    fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
+                    minWidth: window.innerWidth <= 768 ? '100%' : '120px',
+                    width: window.innerWidth <= 768 ? '100%' : 'auto'
                   }}
                 >
                   {months.map(month => (
@@ -248,15 +339,51 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
           </div>
 
           {/* Data Table */}
-          <div className="table-wrapper">
-            <table className="insurance-data-table">
+          <div className="table-wrapper" style={{
+            overflowX: 'auto',
+            border: '1px solid #dee2e6',
+            borderRadius: '6px',
+            WebkitOverflowScrolling: 'touch',
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'thin'
+          }}>
+            <table className="insurance-data-table" style={{
+              width: '100%',
+              minWidth: window.innerWidth <= 768 ? '800px' : '100%',
+              fontSize: 'clamp(12px, 3vw, 14px)'
+            }}>
               <thead>
                 <tr className="table-header-row">
-                  <th className="company-column">Company/InsurerShortName</th>
-                  <th className="year-column">2020</th>
-                  <th className="year-column">2021</th>
-                  <th className="year-column">2022</th>
-                  <th className="total-column">Total</th>
+                  <th className="company-column" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    minWidth: '200px',
+                    whiteSpace: 'nowrap'
+                  }}>Company/InsurerShortName</th>
+                  <th className="year-column" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    minWidth: '120px',
+                    whiteSpace: 'nowrap'
+                  }}>2020</th>
+                  <th className="year-column" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    minWidth: '120px',
+                    whiteSpace: 'nowrap'
+                  }}>2021</th>
+                  <th className="year-column" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    minWidth: '120px',
+                    whiteSpace: 'nowrap'
+                  }}>2022</th>
+                  <th className="total-column" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    minWidth: '120px',
+                    whiteSpace: 'nowrap'
+                  }}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -264,29 +391,51 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                   <React.Fragment key={company}>
                     {/* Company Summary Row */}
                     <tr key={`${company}-summary`} className="company-summary-row">
-                      <td className="company-name">{getCompanyDisplayName(company)}</td>
-                      <td className="year-data">
+                      <td className="company-name" style={{
+                        padding: 'clamp(8px, 2vw, 12px)',
+                        fontSize: 'clamp(12px, 3vw, 14px)',
+                        fontWeight: '600',
+                        wordBreak: 'break-word'
+                      }}>{getCompanyDisplayName(company)}</td>
+                      <td className="year-data" style={{
+                        padding: 'clamp(8px, 2vw, 12px)',
+                        fontSize: 'clamp(11px, 2.5vw, 13px)',
+                        textAlign: 'right'
+                      }}>
                         {data[company] && data[company]['Company Summary'] && data[company]['Company Summary']['2020'] ? (
                           <span className="year-value">{formatNumber(data[company]['Company Summary']['2020'])}</span>
                         ) : (
                           '-'
                         )}
                       </td>
-                      <td className="year-data">
+                      <td className="year-data" style={{
+                        padding: 'clamp(8px, 2vw, 12px)',
+                        fontSize: 'clamp(11px, 2.5vw, 13px)',
+                        textAlign: 'right'
+                      }}>
                         {data[company] && data[company]['Company Summary'] && data[company]['Company Summary']['2021'] ? (
                           <span className="year-value">{formatNumber(data[company]['Company Summary']['2021'])}</span>
                         ) : (
                           '-'
                         )}
                       </td>
-                      <td className="year-data">
+                      <td className="year-data" style={{
+                        padding: 'clamp(8px, 2vw, 12px)',
+                        fontSize: 'clamp(11px, 2.5vw, 13px)',
+                        textAlign: 'right'
+                      }}>
                         {data[company] && data[company]['Company Summary'] && data[company]['Company Summary']['2022'] ? (
                           <span className="year-value">{formatNumber(data[company]['Company Summary']['2022'])}</span>
                         ) : (
                           '-'
                         )}
                       </td>
-                      <td className="total-value">
+                      <td className="total-value" style={{
+                        padding: 'clamp(8px, 2vw, 12px)',
+                        fontSize: 'clamp(11px, 2.5vw, 13px)',
+                        textAlign: 'right',
+                        fontWeight: '600'
+                      }}>
                         {data[company] && data[company]['Company Summary'] && data[company]['Company Summary']['Total'] ? (
                           formatNumber(data[company]['Company Summary']['Total'])
                         ) : (
@@ -298,8 +447,17 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                     {/* Metrics Rows */}
                     {metrics.map(metric => (
                       <tr key={`${company}-${metric}`} className="metric-row">
-                        <td className="metric-name">{metric}</td>
-                        <td className="year-data">
+                        <td className="metric-name" style={{
+                          padding: 'clamp(8px, 2vw, 12px)',
+                          fontSize: 'clamp(11px, 2.5vw, 13px)',
+                          paddingLeft: 'clamp(20px, 5vw, 30px)',
+                          wordBreak: 'break-word'
+                        }}>{metric}</td>
+                        <td className="year-data" style={{
+                          padding: 'clamp(8px, 2vw, 12px)',
+                          fontSize: 'clamp(11px, 2.5vw, 13px)',
+                          textAlign: 'right'
+                        }}>
                           {data[company] && data[company][metric] && data[company][metric]['2020'] ? (
                             typeof data[company][metric]['2020'] === 'object' ? (
                               <span className="year-value">
@@ -312,7 +470,11 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                             '-'
                           )}
                         </td>
-                        <td className="year-data">
+                        <td className="year-data" style={{
+                          padding: 'clamp(8px, 2vw, 12px)',
+                          fontSize: 'clamp(11px, 2.5vw, 13px)',
+                          textAlign: 'right'
+                        }}>
                           {data[company] && data[company][metric] && data[company][metric]['2021'] ? (
                             typeof data[company][metric]['2021'] === 'object' ? (
                               <span className="year-value">
@@ -325,7 +487,11 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                             '-'
                           )}
                         </td>
-                        <td className="year-data">
+                        <td className="year-data" style={{
+                          padding: 'clamp(8px, 2vw, 12px)',
+                          fontSize: 'clamp(11px, 2.5vw, 13px)',
+                          textAlign: 'right'
+                        }}>
                           {data[company] && data[company][metric] && data[company][metric]['2022'] ? (
                             typeof data[company][metric]['2022'] === 'object' ? (
                               <span className="year-value">
@@ -338,7 +504,12 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                             '-'
                           )}
                         </td>
-                        <td className="total-value">
+                        <td className="total-value" style={{
+                          padding: 'clamp(8px, 2vw, 12px)',
+                          fontSize: 'clamp(11px, 2.5vw, 13px)',
+                          textAlign: 'right',
+                          fontWeight: '600'
+                        }}>
                           {formatNumber(calculateTotal(company, metric))}
                         </td>
                       </tr>
@@ -348,17 +519,46 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
                 
                 {/* Grand Total Row */}
                 <tr className="grand-total-row">
-                  <td className="total-label">Total</td>
-                  <td className="year-total">
+                  <td className="total-label" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(13px, 3.5vw, 15px)',
+                    fontWeight: '700',
+                    backgroundColor: '#f8f9fa'
+                  }}>Total</td>
+                  <td className="year-total" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    textAlign: 'right',
+                    fontWeight: '600',
+                    backgroundColor: '#f8f9fa'
+                  }}>
                     {formatNumber(calculateYearTotal('2020'))}
                   </td>
-                  <td className="year-total">
+                  <td className="year-total" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    textAlign: 'right',
+                    fontWeight: '600',
+                    backgroundColor: '#f8f9fa'
+                  }}>
                     {formatNumber(calculateYearTotal('2021'))}
                   </td>
-                  <td className="year-total">
+                  <td className="year-total" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    textAlign: 'right',
+                    fontWeight: '600',
+                    backgroundColor: '#f8f9fa'
+                  }}>
                     {formatNumber(calculateYearTotal('2022'))}
                   </td>
-                  <td className="grand-total">
+                  <td className="grand-total" style={{
+                    padding: 'clamp(10px, 2.5vw, 15px)',
+                    fontSize: 'clamp(13px, 3.5vw, 15px)',
+                    textAlign: 'right',
+                    fontWeight: '700',
+                    backgroundColor: '#f8f9fa'
+                  }}>
                     {formatNumber(calculateGrandTotal())}
                   </td>
                 </tr>

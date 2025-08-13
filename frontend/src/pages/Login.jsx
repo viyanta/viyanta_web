@@ -54,7 +54,7 @@ function Login() {
           <h1 style={{ 
             color: 'var(--main-color)', 
             marginBottom: '0.5rem',
-            fontSize: '2rem'
+            fontSize: 'clamp(18px, 5vw, 28px)'
           }}>
             Welcome to Viyanta
           </h1>

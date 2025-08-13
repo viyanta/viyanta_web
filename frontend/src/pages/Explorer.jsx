@@ -141,7 +141,11 @@ function Explorer({ onMenuClick }) {
                 >
                     ☰
                 </button>
-                <h1 style={{ margin: 0 }}>Checker and Maker</h1>
+                <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
+                    lineHeight: '1.2'
+                }}>Checker and Maker</h1>
             </div>
             <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
                 Upload your files and convert them to Parquet format for efficient data processing.

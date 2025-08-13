@@ -24,7 +24,10 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
   };
   
   return (
-    <div className="monthly-chart" style={{ minHeight: `${chartHeight}px` }}>
+    <div className="monthly-chart" style={{ 
+      minHeight: `${chartHeight}px`,
+      overflowX: 'auto'
+    }}>
       {/* Y-axis and Chart Container */}
       <div className="chart-container" style={{ height: `${chartHeight - 30}px` }}>
         {/* Y-axis Labels */}
@@ -32,7 +35,9 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
           {Array.from({ length: yAxisSteps + 1 }, (_, i) => {
             const value = displayMaxValue - (i * (displayMaxValue / yAxisSteps));
             return (
-              <div key={i} className="y-axis-label">
+              <div key={i} className="y-axis-label" style={{
+                fontSize: 'clamp(10px, 2.5vw, 12px)'
+              }}>
                 {value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
               </div>
             );
@@ -69,10 +74,14 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
       <div className="x-axis-labels">
         {data.map((item, index) => (
           <div key={index} className="x-axis-item">
-            <div className="month-label">
+            <div className="month-label" style={{
+              fontSize: 'clamp(10px, 2.5vw, 12px)'
+            }}>
               {item.month}
             </div>
-            <div className="value-label">
+            <div className="value-label" style={{
+              fontSize: 'clamp(9px, 2vw, 11px)'
+            }}>
               {item.value >= 1000 ? `${(item.value / 1000).toFixed(0)}K` : item.value}
             </div>
           </div>
@@ -88,8 +97,12 @@ const CompanyDistributionChart = ({ data, title, color }) => {
   const total = sortedData.reduce((sum, item) => sum + item.percentage, 0);
   
   return (
-    <div className="company-distribution-chart">
-      <div className="company-boxes">
+    <div className="company-distribution-chart" style={{
+      overflowX: 'auto'
+    }}>
+      <div className="company-boxes" style={{
+        minWidth: '300px' // Ensure minimum width for mobile
+      }}>
         {sortedData.map((item, index) => {
           const width = Math.max((item.percentage / total) * 100, 12); // Minimum 12% width
           
@@ -104,10 +117,14 @@ const CompanyDistributionChart = ({ data, title, color }) => {
               }}
               title={`${item.name}: ${item.percentage}%`}
             >
-              <div className="company-name">
+              <div className="company-name" style={{
+                fontSize: 'clamp(10px, 2.5vw, 12px)'
+              }}>
                 {item.name}
               </div>
-              <div className="company-percentage">
+              <div className="company-percentage" style={{
+                fontSize: 'clamp(9px, 2vw, 11px)'
+              }}>
                 {item.percentage}%
               </div>
             </div>
@@ -121,29 +138,54 @@ const CompanyDistributionChart = ({ data, title, color }) => {
 // KPI Card Component
 const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, metricType }) => {
   return (
-    <div className={`kpi-card ${metricType}`}>
+    <div className={`kpi-card ${metricType}`} style={{
+      padding: 'clamp(15px, 4vw, 20px)',
+      marginBottom: 'clamp(15px, 4vw, 20px)'
+    }}>
       {/* KPI Row Layout - Responsive */}
-      <div className="kpi-row-layout">
+      <div className="kpi-row-layout" style={{
+        display: 'flex',
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+        gap: 'clamp(15px, 3vw, 20px)',
+        alignItems: 'stretch'
+      }}>
         {/* Left: Metric Info */}
-        <div className="metric-info">
-          <div className={`metric-icon ${metricType}`}>
+        <div className="metric-info" style={{
+          flex: window.innerWidth <= 768 ? 'none' : '0 0 200px',
+          minWidth: window.innerWidth <= 768 ? '100%' : '200px'
+        }}>
+          <div className={`metric-icon ${metricType}`} style={{
+            fontSize: 'clamp(24px, 6vw, 32px)',
+            marginBottom: 'clamp(8px, 2vw, 12px)'
+          }}>
             {icon}
           </div>
           <div className="metric-details">
-            <h3 className="metric-title">
+            <h3 className="metric-title" style={{
+              fontSize: 'clamp(16px, 4vw, 20px)',
+              marginBottom: 'clamp(8px, 2vw, 12px)'
+            }}>
               {title}
             </h3>
-            <div className={`metric-value ${metricType}`}>
+            <div className={`metric-value ${metricType}`} style={{
+              fontSize: 'clamp(16px, 4vw, 22px)',
+              marginBottom: 'clamp(4px, 1vw, 8px)'
+            }}>
               {value.toLocaleString()}
             </div>
-            <div className="metric-unit">
+            <div className="metric-unit" style={{
+              fontSize: 'clamp(12px, 3vw, 14px)'
+            }}>
               {unit}
             </div>
           </div>
         </div>
         
         {/* Middle: Monthly Trend Chart */}
-        <div className="chart-section">
+        <div className="chart-section" style={{
+          flex: window.innerWidth <= 768 ? 'none' : '1',
+          minHeight: window.innerWidth <= 768 ? '200px' : 'auto'
+        }}>
           <MonthlyChart 
             data={monthlyData} 
             title="" 
@@ -153,7 +195,10 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, me
         </div>
         
         {/* Right: Company Distribution */}
-        <div className="chart-section">
+        <div className="chart-section" style={{
+          flex: window.innerWidth <= 768 ? 'none' : '1',
+          minHeight: window.innerWidth <= 768 ? '150px' : 'auto'
+        }}>
           <CompanyDistributionChart 
             data={companyData} 
             title="" 
@@ -171,10 +216,16 @@ const TreemapSection = ({ title, data, colors }) => {
   
   return (
     <div className="treemap-section">
-      <h3 className="treemap-title">
+      <h3 className="treemap-title" style={{
+        fontSize: 'clamp(16px, 4vw, 20px)',
+        marginBottom: 'clamp(10px, 3vw, 15px)'
+      }}>
         {title}
       </h3>
-      <div className="treemap-container">
+      <div className="treemap-container" style={{
+        overflowX: 'auto',
+        minWidth: '300px'
+      }}>
         {data.map((item, index) => {
           const percentage = ((item.value / total) * 100).toFixed(1);
           const width = Math.max((item.value / total) * 100, 8); // Minimum 8% width
@@ -190,10 +241,14 @@ const TreemapSection = ({ title, data, colors }) => {
               }}
               title={`${item.name}: ${percentage}%`}
             >
-              <div className="treemap-name">
+              <div className="treemap-name" style={{
+                fontSize: 'clamp(10px, 2.5vw, 12px)'
+              }}>
                 {item.name}
               </div>
-              <div className="treemap-percentage">
+              <div className="treemap-percentage" style={{
+                fontSize: 'clamp(9px, 2vw, 11px)'
+              }}>
                 {percentage}%
               </div>
             </div>
@@ -219,10 +274,22 @@ function InsuranceDashboard({ onMenuClick }) {
   ];
 
   return (
-    <div className="insurance-dashboard">
+    <div className="insurance-dashboard" style={{
+      padding: 'clamp(10px, 3vw, 20px)',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
+    }}>
       {/* Dashboard Header - At the very top */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+      <div style={{ 
+        marginBottom: 'clamp(1.5rem, 4vw, 2rem)'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 'clamp(0.5rem, 2vw, 1rem)', 
+          marginBottom: 'clamp(0.3rem, 2vw, 0.5rem)',
+          flexWrap: 'wrap'
+        }}>
           {/* Hamburger Menu Icon */}
           <button
             onClick={() => {
@@ -238,15 +305,15 @@ function InsuranceDashboard({ onMenuClick }) {
               border: '1px solid rgba(63, 114, 175, 0.3)',
               color: 'var(--main-color)',
               borderRadius: '6px',
-              padding: '0.5rem',
+              padding: 'clamp(0.4rem, 2vw, 0.5rem)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1rem',
+              fontSize: 'clamp(0.9rem, 3vw, 1rem)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              minWidth: '36px',
-              minHeight: '36px'
+              minWidth: 'clamp(32px, 8vw, 36px)',
+              minHeight: 'clamp(32px, 8vw, 36px)'
             }}
             onMouseEnter={(e) => {
               e.target.style.background = 'rgba(63, 114, 175, 0.2)';
@@ -259,34 +326,74 @@ function InsuranceDashboard({ onMenuClick }) {
           >
             ☰
           </button>
-          <h1 className="dashboard-title" style={{ margin: 0 }}>
+          <h1 className="dashboard-title" style={{ 
+            margin: 0,
+            fontSize: 'clamp(18px, 5vw, 28px)',
+            lineHeight: '1.2'
+          }}>
             Insurance Dashboard
           </h1>
         </div>
-        <p className="dashboard-subtitle">
+        <p className="dashboard-subtitle" style={{
+          fontSize: 'clamp(14px, 3.5vw, 16px)',
+          margin: 0
+        }}>
           Comprehensive view of key performance indicators and market analysis
         </p>
       </div>
 
       {/* Main Layout with Sidebar and Content */}
-      <div style={{ display: 'flex', gap: '2rem' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: 'clamp(1rem, 3vw, 2rem)',
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
+      }}>
         {/* Company Information Sidebar - Left side */}
         <CompanyInformationSidebar />
 
         {/* Right Content Area */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
 
           {/* Top Navigation Bar */}
-          <div className="top-navigation">
+          <div className="top-navigation" style={{
+            marginBottom: 'clamp(1rem, 3vw, 1.5rem)'
+          }}>
             {/* Navigation Tabs Only */}
-            <div className="navigation-tabs-container">
+            <div className="navigation-tabs-container" style={{
+              marginBottom: 'clamp(15px, 3vw, 20px)'
+            }}>
               {/* Navigation Tabs */}
-              <div className="navigation-tabs">
+              <div className="navigation-tabs" style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 'clamp(10px, 2.5vw, 15px)',
+                width: '100%',
+                overflow: 'visible'
+              }}>
                 {tabs.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+                    style={{
+                      padding: 'clamp(8px, 2vw, 12px)',
+                      fontSize: 'clamp(11px, 2.5vw, 13px)',
+                      whiteSpace: 'normal',
+                      width: '100%',
+                      textAlign: 'center',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: activeTab === tab ? 'var(--main-color)' : '#666',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      fontWeight: activeTab === tab ? '600' : '400',
+                      wordWrap: 'break-word',
+                      minHeight: 'clamp(32px, 8vw, 40px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   >
                     {tab}
                   </button>
@@ -295,16 +402,33 @@ function InsuranceDashboard({ onMenuClick }) {
             </div>
 
             {/* Multiple Dropdowns Section */}
-            <div className="dropdowns-section">
+            <div className="dropdowns-section" style={{
+              display: 'flex',
+              flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+              gap: 'clamp(10px, 3vw, 15px)'
+            }}>
               {/* Select Company */}
-              <div className="dropdown-container">
-                <label className="dropdown-label">
+              <div className="dropdown-container" style={{
+                minWidth: window.innerWidth <= 768 ? '100%' : '250px'
+              }}>
+                <label className="dropdown-label" style={{
+                  fontSize: 'clamp(14px, 3.5vw, 16px)',
+                  marginBottom: 'clamp(5px, 1.5vw, 8px)',
+                  display: 'block'
+                }}>
                   Select Company
                 </label>
                 <select
                   value={selectedCompany}
                   onChange={(e) => setSelectedCompany(e.target.value)}
                   className="dropdown-select"
+                  style={{
+                    width: '100%',
+                    padding: 'clamp(10px, 2.5vw, 12px)',
+                    fontSize: 'clamp(14px, 3vw, 16px)',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px'
+                  }}
                 >
                   <option value="">Select a company...</option>
                   <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
@@ -317,7 +441,11 @@ function InsuranceDashboard({ onMenuClick }) {
           </div>
 
           {/* KPI Rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 'clamp(1rem, 3vw, 2rem)'
+          }}>
             <KPICard
               title="Premium Value"
               value={currentCompanyData.metrics.premiumValue.total}
