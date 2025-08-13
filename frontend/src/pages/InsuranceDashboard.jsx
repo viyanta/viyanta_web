@@ -365,8 +365,8 @@ function InsuranceDashboard({ onMenuClick }) {
               {/* Navigation Tabs */}
               <div className="navigation-tabs" style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 'clamp(10px, 2.5vw, 15px)',
+                gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(3, 1fr)' : 'repeat(9, auto)',
+                gap: 'clamp(8px, 2vw, 12px)',
                 width: '100%',
                 overflow: 'visible'
               }}>
@@ -378,8 +378,8 @@ function InsuranceDashboard({ onMenuClick }) {
                     style={{
                       padding: 'clamp(8px, 2vw, 12px)',
                       fontSize: 'clamp(11px, 2.5vw, 13px)',
-                      whiteSpace: 'normal',
-                      width: '100%',
+                      whiteSpace: 'nowrap',
+                      width: window.innerWidth <= 768 ? '100%' : 'auto',
                       textAlign: 'center',
                       borderRadius: '6px',
                       border: 'none',
@@ -389,7 +389,7 @@ function InsuranceDashboard({ onMenuClick }) {
                       transition: 'all 0.2s ease',
                       fontWeight: activeTab === tab ? '600' : '400',
                       wordWrap: 'break-word',
-                      minHeight: 'clamp(32px, 8vw, 40px)',
+                      minHeight: window.innerWidth <= 768 ? 'clamp(32px, 8vw, 40px)' : 'auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
