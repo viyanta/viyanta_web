@@ -3,51 +3,21 @@ import React from 'react'
 function Card({ 
   children, 
   className = '', 
-  style = {},
   hover = true,
   padding = 'default',
   ...props 
 }) {
-  const getPaddingStyle = () => {
-    switch (padding) {
-      case 'none': return '0';
-      case 'small': return '1rem';
-      case 'large': return '2rem';
-      default: return '1.5rem';
-    }
-  };
-
-  const cardStyles = {
-    backgroundColor: 'white',
-    borderRadius: 'var(--border-radius)',
-    boxShadow: 'var(--shadow-light)',
-    padding: getPaddingStyle(),
-    marginBottom: '1rem',
-    border: '1px solid #e9ecef',
-    transition: hover ? 'var(--transition)' : 'none',
-    ...style
-  };
-
-  const handleMouseEnter = (e) => {
-    if (hover) {
-      e.currentTarget.style.boxShadow = 'var(--shadow-medium)';
-      e.currentTarget.style.transform = 'translateY(-2px)';
-    }
-  };
-
-  const handleMouseLeave = (e) => {
-    if (hover) {
-      e.currentTarget.style.boxShadow = 'var(--shadow-light)';
-      e.currentTarget.style.transform = 'translateY(0)';
-    }
+  const getCardClasses = () => {
+    const baseClass = 'card';
+    const paddingClass = `card--padding-${padding}`;
+    const hoverClass = hover ? 'card--hover' : '';
+    
+    return `${baseClass} ${paddingClass} ${hoverClass} ${className}`.trim();
   };
 
   return (
     <div
-      className={`card ${className}`}
-      style={cardStyles}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className={getCardClasses()}
       {...props}
     >
       {children}
@@ -56,15 +26,9 @@ function Card({
 }
 
 // Card Header Component
-Card.Header = ({ children, className = '', style = {}, ...props }) => (
+Card.Header = ({ children, className = '', ...props }) => (
   <div
-    className={`card-header ${className}`}
-    style={{
-      borderBottom: '1px solid #e9ecef',
-      paddingBottom: '1rem',
-      marginBottom: '1rem',
-      ...style
-    }}
+    className={`card__header ${className}`}
     {...props}
   >
     {children}
@@ -72,10 +36,9 @@ Card.Header = ({ children, className = '', style = {}, ...props }) => (
 );
 
 // Card Body Component
-Card.Body = ({ children, className = '', style = {}, ...props }) => (
+Card.Body = ({ children, className = '', ...props }) => (
   <div
-    className={`card-body ${className}`}
-    style={style}
+    className={`card__body ${className}`}
     {...props}
   >
     {children}
@@ -83,15 +46,9 @@ Card.Body = ({ children, className = '', style = {}, ...props }) => (
 );
 
 // Card Footer Component
-Card.Footer = ({ children, className = '', style = {}, ...props }) => (
+Card.Footer = ({ children, className = '', ...props }) => (
   <div
-    className={`card-footer ${className}`}
-    style={{
-      borderTop: '1px solid #e9ecef',
-      paddingTop: '1rem',
-      marginTop: '1rem',
-      ...style
-    }}
+    className={`card__footer ${className}`}
     {...props}
   >
     {children}

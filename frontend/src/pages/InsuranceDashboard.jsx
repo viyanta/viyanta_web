@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useStats } from '../context/StatsContext.jsx';
 import dashboardData from '../data/dashboardData.json';
 import companyDistributionData from '../data/companyDistribution.json';
@@ -207,7 +208,7 @@ function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
   const [activeTab, setActiveTab] = useState('Industry Metrics');
   const [selectedCompany, setSelectedCompany] = useState('HDFC Life');
-  const [selectedInfoSection, setSelectedInfoSection] = useState('');
+
   
   // Get the current company's data
   const currentCompanyData = dashboardData.companies[selectedCompany] || dashboardData.companies['HDFC Life'];
@@ -217,15 +218,10 @@ function InsuranceDashboard({ onMenuClick }) {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'
   ];
 
-  const sidebarItems = [
-    'Industry Metrics', 'Industry Aggregates', 'Economy', 
-    'Report Generator', 'Screener', 'IRDAI Monthly Data', 'Products - Life'
-  ];
-
   return (
     <div className="insurance-dashboard">
       {/* Dashboard Header - At the very top */}
-      <div className="dashboard-header">
+      <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           {/* Hamburger Menu Icon */}
           <button
@@ -264,79 +260,64 @@ function InsuranceDashboard({ onMenuClick }) {
             ☰
           </button>
           <h1 className="dashboard-title" style={{ margin: 0 }}>
-          Insurance Dashboard
-        </h1>
+            Insurance Dashboard
+          </h1>
         </div>
         <p className="dashboard-subtitle">
           Comprehensive view of key performance indicators and market analysis
         </p>
       </div>
 
-      {/* Top Navigation Bar */}
-      <div className="top-navigation">
-        {/* Navigation Tabs Only */}
-        <div className="navigation-tabs-container">
-          {/* Navigation Tabs */}
-          <div className="navigation-tabs">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Main Layout with Sidebar and Content */}
+      <div style={{ display: 'flex', gap: '2rem' }}>
+        {/* Company Information Sidebar - Left side */}
+        <CompanyInformationSidebar />
 
-        {/* Multiple Dropdowns Section */}
-        <div className="dropdowns-section">
-          {/* Select Company */}
-          <div className="dropdown-container">
-            <label className="dropdown-label">
-              Select Company
-            </label>
-            <select
-              value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="dropdown-select"
-            >
-              <option value="">Select a company...</option>
-              <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
-              <option value="SBI Life">SBI Life Insurance Company Limited</option>
-              <option value="ICICI Pru">ICICI Prudential Life Insurance Company Limited</option>
-              <option value="LIC">Life Insurance Corporation of India</option>
-            </select>
+        {/* Right Content Area */}
+        <div style={{ flex: 1 }}>
+
+          {/* Top Navigation Bar */}
+          <div className="top-navigation">
+            {/* Navigation Tabs Only */}
+            <div className="navigation-tabs-container">
+              {/* Navigation Tabs */}
+              <div className="navigation-tabs">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Multiple Dropdowns Section */}
+            <div className="dropdowns-section">
+              {/* Select Company */}
+              <div className="dropdown-container">
+                <label className="dropdown-label">
+                  Select Company
+                </label>
+                <select
+                  value={selectedCompany}
+                  onChange={(e) => setSelectedCompany(e.target.value)}
+                  className="dropdown-select"
+                >
+                  <option value="">Select a company...</option>
+                  <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
+                  <option value="SBI Life">SBI Life Insurance Company Limited</option>
+                  <option value="ICICI Pru">ICICI Prudential Life Insurance Company Limited</option>
+                  <option value="LIC">Life Insurance Corporation of India</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          {/* Company Information */}
-          <div className="dropdown-container">
-            <label className="dropdown-label">
-              Company Information
-            </label>
-            <select
-              value={selectedInfoSection}
-              onChange={(e) => setSelectedInfoSection(e.target.value)}
-              className="dropdown-select"
-            >
-              <option value="">Select information type...</option>
-              {sidebarItems.map((item, index) => (
-                <option key={index} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Main Dashboard Content */}
-        <div className="dashboard-content">
           {/* KPI Rows */}
-          <div className="kpi-rows">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <KPICard
               title="Premium Value"
               value={currentCompanyData.metrics.premiumValue.total}

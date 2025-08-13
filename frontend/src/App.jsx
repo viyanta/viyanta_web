@@ -8,9 +8,11 @@ import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import Lform from './pages/Lform.jsx'
+import DMML2Form from './pages/DMML2Form.jsx'
 import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
+import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
 import { subscribeToAuthChanges } from './firebase/auth.js'
 
 // Protected Route Component
@@ -28,14 +30,8 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        backgroundColor: 'var(--background-color)'
-      }}>
-        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className="loading-container">
+        <div className="loading-card">
           <h3>Loading...</h3>
           <p>Authenticating user...</p>
         </div>
@@ -47,7 +43,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = () => setSidebarOpen(false);
   const openSidebar = () => setSidebarOpen(true);
@@ -58,28 +54,34 @@ function App() {
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
+          
           {/* Protected Routes */}
           <Route path="/*" element={
             <ProtectedRoute>
-        <div className="app-container">
-          <Navbar onMenuClick={openSidebar} />
-          <div className="layout">
-            <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
-                  <main className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} onClick={() => sidebarOpen && closeSidebar()}>
-              <Routes>
+              <div className="app-container">
+                <Navbar onMenuClick={openSidebar} />
+                <div className="layout">
+                  <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+                  <main 
+                    className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} 
+                    onClick={() => sidebarOpen && closeSidebar()}
+                  >
+                    <Routes>
                       <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
                       <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
                       <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                      <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
                       <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
                       <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
                       <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
                       <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
-              </Routes>
-            </main>
-          </div>
-          {/* Mobile backdrop */}
-          <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
-        </div>
+                      <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
+                    </Routes>
+                  </main>
+                </div>
+                {/* Mobile backdrop */}
+                <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
+              </div>
             </ProtectedRoute>
           } />
         </Routes>
