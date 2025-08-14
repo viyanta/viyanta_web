@@ -292,17 +292,13 @@ function DMML2Form({ onMenuClick }) {
             <div style={{ 
                 textAlign: window.innerWidth <= 768 ? 'left' : 'center', 
                 marginBottom: 'clamp(0.8rem, 2vw, 1rem)',
-                overflowX: 'auto',
-                whiteSpace: 'nowrap',
-                padding: 'clamp(8px, 2vw, 12px)',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '6px'
+                fontSize: 'clamp(12px, 3vw, 14px)',
+                color: '#666'
             }}>
                 <span style={{ 
                     color: 'var(--main-color)', 
                     fontWeight: '500', 
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 3vw, 14px)'
+                    cursor: 'pointer'
                 }}>
                     L Forms
                 </span>
@@ -314,8 +310,7 @@ function DMML2Form({ onMenuClick }) {
                 <span style={{ 
                     color: 'var(--main-color)', 
                     fontWeight: '500', 
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 3vw, 14px)'
+                    cursor: 'pointer'
                 }}>
                     {formData.company}
                 </span>
@@ -327,8 +322,7 @@ function DMML2Form({ onMenuClick }) {
                 <span style={{ 
                     color: 'var(--main-color)', 
                     fontWeight: '500', 
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 3vw, 14px)'
+                    cursor: 'pointer'
                 }}>
                     {formData.formType}
                 </span>
@@ -340,8 +334,7 @@ function DMML2Form({ onMenuClick }) {
                 <span style={{ 
                     color: 'var(--main-color)', 
                     fontWeight: '500', 
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 3vw, 14px)'
+                    cursor: 'pointer'
                 }}>
                     {formData.reportType}
                 </span>
@@ -353,8 +346,7 @@ function DMML2Form({ onMenuClick }) {
                 <span style={{ 
                     color: 'var(--main-color)', 
                     fontWeight: '500', 
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 3vw, 14px)'
+                    cursor: 'pointer'
                 }}>
                     {formData.period}
                 </span>
