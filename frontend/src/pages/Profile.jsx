@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Button from '../utils/Button.jsx'
 import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
 
-function Profile() {
+function Profile({ onMenuClick }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -91,7 +91,49 @@ function Profile() {
     <div className="fade-in" style={{ padding: '1rem' }}>
       {/* Header Section */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>User Profile</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => {
+              console.log('Profile hamburger clicked!');
+              if (onMenuClick) {
+                onMenuClick();
+              } else {
+                console.log('onMenuClick is not defined');
+              }
+            }}
+            style={{
+              background: 'rgba(63, 114, 175, 0.1)',
+              border: '1px solid rgba(63, 114, 175, 0.3)',
+              color: 'var(--main-color)',
+              borderRadius: '6px',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minWidth: '36px',
+              minHeight: '36px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            ☰
+          </button>
+          <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
+                    lineHeight: '1.2'
+                }}>User Profile</h1>
+        </div>
         <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
           Manage your account information and preferences.
         </p>

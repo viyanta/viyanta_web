@@ -296,7 +296,8 @@ function SourceFileViewer({ file, title }) {
               padding: '0.5rem',
               borderRadius: '4px',
               fontSize: '0.75rem',
-              zIndex: 10
+              zIndex: 10,
+              whiteSpace: 'nowrap'
             }}>
               📁 Original File
             </div>
@@ -332,7 +333,8 @@ function SourceFileViewer({ file, title }) {
               color: 'white',
               borderRadius: '12px',
               fontSize: '0.75rem',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap'
             }}>
               📄 Original File
             </div>

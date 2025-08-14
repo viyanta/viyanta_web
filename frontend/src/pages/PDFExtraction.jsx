@@ -5,7 +5,7 @@ import JobStatusTracker from '../components/JobStatusTracker';
 import ExtractionResults from '../components/ExtractionResults';
 import apiService from '../services/api';
 
-const PDFExtraction = () => {
+const PDFExtraction = ({ onMenuClick }) => {
   const [currentJob, setCurrentJob] = useState(null);
   const [jobResults, setJobResults] = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
@@ -101,7 +101,7 @@ const PDFExtraction = () => {
   };
 
   const headerStyle = {
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: '3rem'
   };
 
@@ -118,7 +118,7 @@ const PDFExtraction = () => {
   };
 
   const titleStyle = {
-    fontSize: '2.5rem',
+    fontSize: 'clamp(18px, 5vw, 28px)',
     fontWeight: '700',
     color: 'white',
     margin: 0,
@@ -129,14 +129,14 @@ const PDFExtraction = () => {
     fontSize: '1.2rem',
     color: 'rgba(255, 255, 255, 0.9)',
     maxWidth: '600px',
-    margin: '0 auto',
+    margin: '0',
     lineHeight: '1.6',
     textShadow: '0 1px 3px rgba(0,0,0,0.3)'
   };
 
   const featuresContainerStyle = {
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     flexWrap: 'wrap',
     gap: '1rem',
     marginTop: '1.5rem'
@@ -206,6 +206,43 @@ const PDFExtraction = () => {
         {/* Animated Header */}
         <div style={headerStyle}>
           <div style={titleContainerStyle}>
+            {/* Hamburger Menu Icon */}
+            <button
+              onClick={() => {
+                console.log('PDFExtraction hamburger clicked!');
+                if (onMenuClick) {
+                  onMenuClick();
+                } else {
+                  console.log('onMenuClick is not defined');
+                }
+              }}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                minWidth: '36px',
+                minHeight: '36px',
+                backdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ☰
+            </button>
             <div style={{ fontSize: '2.5rem' }}>📄</div>
             <h1 style={titleStyle}>
               AI-Powered PDF Table Extraction

@@ -1,0 +1,149 @@
+.demo-container {
+  padding: 20px;
+  max-width: 1800px;
+  margin: 0;
+}
+
+.page-header {
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.page-header h2 {
+  color: var(--main-color);
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.page-header p {
+  color: var(--text-color-light);
+  font-size: 1.1rem;
+  margin: 0;
+  text-align: left;
+}
+
+.navigation-menu {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  padding-bottom: 15px;
+}
+
+.nav-link {
+  color: #666666;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-radius: 6px 6px 6px 6px;
+}
+
+.nav-link:hover {
+  color: #666666;
+}
+
+.nav-link.active {
+  background-color: #3F6791;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px 6px 6px 6px;
+}
+
+
+
+.selected-company-info {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.selected-company-info h3 {
+  color: var(--main-color);
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  text-align: left;
+}
+
+.selected-company-info p {
+  color: var(--text-color-light);
+  margin-bottom: 20px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.table-section {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading h2 {
+  color: var(--main-color);
+  margin-bottom: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--main-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .demo-container {
+    padding: 15px;
+  }
+  
+
+  
+  .selected-company-info {
+    padding: 20px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+  
+  .nav-link {
+    font-size: 13px;
+  }
+  
+
+}
+
+@media (max-width: 480px) {
+
+  
+  .file-input-label {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+} 

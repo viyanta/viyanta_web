@@ -1,0 +1,444 @@
+.insurance-table-container {
+  margin: 20px;
+  width: 100%;
+  max-width: none;
+}
+
+.table-header {
+  color: var(--text-color-dark);
+  padding: 20px;
+}
+
+.dropdowns-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.company-selection label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-color-dark);
+  margin-bottom: 8px;
+}
+
+.company-dropdown {
+  min-width: 180px;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: var(--text-color-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.company-dropdown:hover {
+  border-color: var(--main-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.company-dropdown:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(63, 103, 145, 0.1);
+}
+
+.filter-controls {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+  margin-left: 0;
+}
+
+.company-filter,
+.year-filter,
+.month-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.year-filter label,
+.month-filter label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color-dark);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.filter-dropdown {
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: var(--text-color-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.filter-dropdown:hover {
+  border-color: var(--main-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-dropdown:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(63, 103, 145, 0.1);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.insurance-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.insurance-data-table th,
+.insurance-data-table td {
+  padding: 16px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.insurance-data-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: var(--main-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-header-row th {
+  background: #e9ecef;
+  border-bottom: 2px solid var(--main-color);
+}
+
+.company-column {
+  min-width: 300px;
+  background: #f8f9fa !important;
+}
+
+.year-column {
+  min-width: 200px;
+  text-align: center;
+}
+
+.total-column {
+  min-width: 180px;
+  text-align: center;
+  background: white !important;
+  font-weight: 700;
+}
+
+.company-name {
+  font-weight: 700;
+  text-align: center;
+  padding-left: 15px;
+  font-size: 18px;
+}
+
+/* CSS Custom Properties - Enterprise Standard */
+:root {
+  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Universal selector styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  color: var(--text-color-dark);
+  line-height: 1.6;
+}
+
+/* Breadcrumb Navigation - Enterprise Standard */
+.insurance-table__breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-color-light);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.breadcrumb-item {
+  color: var(--main-color);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-item:hover {
+  color: var(--sub-color);
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: var(--text-color-light);
+  font-weight: 400;
+}
+
+/* Filter Controls - Enterprise Standard */
+.insurance-table__filter-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.insurance-table__filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insurance-table__filter-label {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--sub-color);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  display: block;
+  text-align: left;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  text-transform: lowercase;
+  font-family: var(--font-family-primary);
+}
+
+.insurance-table__dropdown {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  background: var(--color-white);
+  color: var(--text-color-dark);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 11.25rem;
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-sm) center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.company-dropdown:hover,
+.filter-dropdown:hover {
+  border-color: #3F6791;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.company-dropdown:focus,
+.filter-dropdown:focus {
+  outline: none;
+  border-color: #3F6791;
+  box-shadow: 0 0 0 3px rgba(63, 103, 145, 0.1);
+}
+
+.metric-name {
+  font-weight: 500;
+  color: var(--text-color-dark);
+  background: white;
+  padding-left: 20px;
+}
+
+.year-data {
+  text-align: center;
+}
+
+
+
+.year-value {
+  font-weight: 500;
+  color: var(--text-color-dark);
+}
+
+.total-value {
+  text-align: center;
+  font-weight: 600;
+  color: var(--main-color);
+  background: #e3f2fd;
+}
+
+.total-row {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.total-row td {
+  border-top: 2px solid var(--main-color);
+}
+
+.total-label {
+  background: #e9ecef !important;
+  font-weight: 700;
+  color: var(--main-color);
+}
+
+.year-total {
+  text-align: center;
+  font-weight: 600;
+  background: #e9ecef;
+}
+
+.grand-total {
+  text-align: center;
+  font-weight: 700;
+  color: var(--main-color);
+  background: #bbdefb !important;
+  font-size: 16px;
+}
+
+.grand-total-row {
+  background: #e9ecef;
+  font-weight: 700;
+}
+
+.grand-total-row td {
+  border-top: 3px solid var(--main-color);
+}
+
+.company-summary-row {
+  background: white;
+  font-weight: 700;
+}
+
+.company-summary-row:hover {
+  background: #f8f9fa;
+}
+
+.metric-row:hover {
+  background: #f8f9fa;
+}
+
+.metric-row:nth-child(even) {
+  background: white;
+}
+
+.metric-row:nth-child(even):hover {
+  background: #f8f9fa;
+}
+
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-color-light);
+}
+
+.no-data h3 {
+  color: var(--main-color);
+  margin-bottom: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .insurance-table-container {
+    margin: 10px;
+  }
+  
+  .table-header {
+    padding: 15px;
+  }
+  
+  .company-dropdown {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .filter-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .year-filter,
+  .month-filter {
+    min-width: 120px;
+  }
+  
+
+  
+  .insurance-data-table {
+    font-size: 12px;
+  }
+  
+  .insurance-data-table th,
+  .insurance-data-table td {
+    padding: 8px 4px;
+  }
+}
+
+/* Scrollbar Styling */
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--main-color);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--sub-color);
+} 

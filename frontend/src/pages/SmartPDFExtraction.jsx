@@ -7,7 +7,10 @@ import JobStatusTracker from '../components/JobStatusTracker';
 import apiService from '../services/api';
 import { subscribeToAuthChanges } from '../firebase/auth.js';
 
-const SmartPDFExtraction = () => {
+ 
+
+const SmartPDFExtraction = ({ onMenuClick }) => {
+
   const [user, setUser] = useState(null);
   const [currentResults, setCurrentResults] = useState(null);
   const [currentJob, setCurrentJob] = useState(null);
@@ -340,41 +343,40 @@ const SmartPDFExtraction = () => {
   const containerStyle = {
     minHeight: '100%',
     background: 'white',
-    padding: '2rem',
-    maxWidth: '1000px',
-    margin: '0 auto'
+    padding: '1rem',
+    width: '100%'
   };
 
   const headerStyle = {
-    marginBottom: '2.5rem',
-    textAlign: 'center',
+    marginBottom: '2rem',
+    textAlign: 'left',
     color: 'var(--main-color)'
   };
 
   const tabsWrapperStyle = {
     marginBottom: '2rem',
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'flex-start'
   };
 
   const tabsStyle = {
     display: 'flex',
     gap: '1rem',
     flexWrap: 'wrap',
-    justifyContent: 'center'
+    justifyContent: 'flex-start'
   };
 
   const tabButtonBase = {
-    padding: '14px 24px',
-    borderRadius: '10px',
+    padding: '0.75rem 1.5rem',
+    borderRadius: 'var(--border-radius)',
     border: '2px solid #e9ecef',
     background: 'white',
     color: 'var(--text-color-dark)',
-    fontWeight: 600,
+    fontWeight: '600',
     cursor: 'pointer',
     transition: 'var(--transition)',
-    fontSize: '15px',
-    minWidth: '120px'
+    fontSize: '0.9rem',
+    minWidth: '100px'
   };
 
   const activeTabStyle = {
@@ -389,11 +391,11 @@ const SmartPDFExtraction = () => {
 
   const cardStyle = {
     background: 'white',
-    borderRadius: '16px',
+    borderRadius: 'var(--border-radius)',
     border: '1px solid #e9ecef',
     boxShadow: 'var(--shadow-light)',
-    padding: '2.5rem',
-    maxWidth: '100%'
+    padding: '1.5rem',
+    width: '100%'
   };
 
   const errorStyle = {
@@ -427,7 +429,43 @@ const SmartPDFExtraction = () => {
     <div style={containerStyle}>
       {/* Header */}
       <div style={headerStyle}>
-        <h1 style={{ margin: 0 }}>Smart PDF Table Extraction</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => { onMenuClick && onMenuClick(); }}
+            aria-label="Toggle sidebar"
+            style={{
+              background: 'rgba(63, 114, 175, 0.1)',
+              border: '1px solid rgba(63, 114, 175, 0.3)',
+              color: 'var(--main-color)',
+              borderRadius: '6px',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minWidth: '36px',
+              minHeight: '36px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            ☰
+          </button>
+        <h1 style={{ 
+            margin: 0,
+            fontSize: 'clamp(18px, 5vw, 28px)',
+            lineHeight: '1.2'
+        }}>Smart PDF Table Extraction</h1>
+        </div>
         <p style={{ color: 'var(--text-color-light)', marginTop: '0.25rem' }}>
           Extract, verify, and analyze table data from PDF documents with AI-powered accuracy
         </p>
@@ -491,22 +529,20 @@ const SmartPDFExtraction = () => {
 
             {/* Quick Tips */}
             <div style={{
-              marginTop: '2.5rem',
-              padding: '2rem',
+              marginTop: '2rem',
+              padding: '1.5rem',
               background: 'var(--background-color)',
-              borderRadius: '16px',
+              borderRadius: 'var(--border-radius)',
               border: '1px solid #e9ecef',
               boxShadow: 'var(--shadow-light)',
-              maxWidth: '800px',
-              marginLeft: 'auto',
-              marginRight: 'auto'
+              maxWidth: '100%'
             }}>
               <h4 style={{ 
-                margin: '0 0 1.5rem 0', 
+                margin: '0 0 1rem 0', 
                 color: 'var(--main-color)',
-                fontSize: '1.2rem',
-                fontWeight: '700',
-                textAlign: 'center'
+                fontSize: '1rem',
+                fontWeight: '600',
+                textAlign: 'left'
               }}>
                 💡 Quick Tips:
               </h4>
@@ -514,8 +550,8 @@ const SmartPDFExtraction = () => {
                 margin: 0, 
                 paddingLeft: '1.5rem', 
                 color: 'var(--text-color-light)',
-                lineHeight: '1.8',
-                fontSize: '15px'
+                lineHeight: '1.6',
+                fontSize: '0.875rem'
               }}>
                 <li style={{ marginBottom: '0.75rem' }}>
                   <strong>Single File Mode:</strong> Get instant results with AI verification
@@ -526,7 +562,7 @@ const SmartPDFExtraction = () => {
                 <li style={{ marginBottom: '0.75rem' }}>
                   <strong>Extraction Methods:</strong> 'Both' gives best results, 'Stream' for simple tables, 'Lattice' for complex layouts
                 </li>
-                <li>
+                <li style={{ marginBottom: '0' }}>
                   <strong>AI Verification:</strong> Gemini AI automatically corrects and improves extraction accuracy
                 </li>
               </ul>
@@ -633,7 +669,8 @@ const SmartPDFExtraction = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0, color: 'var(--main-color)' }}>📚 Extraction History</h3>
-              {extractionHistory.length > 0 && (
+              {isLoading && <span style={{ fontSize: 12, color: 'var(--text-color-light)' }}>Loading...</span>}
+              {extractionHistory.length > 0 && !isLoading && (
                 <button
                   style={{
                     padding: '6px 12px',
@@ -650,98 +687,97 @@ const SmartPDFExtraction = () => {
                 </button>
               )}
             </div>
-            {extractionHistory.length === 0 ? (
+            {extractionHistory.length === 0 && !isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
                 <h3>No History Yet</h3>
                 <p>Your extraction history will appear here</p>
               </div>
-            ) : (
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                {extractionHistory.map((item, index) => (
-                  <div
-                    key={`${item.id}-${index}`} // Use index to ensure uniqueness
-                    style={{
-                      border: '1px solid #e9ecef',
-                      borderRadius: '8px',
-                      padding: '0.75rem 1rem',
-                      cursor: 'pointer',
-                      transition: 'var(--transition)',
-                      background: item.status === 'completed' ? 'var(--background-color)' : 
-                                 item.status === 'failed' ? '#fff5f5' : '#fff8e1'
-                    }}
-                    onClick={() => loadHistoryItem(item.id)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = 'var(--shadow-light)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-color-dark)', marginBottom: 4 }}>
-                          {item.filename || `${item.fileCount} files`}
-                          <span style={{
-                            marginLeft: 8,
-                            fontSize: 12,
-                            padding: '2px 8px',
-                            borderRadius: 12,
-                            background: item.mode === 'single' ? '#e3f2fd' : '#f3e5f5',
-                            color: item.mode === 'single' ? '#1976d2' : '#7b1fa2'
-                          }}>
-                            {item.mode}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: 14, color: 'var(--text-color-light)' }}>
-                          {formatTimestamp(item.timestamp)}
-                          {item.completedAt && item.completedAt !== item.timestamp && (
-                            <> → {formatTimestamp(item.completedAt)}</>
-                          )}
-                          {item.status === 'failed' && item.error === 'Job no longer available' && (
-                            <span style={{
-                              marginLeft: 8,
-                              fontSize: 11,
-                              color: '#dc3545',
-                              fontStyle: 'italic'
-                            }}>
-                              (expired)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {item.results?.extraction_summary?.accuracy_score && (
-                          <span style={{
-                            fontSize: 12,
-                            padding: '4px 8px',
-                            borderRadius: 12,
-                            background: '#e8f5e8',
-                            color: '#2e7d32'
-                          }}>
-                            {item.results.extraction_summary.accuracy_score}% accuracy
-                          </span>
-                        )}
+            ) : null}
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {extractionHistory.map((item, index) => (
+                <div
+                  key={`${item.id}-${index}`} // Use index to ensure uniqueness
+                  style={{
+                    border: '1px solid #e9ecef',
+                    borderRadius: '8px',
+                    padding: '0.75rem 1rem',
+                    cursor: 'pointer',
+                    transition: 'var(--transition)',
+                    background: item.status === 'completed' ? 'var(--background-color)' : 
+                               item.status === 'failed' ? '#fff5f5' : '#fff8e1'
+                  }}
+                  onClick={() => loadHistoryItem(item.id)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-light)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-color-dark)', marginBottom: 4 }}>
+                        {item.filename || `${item.fileCount} files`}
                         <span style={{
+                          marginLeft: 8,
                           fontSize: 12,
-                          fontWeight: 600,
-                          padding: '4px 8px',
+                          padding: '2px 8px',
                           borderRadius: 12,
-                          color: 'white',
-                          background: item.status === 'completed' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' :
-                                     item.status === 'failed' ? 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)' :
-                                     'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)'
+                          background: item.mode === 'single' ? '#e3f2fd' : '#f3e5f5',
+                          color: item.mode === 'single' ? '#1976d2' : '#7b1fa2'
                         }}>
-                          {item.status}
+                          {item.mode}
                         </span>
                       </div>
+                      <div style={{ fontSize: 14, color: 'var(--text-color-light)' }}>
+                        {formatTimestamp(item.timestamp)}
+                        {item.completedAt && item.completedAt !== item.timestamp && (
+                          <> → {formatTimestamp(item.completedAt)}</>
+                        )}
+                        {item.status === 'failed' && item.error === 'Job no longer available' && (
+                          <span style={{
+                            marginLeft: 8,
+                            fontSize: 11,
+                            color: '#dc3545',
+                            fontStyle: 'italic'
+                          }}>
+                            (expired)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {item.results?.extraction_summary?.accuracy_score && (
+                        <span style={{
+                          fontSize: 12,
+                          padding: '4px 8px',
+                          borderRadius: 12,
+                          background: '#e8f5e8',
+                          color: '#2e7d32'
+                        }}>
+                          {item.results.extraction_summary.accuracy_score}% accuracy
+                        </span>
+                      )}
+                      <span style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: '4px 8px',
+                        borderRadius: 12,
+                        color: 'white',
+                        background: item.status === 'completed' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' :
+                                   item.status === 'failed' ? 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)' :
+                                   'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)'
+                      }}>
+                        {item.status}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

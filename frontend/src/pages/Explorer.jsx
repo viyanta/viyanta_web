@@ -5,7 +5,7 @@ import { useStats } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
 
-function Explorer() {
+function Explorer({ onMenuClick }) {
     const { refreshStats } = useStats();
     const [file, setFile] = React.useState(null);
     const [isProcessing, setIsProcessing] = React.useState(false);
@@ -239,7 +239,49 @@ function Explorer() {
     <div className="fade-in" style={{ padding: '1rem' }}>
         {/* Header Section */}
         <div style={{ marginBottom: '2rem' }}>
-            <h1 style={{ marginBottom: '0.5rem' }}>Checker and Maker </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                {/* Hamburger Menu Icon */}
+                <button
+                    onClick={() => {
+                        console.log('Explorer hamburger clicked!');
+                        if (onMenuClick) {
+                            onMenuClick();
+                        } else {
+                            console.log('onMenuClick is not defined');
+                        }
+                    }}
+                    style={{
+                        background: 'rgba(63, 114, 175, 0.1)',
+                        border: '1px solid rgba(63, 114, 175, 0.3)',
+                        color: 'var(--main-color)',
+                        borderRadius: '6px',
+                        padding: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        minWidth: '36px',
+                        minHeight: '36px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+                        e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+                        e.target.style.transform = 'scale(1)';
+                    }}
+                >
+                    ☰
+                </button>
+                <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
+                    lineHeight: '1.2'
+                }}>Checker and Maker</h1>
+            </div>
             <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
                 Upload your files and convert them to Parquet format for efficient data processing.
             </p>

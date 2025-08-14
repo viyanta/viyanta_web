@@ -6,14 +6,14 @@ function Navbar({ onMenuClick }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
       setUser(authUser);
-      if (authUser) {
-        setImageError(false); // Reset image error when user changes
-      }
+      setIsLoading(false);
+      if (authUser) setImageError(false);
     });
     return unsubscribe;
   }, []);
@@ -25,256 +25,116 @@ function Navbar({ onMenuClick }) {
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       await logout();
       setShowDropdown(false);
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleImageError = () => {
-    setImageError(true);
+  const getUserInitials = (displayName) => {
+    if (!displayName) return '👤';
+    return displayName.split(' ').map(n => n[0]).join('');
   };
 
-  // Function to get a higher quality Google profile image
-  const getOptimizedImageUrl = (photoURL) => {
-    if (!photoURL || typeof photoURL !== 'string') return null;
-    
-    // If it's a Google profile image, try to get a higher quality version
-    if (photoURL.includes('googleusercontent.com')) {
-      // For better compatibility, use a more reliable size parameter
-      if (photoURL.includes('=s')) {
-        return photoURL.replace(/=s\d+(-c)?/, '=s200-c');
-      } else {
-        return photoURL + '=s200-c';
-      }
-    }
-    // Always return the original URL if it's not a Google image
-    return photoURL;
-  };
-
-  // Alternative image loading approach for Google images
-  const getGoogleImageProxy = (photoURL) => {
-    if (!photoURL) return null;
-    // Use Google's own image proxy service for better compatibility
-    if (photoURL.includes('googleusercontent.com')) {
-      // Try using the original size without forcing larger sizes
-      return photoURL.replace(/=s\d+(-c)?/, '');
-    }
-    return photoURL;
-  };
+  if (isLoading) {
+    return (
+      <nav className="navbar navbar--loading">
+        <div className="navbar__left">
+          <div className="navbar__logo">
+            <div className="navbar__logo-icon">📊</div>
+            <h1 className="navbar__brand">AssureLife v0.1</h1>
+          </div>
+        </div>
+        <div className="navbar__loading">Loading...</div>
+      </nav>
+    );
+  }
 
   return (
-    <nav style={{ 
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 1000,
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center',
-      padding: '1rem 1rem', 
-      backgroundColor: 'var(--main-color)', 
-      color: 'var(--text-color)', 
-      boxShadow: 'var(--shadow-medium)',
-      borderBottom: '1px solid rgba(255,255,255,0.1)'
-    }}>
-      {/* Mobile hamburger */}
-      <button
-        className="show-on-mobile"
-        aria-label="Open menu"
-        onClick={onMenuClick}
-        style={{
-          background: 'rgba(255,255,255,0.12)',
-          border: '1px solid rgba(255,255,255,0.25)',
-          color: 'white',
-          borderRadius: '8px',
-          padding: '0.5rem',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: '0.5rem'
-        }}
-      >
-        ☰
-      </button>
-      <Link 
-        to="/" 
-        style={{ 
-          textDecoration: 'none', 
-          color: 'var(--text-color)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}
-      >
-        <div style={{
-          width: '40px',
-          height: '40px',
-          backgroundColor: 'var(--sub-color)',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.5rem'
-        }}>
-          📊
+    <nav className="navbar">
+      {/* Left group: menu + brand */}
+      <div className="navbar__left">
+        {/* {onMenuClick && (
+          <button
+            className="navbar__menu-button"
+            type="button"
+            aria-label="Toggle sidebar"
+            onClick={onMenuClick}
+          >
+            ☰
+          </button>
+        )} */}
+        <div className="navbar__logo">
+          <div className="navbar__logo-icon">📊</div>
+          <h1 className="navbar__brand">AssureLife v0.1</h1>
         </div>
-        <h1 style={{ 
-          margin: 0, 
-          fontSize: '1.5rem',
-          fontWeight: '700',
-          color: 'var(--text-color)'
-        }}>
-          AssureLife v0.1
-        </h1>
-      </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      </div>
+
+      {/* Right side - User info and Profile */}
+      <div className="navbar__user-section">
         {user && (
-          <div style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderRadius: 'var(--border-radius)',
-            fontSize: '0.875rem',
-            color: 'var(--text-color)'
-          }}>
+          <div className="navbar__welcome hide-on-mobile">
             Welcome, {user.displayName || 'User'}
           </div>
         )}
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
+
+        <div className="navbar__profile" ref={dropdownRef}>
           <button
+            className="navbar__profile-button"
             onClick={() => setShowDropdown(!showDropdown)}
-            style={{ 
-              background: 'none',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'var(--text-color)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--border-radius)',
-              cursor: 'pointer',
-              transition: 'var(--transition)'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-            }}
+            disabled={isLoading}
+            aria-haspopup="true"
+            aria-expanded={showDropdown}
           >
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem',
-              overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.3)'
-            }}>
+            <div className="navbar__profile-avatar">
               {user?.photoURL && !imageError ? (
-                <img 
+                <img
                   src={user.photoURL}
-                  alt="Profile" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    display: 'block'
-                  }}
-                  onError={() => {
-                    console.log('Navbar image failed to load, showing initials');
-                    setImageError(true);
-                  }}
-                  onLoad={() => {
-                    console.log('Navbar image loaded successfully');
-                    setImageError(false);
-                  }}
+                  alt="Profile"
+                  className="navbar__profile-image"
+                  onError={() => setImageError(true)}
                 />
               ) : (
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  backgroundColor: 'var(--sub-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.8rem'
-                }}>
-                  {user?.displayName ? user.displayName.split(' ').map(n => n[0]).join('') : '👤'}
+                <div className="navbar__profile-initials">
+                  {getUserInitials(user?.displayName)}
                 </div>
               )}
             </div>
-            <span style={{ fontSize: '1rem', fontWeight: '500' }}>
+            <span className="navbar__profile-name">
               {user?.displayName?.split(' ')[0] || 'User'}
             </span>
-            <span style={{ fontSize: '0.8rem' }}>▼</span>
+            <span className="navbar__profile-arrow">▼</span>
           </button>
-          {showDropdown && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: '0.5rem',
-              backgroundColor: 'white',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--border-radius)',
-              boxShadow: 'var(--shadow-large)',
-              minWidth: '200px',
-              zIndex: 1001
-            }}>
-              <Link 
-                to="/profile"
-                onClick={() => setShowDropdown(false)}
-                style={{
-                  display: 'block',
-                  padding: '0.75rem 1rem',
-                  textDecoration: 'none',
-                  color: 'var(--text-color-dark)',
-                  borderBottom: '1px solid var(--border-color)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--background-color)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                👤 Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  textAlign: 'left',
-                  color: 'var(--error-color)',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--background-color)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                🚪 Sign Out
-              </button>
-            </div>
-          )}
+
+            {showDropdown && (
+              <div className="navbar__dropdown" role="menu">
+                <Link
+                  to="/profile"
+                  className="navbar__dropdown-item"
+                  onClick={() => setShowDropdown(false)}
+                  role="menuitem"
+                >
+                  👤 Profile
+                </Link>
+                <button
+                  className="navbar__dropdown-item navbar__dropdown-item--logout"
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  role="menuitem"
+                >
+                  🚪 Sign Out
+                </button>
+              </div>
+            )}
         </div>
       </div>
     </nav>
