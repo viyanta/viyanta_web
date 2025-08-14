@@ -56,13 +56,13 @@ function Login() {
             marginBottom: '0.5rem',
             fontSize: '2rem'
           }}>
-            Welcome to Viyanta
+            Welcome to AssureLife
           </h1>
           <p style={{ 
             color: 'var(--text-color-light)',
-            fontSize: '1.1rem'
+            fontSize: '1.0rem'
           }}>
-            Your intelligent document processing platform
+            Insurance Insights. Data Foretold Visually. 
           </p>
         </div>
 

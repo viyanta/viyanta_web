@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // import { Card } from '../utils/Card';
 import SmartPDFExtractor from '../components/SmartPDFExtractor';
 import SmartTableViewer from '../components/SmartTableViewer';
+import BulkResultsViewer from '../components/BulkResultsViewer';
 import JobStatusTracker from '../components/JobStatusTracker';
-import ExtractionResults from '../components/ExtractionResults';
 import apiService from '../services/api';
+import { subscribeToAuthChanges } from '../firebase/auth.js';
 
 const SmartPDFExtraction = () => {
+  const [user, setUser] = useState(null);
   const [currentResults, setCurrentResults] = useState(null);
   const [currentJob, setCurrentJob] = useState(null);
   const [jobResults, setJobResults] = useState(null);
@@ -15,17 +17,84 @@ const SmartPDFExtraction = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleExtractComplete = (response, mode, fileCount) => {
+  // Subscribe to authentication changes and load user-specific history
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthChanges((authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        // Load user-specific extraction history
+        loadUserHistory(authUser.uid);
+      } else {
+        // Clear history when user logs out
+        setExtractionHistory([]);
+        setCurrentResults(null);
+        setCurrentJob(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Load user-specific extraction history from backend
+  const loadUserHistory = async (userId) => {
+    try {
+      setIsLoading(true);
+      const history = await apiService.getUserExtractionHistory(userId);
+      console.log('Loaded user history:', history); // Debug log
+      
+      // Deduplicate entries by ID (keep only the most recent)
+      const deduplicatedHistory = [];
+      const seenIds = new Set();
+      
+      if (history && Array.isArray(history)) {
+        for (const entry of history) {
+          if (!seenIds.has(entry.id)) {
+            seenIds.add(entry.id);
+            deduplicatedHistory.push(entry);
+          }
+        }
+      }
+      
+      console.log('Deduplicated history:', deduplicatedHistory);
+      setExtractionHistory(deduplicatedHistory);
+    } catch (error) {
+      console.error('Failed to load user history:', error);
+      // Don't show error to user for history loading failure
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Save extraction to user-specific history
+  const saveToUserHistory = async (extractionData) => {
+    if (!user?.uid) return;
+
+    try {
+      await apiService.saveUserExtractionHistory(user.uid, extractionData);
+    } catch (error) {
+      console.error('Failed to save extraction to user history:', error);
+    }
+  };
+
+  const handleExtractComplete = async (response, mode, fileCount) => {
     console.log('Extraction complete:', { response, mode, fileCount });
+
+    if (!user?.uid) {
+      setError('User not authenticated. Please log in to save extraction results.');
+      return;
+    }
 
     if (mode === 'single') {
       // Single file extraction - immediate results
-      setCurrentResults({
+      const extractionData = {
         ...response,
         extractionMode: mode,
         fileCount: 1,
-        completedAt: new Date().toISOString()
-      });
+        completedAt: new Date().toISOString(),
+        userId: user.uid
+      };
+      
+      setCurrentResults(extractionData);
       setActiveTab('results');
 
       // Add to history
@@ -36,9 +105,11 @@ const SmartPDFExtraction = () => {
         fileCount: 1,
         mode: 'single',
         status: 'completed',
-        results: response
+        results: response,
+        userId: user.uid
       };
-      setExtractionHistory(prev => [historyEntry, ...prev]);
+      addToHistory(historyEntry);
+      await saveToUserHistory(historyEntry); // Save to user history
 
     } else {
       // Bulk extraction - background processing
@@ -52,33 +123,56 @@ const SmartPDFExtraction = () => {
         timestamp: new Date().toISOString(),
         fileCount,
         mode: 'bulk',
-        status: 'processing'
+        status: 'processing',
+        userId: user.uid
       };
-      setExtractionHistory(prev => [historyEntry, ...prev]);
+      addToHistory(historyEntry);
+      await saveToUserHistory(historyEntry); // Save to user history
     }
 
     setError(null);
   };
 
-  const handleJobComplete = (jobStatus) => {
+  const handleJobComplete = async (jobStatus) => {
     console.log('Job complete:', jobStatus);
+    console.log('Job complete - jobStatus.results:', jobStatus.results);
+    console.log('Job complete - jobStatus.results.summary:', jobStatus.results?.summary);
+    
     setJobResults(jobStatus);
     setCurrentJob(null);
 
-    // Update history
+    if (!user?.uid) return;
+
+    // Update history - only update existing entry, don't create new one
+    const updatedEntry = {
+      status: 'completed',
+      results: jobStatus.results,
+      completedAt: new Date().toISOString(),
+      userId: user.uid
+    };
+
     setExtractionHistory(prev =>
       prev.map(entry =>
         entry.id === jobStatus.id
-          ? { ...entry, status: 'completed', results: jobStatus.results, completedAt: new Date().toISOString() }
+          ? { ...entry, ...updatedEntry }
           : entry
       )
     );
 
-    // Show results
+    // Save updated status to user history - only if entry exists
+    const historyEntry = extractionHistory.find(entry => entry.id === jobStatus.id);
+    if (historyEntry) {
+      const completeEntry = { ...historyEntry, ...updatedEntry };
+      // Don't save again to prevent duplicates - the entry was already saved when created
+      console.log('Job completed, updating existing entry:', completeEntry.id);
+    }
+
+    // Show results - FIXED: Pass the correct data structure
     setCurrentResults({
-      ...jobStatus,
+      ...jobStatus.results, // This contains the summary with files_with_tables
       extractionMode: 'bulk',
-      completedAt: new Date().toISOString()
+      completedAt: new Date().toISOString(),
+      userId: user.uid
     });
   };
 
@@ -109,16 +203,99 @@ const SmartPDFExtraction = () => {
     const historyItem = extractionHistory.find(item => item.id === historyId);
     if (!historyItem) return;
 
+    console.log('Loading history item:', historyItem);
+
+    // Only try to fetch live job status if it's currently processing
+    // For completed jobs, use the stored results directly
     if (historyItem.status === 'completed' && historyItem.results) {
-      setCurrentResults({
-        ...historyItem.results,
-        extractionMode: historyItem.mode,
-        completedAt: historyItem.completedAt
-      });
+      // For bulk uploads, the results should contain the summary
+      if (historyItem.mode === 'bulk') {
+        setCurrentResults({
+          ...historyItem.results, // This should contain summary with files_with_tables
+          extractionMode: historyItem.mode,
+          completedAt: historyItem.completedAt
+        });
+      } else {
+        // For single uploads, the results contain the table data directly
+        setCurrentResults({
+          ...historyItem.results,
+          extractionMode: historyItem.mode,
+          completedAt: historyItem.completedAt
+        });
+      }
       setActiveTab('results');
     } else if (historyItem.status === 'processing') {
-      setCurrentJob(historyId);
-      setActiveTab('results');
+      // Only try to track live jobs that are actually still processing
+      try {
+        // Check if the job still exists on the server
+        const jobStatus = await apiService.getJobStatus(historyId);
+        if (jobStatus) {
+          if (jobStatus.status === 'completed') {
+            // Job completed, update history and show results
+            const updatedEntry = {
+              status: 'completed',
+              results: jobStatus.results,
+              completedAt: new Date().toISOString(),
+              userId: user.uid
+            };
+            
+            setExtractionHistory(prev =>
+              prev.map(entry =>
+                entry.id === historyId
+                  ? { ...entry, ...updatedEntry }
+                  : entry
+              )
+            );
+            
+            // Show results directly
+            setCurrentResults({
+              ...jobStatus.results,
+              extractionMode: 'bulk',
+              completedAt: new Date().toISOString(),
+              userId: user.uid
+            });
+            setActiveTab('results');
+          } else {
+            // Still processing, track it
+            setCurrentJob(historyId);
+            setActiveTab('results');
+          }
+        } else {
+          // Job doesn't exist anymore, mark as failed in history
+          setExtractionHistory(prev =>
+            prev.map(entry =>
+              entry.id === historyId
+                ? { ...entry, status: 'failed', error: 'Job no longer exists', completedAt: new Date().toISOString() }
+                : entry
+            )
+          );
+          setError('This job is no longer available on the server');
+        }
+      } catch (error) {
+        console.error('Error fetching job status:', error);
+        // Check if it's a network error or if the job doesn't exist
+        const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError');
+        const errorMessage = isNetworkError 
+          ? 'Unable to connect to server. Please check your connection and try again.'
+          : 'This job is no longer available on the server. It may have completed or expired.';
+        
+        // Mark job as failed in local history
+        setExtractionHistory(prev =>
+          prev.map(entry =>
+            entry.id === historyId
+              ? { ...entry, status: 'failed', error: 'Job no longer available', completedAt: new Date().toISOString() }
+              : entry
+          )
+        );
+        setError(errorMessage);
+      }
+    } else if (historyItem.status === 'failed') {
+      // For failed jobs, show the specific error message
+      if (historyItem.error === 'Job no longer available') {
+        setError('This job has expired and is no longer available on the server.');
+      } else {
+        setError(`Previous job failed: ${historyItem.error || 'Unknown error'}`);
+      }
     }
   };
 
@@ -128,6 +305,35 @@ const SmartPDFExtraction = () => {
     setJobResults(null);
     setError(null);
     setActiveTab('extract');
+  };
+
+  // Prevent duplicate history entries
+  const addToHistory = (newEntry) => {
+    setExtractionHistory(prev => {
+      // Check if entry already exists
+      const exists = prev.some(entry => entry.id === newEntry.id);
+      if (exists) {
+        console.log('Entry already exists in history, not adding duplicate:', newEntry.id);
+        return prev;
+      }
+      console.log('Adding new entry to history:', newEntry);
+      return [newEntry, ...prev];
+    });
+  };
+
+  // Clear all history (for testing/debugging)
+  const clearAllHistory = async () => {
+    if (!user?.uid) return;
+    
+    try {
+      await apiService.clearUserExtractionHistory(user.uid);
+      setExtractionHistory([]);
+      console.log('History cleared successfully for user:', user.uid);
+    } catch (error) {
+      console.error('Failed to clear history:', error);
+      // Still clear local state even if backend fails
+      setExtractionHistory([]);
+    }
   };
 
   // Styles — aligned with app theme (cards + white backgrounds)
@@ -174,7 +380,7 @@ const SmartPDFExtraction = () => {
   const activeTabStyle = {
     ...tabButtonBase,
     background: 'var(--sub-color)',
-    borderColor: 'var(--sub-color)',
+    border: '2px solid var(--sub-color)',
     color: 'white',
     boxShadow: 'var(--shadow-light)'
   };
@@ -280,6 +486,7 @@ const SmartPDFExtraction = () => {
             <SmartPDFExtractor
               onExtractComplete={handleExtractComplete}
               onError={handleError}
+              user={user}
             />
 
             {/* Quick Tips */}
@@ -373,17 +580,26 @@ const SmartPDFExtraction = () => {
 
                 {/* Single file results */}
                 {currentResults.tables && (
-                  <SmartTableViewer
-                    tables={currentResults.formatted_tables || currentResults.tables}
-                    filename={currentResults.filename}
-                    jobId={currentResults.job_id}
-                    extractionSummary={currentResults.extraction_summary}
-                  />
+                  <div>
+                    {console.log('Single file results:', currentResults)}
+                    <SmartTableViewer
+                      tables={currentResults.formatted_tables || currentResults.tables}
+                      filename={currentResults.filename}
+                      jobId={currentResults.job_id}
+                      extractionSummary={currentResults.extraction_summary}
+                    />
+                  </div>
                 )}
 
                 {/* Bulk file results */}
-                {currentResults.results && (
-                  <ExtractionResults results={currentResults} />
+                {currentResults.summary && (
+                  <div>
+                    {console.log('Bulk file results:', currentResults)}
+                    <BulkResultsViewer 
+                      jobResults={currentResults} 
+                      jobId={currentResults.job_id || currentResults.id}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -415,7 +631,25 @@ const SmartPDFExtraction = () => {
         {/* History Tab */}
         {activeTab === 'history' && (
           <div>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--main-color)' }}>📚 Extraction History</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, color: 'var(--main-color)' }}>📚 Extraction History</h3>
+              {extractionHistory.length > 0 && (
+                <button
+                  style={{
+                    padding: '6px 12px',
+                    background: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                  onClick={clearAllHistory}
+                >
+                  Clear All History
+                </button>
+              )}
+            </div>
             {extractionHistory.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
@@ -424,9 +658,9 @@ const SmartPDFExtraction = () => {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '0.75rem' }}>
-                {extractionHistory.map((item) => (
+                {extractionHistory.map((item, index) => (
                   <div
-                    key={item.id}
+                    key={`${item.id}-${index}`} // Use index to ensure uniqueness
                     style={{
                       border: '1px solid #e9ecef',
                       borderRadius: '8px',
@@ -465,6 +699,16 @@ const SmartPDFExtraction = () => {
                           {formatTimestamp(item.timestamp)}
                           {item.completedAt && item.completedAt !== item.timestamp && (
                             <> → {formatTimestamp(item.completedAt)}</>
+                          )}
+                          {item.status === 'failed' && item.error === 'Job no longer available' && (
+                            <span style={{
+                              marginLeft: 8,
+                              fontSize: 11,
+                              color: '#dc3545',
+                              fontStyle: 'italic'
+                            }}>
+                              (expired)
+                            </span>
                           )}
                         </div>
                       </div>

@@ -45,9 +45,28 @@ function Navbar({ onMenuClick }) {
 
   // Function to get a higher quality Google profile image
   const getOptimizedImageUrl = (photoURL) => {
-    if (!photoURL) return null;
+    if (!photoURL || typeof photoURL !== 'string') return null;
+    
+    // If it's a Google profile image, try to get a higher quality version
     if (photoURL.includes('googleusercontent.com')) {
-      return photoURL.replace(/=s\d+-c/, '=s64-c');
+      // For better compatibility, use a more reliable size parameter
+      if (photoURL.includes('=s')) {
+        return photoURL.replace(/=s\d+(-c)?/, '=s200-c');
+      } else {
+        return photoURL + '=s200-c';
+      }
+    }
+    // Always return the original URL if it's not a Google image
+    return photoURL;
+  };
+
+  // Alternative image loading approach for Google images
+  const getGoogleImageProxy = (photoURL) => {
+    if (!photoURL) return null;
+    // Use Google's own image proxy service for better compatibility
+    if (photoURL.includes('googleusercontent.com')) {
+      // Try using the original size without forcing larger sizes
+      return photoURL.replace(/=s\d+(-c)?/, '');
     }
     return photoURL;
   };
@@ -115,7 +134,7 @@ function Navbar({ onMenuClick }) {
           fontWeight: '700',
           color: 'var(--text-color)'
         }}>
-          AsureLife
+          AssureLife v0.1
         </h1>
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -165,7 +184,7 @@ function Navbar({ onMenuClick }) {
             }}>
               {user?.photoURL && !imageError ? (
                 <img 
-                  src={getOptimizedImageUrl(user.photoURL)} 
+                  src={user.photoURL}
                   alt="Profile" 
                   style={{ 
                     width: '100%', 
@@ -173,8 +192,14 @@ function Navbar({ onMenuClick }) {
                     objectFit: 'cover',
                     display: 'block'
                   }}
-                  onError={handleImageError}
-                  onLoad={() => {}}
+                  onError={() => {
+                    console.log('Navbar image failed to load, showing initials');
+                    setImageError(true);
+                  }}
+                  onLoad={() => {
+                    console.log('Navbar image loaded successfully');
+                    setImageError(false);
+                  }}
                 />
               ) : (
                 <div style={{

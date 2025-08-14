@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import apiService from '../services/api';
 
-const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
+const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [extractMode, setExtractMode] = useState('both');
   const [uploadMode, setUploadMode] = useState('single'); // 'single' or 'bulk'
@@ -51,13 +51,18 @@ const SmartPDFExtractor = ({ onExtractComplete, onError }) => {
     try {
       let response;
       
+      if (!user?.uid) {
+        onError('Please log in to extract PDF files');
+        return;
+      }
+      
       if (uploadMode === 'single' && pdfFiles.length === 1) {
         // Single file extraction with immediate response
-        response = await apiService.extractSinglePDF(pdfFiles[0], extractMode, 'both');
+        response = await apiService.extractSinglePDFWithUser(pdfFiles[0], extractMode, 'both', user.uid);
         console.log('Single file extraction response:', response);
       } else {
         // Bulk extraction (background processing)
-        response = await apiService.extractBulkPDFs(pdfFiles, extractMode);
+        response = await apiService.extractBulkPDFsWithUser(pdfFiles, extractMode, user.uid);
         console.log('Bulk extraction response:', response);
       }
 

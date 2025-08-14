@@ -14,3 +14,6 @@ aiofiles
 celery
 redis
 pytest
+boto3
+camelot-py
+opencv-python-headless

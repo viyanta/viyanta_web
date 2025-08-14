@@ -9,6 +9,7 @@ from routes.dropdown import router as dropdown_router
 from routes.report import router as report_router
 from routes.company_lforms import router as company_lforms_router
 from routes.extraction import router as extract_router
+from routes.folder_uploader import router as folder_uploader_router
 # from routes.pdf_upload import router as pdf_upload_router
 import os
 
@@ -32,13 +33,21 @@ app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
 app.include_router(report_router, prefix="/api/files", tags=["report"])
 app.include_router(company_lforms_router,
                    prefix="/api/files", tags=["company_lforms"])
-app.include_router(extract_router, prefix="/api/extract", tags=["extract"])
+app.include_router(extract_router, prefix="/api/extraction",
+                   tags=["extraction"])
+app.include_router(folder_uploader_router, prefix="/api",
+                   tags=["folder_uploader"])
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
 
-# Serve static files (uploads and extracted files)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/extracted", StaticFiles(directory="extracted"), name="extracted")
+# Serve static files (uploads and extracted files) from absolute paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount("/uploads", StaticFiles(directory=os.path.join(BASE_DIR,
+          "uploads")), name="uploads")
+app.mount("/extracted", StaticFiles(directory=os.path.join(BASE_DIR,
+          "extracted")), name="extracted")
+app.mount("/pdf_folder_extracted",
+          StaticFiles(directory=os.path.join(BASE_DIR, "pdf_folder_extracted")), name="pdf_folder_extracted")
 
 
 @app.get("/")
@@ -52,7 +61,11 @@ def read_root():
             "stats": "/api/files/stats",
             "download_original": "/api/files/download/original/{file_id}",
             "download_parquet": "/api/files/download/parquet/{file_id}",
-            "preview": "/api/files/preview/{file_id}"
+            "preview": "/api/files/preview/{file_id}",
+            "pdf_extraction": "/api/extraction/extract/single",
+            "bulk_extraction": "/api/extraction/extract/bulk",
+            "user_history": "/api/extraction/user-history/{user_id}",
+            "docs": "/docs"
         }
     }
 

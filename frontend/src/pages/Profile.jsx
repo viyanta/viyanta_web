@@ -14,6 +14,7 @@ function Profile() {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
       if (authUser) {
         setUser(authUser);
+        setImageError(false); // Reset image error when user changes
         console.log('User data:', authUser); // Debug log
         console.log('Profile photo URL:', authUser.photoURL); // Debug log
       } else {
@@ -37,19 +38,34 @@ function Profile() {
     }
   };
 
-  const handleImageError = () => {
-    console.log('Image failed to load, falling back to initials');
-    setImageError(true);
-  };
+  // Default placeholder image (SVG data URI)
+  const defaultProfileImage =
+    "data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23bdbdbd'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='40' fill='white' font-family='Arial' dy='.3em'%3F%3E?%3C/text%3E%3C/svg%3E";
 
   // Function to get a higher quality Google profile image
   const getOptimizedImageUrl = (photoURL) => {
-    if (!photoURL) return null;
+    if (!photoURL || typeof photoURL !== 'string') return null;
     
     // If it's a Google profile image, try to get a higher quality version
     if (photoURL.includes('googleusercontent.com')) {
-      // Remove any existing size and add a larger size
-      return photoURL.replace(/=s\d+-c/, '=s256-c');
+      // For better compatibility, use a more reliable size parameter
+      if (photoURL.includes('=s')) {
+        return photoURL.replace(/=s\d+(-c)?/, '=s200-c');
+      } else {
+        return photoURL + '=s200-c';
+      }
+    }
+    // Always return the original URL if it's not a Google image
+    return photoURL;
+  };
+
+  // Alternative image loading approach for Google images
+  const getGoogleImageProxy = (photoURL) => {
+    if (!photoURL) return null;
+    // Use Google's own image proxy service for better compatibility
+    if (photoURL.includes('googleusercontent.com')) {
+      // Try using the original size without forcing larger sizes
+      return photoURL.replace(/=s\d+(-c)?/, '');
     }
     return photoURL;
   };
@@ -114,7 +130,7 @@ function Profile() {
             }}>
               {user.photoURL && !imageError ? (
                 <img 
-                  src={getOptimizedImageUrl(user.photoURL)} 
+                  src={user.photoURL}
                   alt="Profile" 
                   style={{ 
                     width: '100%', 
@@ -122,8 +138,14 @@ function Profile() {
                     objectFit: 'cover',
                     display: 'block'
                   }}
-                  onError={handleImageError}
-                  onLoad={() => console.log('Image loaded successfully')}
+                  onError={() => {
+                    console.log('Profile image failed to load, showing initials');
+                    setImageError(true);
+                  }}
+                  onLoad={() => {
+                    console.log('Profile image loaded successfully');
+                    setImageError(false);
+                  }}
                 />
               ) : (
                 <div style={{
@@ -154,6 +176,7 @@ function Profile() {
               {/* Debug info */}
               {/* <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light)', marginTop: '0.5rem' }}>
                 <p>Photo URL: <a href={user.photoURL} target="_blank" rel="noopener noreferrer">{user.photoURL || 'Not available'}</a></p>
+                <p>Optimized URL: {getOptimizedImageUrl(user.photoURL) || 'Not available'}</p>
                 <p>Image Error: {imageError ? 'Yes' : 'No'}</p>
               </div> */}
             </div>

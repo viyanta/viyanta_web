@@ -19,6 +19,43 @@ class ApiService {
     return response.json();
   }
 
+  async uploadPdfFolder(files, includeTables = false) {
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+
+    // Use different endpoint based on table extraction preference
+    const endpoint = includeTables ? '/folder_uploader/with_tables' : '/folder_uploader';
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let msg = 'Folder upload failed';
+      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      throw new Error(msg);
+    }
+
+    return response.json();
+  }
+
+  async zipFolderJsons(outputPaths) {
+    // outputPaths should be array of strings like 'pdf_folder_extracted/NAME/NAME.json'
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/zip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outputs: outputPaths }),
+    });
+
+    if (!response.ok) {
+      let msg = 'Failed to create ZIP';
+      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      throw new Error(msg);
+    }
+
+    return response.blob();
+  }
+
   // PDF Table Extraction Methods
   async extractBulkPDFs(files, extractMode = 'both') {
     const formData = new FormData();
@@ -248,6 +285,118 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  // User-specific history management methods
+  async getUserExtractionHistory(userId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // Don't throw error for missing history, just return empty array
+      return [];
+    }
+
+    return response.json();
+  }
+
+  async saveUserExtractionHistory(userId, extractionData) {
+    const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(extractionData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to save user history');
+    }
+
+    return response.json();
+  }
+
+  async clearUserExtractionHistory(userId) {
+    const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to clear user history');
+    }
+
+    return response.json();
+  }
+
+  // Updated extraction methods with user context
+  async extractBulkPDFsWithUser(files, extractMode = 'both', userId = null) {
+    const formData = new FormData();
+    
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('extract_mode', extractMode);
+    if (userId) {
+      formData.append('user_id', userId);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/extraction/extract/bulk`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Bulk extraction failed');
+    }
+
+    return response.json();
+  }
+
+  async extractSinglePDFWithUser(file, extractMode = 'both', returnFormat = 'both', userId = null) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('extract_mode', extractMode);
+    formData.append('return_format', returnFormat);
+    if (userId) {
+      formData.append('user_id', userId);
+    }
+
+    console.log(`Extracting single PDF: ${file.name}, mode: ${extractMode}, format: ${returnFormat}, user: ${userId}`);
+
+    const response = await fetch(`${API_BASE_URL}/extraction/extract/single`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Single PDF extraction failed');
+    }
+
+    return response.json();
+  }
+
+  getApiOrigin() {
+    try {
+      const url = new URL(API_BASE_URL);
+      // if API_BASE_URL ends with /api, strip it
+      if (url.pathname.endsWith('/api')) {
+        url.pathname = url.pathname.replace(/\/api$/, '');
+      }
+      return url.toString().replace(/\/$/, '');
+    } catch {
+      return API_BASE_URL.replace(/\/api$/, '');
+    }
   }
 
   // Helper method to download blob as file

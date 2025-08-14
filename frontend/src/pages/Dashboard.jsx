@@ -96,6 +96,41 @@ function Dashboard() {
   const [currentFileId, setCurrentFileId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [viewMode, setViewMode] = useState('comparison'); // 'comparison', 'original', or 'files'
+  // New: last folder upload activity from localStorage
+  const [folderActivity, setFolderActivity] = useState(null);
+  // New: list of folder activities (top 10 stored)
+  const [folderActivities, setFolderActivities] = useState([]);
+  // New: Folder Activity Modal state and JSON viewer
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [activeFolderActivity, setActiveFolderActivity] = useState(null);
+  const [faSelectedPdf, setFaSelectedPdf] = useState(null);
+  const [faSelectedPdfJson, setFaSelectedPdfJson] = useState(null);
+  const [faSelectedPage, setFaSelectedPage] = useState(null);
+  const [faJsonLoading, setFaJsonLoading] = useState(false);
+  const [faJsonError, setFaJsonError] = useState(null);
+  // New: ZIP download error state
+  const [zipError, setZipError] = useState(null);
+
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem('lastFolderResult');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setFolderActivity(parsed);
+      }
+    } catch (e) {
+      console.warn('Failed to load lastFolderResult from localStorage', e);
+    }
+    try {
+      const rawList = localStorage.getItem('folderActivities');
+      const list = JSON.parse(rawList || '[]');
+      if (Array.isArray(list)) {
+        setFolderActivities(list);
+      }
+    } catch (e) {
+      console.warn('Failed to load folderActivities from localStorage', e);
+    }
+  }, []);
 
   const loadFullData = async () => {
     if (!currentFileId) return;
@@ -132,6 +167,73 @@ function Dashboard() {
       console.error('Preview data load error:', err);
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  // New: Fetch JSON for folder activity item
+  const fetchFolderPdfJson = async (outputItem) => {
+    if (!outputItem) return;
+    setFaJsonLoading(true);
+    setFaJsonError(null);
+    setFaSelectedPdfJson(null);
+    setFaSelectedPage(null);
+    try {
+      const pathRel = (outputItem.output_json || '').replace(/^[.\\/]+/, '');
+      const url = `${ApiService.getApiOrigin()}/${pathRel}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Failed to fetch JSON for ${outputItem.pdf_name}`);
+      const data = await resp.json();
+      setFaSelectedPdfJson(data);
+    } catch (e) {
+      setFaJsonError(e.message);
+    } finally {
+      setFaJsonLoading(false);
+    }
+  };
+
+  // Update: open modal for a specific folder activity (defaults to last one)
+  const openFolderModal = (activity = null) => {
+    const act = activity || folderActivity;
+    if (!act) return;
+    setActiveFolderActivity(act);
+    setFolderModalOpen(true);
+    setZipError(null);
+    // Preselect slowest file for this activity
+    const first = Array.isArray(act.outputs) && act.outputs.length > 0
+      ? [...act.outputs].sort((a,b)=> (b.processing_time_ms||0)-(a.processing_time_ms||0))[0]
+      : null;
+    if (first) {
+      setFaSelectedPdf(first);
+      fetchFolderPdfJson(first);
+    } else {
+      setFaSelectedPdf(null);
+      setFaSelectedPdfJson(null);
+      setFaSelectedPage(null);
+      setFaJsonError(null);
+    }
+  };
+
+  const closeFolderModal = () => {
+    setFolderModalOpen(false);
+    setActiveFolderActivity(null);
+    setFaSelectedPdf(null);
+    setFaSelectedPdfJson(null);
+    setFaSelectedPage(null);
+    setFaJsonError(null);
+    setZipError(null);
+  };
+
+  // New: Download all JSONs for a folder activity
+  const downloadAllJsonsFromActivity = async (activity) => {
+    if (!activity?.outputs?.length) return;
+    try {
+      setZipError(null);
+      const paths = activity.outputs.map(o => (o.output_json || '').replace(/^[.\\/]+/, ''));
+      const zipBlob = await ApiService.zipFolderJsons(paths);
+      const name = activity.folderName ? `${activity.folderName}_jsons.zip` : 'pdf_jsons.zip';
+      ApiService.downloadBlob(zipBlob, name);
+    } catch (e) {
+      setZipError(e.message || 'Failed to download ZIP');
     }
   };
 
@@ -217,11 +319,11 @@ function Dashboard() {
                 <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
                 <p>Loading...</p>
               </div>
-            ) : files.length === 0 ? (
+            ) : (!folderActivity && files.length === 0) ? (
               <div style={{ color: 'var(--text-color-light)', textAlign: 'center', padding: '2rem' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📂</div>
                 <p>No recent activity</p>
-                <p style={{ fontSize: '0.875rem' }}>Upload your first file to get started</p>
+                <p style={{ fontSize: '0.875rem' }}>Upload your first file or folder to get started</p>
                 <Link to="/explorer">
                   <Button variant="primary" size="small" style={{ marginTop: '1rem' }}>
                     Start Uploading
@@ -230,6 +332,58 @@ function Dashboard() {
               </div>
             ) : (
               <div>
+                {/* Folder Upload Activity Summary (last) */}
+                {folderActivity && (
+                  <div style={{ 
+                    marginBottom: '1rem',
+                    padding: '0.75rem',
+                    backgroundColor: 'var(--background-color)',
+                    borderRadius: 'var(--border-radius)',
+                    border: '1px solid #e9ecef'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                      <h4 style={{ margin: 0 }}>📂 Last Folder Upload{folderActivity.folderName ? ` — ${folderActivity.folderName}` : ''}</h4>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Link to="/explorer">
+                          <Button variant="outline" size="tiny">Open Explorer</Button>
+                        </Link>
+                        <Button variant="primary" size="tiny" onClick={() => openFolderModal(folderActivity)}>View Details</Button>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-color-light)', marginTop: 4 }}>
+                      {folderActivity.savedAt ? new Date(folderActivity.savedAt).toLocaleString() : ''}
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                      <div><strong>PDFs:</strong> {folderActivity.processed_count ?? folderActivity.outputs?.length ?? 0}</div>
+                      {typeof folderActivity.total_time_ms === 'number' && (
+                        <div><strong>Total:</strong> {(folderActivity.total_time_ms/1000).toFixed(2)}s</div>
+                      )}
+                      {typeof folderActivity.workers === 'number' && (
+                        <div><strong>Threads:</strong> {folderActivity.workers}</div>
+                      )}
+                    </div>
+                    {Array.isArray(folderActivity.outputs) && folderActivity.outputs.length > 0 && (
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <div style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                          Slowest files
+                        </div>
+                        <ul style={{ margin: 0, paddingLeft: '1rem' }}>
+                          {[...folderActivity.outputs]
+                            .sort((a,b) => (b.processing_time_ms||0) - (a.processing_time_ms||0))
+                            .slice(0,5)
+                            .map((o, idx) => (
+                              <li key={idx} style={{ fontSize: '0.9rem' }}>
+                                {o.pdf_name} — {o.processing_time_ms ? `${(o.processing_time_ms/1000).toFixed(2)}s` : 'n/a'}
+                                {typeof o.pages === 'number' ? ` • ${o.pages} pages` : ''}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tip */}
                 <div style={{ 
                   marginBottom: '1rem', 
                   padding: '0.75rem', 
@@ -241,48 +395,98 @@ function Dashboard() {
                 }}>
                   💡 <strong>Tip:</strong> Click any file to view both source file and parquet comparison
                 </div>
-                {files.slice(0, 5).map((file, index) => (
-                  <div key={file.file_id || index} style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.75rem 0',
-                    borderBottom: index < 4 ? '1px solid #e9ecef' : 'none',
-                    cursor: 'pointer'
-                  }}
-                    onClick={async (e) => {
-                      setSelectedFile(file);
-                      setCurrentFileId(file.file_id);
-                      setModalOpen(true);
-                      setModalTitle(`Files Comparison: ${file.original_filename}`);
-                      setViewMode('files');
-                      setModalLoading(false);
-                    }}>
-                    <div>
-                      <div style={{ fontWeight: '500', fontSize: '0.875rem' }}>
-                        {file.original_filename}
+
+                {/* Recent Folder Uploads (Top 5) */}
+                {folderActivities && folderActivities.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Recent Folder Uploads</div>
+                    {folderActivities.slice(0,5).map((act, index) => (
+                      <div key={(act.savedAt || index)} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.75rem 0',
+                        borderBottom: index < Math.min(4, folderActivities.length - 1) ? '1px solid #e9ecef' : 'none',
+                        cursor: 'pointer'
+                      }}
+                        onClick={() => openFolderModal(act)}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>
+                            {act.folderName || 'PDF Folder'}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light)' }}>
+                            {act.savedAt ? new Date(act.savedAt).toLocaleString() : ''} • {act.status || 'completed'}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: 'var(--border-radius)',
+                          backgroundColor: 'rgba(63,114,175,0.08)',
+                          color: 'var(--sub-color)'
+                        }}>
+                          PDFs: {act.processed_count ?? act.outputs?.length ?? 0}
+                          {typeof act.total_time_ms === 'number' ? ` • ${(act.total_time_ms/1000).toFixed(2)}s` : ''}
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light)' }}>
-                        {new Date(file.upload_time).toLocaleDateString()} • {file.file_type.toUpperCase()}
-                      </div>
-                    </div>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: 'var(--border-radius)',
-                      backgroundColor: file.status === 'completed' ? 'rgba(40, 167, 69, 0.1)' :
-                        file.status === 'processing' ? 'rgba(255, 193, 7, 0.1)' :
-                          'rgba(220, 53, 69, 0.1)',
-                      color: file.status === 'completed' ? 'var(--success-color)' :
-                        file.status === 'processing' ? 'var(--warning-color)' :
-                          'var(--error-color)'
-                    }}>
-                      {file.status === 'completed' ? '✅ Completed' :
-                        file.status === 'processing' ? '⏳ Processing' :
-                          '❌ Failed'}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* Recent Files List */}
+                {files.length > 0 ? (
+                  <div>
+                    {files.slice(0, 5).map((file, index) => (
+                      <div key={file.file_id || index} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.75rem 0',
+                        borderBottom: index < Math.min(4, files.length - 1) ? '1px solid #e9ecef' : 'none',
+                        cursor: 'pointer'
+                      }}
+                        onClick={async (e) => {
+                          setSelectedFile(file);
+                          setCurrentFileId(file.file_id);
+                          setModalOpen(true);
+                          setModalTitle(`Files Comparison: ${file.original_filename}`);
+                          setViewMode('files');
+                          setModalLoading(false);
+                        }}>
+                        <div>
+                          <div style={{ fontWeight: '500', fontSize: '0.875rem' }}>
+                            {file.original_filename}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light)' }}>
+                            {new Date(file.upload_time).toLocaleDateString()} • {file.file_type.toUpperCase()}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: 'var(--border-radius)',
+                          backgroundColor: file.status === 'completed' ? 'rgba(40, 167, 69, 0.1)' :
+                            file.status === 'processing' ? 'rgba(255, 193, 7, 0.1)' :
+                              'rgba(220, 53, 69, 0.1)',
+                          color: file.status === 'completed' ? 'var(--success-color)' :
+                            file.status === 'processing' ? 'var(--warning-color)' :
+                              'var(--error-color)'
+                        }}>
+                          {file.status === 'completed' ? '✅ Completed' :
+                            file.status === 'processing' ? '⏳ Processing' :
+                              '❌ Failed'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  !folderActivity && (
+                    <div style={{ color: 'var(--text-color-light)', textAlign: 'center', padding: '1rem' }}>
+                      No recent file uploads
+                    </div>
+                  )
+                )}
               </div>
             )}
           </div>
@@ -311,8 +515,8 @@ function Dashboard() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ fontSize: '1.5rem' }}>📁</div>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '1rem' }}>File Explorer</h4>
-                      <p style={{ margin: 0, fontSize: '0.875rem' }}>Upload and manage your files</p>
+                      <h4 style={{ margin: 0, fontSize: '1rem' }}>Maker-Checker</h4>
+                      <p style={{ margin: 0, fontSize: '0.875rem' }}>Maker and Checker</p>
                     </div>
                   </div>
                 </div>
@@ -541,6 +745,117 @@ function Dashboard() {
                 </Button>
               </div>
             )}
+          </div>
+        </Modal>
+
+        {/* Modal for Folder Upload Activity */}
+        <Modal open={folderModalOpen} onClose={closeFolderModal} title={`Folder Upload: ${activeFolderActivity?.folderName || 'PDFs'}`}>
+          <div>
+            {/* Summary */}
+            {activeFolderActivity && (
+              <div className="card" style={{ marginBottom: '1rem' }}>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong>Summary</strong>{Array.isArray(activeFolderActivity.outputs) && activeFolderActivity.outputs.length > 0 && (
+                  <Button variant="outline" size="small" icon="⬇️" onClick={() => downloadAllJsonsFromActivity(activeFolderActivity)}>
+                    Download All JSONs
+                  </Button>
+                )}</div>
+                <div style={{ padding: '0.75rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div><strong>PDFs:</strong> {activeFolderActivity.processed_count ?? activeFolderActivity.outputs?.length ?? 0}</div>
+                  {typeof activeFolderActivity.total_time_ms === 'number' && (
+                    <div><strong>Total Time:</strong> {(activeFolderActivity.total_time_ms/1000).toFixed(2)}s</div>
+                  )}
+                  {typeof activeFolderActivity.workers === 'number' && (
+                    <div><strong>Threads:</strong> {activeFolderActivity.workers}</div>
+                  )}
+                </div>
+                {zipError && (
+                  <div style={{ padding: '0 0.75rem 0.75rem 0.75rem', color: 'var(--error-color)' }}>{zipError}</div>
+                )}
+              </div>
+            )}
+
+            {/* Browser: Left PDFs, Right JSON Viewer */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+              {/* Left: Nested Folder → PDF list */}
+              <div className="card" style={{ border: '1px solid #e9ecef' }}>
+                <div className="card-header"><strong>📁 {activeFolderActivity?.folderName || 'Folder PDFs'}</strong></div>
+                <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 360, overflow: 'auto' }}>
+                  {Array.isArray(activeFolderActivity?.outputs) && activeFolderActivity.outputs.length > 0 ? (
+                    [...activeFolderActivity.outputs]
+                      .sort((a,b) => a.pdf_name.localeCompare(b.pdf_name))
+                      .map((o) => (
+                        <Button
+                          key={o.pdf_name}
+                          variant={faSelectedPdf?.pdf_name === o.pdf_name ? 'primary' : 'outline'}
+                          size="small"
+                          onClick={() => { setFaSelectedPdf(o); fetchFolderPdfJson(o); }}
+                          style={{ justifyContent: 'space-between' }}
+                        >
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.pdf_name}</span>
+                          <span style={{ marginLeft: 8, opacity: 0.7 }}>({o.pages})</span>
+                        </Button>
+                      ))
+                  ) : (
+                    <div style={{ color: 'var(--text-color-light)' }}>No PDFs</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: JSON/Page viewer */}
+              <div className="card" style={{ border: '1px solid #e9ecef' }}>
+                <div className="card-header"><strong>🧩 JSON Viewer</strong></div>
+                <div style={{ padding: '0.75rem' }}>
+                  {!faSelectedPdf ? (
+                    <div style={{ color: 'var(--text-color-light)' }}>Select a PDF to view its extracted JSON</div>
+                  ) : faJsonLoading ? (
+                    <div style={{ color: 'var(--text-color-light)' }}>Loading JSON...</div>
+                  ) : faJsonError ? (
+                    <div style={{ color: 'var(--error-color)' }}>Error: {faJsonError}</div>
+                  ) : faSelectedPdfJson ? (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <div style={{ fontSize: '0.9rem' }}>
+                          <strong>{faSelectedPdfJson.pdf_name}</strong> • {faSelectedPdfJson.total_pages} pages
+                        </div>
+                        <a
+                          className="btn btn-outline"
+                          href={`${ApiService.getApiOrigin()}/${(faSelectedPdf.output_json||'').replace(/^[.\\/]+/,'')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open Full JSON
+                        </a>
+                      </div>
+                      {/* Pages buttons */}
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '0.5rem', maxHeight: 120, overflow: 'auto' }}>
+                        {faSelectedPdfJson.pages?.map(p => (
+                          <Button
+                            key={p.page_number}
+                            size="tiny"
+                            variant={faSelectedPage === p.page_number ? 'primary' : 'outline'}
+                            onClick={() => setFaSelectedPage(p.page_number)}
+                          >
+                            Pg {p.page_number}
+                          </Button>
+                        ))}
+                      </div>
+                      {/* JSON content (page level) */}
+                      <div style={{ border: '1px solid #e9ecef', borderRadius: 8, padding: '0.5rem', maxHeight: 360, overflow: 'auto', background: 'var(--background-color)' }}>
+                        {faSelectedPage ? (
+                          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+{`$${''}`}{JSON.stringify(faSelectedPdfJson.pages.find(p => p.page_number === faSelectedPage) || {}, null, 2)}
+                          </pre>
+                        ) : (
+                          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+{`$${''}`}{JSON.stringify({ pdf_name: faSelectedPdfJson.pdf_name, total_pages: faSelectedPdfJson.total_pages }, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </div>
         </Modal>
       </div>

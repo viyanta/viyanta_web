@@ -27,6 +27,16 @@ load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Import S3 service
+try:
+    from services.s3_service import s3_service
+    S3_AVAILABLE = True
+    print("S3 service loaded successfully")
+except ImportError as e:
+    S3_AVAILABLE = False
+    print(f"S3 service not available: {e}")
+    s3_service = None
+
 # Configure comprehensive logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -37,6 +47,26 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Helper functions for S3 key generation with user context
+
+
+def get_s3_key_with_user_context(base_path: str, filename: str, user_id: Optional[str] = None) -> str:
+    """
+    Generate S3 key with optional user context
+
+    Args:
+        base_path: Base path (e.g., 'extracted', 'extractions')
+        filename: Filename or additional path
+        user_id: Optional user ID for user-specific storage
+
+    Returns:
+        S3 key with user context if provided
+    """
+    if user_id:
+        return f"users/{user_id}/{base_path}/{filename}"
+    else:
+        return f"{base_path}/{filename}"
 
 # Debug helper functions
 
@@ -184,7 +214,7 @@ async def save_uploaded_files(files: List[UploadFile], job_id: str) -> List[str]
 print("PDF Table Extraction API initialized")
 
 
-async def process_pdfs_background(file_paths: List[str], job_id: str):
+async def process_pdfs_background(file_paths: List[str], job_id: str, user_id: Optional[str] = None):
     """Background processing of PDF files with enhanced debugging and Gemini verification"""
     debug_log(f"Starting background processing", {
         "job_id": job_id,
@@ -335,68 +365,105 @@ async def process_pdfs_background(file_paths: List[str], job_id: str):
                         "accuracy_score": verified_data.get('verification_summary', {}).get('accuracy_score', 'N/A')
                     })
 
-                    # Step 4: Save original CSV files
-                    debug_log("Saving tables to CSV files")
+                    # Step 4: Save original CSV files locally (not uploaded to S3)
+                    debug_log("Saving tables to CSV files (local only)")
                     saved_files = extractor.save_tables_to_csv(
                         tables, output_dir, base_name)
-                    debug_log("CSV files saved", {"saved_files": saved_files})
+                    debug_log("CSV files saved locally", {
+                              "saved_files": saved_files})
 
-                    # Step 5: Save verified JSON data
-                    debug_log("Saving verified JSON data")
-                    verified_json_file = os.path.join(
-                        output_dir, f"{base_name}_verified_tables.json")
-                    with open(verified_json_file, 'w') as f:
-                        json.dump(verified_data, f, indent=2, default=str)
-                    debug_log("Verified JSON saved", {
-                              "file_path": verified_json_file})
+                    # Step 5: Save verified JSON data to S3
+                    debug_log("Saving verified JSON data to S3")
+                    if S3_AVAILABLE and s3_service:
+                        try:
+                            # Upload verified data to S3
+                            s3_key_verified = get_s3_key_with_user_context(
+                                "extracted", f"{base_name}_verified_tables.json", user_id)
+                            metadata = {
+                                "filename": filename,
+                                "extraction_type": "verified",
+                                "timestamp": datetime.now().isoformat(),
+                                "job_id": job_id
+                            }
+                            verified_s3_url = s3_service.upload_json_data(
+                                verified_data, s3_key_verified, metadata)
+                            debug_log("Verified JSON uploaded to S3", {
+                                "s3_url": verified_s3_url,
+                                "s3_key": s3_key_verified
+                            })
+                        except Exception as e:
+                            logger.error(
+                                f"Failed to upload verified data to S3: {str(e)}")
+                            # Fallback to local storage
+                            verified_json_file = os.path.join(
+                                output_dir, f"{base_name}_verified_tables.json")
+                            with open(verified_json_file, 'w') as f:
+                                json.dump(verified_data, f,
+                                          indent=2, default=str)
+                            debug_log("Verified JSON saved locally (S3 fallback)", {
+                                "file_path": verified_json_file})
+                    else:
+                        # Fallback to local storage if S3 not available
+                        verified_json_file = os.path.join(
+                            output_dir, f"{base_name}_verified_tables.json")
+                        with open(verified_json_file, 'w') as f:
+                            json.dump(verified_data, f, indent=2, default=str)
+                        debug_log("Verified JSON saved locally", {
+                            "file_path": verified_json_file})
 
-                    # Step 6: Save original extraction for comparison
-                    debug_log("Saving original extraction data")
-                    original_json_file = os.path.join(
-                        output_dir, f"{base_name}_original_tables.json")
-                    with open(original_json_file, 'w') as f:
-                        json.dump(extracted_data, f, indent=2, default=str)
-                    debug_log("Original JSON saved", {
-                              "file_path": original_json_file})
+                    # Step 6: Save original extraction for comparison to S3
+                    debug_log("Saving original extraction data to S3")
+                    if S3_AVAILABLE and s3_service:
+                        try:
+                            # Upload original data to S3
+                            s3_key_original = get_s3_key_with_user_context(
+                                "extracted", f"{base_name}_original_tables.json", user_id)
+                            metadata = {
+                                "filename": filename,
+                                "extraction_type": "original",
+                                "timestamp": datetime.now().isoformat(),
+                                "job_id": job_id
+                            }
+                            original_s3_url = s3_service.upload_json_data(
+                                extracted_data, s3_key_original, metadata)
+                            debug_log("Original JSON uploaded to S3", {
+                                "s3_url": original_s3_url,
+                                "s3_key": s3_key_original
+                            })
+                        except Exception as e:
+                            logger.error(
+                                f"Failed to upload original data to S3: {str(e)}")
+                            # Fallback to local storage
+                            original_json_file = os.path.join(
+                                output_dir, f"{base_name}_original_tables.json")
+                            with open(original_json_file, 'w') as f:
+                                json.dump(extracted_data, f,
+                                          indent=2, default=str)
+                            debug_log("Original JSON saved locally (S3 fallback)", {
+                                "file_path": original_json_file})
+                    else:
+                        # Fallback to local storage if S3 not available
+                        original_json_file = os.path.join(
+                            output_dir, f"{base_name}_original_tables.json")
+                        with open(original_json_file, 'w') as f:
+                            json.dump(extracted_data, f, indent=2, default=str)
+                        debug_log("Original JSON saved locally", {
+                            "file_path": original_json_file})
 
-                    # Step 7: Save corrected CSV files using enhanced method
+                    # Step 7: Save corrected CSV files locally (not uploaded to S3)
                     if GEMINI_AVAILABLE and 'corrected_data' in verified_data:
                         debug_log(
-                            "Saving corrected CSV files with Gemini data")
+                            "Saving corrected CSV files locally only")
                         try:
                             corrected_files = extractor.save_corrected_tables_to_csv(
                                 verified_data['corrected_data'], output_dir, base_name)
-                            debug_log("Corrected CSV files saved", {
+                            debug_log("Corrected CSV files saved locally", {
                                 "file_count": len(corrected_files),
                                 "files": corrected_files
                             })
                         except Exception as e:
-                            trace_error(
-                                e, f"Saving corrected CSV for {filename}")
-                            # Fallback to old method
-                            debug_log("Using fallback CSV save method")
-                            corrected_tables = verified_data['corrected_data'].get(
-                                'tables', [])
-                            for table_idx, table_info in enumerate(corrected_tables):
-                                if 'data' in table_info and 'headers' in table_info:
-                                    try:
-                                        headers = table_info.get('headers', [])
-                                        data = table_info.get('data', [])
-                                        if headers and data:
-                                            corrected_df = pd.DataFrame(
-                                                data, columns=headers)
-                                            corrected_csv_file = os.path.join(
-                                                output_dir, f"{base_name}_verified_table_{table_idx+1}.csv")
-                                            corrected_df.to_csv(
-                                                corrected_csv_file, index=False)
-                                            debug_log(f"Saved corrected table {table_idx+1}", {
-                                                "file_path": corrected_csv_file,
-                                                "rows": len(data),
-                                                "columns": len(headers)
-                                            })
-                                    except Exception as e:
-                                        trace_error(
-                                            e, f"Saving individual corrected table {table_idx+1}")
+                            logger.error(
+                                f"Error saving corrected CSV files: {str(e)}")
 
                     # Convert DataFrames to JSON-serializable format
                     debug_log(
@@ -450,6 +517,24 @@ async def process_pdfs_background(file_paths: List[str], job_id: str):
         with open(results_file, 'w') as f:
             json.dump(final_results, f, indent=2)
 
+        # Upload summary to S3 if available
+        if S3_AVAILABLE and s3_service:
+            try:
+                s3_key = get_s3_key_with_user_context(
+                    "extractions", f"{job_id}/extraction_summary_verified.json", user_id)
+                s3_url = s3_service.upload_file(results_file, s3_key)
+                if s3_url:
+                    logger.info(
+                        f"Bulk extraction summary uploaded to S3: {s3_url}")
+                    # Add S3 URL to final results
+                    final_results['s3_summary_url'] = s3_url
+                else:
+                    logger.warning(
+                        "Failed to upload bulk extraction summary to S3")
+            except Exception as e:
+                logger.error(
+                    f"Error uploading bulk extraction summary to S3: {str(e)}")
+
         JobManager.complete_job(job_id, final_results)
 
         # Cleanup temp files
@@ -470,7 +555,9 @@ async def process_pdfs_background(file_paths: List[str], job_id: str):
 async def extract_bulk_pdfs(
     background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
-    extract_mode: str = Form("both")  # both, stream, lattice
+    extract_mode: str = Form("both"),  # both, stream, lattice
+    # Optional user ID for user-specific storage
+    user_id: Optional[str] = Form(None)
 ):
     """
     Extract tables from multiple PDF files
@@ -506,7 +593,8 @@ async def extract_bulk_pdfs(
                 status_code=400, detail="Failed to save uploaded files")
 
         # Start background processing
-        background_tasks.add_task(process_pdfs_background, saved_paths, job_id)
+        background_tasks.add_task(
+            process_pdfs_background, saved_paths, job_id, user_id)
 
         return {
             "job_id": job_id,
@@ -527,7 +615,9 @@ async def extract_single_pdf(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     extract_mode: str = Form("both"),  # both, stream, lattice
-    return_format: str = Form("json")  # json, tables, both
+    return_format: str = Form("json"),  # json, tables, both
+    # Optional user ID for user-specific storage
+    user_id: Optional[str] = Form(None)
 ):
     """
     Extract tables from a single PDF file with immediate response
@@ -628,7 +718,7 @@ async def extract_single_pdf(
         os.makedirs(output_dir, exist_ok=True)
         base_name = os.path.splitext(file.filename)[0]
 
-        # Save JSON files
+        # Save JSON files and upload to S3
         verified_json_file = os.path.join(
             output_dir, f"{base_name}_verified_tables.json")
         with open(verified_json_file, 'w') as f:
@@ -638,6 +728,33 @@ async def extract_single_pdf(
             output_dir, f"{base_name}_original_tables.json")
         with open(original_json_file, 'w') as f:
             json.dump(extracted_data, f, indent=2, default=str)
+
+        # Upload JSON files to S3 if available
+        s3_urls = {}
+        if S3_AVAILABLE and s3_service:
+            try:
+                # Upload verified JSON
+                s3_key_verified = get_s3_key_with_user_context(
+                    "extracted", f"{base_name}_verified_tables.json", user_id)
+                s3_url_verified = s3_service.upload_file(
+                    verified_json_file, s3_key_verified)
+                if s3_url_verified:
+                    s3_urls['verified_json'] = s3_url_verified
+                    debug_log(
+                        f"Single file verified JSON uploaded to S3: {s3_url_verified}")
+
+                # Upload original JSON
+                s3_key_original = get_s3_key_with_user_context(
+                    "extracted", f"{base_name}_original_tables.json", user_id)
+                s3_url_original = s3_service.upload_file(
+                    original_json_file, s3_key_original)
+                if s3_url_original:
+                    s3_urls['original_json'] = s3_url_original
+                    debug_log(
+                        f"Single file original JSON uploaded to S3: {s3_url_original}")
+            except Exception as e:
+                logger.error(
+                    f"Error uploading single file JSON to S3: {str(e)}")
 
         # Format response based on requested format
         response_data = {
@@ -658,6 +775,10 @@ async def extract_single_pdf(
                 "original_json": original_json_file
             }
         }
+
+        # Add S3 URLs to response if available
+        if s3_urls:
+            response_data["s3_files"] = s3_urls
 
         if return_format in ["json", "both"]:
             response_data["tables"] = final_data.get('tables', [])
@@ -868,7 +989,7 @@ async def list_all_jobs():
 
 
 def create_enhanced_extraction_summary(results: dict) -> dict:
-    """Create enhanced summary including verification results"""
+    """Create enhanced summary including verification results and table data for frontend display"""
     summary = {
         "total_files_processed": len(results),
         "successful_extractions": 0,
@@ -878,7 +999,8 @@ def create_enhanced_extraction_summary(results: dict) -> dict:
             "average_accuracy_score": 0,
             "total_issues_found": 0
         },
-        "file_details": []
+        "file_details": [],
+        "files_with_tables": []  # New field for frontend table display
     }
 
     total_accuracy_scores = []
@@ -899,6 +1021,53 @@ def create_enhanced_extraction_summary(results: dict) -> dict:
             file_info["status"] = "success"
             summary["successful_extractions"] += 1
             summary["total_tables_extracted"] += table_count
+
+            # Add formatted table data for frontend display
+            verified_data = file_data.get('verified_data')
+            if verified_data and verified_data.get('corrected_data'):
+                tables_data = verified_data['corrected_data'].get('tables', [])
+            else:
+                # Fallback to original tables if no verified data
+                tables_data = original_tables
+
+            # Format tables for frontend display (similar to single file extraction)
+            formatted_tables = []
+            for i, table in enumerate(tables_data):
+                formatted_table = {
+                    "table_id": i + 1,
+                    "title": table.get('title', f'Table {i + 1}'),
+                    "headers": table.get('headers', []),
+                    "data": table.get('data', []),
+                    "row_count": len(table.get('data', [])),
+                    "column_count": len(table.get('headers', [])),
+                    "page_number": table.get('metadata', {}).get('page_number', 1),
+                    "table_type": table.get('metadata', {}).get('table_type', 'unknown')
+                }
+                formatted_tables.append(formatted_table)
+
+            # Add file with tables data for frontend
+            file_with_tables = {
+                "filename": filename,
+                "tables": formatted_tables,
+                "table_count": len(formatted_tables),
+                "extraction_summary": {
+                    "total_tables": len(formatted_tables),
+                    "pages_processed": len(set(table.get('metadata', {}).get('page_number', 1)
+                                           for table in tables_data)),
+                    "extraction_method": "bulk"
+                }
+            }
+
+            # Add verification summary if available
+            if verified_data and verified_data.get('verification_summary'):
+                verification_summary = verified_data['verification_summary']
+                file_with_tables["extraction_summary"]["accuracy_score"] = verification_summary.get(
+                    'accuracy_score', 'N/A')
+                file_with_tables["extraction_summary"]["confidence_level"] = verification_summary.get(
+                    'confidence_level', 'medium')
+                file_with_tables["verification_summary"] = verification_summary
+
+            summary["files_with_tables"].append(file_with_tables)
 
         # Verification info
         verified_data = file_data.get('verified_data')
@@ -1303,3 +1472,277 @@ async def test_extraction_pipeline(file: UploadFile = File(...)):
         # Cleanup
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
+
+
+# S3-related endpoints for extracted files
+
+@router.get("/s3/list-extracted-files")
+async def list_extracted_files_s3():
+    """List all extracted JSON files stored in S3"""
+    if not S3_AVAILABLE or not s3_service:
+        raise HTTPException(status_code=503, detail="S3 service not available")
+
+    try:
+        files = s3_service.list_files(prefix="extracted/")
+
+        # Parse file information
+        file_info = []
+        for file_key in files:
+            if file_key.endswith('.json'):
+                filename = os.path.basename(file_key)
+                file_info.append({
+                    "s3_key": file_key,
+                    "filename": filename,
+                    "download_url": s3_service.get_file_url(file_key),
+                    "type": "verified" if "verified" in filename else "original"
+                })
+
+        return {
+            "status": "success",
+            "files": file_info,
+            "total_count": len(file_info)
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to list S3 files: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to list S3 files: {str(e)}")
+
+
+@router.get("/s3/download/{s3_key:path}")
+async def get_s3_file_url(s3_key: str):
+    """Get a presigned URL to download a file from S3"""
+    if not S3_AVAILABLE or not s3_service:
+        raise HTTPException(status_code=503, detail="S3 service not available")
+
+    try:
+        if not s3_service.file_exists(s3_key):
+            raise HTTPException(status_code=404, detail="File not found in S3")
+
+        # Generate presigned URL (valid for 1 hour)
+        download_url = s3_service.get_file_url(s3_key, expiration=3600)
+
+        return {
+            "status": "success",
+            "s3_key": s3_key,
+            "download_url": download_url,
+            "expires_in_seconds": 3600
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate S3 download URL: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate download URL: {str(e)}")
+
+
+@router.get("/s3/status")
+async def s3_service_status():
+    """Check S3 service status and configuration"""
+    return {
+        "s3_available": S3_AVAILABLE,
+        "bucket_name": os.getenv("S3_BUCKET_NAME") if S3_AVAILABLE else None,
+        "region": os.getenv("S3_REGION") if S3_AVAILABLE else None,
+        "service_initialized": s3_service is not None
+    }
+
+
+@router.delete("/s3/delete/{s3_key:path}")
+async def delete_s3_file(s3_key: str):
+    """Delete a file from S3"""
+    if not S3_AVAILABLE or not s3_service:
+        raise HTTPException(status_code=503, detail="S3 service not available")
+
+    try:
+        if not s3_service.file_exists(s3_key):
+            raise HTTPException(status_code=404, detail="File not found in S3")
+
+        s3_service.delete_file(s3_key)
+
+        return {
+            "status": "success",
+            "message": f"File {s3_key} deleted successfully",
+            "s3_key": s3_key
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete S3 file: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete file: {str(e)}")
+
+
+# User-specific history management endpoints
+@router.get("/user-history/{user_id}")
+async def get_user_extraction_history(user_id: str):
+    """
+    Get extraction history for a specific user
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    try:
+        if S3_AVAILABLE and s3_service:
+            # Get user-specific history from S3
+            history_key = f"users/{user_id}/extraction_history.json"
+            try:
+                history_content = s3_service.download_file_content(history_key)
+                if history_content:
+                    history_data = json.loads(history_content)
+                    return history_data.get('extractions', [])
+            except Exception as e:
+                logger.info(
+                    f"No history found for user {user_id} in S3: {str(e)}")
+
+        # Fallback to local storage or return empty history
+        return []
+
+    except Exception as e:
+        logger.error(f"Error retrieving user history for {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve user history")
+
+
+@router.post("/user-history/{user_id}")
+async def save_user_extraction_history(user_id: str, extraction_data: dict):
+    """
+    Save extraction entry to user's history
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    try:
+        # Load existing history
+        history_data = {"extractions": []}
+
+        if S3_AVAILABLE and s3_service:
+            history_key = f"users/{user_id}/extraction_history.json"
+            try:
+                existing_content = s3_service.download_file_content(
+                    history_key)
+                if existing_content:
+                    history_data = json.loads(existing_content)
+            except Exception:
+                pass  # File doesn't exist yet, use empty history
+
+            # Add new extraction to history
+            extraction_entry = {
+                **extraction_data,
+                "user_id": user_id,
+                "saved_at": datetime.now().isoformat()
+            }
+
+            # Keep only last 100 entries to prevent unlimited growth
+            history_data["extractions"] = [extraction_entry] + \
+                history_data.get("extractions", [])[:99]
+
+            # Save updated history to S3
+            temp_file = None
+            try:
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(history_data, f, indent=2, default=str)
+                    temp_file = f.name
+
+                s3_url = s3_service.upload_file(temp_file, history_key)
+                if s3_url:
+                    logger.info(f"User history saved to S3 for user {user_id}")
+                    return {"message": "History saved successfully", "s3_url": s3_url}
+                else:
+                    raise Exception("Failed to upload to S3")
+
+            finally:
+                if temp_file and os.path.exists(temp_file):
+                    os.unlink(temp_file)
+
+        # Fallback to local storage if S3 not available
+        user_history_dir = os.path.join(
+            EXTRACTION_DIR, "user_history", user_id)
+        os.makedirs(user_history_dir, exist_ok=True)
+
+        history_file = os.path.join(
+            user_history_dir, "extraction_history.json")
+
+        # Load existing history from local file
+        if os.path.exists(history_file):
+            with open(history_file, 'r') as f:
+                history_data = json.load(f)
+
+        # Add new extraction to history
+        extraction_entry = {
+            **extraction_data,
+            "user_id": user_id,
+            "saved_at": datetime.now().isoformat()
+        }
+
+        history_data["extractions"] = [extraction_entry] + \
+            history_data.get("extractions", [])[:99]
+
+        # Save updated history locally
+        with open(history_file, 'w') as f:
+            json.dump(history_data, f, indent=2, default=str)
+
+        return {"message": "History saved successfully (local)", "file_path": history_file}
+
+    except Exception as e:
+        logger.error(f"Error saving user history for {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to save user history")
+
+
+@router.delete("/user-history/{user_id}")
+async def clear_user_extraction_history(user_id: str):
+    """
+    Clear all extraction history for a specific user
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    try:
+        if S3_AVAILABLE and s3_service:
+            # Clear user-specific history from S3
+            history_key = f"users/{user_id}/extraction_history.json"
+            try:
+                # Upload empty history
+                empty_history = {"extractions": []}
+                temp_file = None
+
+                # Create temporary file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(empty_history, f, indent=2, default=str)
+                    temp_file = f.name
+
+                # Upload to S3
+                s3_url = s3_service.upload_file(temp_file, history_key)
+
+                if temp_file and os.path.exists(temp_file):
+                    os.unlink(temp_file)
+
+                if s3_url:
+                    return {"message": "User history cleared successfully"}
+                else:
+                    raise Exception("Failed to upload cleared history to S3")
+
+            except Exception as e:
+                logger.error(
+                    f"Error clearing S3 history for user {user_id}: {str(e)}")
+                return {"message": "User history cleared (S3 error, but proceeding)"}
+
+        # Also clear local storage if it exists
+        user_history_dir = os.path.join(
+            EXTRACTION_DIR, "user_history", user_id)
+        history_file = os.path.join(
+            user_history_dir, "extraction_history.json")
+
+        if os.path.exists(history_file):
+            empty_history = {"extractions": []}
+            with open(history_file, 'w') as f:
+                json.dump(empty_history, f, indent=2, default=str)
+
+        return {"message": "User history cleared successfully"}
+
+    except Exception as e:
+        logger.error(f"Error clearing user history for {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to clear user history")

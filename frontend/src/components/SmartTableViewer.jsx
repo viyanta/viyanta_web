@@ -251,8 +251,13 @@ const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
           value={searchTerm}
           onChange={(e) => handleSearch(e.target.value)}
           style={{
-            ...searchStyle,
-            borderColor: searchTerm ? '#667eea' : '#e9ecef'
+            padding: '10px 16px',
+            border: searchTerm ? '2px solid #667eea' : '2px solid #e9ecef',
+            borderRadius: '8px',
+            fontSize: '14px',
+            outline: 'none',
+            transition: 'border-color 0.3s ease',
+            minWidth: '250px'
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
