@@ -386,6 +386,22 @@ class ApiService {
     return response.json();
   }
 
+  async getUploadedFiles() {
+    try {
+      // Get files from pdf_folder_extracted directory
+      const response = await fetch(`${API_BASE_URL}/uploaded-files`);
+      if (response.ok) {
+        return response.json();
+      } else {
+        // Fallback: return empty array if endpoint doesn't exist
+        return [];
+      }
+    } catch (error) {
+      console.error('Failed to get uploaded files:', error);
+      return [];
+    }
+  }
+
   getApiOrigin() {
     try {
       const url = new URL(API_BASE_URL);

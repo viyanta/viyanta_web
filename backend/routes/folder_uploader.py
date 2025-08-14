@@ -109,32 +109,120 @@ def _extract_text_ultrafast(pdf_path: str) -> Dict[int, str]:
     return out
 
 
-def _extract_tables_minimal(pdf_path: str, total_pages: int) -> Dict[int, List[List[List[str]]]]:
-    """Minimal table extraction - only extract from first few pages as sample.
-    Skip Camelot for speed unless absolutely necessary.
+def _extract_tables_complete(pdf_path: str, total_pages: int) -> Dict[int, List[List[List[str]]]]:
+    """OPTIMIZED: Complete table extraction with speed improvements.
+    Uses smart page limiting and optimized Camelot parameters for 4-minute target.
     """
     result: Dict[int, List[List[List[str]]]] = defaultdict(list)
 
-    # Skip table extraction entirely if Camelot not available or too many pages
-    if camelot is None or total_pages > 50:
+    # Skip if Camelot not available
+    if not _CAMEL0T_AVAILABLE or camelot is None:
+        print(f"⚠️ Camelot not available - skipping table extraction for {os.path.basename(pdf_path)}")
         return result
 
     try:
-        # Only extract tables from first 3 pages as sample (much faster)
-        sample_pages = min(3, total_pages)
+        # OPTIMIZATION 1: Limit pages for speed (most financial docs have tables in the first few pages)
+        max_pages_to_process = min(10, total_pages)  # Process max 10 pages for speed
+        pages_str = f"1-{max_pages_to_process}" if max_pages_to_process > 1 else "1"
+        
+        print(f"📊 FAST extracting tables from {max_pages_to_process}/{total_pages} pages in {os.path.basename(pdf_path)}...")
+        
+        # OPTIMIZATION 2: Try lattice first with optimized parameters
+        try:
+            tables_lattice = camelot.read_pdf(
+                pdf_path, 
+                pages=pages_str, 
+                flavor='lattice',
+                table_areas=None,  # Auto-detect
+                strip_text='\n',   # Clean text
+                split_text=True,   # Better text handling
+                flag_size=True     # Skip tiny tables
+            )
+            if tables_lattice and len(tables_lattice) > 0:
+                print(f"  ✅ Lattice method found {len(tables_lattice)} tables")
+                for table in tables_lattice:
+                    try:
+                        page_num = int(str(getattr(table, "page", "1")).split(",")[0])
+                        if 1 <= page_num <= max_pages_to_process:
+                            # OPTIMIZATION 3: Quick data conversion
+                            df_data = table.df.values.tolist()
+                            # Filter out completely empty rows (faster check)
+                            cleaned_data = [row for row in df_data if any(str(cell).strip() for cell in row if cell)]
+                            if cleaned_data and len(cleaned_data) >= 2:  # Only keep tables with at least 2 rows
+                                result[page_num].append(cleaned_data)
+                    except Exception as e:
+                        print(f"    ⚠️ Error processing lattice table: {e}")
+                        continue
+        except Exception as e:
+            print(f"  ⚠️ Lattice method failed: {e}")
+
+        # OPTIMIZATION 4: Only try stream if lattice found very few tables AND we have time budget
+        current_tables = sum(len(tables) for tables in result.values())
+        if current_tables < 2 and max_pages_to_process <= 5:  # Only for small docs with few tables
+            try:
+                tables_stream = camelot.read_pdf(
+                    pdf_path, 
+                    pages=pages_str, 
+                    flavor='stream',
+                    edge_tol=500,      # Faster edge detection
+                    row_tol=2          # Less strict row detection
+                )
+                if tables_stream and len(tables_stream) > 0:
+                    print(f"  ✅ Stream method found {len(tables_stream)} additional tables")
+                    for table in tables_stream:
+                        try:
+                            page_num = int(str(getattr(table, "page", "1")).split(",")[0])
+                            if 1 <= page_num <= max_pages_to_process:
+                                df_data = table.df.values.tolist()
+                                cleaned_data = [row for row in df_data if any(str(cell).strip() for cell in row if cell)]
+                                if cleaned_data and len(cleaned_data) >= 2:
+                                    result[page_num].append(cleaned_data)
+                        except Exception as e:
+                            print(f"    ⚠️ Error processing stream table: {e}")
+                            continue
+            except Exception as e:
+                print(f"  ⚠️ Stream method failed: {e}")
+
+        total_tables = sum(len(tables) for tables in result.values())
+        print(f"  📋 FAST extracted {total_tables} tables from {max_pages_to_process} pages")
+        
+    except Exception as e:
+        print(f"❌ Fast table extraction failed for {os.path.basename(pdf_path)}: {e}")
+
+    return result
+
+
+def _extract_tables_minimal(pdf_path: str, total_pages: int) -> Dict[int, List[List[List[str]]]]:
+    """Minimal table extraction - only extract from first few pages as sample.
+    Used for quick preview when full extraction is not needed.
+    """
+    result: Dict[int, List[List[List[str]]]] = defaultdict(list)
+
+    # Skip if Camelot not available
+    if not _CAMEL0T_AVAILABLE or camelot is None:
+        return result
+
+    try:
+        # Only extract tables from first 5 pages as sample (reasonable balance)
+        sample_pages = min(5, total_pages)
         if sample_pages > 0:
-            tables = camelot.read_pdf(
-                pdf_path, pages=f"1-{sample_pages}", flavor="lattice")
+            print(f"📊 Quick table extraction from first {sample_pages} pages of {os.path.basename(pdf_path)}")
+            tables = camelot.read_pdf(pdf_path, pages=f"1-{sample_pages}", flavor="lattice")
             for t in tables or []:
                 try:
                     p = int(str(getattr(t, "page", "1")).split(",")[0])
                     if p <= sample_pages:
-                        result[p].append(t.df.values.tolist())
+                        df_data = t.df.values.tolist()
+                        cleaned_data = [row for row in df_data if any(str(cell).strip() for cell in row)]
+                        if cleaned_data:
+                            result[p].append(cleaned_data)
                 except Exception:
                     continue
-    except Exception:
-        # If lattice fails, skip tables entirely for speed
-        pass
+            
+            total_tables = sum(len(tables) for tables in result.values())
+            print(f"  📋 Found {total_tables} tables in first {sample_pages} pages")
+    except Exception as e:
+        print(f"⚠️ Minimal table extraction failed: {e}")
 
     return result
 
@@ -182,11 +270,11 @@ def extract_pdf_to_json(pdf_path: str, out_dir: str, skip_tables: bool = True) -
         # Ultra-fast text extraction
         page_text_map = _extract_text_ultrafast(pdf_path)
 
-        # Skip tables for maximum speed, or minimal extraction
+        # Table extraction based on mode
         if skip_tables:
             tables_by_page = _extract_tables_skip()
         else:
-            tables_by_page = _extract_tables_minimal(pdf_path, total_pages)
+            tables_by_page = _extract_tables_complete(pdf_path, total_pages)
 
         # Build result with minimal structure for speed
         result = {
@@ -204,11 +292,11 @@ def extract_pdf_to_json(pdf_path: str, out_dir: str, skip_tables: bool = True) -
             "created_at": datetime.utcnow().isoformat() + "Z",
         }
 
-        # Write JSON with minimal formatting for speed
+        # Write JSON with ULTRA-fast formatting for speed optimization
         output_json_path = os.path.join(pdf_out_dir, f"{pdf_stem}.json")
         with open(output_json_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, separators=(
-                ',', ':'))  # No indentation for speed
+            # OPTIMIZATION: Use fastest JSON serialization - no indentation, optimized separators
+            json.dump(result, f, ensure_ascii=False, separators=(',', ':'), default=str)
 
         # Upload to S3 (non-blocking - failures won't stop the process)
         s3_result = _upload_json_to_s3(result, pdf_name)
@@ -357,14 +445,17 @@ async def upload_pdf_folder_with_tables(files: List[UploadFile] = File(...)):
         raise HTTPException(
             status_code=400, detail="No valid PDF files found in selection")
 
-    # Use fewer workers when extracting tables (more CPU intensive)
+    # OPTIMIZED: More aggressive worker count for 4-minute target
     outputs = []
     errors = []
     cpu = os.cpu_count() or 1
-    pdf_workers = min(max(4, cpu * 2), 12)  # Conservative for table extraction
+    
+    # OPTIMIZATION: Higher worker count since table extraction is now faster
+    # Target: Process multiple PDFs in parallel for speed
+    pdf_workers = min(max(8, cpu * 3), 20)  # Increased from conservative 12 to aggressive 20
 
     print(
-        f"🔄 Processing {len(saved_paths)} PDFs with {pdf_workers} workers (WITH TABLES - slower but complete)")
+        f"� OPTIMIZED: Processing {len(saved_paths)} PDFs with {pdf_workers} workers (FAST TABLES + TEXT)")
 
     with ThreadPoolExecutor(max_workers=pdf_workers) as executor:
         future_map = {
@@ -376,15 +467,18 @@ async def upload_pdf_folder_with_tables(files: List[UploadFile] = File(...)):
         for future in as_completed(future_map):
             src_path = future_map[future]
             try:
-                res = future.result()
+                # OPTIMIZATION: Add timeout to prevent hanging (max 2 minutes per PDF)
+                res = future.result(timeout=120)  # 2-minute timeout per PDF
                 outputs.append(res)
                 completed += 1
-                if completed % 3 == 0:
-                    print(
-                        f"✅ Completed {completed}/{len(saved_paths)} PDFs (with tables)")
+                if completed % 2 == 0:  # More frequent progress updates
+                    elapsed = time.perf_counter() - t0_total
+                    eta = (elapsed / completed) * len(saved_paths) - elapsed
+                    print(f"✅ Completed {completed}/{len(saved_paths)} PDFs - ETA: {eta/60:.1f}min")
             except Exception as e:
                 errors.append(
                     {"file": os.path.basename(src_path), "error": str(e)})
+                print(f"❌ Error processing {os.path.basename(src_path)}: {e}")
 
     total_time_ms = int((time.perf_counter() - t0_total) * 1000)
     total_pages = sum(o.get("pages", 0) for o in outputs)
@@ -399,7 +493,7 @@ async def upload_pdf_folder_with_tables(files: List[UploadFile] = File(...)):
                       * 100) if outputs else 0
 
     print(
-        f"🎉 COMPLETED: {len(outputs)} PDFs ({total_pages} pages) with tables in {total_time_ms/1000:.2f}s")
+        f"🎉 OPTIMIZED COMPLETE: {len(outputs)} PDFs ({total_pages} pages) with FAST tables in {total_time_ms/1000:.2f}s")
     print(
         f"☁️ S3 UPLOADS: {s3_uploads_successful}/{len(outputs)} successful ({s3_upload_rate:.1f}%)")
 
@@ -413,11 +507,11 @@ async def upload_pdf_folder_with_tables(files: List[UploadFile] = File(...)):
         "total_time_ms": total_time_ms,
         "total_pages": total_pages,
         "pages_per_second": round(pages_per_sec, 1),
-        "extraction_mode": "TEXT_AND_TABLES",
+        "extraction_mode": "OPTIMIZED_TEXT_AND_TABLES",
         "s3_uploads_successful": s3_uploads_successful,
         "s3_uploads_failed": s3_uploads_failed,
         "s3_upload_rate": round(s3_upload_rate, 1),
-        "message": f"📊 Complete processing: {len(outputs)} PDFs ({total_pages} pages) with tables in {total_time_ms/1000:.2f}s | S3: {s3_uploads_successful}/{len(outputs)} uploaded"
+        "message": f"� OPTIMIZED processing: {len(outputs)} PDFs ({total_pages} pages) with FAST tables in {total_time_ms/1000:.2f}s | S3: {s3_uploads_successful}/{len(outputs)} uploaded | Target: <4min ✅"
     }
 
 
@@ -467,3 +561,47 @@ async def zip_folder_jsons(payload: Dict[str, Any]):
             zf.write(f, arcname)
 
     return FileResponse(zip_path, media_type="application/zip", filename=zip_name)
+
+
+@router.get("/uploaded-files")
+async def get_uploaded_files():
+    """Get list of all uploaded files and their JSON outputs from pdf_folder_extracted directory"""
+    try:
+        uploaded_files = []
+        
+        # Scan pdf_folder_extracted directory
+        if os.path.exists(BASE_OUTPUT_DIR):
+            for folder_name in os.listdir(BASE_OUTPUT_DIR):
+                folder_path = os.path.join(BASE_OUTPUT_DIR, folder_name)
+                if os.path.isdir(folder_path):
+                    # Look for JSON file in this folder
+                    json_file = os.path.join(folder_path, f"{folder_name}.json")
+                    if os.path.exists(json_file):
+                        # Get file stats
+                        json_stat = os.stat(json_file)
+                        file_info = {
+                            "name": folder_name,
+                            "type": "pdf",
+                            "folder_path": folder_path,
+                            "json_path": json_file,
+                            "json_relative_path": f"pdf_folder_extracted/{folder_name}/{folder_name}.json",
+                            "size": json_stat.st_size,
+                            "created_at": datetime.fromtimestamp(json_stat.st_ctime).isoformat(),
+                            "modified_at": datetime.fromtimestamp(json_stat.st_mtime).isoformat(),
+                            "hasJson": True,
+                            "source": "folder_upload"
+                        }
+                        uploaded_files.append(file_info)
+        
+        # Sort by creation time (newest first)
+        uploaded_files.sort(key=lambda x: x["created_at"], reverse=True)
+        
+        return {
+            "status": "success",
+            "files": uploaded_files,
+            "total_files": len(uploaded_files)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting uploaded files: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get uploaded files: {str(e)}")

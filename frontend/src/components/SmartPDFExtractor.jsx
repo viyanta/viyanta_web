@@ -4,9 +4,25 @@ import apiService from '../services/api';
 const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [extractMode, setExtractMode] = useState('both');
-  const [uploadMode, setUploadMode] = useState('single'); // 'single' or 'bulk'
+  const [uploadMode, setUploadMode] = useState('single'); // 'single', 'bulk', or 'folder'
   const [dragActive, setDragActive] = useState(false);
+  const [folderFiles, setFolderFiles] = useState([]);
+  const [folderName, setFolderName] = useState('');
+  const [timerSec, setTimerSec] = useState(0);
   const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
+
+  // Timer for live processing time
+  React.useEffect(() => {
+    let interval;
+    if (isUploading) {
+      setTimerSec(0);
+      interval = setInterval(() => setTimerSec(prev => prev + 1), 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isUploading]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -32,6 +48,50 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
     }
+  };
+
+  const handleFolderSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    const pdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    setFolderFiles(pdfs);
+    // Capture root folder name from webkitRelativePath
+    const root = files.length && files[0].webkitRelativePath ? 
+      (files[0].webkitRelativePath.split('/')[0] || '') : '';
+    setFolderName(root);
+  };
+
+  const processFolder = async () => {
+    if (!folderFiles || folderFiles.length === 0) {
+      onError('Please select a folder that contains PDF files.');
+      return;
+    }
+
+    if (!user?.uid) {
+      onError('Please log in to extract PDF files');
+      return;
+    }
+
+    setIsUploading(true);
+    console.log(`🚀 Starting folder upload: ${folderFiles.length} PDFs`);
+
+    try {
+      // Use the folder uploader API with table extraction enabled for "complete" mode
+      const response = await apiService.uploadPdfFolder(folderFiles, extractMode === 'both' || extractMode === 'lattice');
+      console.log('✅ Folder processing completed:', response);
+      
+      onExtractComplete(response, 'folder', folderFiles.length);
+    } catch (error) {
+      console.error('❌ Folder processing failed:', error);
+      onError(error.message || 'Folder processing failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const formatMMSS = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const handleFiles = async (files) => {
@@ -160,13 +220,19 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               style={uploadMode === 'single' ? activeButtonStyle : inactiveButtonStyle}
               onClick={() => setUploadMode('single')}
             >
-              Single File (Instant)
+              📄 Single File (Instant)
             </button>
             <button
               style={uploadMode === 'bulk' ? activeButtonStyle : inactiveButtonStyle}
               onClick={() => setUploadMode('bulk')}
             >
-              Bulk Upload (Background)
+              📚 Multiple Files (Background)
+            </button>
+            <button
+              style={uploadMode === 'folder' ? activeButtonStyle : inactiveButtonStyle}
+              onClick={() => setUploadMode('folder')}
+            >
+              📁 Folder Upload (Fast)
             </button>
           </div>
         </div>
@@ -216,78 +282,218 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
         </div>
       </div>
 
-      {/* Drop Zone */}
-      <div
-        style={dropZoneStyle}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple={uploadMode === 'bulk'}
-          accept=".pdf"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-        
-        {isUploading ? (
-          <div>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              border: '4px solid #f3f3f3',
-              borderTop: '4px solid var(--sub-color)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 0 1rem 0'
-            }} />
-            <p style={{ color: 'var(--sub-color)', fontWeight: '600' }}>
-              {uploadMode === 'single' ? 'Processing PDF...' : 'Uploading files...'}
-            </p>
-          </div>
-        ) : (
-          <div>
+      {/* Upload Area */}
+      {uploadMode === 'folder' ? (
+        // Folder Upload Mode
+        <div style={{
+          ...dropZoneStyle,
+          cursor: 'default'
+        }}>
+          <div style={{ width: '100%' }}>
             <div style={{
               fontSize: '4rem',
-              color: dragActive ? 'var(--sub-color)' : 'var(--text-color-light)',
-              marginBottom: '1.5rem'
+              color: 'var(--text-color-light)',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
             }}>
-              📄
+              📁
             </div>
-            <p style={{ 
-              fontSize: '1.2rem', 
-              fontWeight: '600', 
-              color: dragActive ? 'var(--sub-color)' : 'var(--text-color-dark)',
-              marginBottom: '1rem'
-            }}>
-              {dragActive ? 'Drop PDF files here' : 'Drop PDF files here or click to browse'}
-            </p>
-            <p style={{ 
-              color: 'var(--text-color-light)', 
-              fontSize: '1rem',
-              marginBottom: '0.75rem',
-              lineHeight: '1.5'
-            }}>
-              {uploadMode === 'single' 
-                ? 'Single file mode: Get instant results'
-                : 'Bulk mode: Process multiple files in background'
-              }
-            </p>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{
+                display: 'block',
+                color: 'var(--text-color-dark)',
+                fontWeight: '600',
+                marginBottom: '0.5rem'
+              }}>
+                Select Folder:
+              </label>
+              <input
+                ref={folderInputRef}
+                type="file"
+                webkitdirectory="true"
+                directory="true"
+                multiple
+                onChange={handleFolderSelect}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px',
+                  fontSize: '0.9rem'
+                }}
+              />
+            </div>
+
+            {folderFiles.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ 
+                  color: 'var(--text-color-dark)', 
+                  fontWeight: '600',
+                  marginBottom: '0.5rem' 
+                }}>
+                  📁 {folderName || 'Selected Folder'}: {folderFiles.length} PDF files
+                </p>
+                <div style={{
+                  maxHeight: '150px',
+                  overflow: 'auto',
+                  background: '#f8f9fa',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px',
+                  padding: '0.5rem'
+                }}>
+                  {folderFiles.slice(0, 10).map((file, index) => (
+                    <div key={index} style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--text-color-light)',
+                      padding: '0.2rem 0'
+                    }}>
+                      📄 {file.name} ({(file.size / (1024*1024)).toFixed(2)} MB)
+                    </div>
+                  ))}
+                  {folderFiles.length > 10 && (
+                    <div style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--text-color-light)',
+                      fontStyle: 'italic',
+                      padding: '0.2rem 0'
+                    }}>
+                      ... and {folderFiles.length - 10} more files
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {folderFiles.length > 0 && (
+              <button
+                onClick={processFolder}
+                disabled={isUploading}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: isUploading ? '#6c757d' : 'var(--sub-color)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: isUploading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {isUploading ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff40',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Processing... {formatMMSS(timerSec)}
+                  </>
+                ) : (
+                  <>
+                    🚀 Process {folderFiles.length} PDFs ({extractMode === 'both' ? 'with tables' : 'text only'})
+                  </>
+                )}
+              </button>
+            )}
+
             <p style={{ 
               color: 'var(--text-color-light)', 
               fontSize: '0.9rem',
               opacity: 0.8,
-              lineHeight: '1.4'
+              lineHeight: '1.4',
+              marginTop: '1rem',
+              textAlign: 'center'
             }}>
-              Maximum file size: 100MB | Supported format: PDF
+              Estimated time: {folderFiles.length > 0 ? 
+                `~${extractMode === 'both' ? Math.ceil(folderFiles.length * 0.3) : Math.ceil(folderFiles.length * 0.05)} minutes` : 
+                'Select folder to estimate'
+              }
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        // Single/Bulk File Upload Mode  
+        <div
+          style={dropZoneStyle}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple={uploadMode === 'bulk'}
+            accept=".pdf"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+          
+          {isUploading ? (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                width: '50px',
+                height: '50px',
+                border: '4px solid #f3f3f3',
+                borderTop: '4px solid var(--sub-color)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 1rem'
+              }} />
+              <p style={{ color: 'var(--sub-color)', fontWeight: '600' }}>
+                {uploadMode === 'single' ? 'Processing PDF...' : 'Uploading files...'}
+              </p>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontSize: '4rem',
+                color: dragActive ? 'var(--sub-color)' : 'var(--text-color-light)',
+                marginBottom: '1.5rem'
+              }}>
+                📄
+              </div>
+              <p style={{ 
+                fontSize: '1.2rem', 
+                fontWeight: '600', 
+                color: dragActive ? 'var(--sub-color)' : 'var(--text-color-dark)',
+                marginBottom: '1rem'
+              }}>
+                {dragActive ? 'Drop PDF files here' : 'Drop PDF files here or click to browse'}
+              </p>
+              <p style={{ 
+                color: 'var(--text-color-light)', 
+                fontSize: '1rem',
+                marginBottom: '0.75rem',
+                lineHeight: '1.5'
+              }}>
+                {uploadMode === 'single' 
+                  ? 'Single file mode: Get instant results'
+                  : 'Bulk mode: Process multiple files in background'
+                }
+              </p>
+              <p style={{ 
+                color: 'var(--text-color-light)', 
+                fontSize: '0.9rem',
+                opacity: 0.8,
+                lineHeight: '1.4'
+              }}>
+                Maximum file size: 100MB | Supported format: PDF
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes spin {
