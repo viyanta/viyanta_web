@@ -15,7 +15,7 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
   
   // Calculate dynamic height based on the highest bar
   const maxBarHeight = Math.max(...data.map(d => (d.value / displayMaxValue) * 100));
-  const chartHeight = Math.max(100, maxBarHeight + 50); // Reduced minimum height
+  const chartHeight = window.innerWidth <= 768 ? 150 : Math.max(100, maxBarHeight + 50); // Reduced height on mobile
   
   // Ensure bars are properly scaled to match the Y-axis
   const getBarHeight = (value) => {
@@ -26,7 +26,8 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
     <div className="monthly-chart" style={{ 
       minHeight: `${chartHeight}px`,
       overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch'
+      WebkitOverflowScrolling: 'touch',
+      padding: window.innerWidth <= 768 ? '0.5rem' : '0'
     }}>
       {/* Y-axis and Chart Container */}
       <div className="chart-container" style={{ height: `${chartHeight - 30}px` }}>
@@ -36,7 +37,7 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
             const value = displayMaxValue - (i * (displayMaxValue / yAxisSteps));
             return (
               <div key={i} className="y-axis-label" style={{
-                fontSize: 'clamp(10px, 2.5vw, 12px)'
+                fontSize: window.innerWidth <= 768 ? 'clamp(9px, 2.5vw, 11px)' : 'clamp(10px, 2.5vw, 12px)'
               }}>
                 {value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
               </div>
@@ -48,7 +49,7 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
         <div className="chart-bars" style={{
           minWidth: data.length > 6 ? `${data.length * 60}px` : '100%',
           display: 'flex',
-          gap: 'clamp(4px, 1vw, 8px)',
+          gap: window.innerWidth <= 768 ? 'clamp(3px, 1vw, 6px)' : 'clamp(4px, 1vw, 8px)',
           justifyContent: data.length > 6 ? 'flex-start' : 'space-around'
         }}>
           {/* Y-axis Grid Lines */}
@@ -83,7 +84,7 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
       <div className="x-axis-labels" style={{
         minWidth: data.length > 6 ? `${data.length * 60}px` : '100%',
         display: 'flex',
-        gap: 'clamp(4px, 1vw, 8px)',
+        gap: window.innerWidth <= 768 ? 'clamp(3px, 1vw, 6px)' : 'clamp(4px, 1vw, 8px)',
         justifyContent: data.length > 6 ? 'flex-start' : 'space-around'
       }}>
         {data.map((item, index) => (
@@ -93,7 +94,7 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
             textAlign: 'center'
           }}>
             <div className="month-label" style={{
-              fontSize: 'clamp(10px, 2.5vw, 12px)',
+              fontSize: window.innerWidth <= 768 ? 'clamp(9px, 2.5vw, 11px)' : 'clamp(10px, 2.5vw, 12px)',
               whiteSpace: 'nowrap'
             }}>
               {item.month}
@@ -118,13 +119,14 @@ const CompanyDistributionChart = ({ data, title, color }) => {
   
   return (
     <div className="company-distribution-chart" style={{
-      overflowX: 'auto'
+      overflowX: 'auto',
+      padding: window.innerWidth <= 768 ? '0.5rem' : '0'
     }}>
       {/* Summary Header */}
       <div style={{
-        fontSize: 'clamp(10px, 2.5vw, 12px)',
+        fontSize: window.innerWidth <= 768 ? 'clamp(9px, 2.5vw, 11px)' : 'clamp(10px, 2.5vw, 12px)',
         color: '#666',
-        marginBottom: '8px',
+        marginBottom: window.innerWidth <= 768 ? '6px' : '8px',
         textAlign: 'center',
         fontWeight: '500'
       }}>
@@ -134,9 +136,10 @@ const CompanyDistributionChart = ({ data, title, color }) => {
       </div>
       
       <div className="company-boxes" style={{
-        minWidth: '300px', // Ensure minimum width for mobile
-        maxHeight: '200px', // Limit height for many companies
-        overflowY: 'auto' // Add scroll for many companies
+        minWidth: window.innerWidth <= 768 ? '250px' : '300px', // Smaller minimum width on mobile
+        maxHeight: window.innerWidth <= 768 ? '150px' : '200px', // Reduced height on mobile
+        overflowY: 'auto', // Add scroll for many companies
+        gap: window.innerWidth <= 768 ? '2px' : '4px' // Smaller gap on mobile
       }}>
         {sortedData.map((item, index) => {
           const width = Math.max((item.percentage / total) * 100, 8); // Reduced minimum width for more companies
@@ -149,17 +152,20 @@ const CompanyDistributionChart = ({ data, title, color }) => {
                 backgroundColor: item.color,
                 minWidth: `${width}%`,
                 flex: `1 1 ${width}%`,
-                fontSize: 'clamp(8px, 2vw, 10px)' // Smaller font for more companies
+                fontSize: window.innerWidth <= 768 ? 'clamp(7px, 2vw, 9px)' : 'clamp(8px, 2vw, 10px)', // Smaller font on mobile
+                padding: window.innerWidth <= 768 ? '2px 4px' : '4px 6px' // Smaller padding on mobile
               }}
               title={`${item.name}: ${item.percentage}%${item.note ? ` - ${item.note}` : ''}`}
             >
               <div className="company-name" style={{
-                fontSize: 'clamp(8px, 2vw, 10px)'
+                fontSize: window.innerWidth <= 768 ? 'clamp(7px, 2vw, 9px)' : 'clamp(8px, 2vw, 10px)',
+                lineHeight: window.innerWidth <= 768 ? '1.2' : '1.3'
               }}>
                 {item.name}
               </div>
               <div className="company-percentage" style={{
-                fontSize: 'clamp(7px, 1.8vw, 9px)'
+                fontSize: window.innerWidth <= 768 ? 'clamp(6px, 1.8vw, 8px)' : 'clamp(7px, 1.8vw, 9px)',
+                lineHeight: window.innerWidth <= 768 ? '1.1' : '1.2'
               }}>
                 {item.percentage}%
               </div>
@@ -176,7 +182,11 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, me
   return (
     <div className={`kpi-card ${metricType}`} style={{
       padding: 'clamp(15px, 4vw, 20px)',
-      marginBottom: 'clamp(15px, 4vw, 20px)'
+      marginBottom: 'clamp(15px, 4vw, 20px)',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      border: '1px solid #e0e0e0',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
     }}>
       {/* KPI Row Layout - Responsive */}
       <div className="kpi-row-layout" style={{
@@ -188,29 +198,37 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, me
         {/* Left: Metric Info */}
         <div className="metric-info" style={{
           flex: window.innerWidth <= 768 ? 'none' : '0 0 200px',
-          minWidth: window.innerWidth <= 768 ? '100%' : '200px'
+          minWidth: window.innerWidth <= 768 ? '100%' : '200px',
+          textAlign: window.innerWidth <= 768 ? 'center' : 'left'
         }}>
           <div className={`metric-icon ${metricType}`} style={{
             fontSize: 'clamp(24px, 6vw, 32px)',
-            marginBottom: 'clamp(8px, 2vw, 12px)'
+            marginBottom: 'clamp(8px, 2vw, 12px)',
+            display: 'flex',
+            justifyContent: window.innerWidth <= 768 ? 'center' : 'flex-start'
           }}>
             {icon}
           </div>
           <div className="metric-details">
             <h3 className="metric-title" style={{
               fontSize: 'clamp(16px, 4vw, 20px)',
-              marginBottom: 'clamp(8px, 2vw, 12px)'
+              marginBottom: 'clamp(8px, 2vw, 12px)',
+              color: '#333',
+              fontWeight: '600'
             }}>
               {title}
             </h3>
             <div className={`metric-value ${metricType}`} style={{
-              fontSize: 'clamp(16px, 4vw, 22px)',
-              marginBottom: 'clamp(4px, 1vw, 8px)'
+              fontSize: 'clamp(18px, 5vw, 24px)',
+              marginBottom: 'clamp(4px, 1vw, 8px)',
+              color: color,
+              fontWeight: '700'
             }}>
               {value.toLocaleString()}
             </div>
             <div className="metric-unit" style={{
-              fontSize: 'clamp(12px, 3vw, 14px)'
+              fontSize: 'clamp(12px, 3vw, 14px)',
+              color: '#666'
             }}>
               {unit}
             </div>
@@ -220,8 +238,17 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, me
         {/* Middle: Monthly Trend Chart */}
         <div className="chart-section" style={{
           flex: window.innerWidth <= 768 ? 'none' : '1',
-          minHeight: window.innerWidth <= 768 ? '200px' : 'auto'
+          minHeight: window.innerWidth <= 768 ? '180px' : 'auto',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
+          <h4 style={{
+            fontSize: 'clamp(14px, 3.5vw, 16px)',
+            marginBottom: 'clamp(8px, 2vw, 12px)',
+            color: '#333',
+            textAlign: window.innerWidth <= 768 ? 'center' : 'left'
+          }}>
+            Monthly Trend
+          </h4>
           <MonthlyChart 
             data={monthlyData} 
             title="" 
@@ -233,8 +260,17 @@ const KPICard = ({ title, value, unit, icon, color, monthlyData, companyData, me
         {/* Right: Company Distribution */}
         <div className="chart-section" style={{
           flex: window.innerWidth <= 768 ? 'none' : '1',
-          minHeight: window.innerWidth <= 768 ? '150px' : 'auto'
+          minHeight: window.innerWidth <= 768 ? '150px' : 'auto',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
+          <h4 style={{
+            fontSize: 'clamp(14px, 3.5vw, 16px)',
+            marginBottom: 'clamp(8px, 2vw, 12px)',
+            color: '#333',
+            textAlign: window.innerWidth <= 768 ? 'center' : 'left'
+          }}>
+            Company Distribution
+          </h4>
           <CompanyDistributionChart 
             data={companyData} 
             title="" 
@@ -460,26 +496,33 @@ function InsuranceDashboard({ onMenuClick }) {
       <div style={{ 
         display: 'flex', 
         gap: 'clamp(1rem, 3vw, 2rem)',
-        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+        alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start'
       }}>
         {/* Company Information Sidebar - Left side */}
         <CompanyInformationSidebar />
 
         {/* Right Content Area */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ 
+          flex: 1, 
+          minWidth: 0,
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
+        }}>
 
           {/* Top Navigation Bar */}
           <div className="top-navigation" style={{
-            marginBottom: 'clamp(1rem, 3vw, 1.5rem)'
+            marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+            padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
           }}>
             {/* Navigation Tabs Only */}
             <div className="navigation-tabs-container" style={{
-              marginBottom: 'clamp(15px, 3vw, 20px)'
+              marginBottom: 'clamp(15px, 3vw, 20px)',
+              padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1.5rem'
             }}>
               {/* Navigation Tabs */}
               <div className="navigation-tabs" style={{
                 display: 'grid',
-                gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(3, 1fr)' : 'repeat(9, auto)',
+                gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(9, auto)',
                 gap: 'clamp(8px, 2vw, 12px)',
                 width: '100%',
                 overflow: 'visible'
@@ -490,8 +533,8 @@ function InsuranceDashboard({ onMenuClick }) {
                     onClick={() => setActiveTab(tab)}
                     className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
                     style={{
-                      padding: 'clamp(8px, 2vw, 12px)',
-                      fontSize: 'clamp(11px, 2.5vw, 13px)',
+                      padding: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(8px, 2vw, 12px)',
+                      fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(11px, 2.5vw, 13px)',
                       whiteSpace: 'nowrap',
                       width: window.innerWidth <= 768 ? '100%' : 'auto',
                       textAlign: 'center',
@@ -503,7 +546,7 @@ function InsuranceDashboard({ onMenuClick }) {
                       transition: 'all 0.2s ease',
                       fontWeight: activeTab === tab ? '600' : '400',
                       wordWrap: 'break-word',
-                      minHeight: window.innerWidth <= 768 ? 'clamp(32px, 8vw, 40px)' : 'auto',
+                      minHeight: window.innerWidth <= 768 ? 'clamp(36px, 8vw, 44px)' : 'auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -519,11 +562,13 @@ function InsuranceDashboard({ onMenuClick }) {
             <div className="dropdowns-section" style={{
               display: 'flex',
               flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
-              gap: 'clamp(10px, 3vw, 15px)'
+              gap: 'clamp(10px, 3vw, 15px)',
+              padding: window.innerWidth <= 768 ? '1rem 0.5rem' : '1.5rem'
             }}>
               {/* Select Company */}
               <div className="dropdown-container" style={{
-                minWidth: window.innerWidth <= 768 ? '100%' : '250px'
+                minWidth: window.innerWidth <= 768 ? '100%' : '250px',
+                width: window.innerWidth <= 768 ? '100%' : 'auto'
               }}>
                 <label className="dropdown-label" style={{
                   fontSize: 'clamp(14px, 3.5vw, 16px)',
@@ -537,14 +582,16 @@ function InsuranceDashboard({ onMenuClick }) {
                 <div style={{
                   display: 'flex',
                   gap: '10px',
-                  alignItems: 'flex-end'
+                  alignItems: 'flex-end',
+                  flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
                 }}>
                   <select
                     value={selectedCompany}
                     onChange={(e) => setSelectedCompany(e.target.value)}
                     className="dropdown-select"
                     style={{
-                      flex: 1,
+                      flex: window.innerWidth <= 768 ? 'none' : 1,
+                      width: window.innerWidth <= 768 ? '100%' : 'auto',
                       padding: 'clamp(10px, 2.5vw, 12px)',
                       fontSize: 'clamp(14px, 3vw, 16px)',
                       border: '1px solid #ccc',
@@ -574,14 +621,15 @@ function InsuranceDashboard({ onMenuClick }) {
                       backgroundColor: '#f8f9fa',
                       cursor: loadingCompanies ? 'not-allowed' : 'pointer',
                       color: loadingCompanies ? '#6c757d' : '#495057',
-                      minWidth: '40px',
+                      minWidth: window.innerWidth <= 768 ? '100%' : '40px',
+                      width: window.innerWidth <= 768 ? '100%' : 'auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}
                     title="Refresh companies from S3"
                   >
-                    🔄
+                    🔄 Refresh
                   </button>
                 </div>
                 

@@ -271,8 +271,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Users Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                    gap: '1rem',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(200px, 1fr))' : 'repeat(auto-fill, minmax(300px, 1fr))',
+                    gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                     marginBottom: '2rem'
                 }}>
                     {usersList.map(([userId, userData]) => (
@@ -285,11 +285,12 @@ function ExplorerAllUsers({ onMenuClick }) {
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
-                                padding: '1.5rem',
+                                padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
                                 cursor: 'pointer',
                                 background: 'white',
                                 transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-light)'
+                                boxShadow: 'var(--shadow-light)',
+                                minHeight: window.innerWidth <= 768 ? '120px' : 'auto'
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = 'var(--background-color)';
@@ -301,16 +302,16 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}
                         >
                             <div style={{
-                                fontSize: '3rem',
+                                fontSize: window.innerWidth <= 768 ? '2rem' : '3rem',
                                 textAlign: 'center',
-                                marginBottom: '1rem'
+                                marginBottom: window.innerWidth <= 768 ? '0.5rem' : '1rem'
                             }}>
                                 👤
                             </div>
                             <div style={{
                                 fontWeight: '600',
-                                fontSize: '1rem',
-                                marginBottom: '0.5rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(14px, 3.5vw, 16px)' : '1rem',
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem',
                                 textAlign: 'center',
                                 color: 'var(--main-color)',
                                 wordBreak: 'break-word'
@@ -318,15 +319,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 {userId}
                             </div>
                             <div style={{
-                                fontSize: '0.85rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '0.85rem',
                                 color: 'var(--text-color-light)',
                                 textAlign: 'center',
-                                marginBottom: '0.5rem'
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem'
                             }}>
                                 {userData.total_folders} folders
                             </div>
                             <div style={{
-                                fontSize: '0.75rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : '0.75rem',
                                 color: 'var(--text-color-light)',
                                 textAlign: 'center'
                             }}>
@@ -411,8 +412,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Folders Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                    gap: '1rem',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(200px, 1fr))' : 'repeat(auto-fill, minmax(250px, 1fr))',
+                    gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                     marginBottom: '2rem'
                 }}>
                     {folders.map((folder, index) => (
@@ -422,11 +423,12 @@ function ExplorerAllUsers({ onMenuClick }) {
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
-                                padding: '1.5rem',
+                                padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
                                 cursor: 'pointer',
                                 background: 'white',
                                 transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-light)'
+                                boxShadow: 'var(--shadow-light)',
+                                minHeight: window.innerWidth <= 768 ? '120px' : 'auto'
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = 'var(--background-color)';
@@ -438,16 +440,16 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}
                         >
                             <div style={{
-                                fontSize: '3rem',
+                                fontSize: window.innerWidth <= 768 ? '2rem' : '3rem',
                                 textAlign: 'center',
-                                marginBottom: '1rem'
+                                marginBottom: window.innerWidth <= 768 ? '0.5rem' : '1rem'
                             }}>
                                 📁
                             </div>
                             <div style={{
                                 fontWeight: '600',
-                                fontSize: '1rem',
-                                marginBottom: '0.5rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(14px, 3.5vw, 16px)' : '1rem',
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem',
                                 textAlign: 'center',
                                 color: 'var(--main-color)',
                                 wordBreak: 'break-word'
@@ -455,15 +457,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 {folder.folder_name}
                             </div>
                             <div style={{
-                                fontSize: '0.85rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '0.85rem',
                                 color: 'var(--text-color-light)',
                                 textAlign: 'center',
-                                marginBottom: '0.5rem'
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem'
                             }}>
                                 {folder.pdf_count} PDFs • {folder.json_count} JSONs
                             </div>
                             <div style={{
-                                fontSize: '0.75rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : '0.75rem',
                                 color: 'var(--text-color-light)',
                                 textAlign: 'center'
                             }}>
@@ -493,8 +495,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Files Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: '1rem',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(150px, 1fr))' : 'repeat(auto-fill, minmax(200px, 1fr))',
+                    gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                     marginBottom: '2rem'
                 }}>
                     {folderFiles.map((file, index) => (
@@ -504,12 +506,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
-                                padding: '1rem',
+                                padding: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                                 cursor: 'pointer',
                                 background: selectedFile === file ? 'var(--sub-color)' : 'white',
                                 color: selectedFile === file ? 'white' : 'var(--text-color-dark)',
                                 transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-light)'
+                                boxShadow: 'var(--shadow-light)',
+                                minHeight: window.innerWidth <= 768 ? '100px' : 'auto'
                             }}
                             onMouseEnter={(e) => {
                                 if (selectedFile !== file) {
@@ -518,48 +521,32 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}
                             onMouseLeave={(e) => {
                                 if (selectedFile !== file) {
-                                    e.currentTarget.style.background = 'white';
+                                    e.currentTarget.style.background = selectedFile === file ? 'var(--sub-color)' : 'white';
                                 }
                             }}
                         >
                             <div style={{
-                                fontSize: '2rem',
+                                fontSize: window.innerWidth <= 768 ? '1.5rem' : '2rem',
                                 textAlign: 'center',
-                                marginBottom: '0.5rem'
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem'
                             }}>
                                 📄
                             </div>
                             <div style={{
                                 fontWeight: '600',
-                                fontSize: '0.9rem',
-                                marginBottom: '0.25rem',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(11px, 2.5vw, 13px)' : '0.9rem',
+                                marginBottom: window.innerWidth <= 768 ? '0.25rem' : '0.5rem',
+                                textAlign: 'center',
                                 wordBreak: 'break-word'
                             }}>
                                 {file.filename}
                             </div>
                             <div style={{
-                                fontSize: '0.8rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                marginBottom: '0.25rem'
+                                fontSize: window.innerWidth <= 768 ? 'clamp(9px, 2.5vw, 11px)' : '0.8rem',
+                                textAlign: 'center',
+                                opacity: 0.8
                             }}>
                                 {formatFileSize(file.size)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                opacity: selectedFile === file ? 0.8 : 0.6,
-                                marginBottom: '0.25rem'
-                            }}>
-                                {formatDate(file.created_at)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.7rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.25rem'
-                            }}>
-                                {file.has_json ? '✅ JSON' : '❌ No JSON'}
                             </div>
                         </div>
                     ))}
@@ -631,10 +618,20 @@ function ExplorerAllUsers({ onMenuClick }) {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'white', padding: '1rem' }}>
+        <div style={{ 
+            minHeight: '100vh', 
+            background: 'white', 
+            padding: window.innerWidth <= 768 ? '0.5rem' : '1rem' 
+        }}>
             {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1rem', 
+                    marginBottom: '0.5rem',
+                    flexWrap: 'wrap'
+                }}>
                     <button
                         onClick={() => onMenuClick && onMenuClick()}
                         style={{
@@ -657,14 +654,18 @@ function ExplorerAllUsers({ onMenuClick }) {
                     </button>
                     <h1 style={{ 
                         margin: 0,
-                        fontSize: 'clamp(18px, 5vw, 28px)',
+                        fontSize: 'clamp(16px, 4vw, 24px)',
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
                         👥 Maker and Checker - All Users Data
                     </h1>
                 </div>
-                <p style={{ fontSize: '1rem', color: 'var(--text-color-light)', marginBottom: '0' }}>
+                <p style={{ 
+                    fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '1rem', 
+                    color: 'var(--text-color-light)', 
+                    marginBottom: '0' 
+                }}>
                     Browse all users' uploaded files and view extracted JSON data from S3 vifiles/users/all
                 </p>
             </div>
@@ -703,8 +704,8 @@ function ExplorerAllUsers({ onMenuClick }) {
             {/* Main Content */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '2rem',
+                gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1fr',
+                gap: window.innerWidth <= 768 ? '1rem' : '2rem',
                 minHeight: '600px'
             }}>
                 {/* Left Panel - Users, Folders and Files */}
@@ -713,16 +714,23 @@ function ExplorerAllUsers({ onMenuClick }) {
                     borderRadius: 'var(--border-radius)',
                     border: '1px solid #e9ecef',
                     boxShadow: 'var(--shadow-light)',
-                    padding: '1.5rem'
+                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 1 : 0 // Show first on mobile
                 }}>
                     {/* Navigation Header */}
                     <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
-                        marginBottom: '1rem' 
+                        marginBottom: '1rem',
+                        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+                        gap: window.innerWidth <= 768 ? '0.5rem' : '0'
                     }}>
-                        <h3 style={{ margin: 0, color: 'var(--main-color)' }}>
+                        <h3 style={{ 
+                            margin: 0, 
+                            color: 'var(--main-color)',
+                            fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)'
+                        }}>
                             {view === 'users' ? 
                                 `👥 All Users (${Object.keys(allUsersData).length})` :
                                 view === 'folders' ?
@@ -735,14 +743,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 onClick={loadAllUsersData}
                                 disabled={loading}
                                 style={{
-                                    padding: '0.25rem 0.5rem',
+                                    padding: window.innerWidth <= 768 ? '0.5rem 1rem' : '0.25rem 0.5rem',
                                     border: '1px solid #e9ecef',
                                     background: 'white',
                                     color: 'var(--text-color-dark)',
                                     borderRadius: '4px',
                                     cursor: loading ? 'not-allowed' : 'pointer',
-                                    fontSize: '0.8rem',
-                                    opacity: loading ? 0.6 : 1
+                                    fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '0.8rem',
+                                    opacity: loading ? 0.6 : 1,
+                                    minWidth: window.innerWidth <= 768 ? '80px' : 'auto'
                                 }}
                             >
                                 🔄 Refresh
@@ -819,12 +828,21 @@ function ExplorerAllUsers({ onMenuClick }) {
                     borderRadius: 'var(--border-radius)',
                     border: '1px solid #e9ecef',
                     boxShadow: 'var(--shadow-light)',
-                    padding: '1.5rem'
+                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 2 : 0 // Show second on mobile
                 }}>
-                    <h3 style={{ margin: '0 0 1rem 0', color: 'var(--main-color)' }}>
+                    <h3 style={{ 
+                        margin: '0 0 1rem 0', 
+                        color: 'var(--main-color)',
+                        fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                        textAlign: window.innerWidth <= 768 ? 'center' : 'left'
+                    }}>
                         📊 Extracted Data
                     </h3>
-                    <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
+                    <div style={{ 
+                        maxHeight: window.innerWidth <= 768 ? '50vh' : '70vh', 
+                        overflow: 'auto' 
+                    }}>
                         <JsonViewer />
                     </div>
                 </div>
