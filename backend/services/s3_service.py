@@ -572,50 +572,98 @@ class S3Service:
             return 0
 
     def list_all_users_data(self) -> Dict[str, Any]:
-        """List all users and their data from S3"""
+        """List all users and their data from S3 bucket"""
         try:
-            # List all objects with the vifiles/users/ prefix
-            prefix = "vifiles/users/"
-            paginator = self.s3_client.get_paginator('list_objects_v2')
-            page_iterator = paginator.paginate(
+            # Use the correct prefix based on your S3 structure: "users/"
+            prefix = "users/"
+
+            # Add debug info for troubleshooting
+            s3_debug = {
+                "bucket_name": self.bucket_name,
+                "region": self.region,
+                "prefix_used": prefix
+            }
+
+            response = self.s3_client.list_objects_v2(
                 Bucket=self.bucket_name,
                 Prefix=prefix,
-                Delimiter='/'
+                Delimiter='/',
+                MaxKeys=1000
             )
 
+            # Add response debug info
+            s3_debug.update({
+                "objects_found": response.get("KeyCount", 0),
+                "common_prefixes_count": len(response.get("CommonPrefixes", [])),
+                "is_truncated": response.get("IsTruncated", False)
+            })
+
             all_users_data = {}
+            user_prefixes = []
 
-            for page in page_iterator:
-                # Get user folders (common prefixes)
-                if 'CommonPrefixes' in page:
-                    for prefix_info in page['CommonPrefixes']:
-                        # Extract user_id from prefix like "vifiles/users/user123/"
-                        user_prefix = prefix_info['Prefix']
-                        user_id = user_prefix.replace(
-                            "vifiles/users/", "").rstrip('/')
+            # Get user folders from CommonPrefixes
+            if 'CommonPrefixes' in response:
+                for prefix_info in response['CommonPrefixes']:
+                    # Extract user_id from prefix like "users/user123/"
+                    user_prefix = prefix_info['Prefix']
+                    user_id = user_prefix.replace("users/", "").rstrip('/')
 
+                    if user_id:
+                        user_prefixes.append(user_id)
+                        logger.info(f"Found user in S3: {user_id}")
+
+                        # Get detailed folder info for this user
+                        user_data = self._get_user_data_from_s3(user_id)
+                        if user_data:
+                            all_users_data[user_id] = user_data
+
+            # Fallback: If no CommonPrefixes, scan objects directly
+            if not user_prefixes and 'Contents' in response:
+                logger.info(
+                    "No CommonPrefixes found, scanning objects directly...")
+                derived_users = set()
+
+                for obj in response['Contents']:
+                    key = obj['Key']
+                    # Extract user_id from keys like "users/user123/folder/..."
+                    parts = key.split('/')
+                    if len(parts) >= 2 and parts[0] == "users":
+                        user_id = parts[1]
                         if user_id:
-                            # Get folders for this user
-                            user_folders = self.list_user_folders(user_id)
-                            if user_folders.get('success'):
-                                all_users_data[user_id] = {
-                                    'user_id': user_id,
-                                    'folders': user_folders.get('folders', []),
-                                    'total_folders': len(user_folders.get('folders', []))
-                                }
+                            derived_users.add(user_id)
+
+                user_prefixes = list(derived_users)
+                s3_debug["derived_users"] = user_prefixes
+
+                for user_id in user_prefixes:
+                    user_data = self._get_user_data_from_s3(user_id)
+                    if user_data:
+                        all_users_data[user_id] = user_data
+
+            s3_debug["detected_users"] = user_prefixes
+            logger.info(f"Total users found in S3: {len(all_users_data)}")
 
             return {
                 "success": True,
                 "total_users": len(all_users_data),
-                "data": all_users_data
+                "users_data": all_users_data,
+                "s3_data": {},  # For compatibility
+                "s3_debug": s3_debug
             }
 
         except Exception as e:
-            logger.error(f"Failed to list all users data: {str(e)}")
+            logger.error(f"Failed to list all users data from S3: {str(e)}")
             return {
                 "success": False,
                 "error": str(e),
-                "data": {}
+                "total_users": 0,
+                "users_data": {},
+                "s3_data": {},
+                "s3_debug": {
+                    "error": str(e),
+                    "bucket_name": getattr(self, 'bucket_name', 'unknown'),
+                    "region": getattr(self, 'region', 'unknown')
+                }
             }
 
     def upload_file_new_structure(self, local_file_path: str, folder_name: str, file_name: str, file_type: str, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
@@ -902,6 +950,172 @@ class S3Service:
                 "error": str(e),
                 "file_type": file_type
             }
+
+    def _get_user_data_from_s3(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get detailed user data from S3 including all folders and files
+
+        Args:
+            user_id: User ID to get data for
+
+        Returns:
+            Dict with user data structure
+        """
+        try:
+            user_prefix = f"users/{user_id}/"
+
+            # List all folders for this user
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name,
+                Prefix=user_prefix,
+                Delimiter='/',
+                MaxKeys=1000
+            )
+
+            folders = []
+
+            # Get folders from CommonPrefixes
+            if 'CommonPrefixes' in response:
+                for prefix_info in response['CommonPrefixes']:
+                    folder_prefix = prefix_info['Prefix']
+                    folder_name = folder_prefix.replace(
+                        user_prefix, "").rstrip('/')
+
+                    if folder_name:
+                        # Get folder details
+                        folder_data = self._get_folder_data_from_s3(
+                            user_id, folder_name)
+                        if folder_data:
+                            folders.append(folder_data)
+
+            # If no CommonPrefixes, scan objects to derive folders
+            if not folders:
+                response_objects = self.s3_client.list_objects_v2(
+                    Bucket=self.bucket_name,
+                    Prefix=user_prefix,
+                    MaxKeys=1000
+                )
+
+                derived_folders = set()
+                if 'Contents' in response_objects:
+                    for obj in response_objects['Contents']:
+                        key = obj['Key']
+                        relative_path = key.replace(user_prefix, "")
+                        if '/' in relative_path:
+                            folder_name = relative_path.split('/')[0]
+                            if folder_name:
+                                derived_folders.add(folder_name)
+
+                for folder_name in derived_folders:
+                    folder_data = self._get_folder_data_from_s3(
+                        user_id, folder_name)
+                    if folder_data:
+                        folders.append(folder_data)
+
+            return {
+                "user_id": user_id,
+                "total_folders": len(folders),
+                "folders": folders
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get user data for {user_id}: {str(e)}")
+            return None
+
+    def _get_folder_data_from_s3(self, user_id: str, folder_name: str) -> Dict[str, Any]:
+        """
+        Get detailed folder data from S3 including file listings
+
+        Args:
+            user_id: User ID
+            folder_name: Folder name
+
+        Returns:
+            Dict with folder data structure
+        """
+        try:
+            folder_prefix = f"users/{user_id}/{folder_name}/"
+
+            # List all files in this folder
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name,
+                Prefix=folder_prefix,
+                MaxKeys=1000
+            )
+
+            files = []
+            pdf_count = 0
+            json_count = 0
+            folder_created_at = None
+
+            if 'Contents' in response:
+                # Group files by type
+                pdf_files = {}
+                json_files = {}
+
+                for obj in response['Contents']:
+                    key = obj['Key']
+                    filename = os.path.basename(key)
+                    relative_path = key.replace(folder_prefix, "")
+
+                    # Skip directory entries
+                    if not filename:
+                        continue
+
+                    # Track earliest creation time as folder creation time
+                    if folder_created_at is None or obj['LastModified'] < folder_created_at:
+                        folder_created_at = obj['LastModified']
+
+                    # Categorize files
+                    if filename.lower().endswith('.pdf'):
+                        # Check if it's in pdf/ subfolder or root folder
+                        if '/pdf/' in key or not '/' in relative_path:
+                            pdf_files[filename] = {
+                                'size': obj['Size'],
+                                'created_at': obj['LastModified'].isoformat(),
+                                's3_key': key
+                            }
+                            pdf_count += 1
+
+                    elif filename.lower().endswith('.json'):
+                        # Check if it's in json/ subfolder or root folder
+                        if '/json/' in key or not '/' in relative_path:
+                            json_files[filename] = {
+                                'size': obj['Size'],
+                                'created_at': obj['LastModified'].isoformat(),
+                                's3_key': key
+                            }
+                            json_count += 1
+
+                # Match PDFs with their JSON files
+                for pdf_filename, pdf_info in pdf_files.items():
+                    # Look for corresponding JSON file
+                    json_filename = pdf_filename.replace('.pdf', '.json')
+                    has_json = json_filename in json_files
+
+                    file_entry = {
+                        'filename': pdf_filename,
+                        'size': pdf_info['size'],
+                        'created_at': pdf_info['created_at'],
+                        'has_json': has_json,
+                        'json_filename': json_filename if has_json else None,
+                        's3_pdf_key': pdf_info['s3_key'],
+                        's3_json_key': json_files[json_filename]['s3_key'] if has_json else None
+                    }
+                    files.append(file_entry)
+
+            return {
+                'folder_name': folder_name,
+                'pdf_count': pdf_count,
+                'json_count': json_count,
+                'created_at': folder_created_at.isoformat() if folder_created_at else datetime.now().isoformat(),
+                'files': files
+            }
+
+        except Exception as e:
+            logger.error(
+                f"Failed to get folder data for {user_id}/{folder_name}: {str(e)}")
+            return None
 
 
 # Create a singleton instance
