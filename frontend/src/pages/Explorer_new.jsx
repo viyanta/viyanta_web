@@ -26,8 +26,19 @@ function Explorer({ onMenuClick }) {
     const loadUploadedFiles = async () => {
         setLoading(true);
         try {
-            const response = await ApiService.getUploadedFiles();
-            setUploadedFiles(response.files || []);
+            // Get files from folder uploader (PDF folder extracted)
+            const response = await fetch(`${ApiService.getApiOrigin()}/api/files/uploaded-files`);
+            if (response.ok) {
+                const files = await response.json();
+                setUploadedFiles(files);
+            } else {
+                // Fallback: Scan pdf_folder_extracted directory
+                const folderResponse = await fetch(`${ApiService.getApiOrigin()}/pdf_folder_extracted`);
+                if (folderResponse.ok) {
+                    const folderData = await folderResponse.json();
+                    setUploadedFiles(folderData.files || []);
+                }
+            }
         } catch (error) {
             console.error('Failed to load uploaded files:', error);
             setError('Failed to load uploaded files');
@@ -43,15 +54,18 @@ function Explorer({ onMenuClick }) {
         setJsonLoading(true);
         
         try {
-            // Get JSON from the relative path
-            const jsonPath = file.json_relative_path;
+            let jsonData = null;
+            
+            // Try to get JSON from pdf_folder_extracted
+            const jsonPath = file.jsonPath || `pdf_folder_extracted/${file.name}/${file.name}.json`;
             const response = await fetch(`${ApiService.getApiOrigin()}/${jsonPath}`);
             if (response.ok) {
-                const jsonData = await response.json();
-                setSelectedFileJson(jsonData);
+                jsonData = await response.json();
             } else {
                 throw new Error('JSON file not found');
             }
+            
+            setSelectedFileJson(jsonData);
         } catch (error) {
             console.error('Failed to load JSON for file:', error);
             setError(`Failed to load JSON for ${file.name}`);
@@ -345,7 +359,7 @@ function Explorer({ onMenuClick }) {
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
-                        📁  Maker and Checker
+                        📁 File Explorer
                     </h1>
                 </div>
                 <p style={{ fontSize: '1rem', color: 'var(--text-color-light)', marginBottom: '0' }}>
