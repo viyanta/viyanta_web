@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useStats } from '../context/StatsContext.jsx'
+<<<<<<< HEAD
 import { useUser } from '../context/UserContext.jsx'
 
 function SideMenu({ isOpen = false, onClose = () => {} }) {
@@ -22,11 +23,24 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
     { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics' },
     { path: '/explorer', label: 'Maker-Checker (All Users)', icon: '�', description: 'Browse All Users Data' },
     { path: '/smart-extraction', label: 'Smart Extraction', icon: '🚀', description: 'AI-Powered PDF Extraction' },
+=======
+import { useAuth } from '../context/AuthContext.jsx'
+
+export default function SideMenu({ isOpen = false, onClose = () => {} }) {
+  const location = useLocation()
+  const { stats } = useStats()
+  const { isAdmin } = useAuth()
+
+  const menuItems = [
+    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
+    { path: '/explorer', label: 'Maker-Checker (All Users)', icon: '🗂️', description: 'Browse All Users Data' },
+    { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
+>>>>>>> 08ce04c (vikki:updated code)
     { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
     { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module' },
-    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
-    { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
+    { path: '/dashboard', label: 'Legacy Dashboard', icon: '📈', description: 'Original Dashboard' },
     { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings' }
+<<<<<<< HEAD
 >>>>>>> e23839e (vikki:the data fetches and display from s3)
   ];
 
@@ -34,6 +48,21 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
   const filteredMenuItems = menuItems.filter(item => hasRole(item.role));
 
   const isActiveRoute = (path) => location.pathname === path;
+=======
+  ]
+
+  // Add Smart Extraction only for admin users
+  if (isAdmin) {
+    menuItems.splice(2, 0, { 
+      path: '/smart-extraction', 
+      label: 'Smart Extraction', 
+      icon: '🚀', 
+      description: 'AI-Powered PDF Extraction (Admin Only)' 
+    })
+  }
+
+  const isActiveRoute = (path) => location.pathname === path
+>>>>>>> 08ce04c (vikki:updated code)
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} role="navigation" aria-label="Sidebar Navigation">
@@ -105,5 +134,3 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
     </aside>
   )
 }
-
-export default SideMenu

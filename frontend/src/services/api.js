@@ -716,6 +716,184 @@ class ApiService {
     return response.json();
   }
 
+  // === NEW S3 STRUCTURE METHODS (with Gemini verification) ===
+  
+  // Upload folder with new S3 structure and Gemini verification
+  async uploadFolderFilesNew(files, folderName, userId = null) {
+    if (!folderName) throw new Error('Folder name is required');
+    
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    formData.append('user_id', userId);
+
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/upload-folder-files-new/${encodeURIComponent(folderName)}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'New folder upload failed');
+    }
+
+    return response.json();
+  }
+
+  // List all folders in new S3 structure
+  async listFoldersNew() {
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/list-folders-new`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to list folders');
+    }
+
+    return response.json();
+  }
+
+  // List files in a specific folder (new S3 structure)
+  async listFolderFilesNew(folderName) {
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/list-folder-files-new/${encodeURIComponent(folderName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to list folder files');
+    }
+
+    return response.json();
+  }
+
+  // Get original file content from S3
+  async getOriginalFileContentS3(folderName, fileName) {
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/get-original-file/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get original file content');
+    }
+
+    return response.json();
+  }
+
+  // Get JSON file content from S3
+  async getJsonFileContentS3(folderName, fileName) {
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/get-json-file/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get JSON file content');
+    }
+
+    return response.json();
+  }
+
+  // Get verified JSON file content from S3
+  async getVerifiedJsonFileContentS3(folderName, fileName) {
+    const response = await fetch(`${API_BASE_URL}/folder_uploader/get-verified-json-file/${encodeURIComponent(folderName)}/${encodeURIComponent(fileName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get verified JSON file content');
+    }
+
+    return response.json();
+  }
+
+  // === UPLOAD HISTORY METHODS ===
+  
+  // Get upload history
+  async getUploadHistory(userId = null) {
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/upload-history/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // Return empty array if no history found
+      return [];
+    }
+
+    return response.json();
+  }
+
+  // Save upload to history
+  async saveToUploadHistory(uploadData, userId = null) {
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/upload-history/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(uploadData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to save upload history');
+    }
+
+    return response.json();
+  }
+
   // === LEGACY METHODS (kept for compatibility) ===
 }
 

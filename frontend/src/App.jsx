@@ -7,27 +7,21 @@ import ExplorerAllUsers from './pages/ExplorerAllUsers.jsx'
 import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
+<<<<<<< HEAD
 import { UserProvider } from './context/UserContext.jsx'
+=======
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+>>>>>>> 08ce04c (vikki:updated code)
 import Lform from './pages/Lform.jsx'
 import DMML2Form from './pages/DMML2Form.jsx'
 import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
-import { subscribeToAuthChanges } from './firebase/auth.js'
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges((authUser) => {
-      setUser(authUser);
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -43,6 +37,38 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
+// Admin-only Route Component
+function AdminRoute({ children }) {
+  const { user, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-card">
+          <h3>Loading...</h3>
+          <p>Authenticating user...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="access-denied">
+        <h2>Access Denied</h2>
+        <p>You don't have permission to access this page. Admin access required.</p>
+        <Navigate to="/" replace />
+      </div>
+    );
+  }
+
+  return children;
+}
+
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -51,7 +77,11 @@ function App() {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <UserProvider>
+=======
+    <AuthProvider>
+>>>>>>> 08ce04c (vikki:updated code)
       <StatsProvider>
         <Router>
           <Routes>
@@ -70,12 +100,26 @@ function App() {
                       onClick={() => sidebarOpen && closeSidebar()}
                     >
                       <Routes>
+<<<<<<< HEAD
                         <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
                         <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
                         <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
                         <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
                         <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
+=======
+                        <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
+                        <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
+                        <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                        <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
+                        <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
+                        <Route path="/smart-extraction" element={
+                          <AdminRoute>
+                            <SmartPDFExtraction onMenuClick={openSidebar} />
+                          </AdminRoute>
+                        } />
+>>>>>>> 08ce04c (vikki:updated code)
                         <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
                         <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
                         <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
@@ -84,6 +128,7 @@ function App() {
                   </div>
                   {/* Mobile backdrop */}
                   <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
+<<<<<<< HEAD
 =======
     <StatsProvider>
       <Router>
@@ -115,13 +160,19 @@ function App() {
                     </Routes>
                   </main>
 >>>>>>> e23839e (vikki:the data fetches and display from s3)
+=======
+>>>>>>> 08ce04c (vikki:updated code)
                 </div>
               </ProtectedRoute>
             } />
           </Routes>
         </Router>
       </StatsProvider>
+<<<<<<< HEAD
     </UserProvider>
+=======
+    </AuthProvider>
+>>>>>>> 08ce04c (vikki:updated code)
   )
 }
 

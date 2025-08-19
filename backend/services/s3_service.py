@@ -618,6 +618,283 @@ class S3Service:
                 "data": {}
             }
 
+    def upload_file_new_structure(self, local_file_path: str, folder_name: str, file_name: str, file_type: str, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """
+        Upload file to S3 with new folder structure: vifiles/{folder_name}/{file_name}_{file_type}/
+
+        Args:
+            local_file_path: Path to the local file
+            folder_name: Folder name (from upload)
+            file_name: Base filename (without extension)
+            file_type: Type of file ('original', 'json', 'verified_json')
+            metadata: Optional metadata to attach to the file
+
+        Returns:
+            Dict with upload results
+        """
+        try:
+            # Determine file extension based on type
+            if file_type == 'original':
+                file_extension = os.path.splitext(local_file_path)[1]
+                s3_key = f"{folder_name}/{file_name}/{os.path.basename(local_file_path)}"
+            elif file_type == 'json':
+                s3_key = f"{folder_name}/{file_name}_json/{file_name}.json"
+            elif file_type == 'verified_json':
+                s3_key = f"{folder_name}/{file_name}_verified_json/{file_name}_verified.json"
+            else:
+                raise ValueError(f"Invalid file_type: {file_type}")
+
+            extra_args = {
+                'Metadata': {
+                    'folder_name': folder_name,
+                    'file_name': file_name,
+                    'file_type': file_type,
+                    'upload_timestamp': datetime.now().isoformat(),
+                    **(metadata or {})
+                }
+            }
+
+            self.s3_client.upload_file(
+                local_file_path,
+                self.bucket_name,
+                s3_key,
+                ExtraArgs=extra_args
+            )
+
+            s3_url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{s3_key}"
+            logger.info(f"Successfully uploaded {file_type} file to S3: {s3_url}")
+
+            return {
+                "success": True,
+                "s3_key": s3_key,
+                "bucket": self.bucket_name,
+                "url": s3_url,
+                "file_type": file_type
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to upload {file_type} file to S3: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "file_type": file_type
+            }
+
+    def download_file_new_structure(self, folder_name: str, file_name: str, file_type: str, local_path: str) -> Dict[str, Any]:
+        """
+        Download file from S3 with new folder structure
+
+        Args:
+            folder_name: Folder name
+            file_name: Base filename (without extension)
+            file_type: Type of file ('original', 'json', 'verified_json')
+            local_path: Local path to save the file
+
+        Returns:
+            Dict with download results
+        """
+        try:
+            # Construct S3 key based on file type
+            if file_type == 'original':
+                # For original files, we need to find the actual filename
+                s3_key = f"{folder_name}/{file_name}/"
+                # List objects to find the actual file
+                response = self.s3_client.list_objects_v2(
+                    Bucket=self.bucket_name,
+                    Prefix=s3_key
+                )
+                if 'Contents' in response and response['Contents']:
+                    s3_key = response['Contents'][0]['Key']
+                else:
+                    raise FileNotFoundError(f"Original file not found for {file_name}")
+            elif file_type == 'json':
+                s3_key = f"{folder_name}/{file_name}_json/{file_name}.json"
+            elif file_type == 'verified_json':
+                s3_key = f"{folder_name}/{file_name}_verified_json/{file_name}_verified.json"
+            else:
+                raise ValueError(f"Invalid file_type: {file_type}")
+
+            self.s3_client.download_file(
+                self.bucket_name,
+                s3_key,
+                local_path
+            )
+
+            logger.info(f"Successfully downloaded {file_type} file from S3: {s3_key}")
+            return {
+                "success": True,
+                "s3_key": s3_key,
+                "local_path": local_path,
+                "file_type": file_type
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to download {file_type} file from S3: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "file_type": file_type
+            }
+
+    def list_folders_new_structure(self) -> Dict[str, Any]:
+        """
+        List all folders in the new S3 structure (vifiles/{folder_name}/)
+
+        Returns:
+            Dict with list of folders and their contents
+        """
+        try:
+            paginator = self.s3_client.get_paginator('list_objects_v2')
+            page_iterator = paginator.paginate(
+                Bucket=self.bucket_name,
+                Delimiter='/'
+            )
+
+            folders = {}
+
+            for page in page_iterator:
+                # Get folder names (common prefixes)
+                if 'CommonPrefixes' in page:
+                    for prefix_info in page['CommonPrefixes']:
+                        folder_name = prefix_info['Prefix'].rstrip('/')
+
+                        # Get folder contents
+                        folder_contents = self._get_folder_contents_new_structure(folder_name)
+                        folders[folder_name] = folder_contents
+
+            return {
+                "success": True,
+                "total_folders": len(folders),
+                "folders": folders
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to list folders: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "folders": {}
+            }
+
+    def _get_folder_contents_new_structure(self, folder_name: str) -> Dict[str, Any]:
+        """
+        Get contents of a folder in the new structure
+
+        Args:
+            folder_name: Name of the folder
+
+        Returns:
+            Dict with folder contents organized by file types
+        """
+        try:
+            prefix = f"{folder_name}/"
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.bucket_name,
+                Prefix=prefix
+            )
+
+            files = {
+                "original": [],
+                "json": [],
+                "verified_json": []
+            }
+
+            if 'Contents' in response:
+                for obj in response['Contents']:
+                    key = obj['Key']
+                    relative_path = key[len(prefix):]
+
+                    # Categorize files based on their path structure
+                    if '/' in relative_path:
+                        subfolder, filename = relative_path.split('/', 1)
+                        if subfolder.endswith('_json') and not subfolder.endswith('_verified_json'):
+                            files["json"].append({
+                                "key": key,
+                                "filename": filename,
+                                "size": obj['Size'],
+                                "last_modified": obj['LastModified'].isoformat()
+                            })
+                        elif subfolder.endswith('_verified_json'):
+                            files["verified_json"].append({
+                                "key": key,
+                                "filename": filename,
+                                "size": obj['Size'],
+                                "last_modified": obj['LastModified'].isoformat()
+                            })
+                        else:
+                            # This is an original file
+                            files["original"].append({
+                                "key": key,
+                                "filename": filename,
+                                "size": obj['Size'],
+                                "last_modified": obj['LastModified'].isoformat()
+                            })
+
+            return {
+                "folder_name": folder_name,
+                "total_files": len(files["original"]) + len(files["json"]) + len(files["verified_json"]),
+                "original_files": files["original"],
+                "json_files": files["json"],
+                "verified_json_files": files["verified_json"]
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get folder contents for {folder_name}: {str(e)}")
+            return {
+                "folder_name": folder_name,
+                "total_files": 0,
+                "original_files": [],
+                "json_files": [],
+                "verified_json_files": [],
+                "error": str(e)
+            }
+
+    def get_file_content_new_structure(self, folder_name: str, file_name: str, file_type: str) -> Dict[str, Any]:
+        """
+        Get file content from S3 with new folder structure
+
+        Args:
+            folder_name: Folder name
+            file_name: Base filename (without extension)
+            file_type: Type of file ('original', 'json', 'verified_json')
+
+        Returns:
+            Dict with file content
+        """
+        try:
+            # Construct S3 key based on file type
+            if file_type == 'json':
+                s3_key = f"{folder_name}/{file_name}_json/{file_name}.json"
+            elif file_type == 'verified_json':
+                s3_key = f"{folder_name}/{file_name}_verified_json/{file_name}_verified.json"
+            else:
+                raise ValueError(f"Cannot get content for file_type: {file_type}")
+
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name,
+                Key=s3_key
+            )
+
+            content = response['Body'].read().decode('utf-8')
+
+            if file_type in ['json', 'verified_json']:
+                content = json.loads(content)
+
+            return {
+                "success": True,
+                "content": content,
+                "s3_key": s3_key,
+                "file_type": file_type
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get {file_type} content from S3: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "file_type": file_type
+            }
+
 
 # Create a singleton instance
 s3_service = S3Service()
