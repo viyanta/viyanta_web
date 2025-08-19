@@ -314,58 +314,58 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-    return (
+  return (
         <div style={{ minHeight: '100vh', background: 'white', padding: '1rem' }}>
             {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                    <button
+        <div style={{ marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                <button
                         onClick={() => onMenuClick && onMenuClick()}
-                        style={{
-                            background: 'rgba(63, 114, 175, 0.1)',
-                            border: '1px solid rgba(63, 114, 175, 0.3)',
-                            color: 'var(--main-color)',
-                            borderRadius: '6px',
-                            padding: '0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            minWidth: '36px',
-                            minHeight: '36px'
-                        }}
-                    >
-                        ☰
-                    </button>
-                    <h1 style={{ 
-                        margin: 0,
-                        fontSize: 'clamp(18px, 5vw, 28px)',
+                    style={{
+                        background: 'rgba(63, 114, 175, 0.1)',
+                        border: '1px solid rgba(63, 114, 175, 0.3)',
+                        color: 'var(--main-color)',
+                        borderRadius: '6px',
+                        padding: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        minWidth: '36px',
+                        minHeight: '36px'
+                    }}
+                >
+                    ☰
+                </button>
+                <h1 style={{ 
+                    margin: 0,
+                    fontSize: 'clamp(18px, 5vw, 28px)',
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
                         📁  Maker and Checker
                     </h1>
-                </div>
+            </div>
                 <p style={{ fontSize: '1rem', color: 'var(--text-color-light)', marginBottom: '0' }}>
                     Browse uploaded files and view their extracted JSON data
                 </p>
             </div>
-
+            
             {/* Error Display */}
             {error && (
-                <div style={{
+                        <div style={{ 
                     background: 'rgba(220, 53, 69, 0.1)',
                     color: 'var(--error-color)',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
                     border: '1px solid var(--error-color)',
                     marginBottom: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}>
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
                     <span>⚠️</span>
                     <span>{error}</span>
                     <button
@@ -381,25 +381,25 @@ function Explorer({ onMenuClick }) {
                     >
                         ×
                     </button>
-                </div>
-            )}
+          </div>
+        )}
 
             {/* Main Content */}
-            <div style={{
+            <div style={{ 
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '2rem',
                 minHeight: '600px'
             }}>
                 {/* Left Panel - Original Files */}
-                <div style={{
+            <div style={{ 
                     background: 'white',
-                    borderRadius: 'var(--border-radius)',
+                borderRadius: 'var(--border-radius)', 
                     border: '1px solid #e9ecef',
                     boxShadow: 'var(--shadow-light)',
                     padding: '1.5rem'
                 }}>
-                    <div style={{ 
+                        <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
@@ -451,22 +451,22 @@ function Explorer({ onMenuClick }) {
                             >
                                 🔄 Refresh
                             </button>
-                        </div>
-                    </div>
-
+                            </div>
+                                </div>
+                                
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>
                             <div>Loading files...</div>
-                        </div>
+                                </div>
                     ) : uploadedFiles.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
                             <h3>No Files Found</h3>
                             <p>Upload some files using the Smart PDF Extraction page</p>
-                        </div>
-                    ) : (
+                            </div>
+                        ) : (
                         view === 'grid' ? <FileGrid /> : <FileList />
-                    )}
+                        )}
                 </div>
 
                 {/* Right Panel - JSON Data */}
@@ -479,7 +479,7 @@ function Explorer({ onMenuClick }) {
                 }}>
                     <h3 style={{ margin: '0 0 1rem 0', color: 'var(--main-color)' }}>
                         📊 JSON Data
-                    </h3>
+                        </h3>
                     <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
                         <JsonViewer />
                     </div>
