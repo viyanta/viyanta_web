@@ -990,89 +990,53 @@ async def delete_user_folder(user_id: str, folder_name: str):
 
 @router.get("/all_users_data")
 async def get_all_users_data():
-    """Get folders and files from all users for maker-checker view"""
+    """Get folders and files from all users for maker-checker view - FETCHES FROM S3"""
     try:
-        all_users_data = {}
-        users_base_path = os.path.join(VIFILES_BASE_DIR, "users")
-
-        if not os.path.exists(users_base_path):
-            return {
-                "total_users": 0,
-                "users_data": {},
-                "s3_data": {}
-            }
-
-        # Get local data for all users
-        for user_id in os.listdir(users_base_path):
-            user_path = os.path.join(users_base_path, user_id)
-            if os.path.isdir(user_path):
-                user_folders = []
-
-                for folder_name in os.listdir(user_path):
-                    folder_path = os.path.join(user_path, folder_name)
-                    if os.path.isdir(folder_path):
-                        pdf_dir = os.path.join(folder_path, "pdf")
-                        json_dir = os.path.join(folder_path, "json")
-
-                        folder_info = {
-                            "folder_name": folder_name,
-                            "pdf_count": 0,
-                            "json_count": 0,
-                            "created_at": datetime.fromtimestamp(os.path.getctime(folder_path)).isoformat(),
-                            "files": []
-                        }
-
-                        # Get PDF files info
-                        if os.path.exists(pdf_dir):
-                            for pdf_file in os.listdir(pdf_dir):
-                                if pdf_file.lower().endswith('.pdf'):
-                                    pdf_path = os.path.join(pdf_dir, pdf_file)
-                                    json_filename = pdf_file.replace(
-                                        '.pdf', '.json').replace('.PDF', '.json')
-                                    json_path = os.path.join(
-                                        json_dir, json_filename) if os.path.exists(json_dir) else None
-                                    has_json = json_path and os.path.exists(
-                                        json_path)
-
-                                    file_info = {
-                                        "filename": pdf_file,
-                                        "size": os.path.getsize(pdf_path),
-                                        "created_at": datetime.fromtimestamp(os.path.getctime(pdf_path)).isoformat(),
-                                        "has_json": has_json,
-                                        "json_filename": json_filename if has_json else None
-                                    }
-                                    folder_info["files"].append(file_info)
-                                    folder_info["pdf_count"] += 1
-
-                        # Count JSON files
-                        if os.path.exists(json_dir):
-                            folder_info["json_count"] = len([f for f in os.listdir(json_dir)
-                                                             if f.lower().endswith('.json')])
-
-                        user_folders.append(folder_info)
-
-                if user_folders:  # Only include users who have folders
-                    all_users_data[user_id] = {
-                        "user_id": user_id,
-                        "total_folders": len(user_folders),
-                        "folders": user_folders
-                    }
-
-        # Get S3 data for all users if available
-        s3_data = {}
+        # Fetch data directly from S3 instead of local files
         if S3_AVAILABLE and s3_service:
             try:
                 s3_result = s3_service.list_all_users_data()
                 if s3_result.get("success"):
-                    s3_data = s3_result.get("data", {})
+                    # Return the S3 data in the expected format
+                    return {
+                        "total_users": s3_result.get("total_users", 0),
+                        "users_data": s3_result.get("users_data", {}),
+                        # For compatibility
+                        "s3_data": s3_result.get("users_data", {}),
+                        # Include debug info
+                        "s3_debug": s3_result.get("s3_debug", {}),
+                        "data_source": "s3"
+                    }
+                else:
+                    logger.error(
+                        f"S3 list_all_users_data failed: {s3_result.get('error')}")
+                    return {
+                        "total_users": 0,
+                        "users_data": {},
+                        "s3_data": {},
+                        "error": s3_result.get("error"),
+                        "s3_debug": s3_result.get("s3_debug", {}),
+                        "data_source": "s3_failed"
+                    }
             except Exception as e:
-                logger.warning(f"Failed to get S3 data for all users: {e}")
-
-        return {
-            "total_users": len(all_users_data),
-            "users_data": all_users_data,
-            "s3_data": s3_data
-        }
+                logger.error(f"Failed to get S3 data for all users: {e}")
+                return {
+                    "total_users": 0,
+                    "users_data": {},
+                    "s3_data": {},
+                    "error": str(e),
+                    "data_source": "s3_exception"
+                }
+        else:
+            logger.warning(
+                "S3 service not available, falling back to empty response")
+            return {
+                "total_users": 0,
+                "users_data": {},
+                "s3_data": {},
+                "error": "S3 service not available",
+                "data_source": "s3_unavailable"
+            }
 
     except Exception as e:
         logger.error(f"Error getting all users data: {e}")
@@ -1082,40 +1046,29 @@ async def get_all_users_data():
 
 @router.get("/all_users_files/{user_id}/{folder_name}")
 async def get_all_users_folder_files(user_id: str, folder_name: str):
-    """Get files from a specific folder for any user (for maker-checker view)"""
+    """Get files from a specific folder for any user (for maker-checker view) - fetches from S3"""
     try:
-        folder_path = get_user_folder_path(user_id, folder_name)
-        if not os.path.exists(folder_path):
-            raise HTTPException(status_code=404, detail="Folder not found")
+        if not S3_AVAILABLE:
+            raise HTTPException(
+                status_code=503, detail="S3 service not available")
 
-        pdf_dir = os.path.join(folder_path, "pdf")
-        json_dir = os.path.join(folder_path, "json")
-        files = []
+        # Get folder data from S3
+        folder_data = s3_service._get_folder_data_from_s3(user_id, folder_name)
 
-        if os.path.exists(pdf_dir):
-            for filename in os.listdir(pdf_dir):
-                if filename.lower().endswith('.pdf'):
-                    file_path = os.path.join(pdf_dir, filename)
-                    json_filename = filename.replace(
-                        '.pdf', '.json').replace('.PDF', '.json')
-                    json_path = os.path.join(
-                        json_dir, json_filename) if os.path.exists(json_dir) else None
-                    has_json = json_path and os.path.exists(json_path)
-
-                    file_info = {
-                        "filename": filename,
-                        "size": os.path.getsize(file_path),
-                        "created_at": datetime.fromtimestamp(os.path.getctime(file_path)).isoformat(),
-                        "has_json": has_json,
-                        "json_filename": json_filename if has_json else None
-                    }
-                    files.append(file_info)
+        if folder_data is None:
+            raise HTTPException(
+                status_code=404, detail="Folder not found in S3")
 
         return {
             "user_id": user_id,
             "folder_name": folder_name,
-            "total_files": len(files),
-            "files": files
+            "total_files": len(folder_data['files']),
+            "files": folder_data['files'],
+            "debug_info": {
+                "pdf_count": folder_data['pdf_count'],
+                "json_count": folder_data['json_count'],
+                "folder_created_at": folder_data['created_at']
+            }
         }
 
     except HTTPException:
@@ -1129,47 +1082,53 @@ async def get_all_users_folder_files(user_id: str, folder_name: str):
 
 @router.get("/all_users_json_data/{user_id}/{folder_name}/{filename}")
 async def get_all_users_json_data(user_id: str, folder_name: str, filename: str):
-    """Get JSON data from any user's folder (for maker-checker view)"""
+    """Get JSON data from any user's folder (for maker-checker view) - fetches from S3"""
     try:
-        folder_path = get_user_folder_path(user_id, folder_name)
-        json_dir = os.path.join(folder_path, "json")
-        json_path = os.path.join(json_dir, filename)
+        if not S3_AVAILABLE:
+            raise HTTPException(
+                status_code=503, detail="S3 service not available")
 
-        if not os.path.exists(json_path):
-            # Try S3 if available
-            if S3_AVAILABLE and s3_service:
-                try:
-                    s3_result = s3_service.get_json_data(
-                        user_id, folder_name, filename)
-                    if s3_result.get("success"):
-                        return {
-                            "user_id": user_id,
-                            "folder_name": folder_name,
-                            "filename": filename,
-                            "source": "s3",
-                            "data": s3_result.get("data")
-                        }
-                except Exception as e:
-                    logger.warning(f"Failed to get JSON from S3: {e}")
+        # Construct S3 key for JSON file
+        # Try both possible locations: in json/ subfolder and in root folder
+        s3_keys_to_try = [
+            f"users/{user_id}/{folder_name}/json/{filename}",
+            f"users/{user_id}/{folder_name}/{filename}"
+        ]
 
-            raise HTTPException(status_code=404, detail="JSON file not found")
+        json_content = None
+        successful_key = None
 
-        # Read local JSON file
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        for s3_key in s3_keys_to_try:
+            try:
+                json_content = s3_service.download_file_content(s3_key)
+                if json_content is not None:
+                    successful_key = s3_key
+                    break
+            except Exception as e:
+                logger.debug(f"Failed to get JSON from S3 key {s3_key}: {e}")
+                continue
+
+        if json_content is None:
+            raise HTTPException(
+                status_code=404, detail="JSON file not found in S3")
+
+        # Parse JSON content
+        try:
+            data = json.loads(json_content)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=422, detail="Invalid JSON file")
 
         return {
             "user_id": user_id,
             "folder_name": folder_name,
             "filename": filename,
-            "source": "local",
+            "source": "s3",
+            "s3_key": successful_key,
             "data": data
         }
 
     except HTTPException:
         raise
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=422, detail="Invalid JSON file")
     except Exception as e:
         logger.error(f"Error getting JSON data: {e}")
         raise HTTPException(
