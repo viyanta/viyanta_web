@@ -662,7 +662,8 @@ class S3Service:
             )
 
             s3_url = f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com/{s3_key}"
-            logger.info(f"Successfully uploaded {file_type} file to S3: {s3_url}")
+            logger.info(
+                f"Successfully uploaded {file_type} file to S3: {s3_url}")
 
             return {
                 "success": True,
@@ -706,7 +707,8 @@ class S3Service:
                 if 'Contents' in response and response['Contents']:
                     s3_key = response['Contents'][0]['Key']
                 else:
-                    raise FileNotFoundError(f"Original file not found for {file_name}")
+                    raise FileNotFoundError(
+                        f"Original file not found for {file_name}")
             elif file_type == 'json':
                 s3_key = f"{folder_name}/{file_name}_json/{file_name}.json"
             elif file_type == 'verified_json':
@@ -720,7 +722,8 @@ class S3Service:
                 local_path
             )
 
-            logger.info(f"Successfully downloaded {file_type} file from S3: {s3_key}")
+            logger.info(
+                f"Successfully downloaded {file_type} file from S3: {s3_key}")
             return {
                 "success": True,
                 "s3_key": s3_key,
@@ -729,7 +732,8 @@ class S3Service:
             }
 
         except Exception as e:
-            logger.error(f"Failed to download {file_type} file from S3: {str(e)}")
+            logger.error(
+                f"Failed to download {file_type} file from S3: {str(e)}")
             return {
                 "success": False,
                 "error": str(e),
@@ -759,7 +763,8 @@ class S3Service:
                         folder_name = prefix_info['Prefix'].rstrip('/')
 
                         # Get folder contents
-                        folder_contents = self._get_folder_contents_new_structure(folder_name)
+                        folder_contents = self._get_folder_contents_new_structure(
+                            folder_name)
                         folders[folder_name] = folder_contents
 
             return {
@@ -839,7 +844,8 @@ class S3Service:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get folder contents for {folder_name}: {str(e)}")
+            logger.error(
+                f"Failed to get folder contents for {folder_name}: {str(e)}")
             return {
                 "folder_name": folder_name,
                 "total_files": 0,
@@ -868,7 +874,8 @@ class S3Service:
             elif file_type == 'verified_json':
                 s3_key = f"{folder_name}/{file_name}_verified_json/{file_name}_verified.json"
             else:
-                raise ValueError(f"Cannot get content for file_type: {file_type}")
+                raise ValueError(
+                    f"Cannot get content for file_type: {file_type}")
 
             response = self.s3_client.get_object(
                 Bucket=self.bucket_name,
@@ -888,7 +895,8 @@ class S3Service:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get {file_type} content from S3: {str(e)}")
+            logger.error(
+                f"Failed to get {file_type} content from S3: {str(e)}")
             return {
                 "success": False,
                 "error": str(e),

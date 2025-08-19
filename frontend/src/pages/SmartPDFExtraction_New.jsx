@@ -14,7 +14,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [jobResults, setJobResults] = useState(null);
   const [extractionHistory, setExtractionHistory] = useState([]);
   const [uploadHistory, setUploadHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('extract'); // 'upload', 'extract', 'results', 'history'
+  const [activeTab, setActiveTab] = useState('upload'); // 'upload', 'extract', 'results', 'history'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -320,26 +320,23 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
 
   const headerStyle = {
     marginBottom: '1.5rem',
-    textAlign: 'left',
-    color: 'var(--text-color-dark)',
+    textAlign: 'left'
   };
 
   const tabsWrapperStyle = {
     marginBottom: '1.5rem',
     display: 'flex',
-    color: 'var(--text-color-dark)',
     justifyContent: 'center'
   };
 
   const tabsStyle = {
     display: 'flex',
-    background: 'var(--bg-color)',
+    background: 'var(--bg-color-light)',
     borderRadius: '12px',
     padding: '4px',
     gap: '4px',
     border: '1px solid var(--border-color)',
-    flexWrap: 'wrap',
-  
+    flexWrap: 'wrap'
   };
 
   const activeTabStyle = {
@@ -439,22 +436,26 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
       {/* Tabs */}
       <div style={tabsWrapperStyle}>
         <div style={tabsStyle}>
-   
           <button
-            style={{ ... (activeTab === 'extract' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            style={activeTab === 'upload' ? activeTabStyle : inactiveTabStyle}
+            onClick={() => setActiveTab('upload')}
+          >
+            🚀 New Upload & Verification
+          </button>
+          <button
+            style={activeTab === 'extract' ? activeTabStyle : inactiveTabStyle}
             onClick={() => setActiveTab('extract')}
           >
             📄 Legacy Extract
           </button>
           <button
-            style={{ ... (activeTab === 'results' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            style={activeTab === 'results' ? activeTabStyle : inactiveTabStyle}
             onClick={() => setActiveTab('results')}
           >
             📊 Results {getTabNotification('results')}
           </button>
           <button
-            // style={activeTab === 'history' ? activeTabStyle : inactiveTabStyle}
-            style={{ ... (activeTab === 'history' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            style={activeTab === 'history' ? activeTabStyle : inactiveTabStyle}
             onClick={() => setActiveTab('history')}
           >
             📚 History {getTabNotification('history') && `(${getTabNotification('history')})`}

@@ -390,7 +390,7 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
         # Write JSON to user folder
         json_filename = f"{pdf_stem}.json"
         output_json_path = os.path.join(json_dir, json_filename)
-        
+
         # Apply Gemini verification if available
         verified_result = result
         if GEMINI_AVAILABLE:
@@ -404,9 +404,10 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
                 print(f"⚠️ Gemini verification failed for {pdf_name}: {e}")
                 # Continue with original result if verification fails
                 verified_result = result
-        
+
         with open(output_json_path, "w", encoding="utf-8") as f:
-            json.dump(verified_result, f, ensure_ascii=False, indent=2, default=str)
+            json.dump(verified_result, f, ensure_ascii=False,
+                      indent=2, default=str)
 
         # Upload to S3 (use verified result)
         s3_result = _upload_files_to_s3(
@@ -1192,7 +1193,8 @@ async def upload_folder_files_new(
         raise HTTPException(status_code=400, detail="Folder name is required")
 
     start_time = time.time()
-    logger.info(f"Starting folder upload with new structure: {folder_name}, files: {len(files)}, mode: {mode}")
+    logger.info(
+        f"Starting folder upload with new structure: {folder_name}, files: {len(files)}, mode: {mode}")
 
     # Create local directories for new structure
     local_folder_path = os.path.join(VIFILES_BASE_DIR, folder_name)
@@ -1209,16 +1211,16 @@ async def upload_folder_files_new(
 
             file_content = await file.read()
             file_name_base = os.path.splitext(file.filename)[0]
-            
+
             # Create directory for original file
             original_dir = os.path.join(local_folder_path, file_name_base)
             os.makedirs(original_dir, exist_ok=True)
-            
+
             # Save original PDF
             original_path = os.path.join(original_dir, file.filename)
             with open(original_path, 'wb') as f:
                 f.write(file_content)
-            
+
             pdf_files.append({
                 "filename": file.filename,
                 "file_name_base": file_name_base,
@@ -1227,7 +1229,8 @@ async def upload_folder_files_new(
             })
 
         if not pdf_files:
-            raise HTTPException(status_code=400, detail="No valid PDF files found")
+            raise HTTPException(
+                status_code=400, detail="No valid PDF files found")
 
         # Process each PDF file
         for pdf_info in pdf_files:
@@ -1243,7 +1246,8 @@ async def upload_folder_files_new(
                 })
 
         # Calculate summary
-        successful = len([r for r in results if r.get("status") == "completed"])
+        successful = len(
+            [r for r in results if r.get("status") == "completed"])
         processing_time = round((time.time() - start_time) * 1000)
 
         response = {
@@ -1257,7 +1261,8 @@ async def upload_folder_files_new(
             "results": results
         }
 
-        logger.info(f"Folder upload completed: {successful}/{len(results)} files processed in {processing_time}ms")
+        logger.info(
+            f"Folder upload completed: {successful}/{len(results)} files processed in {processing_time}ms")
         return response
 
     except Exception as e:
@@ -1284,9 +1289,10 @@ async def _process_pdf_new_structure(pdf_info: Dict[str, Any], mode: str) -> Dic
             raise Exception("Failed to extract data from PDF")
 
         # Create JSON directory and save extracted JSON
-        json_dir = os.path.join(VIFILES_BASE_DIR, folder_name, f"{file_name_base}_json")
+        json_dir = os.path.join(
+            VIFILES_BASE_DIR, folder_name, f"{file_name_base}_json")
         os.makedirs(json_dir, exist_ok=True)
-        
+
         extracted_json_path = os.path.join(json_dir, f"{file_name_base}.json")
         with open(extracted_json_path, 'w', encoding='utf-8') as f:
             json.dump(extracted_data, f, indent=2, ensure_ascii=False)
@@ -1294,23 +1300,26 @@ async def _process_pdf_new_structure(pdf_info: Dict[str, Any], mode: str) -> Dic
         # Gemini verification step
         verified_data = extracted_data  # Default to extracted data
         verification_status = "skipped"
-        
+
         if GEMINI_AVAILABLE and verify_extraction:
             try:
                 logger.info(f"Starting Gemini verification for {filename}")
-                verified_data = verify_extraction(original_path, extracted_data, use_image_mode=True)
+                verified_data = verify_extraction(
+                    original_path, extracted_data, use_image_mode=True)
                 verification_status = "completed"
-                
+
                 # Create verified JSON directory and save verified JSON
-                verified_json_dir = os.path.join(VIFILES_BASE_DIR, folder_name, f"{file_name_base}_verified_json")
+                verified_json_dir = os.path.join(
+                    VIFILES_BASE_DIR, folder_name, f"{file_name_base}_verified_json")
                 os.makedirs(verified_json_dir, exist_ok=True)
-                
-                verified_json_path = os.path.join(verified_json_dir, f"{file_name_base}_verified.json")
+
+                verified_json_path = os.path.join(
+                    verified_json_dir, f"{file_name_base}_verified.json")
                 with open(verified_json_path, 'w', encoding='utf-8') as f:
                     json.dump(verified_data, f, indent=2, ensure_ascii=False)
-                
+
                 logger.info(f"Gemini verification completed for {filename}")
-                
+
             except Exception as e:
                 logger.error(f"Gemini verification failed for {filename}: {e}")
                 verification_status = "failed"
@@ -1324,18 +1333,18 @@ async def _process_pdf_new_structure(pdf_info: Dict[str, Any], mode: str) -> Dic
                 s3_results["original"] = s3_service.upload_file_new_structure(
                     original_path, folder_name, file_name_base, "original"
                 )
-                
+
                 # Upload extracted JSON
                 s3_results["json"] = s3_service.upload_file_new_structure(
                     extracted_json_path, folder_name, file_name_base, "json"
                 )
-                
+
                 # Upload verified JSON if available
                 if verification_status == "completed":
                     s3_results["verified_json"] = s3_service.upload_file_new_structure(
                         verified_json_path, folder_name, file_name_base, "verified_json"
                     )
-                
+
             except Exception as e:
                 logger.error(f"S3 upload failed for {filename}: {e}")
                 s3_results["error"] = str(e)
@@ -1366,7 +1375,8 @@ async def _process_pdf_new_structure(pdf_info: Dict[str, Any], mode: str) -> Dic
             }
         }
 
-        logger.info(f"Successfully processed {filename} in {processing_time}ms")
+        logger.info(
+            f"Successfully processed {filename} in {processing_time}ms")
         return result
 
     except Exception as e:
@@ -1387,7 +1397,7 @@ async def _extract_pdf_data(pdf_path: str, mode: str) -> Dict[str, Any]:
     try:
         doc = fitz.open(pdf_path)
         pages_data = []
-        
+
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
             page_data = {
@@ -1395,15 +1405,16 @@ async def _extract_pdf_data(pdf_path: str, mode: str) -> Dict[str, Any]:
                 "text": "",
                 "tables": []
             }
-            
+
             # Extract text
             if mode in ["text", "complete"]:
                 page_data["text"] = page.get_text()
-            
+
             # Extract tables
             if mode in ["tables", "complete"] and _CAMELOT_AVAILABLE:
                 try:
-                    tables = camelot.read_pdf(pdf_path, pages=str(page_num + 1))
+                    tables = camelot.read_pdf(
+                        pdf_path, pages=str(page_num + 1))
                     for i, table in enumerate(tables):
                         if not table.df.empty:
                             table_data = {
@@ -1417,12 +1428,13 @@ async def _extract_pdf_data(pdf_path: str, mode: str) -> Dict[str, Any]:
                             }
                             page_data["tables"].append(table_data)
                 except Exception as e:
-                    logger.warning(f"Table extraction failed for page {page_num + 1}: {e}")
-            
+                    logger.warning(
+                        f"Table extraction failed for page {page_num + 1}: {e}")
+
             pages_data.append(page_data)
-        
+
         doc.close()
-        
+
         return {
             "mode": mode,
             "total_pages": len(pages_data),
@@ -1432,7 +1444,7 @@ async def _extract_pdf_data(pdf_path: str, mode: str) -> Dict[str, Any]:
                 "total_tables_found": sum(len(page.get("tables", [])) for page in pages_data)
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error extracting PDF data: {e}")
         return None
@@ -1448,7 +1460,8 @@ async def get_folders_new_structure():
             for folder_name in os.listdir(VIFILES_BASE_DIR):
                 folder_path = os.path.join(VIFILES_BASE_DIR, folder_name)
                 if os.path.isdir(folder_path) and not folder_name.startswith('users'):
-                    folder_contents = _get_local_folder_contents_new_structure(folder_name, folder_path)
+                    folder_contents = _get_local_folder_contents_new_structure(
+                        folder_name, folder_path)
                     local_folders[folder_name] = folder_contents
 
         # Get S3 folders
@@ -1469,7 +1482,8 @@ async def get_folders_new_structure():
 
     except Exception as e:
         logger.error(f"Error getting folders: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get folders: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get folders: {str(e)}")
 
 
 def _get_local_folder_contents_new_structure(folder_name: str, folder_path: str) -> Dict[str, Any]:
@@ -1488,22 +1502,26 @@ def _get_local_folder_contents_new_structure(folder_name: str, folder_path: str)
                     file_base = item[:-14]  # Remove '_verified_json'
                     if file_base not in contents["files"]:
                         contents["files"][file_base] = {}
-                    contents["files"][file_base]["verified_json"] = _get_directory_files(item_path)
+                    contents["files"][file_base]["verified_json"] = _get_directory_files(
+                        item_path)
                 elif item.endswith('_json'):
                     file_base = item[:-5]  # Remove '_json'
                     if file_base not in contents["files"]:
                         contents["files"][file_base] = {}
-                    contents["files"][file_base]["json"] = _get_directory_files(item_path)
+                    contents["files"][file_base]["json"] = _get_directory_files(
+                        item_path)
                 else:
                     # This is an original file directory
                     if item not in contents["files"]:
                         contents["files"][item] = {}
-                    contents["files"][item]["original"] = _get_directory_files(item_path)
+                    contents["files"][item]["original"] = _get_directory_files(
+                        item_path)
 
         return contents
 
     except Exception as e:
-        logger.error(f"Error getting local folder contents for {folder_name}: {e}")
+        logger.error(
+            f"Error getting local folder contents for {folder_name}: {e}")
         return {
             "folder_name": folder_name,
             "files": {},
