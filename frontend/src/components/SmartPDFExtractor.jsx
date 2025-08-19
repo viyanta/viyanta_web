@@ -3,14 +3,16 @@ import apiService from '../services/api';
 
 const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [extractMode, setExtractMode] = useState('both');
-  const [uploadMode, setUploadMode] = useState('single'); // 'single', 'bulk', or 'folder'
+  const [uploadMode, setUploadMode] = useState('single'); // 'single', 'multi', 'folder_tables', 'folder_text'
   const [dragActive, setDragActive] = useState(false);
   const [folderFiles, setFolderFiles] = useState([]);
   const [folderName, setFolderName] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [timerSec, setTimerSec] = useState(0);
+  const [extractMode, setExtractMode] = useState('text'); // 'text', 'tables', 'complete'
   const fileInputRef = useRef(null);
   const folderInputRef = useRef(null);
+  const multiFileInputRef = useRef(null);
 
   // Timer for live processing time
   React.useEffect(() => {
@@ -50,6 +52,12 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
     }
   };
 
+  const handleMultiFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    const pdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    setSelectedFiles(pdfs);
+  };
+
   const handleFolderSelect = (e) => {
     const files = Array.from(e.target.files || []);
     const pdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
@@ -60,29 +68,75 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
     setFolderName(root);
   };
 
-  const processFolder = async () => {
-    if (!folderFiles || folderFiles.length === 0) {
-      onError('Please select a folder that contains PDF files.');
-      return;
-    }
-
+  const processUpload = async () => {
     if (!user?.uid) {
       onError('Please log in to extract PDF files');
       return;
     }
 
     setIsUploading(true);
-    console.log(`🚀 Starting folder upload: ${folderFiles.length} PDFs`);
-
+    
     try {
-      // Use the folder uploader API with table extraction enabled for "complete" mode
-      const response = await apiService.uploadPdfFolder(folderFiles, extractMode === 'both' || extractMode === 'lattice');
-      console.log('✅ Folder processing completed:', response);
+      let response;
       
-      onExtractComplete(response, 'folder', folderFiles.length);
+      switch (uploadMode) {
+        case 'single':
+          if (!selectedFiles.length) {
+            throw new Error('Please select a PDF file');
+          }
+          if (!folderName.trim()) {
+            throw new Error('Please provide a folder name for organizing files');
+          }
+          console.log('🚀 Single instant upload');
+          response = await apiService.uploadSingleInstant(
+            selectedFiles[0], 
+            extractMode, // text, tables, or complete
+            folderName.trim()
+          );
+          onExtractComplete(response, 'single', 1);
+          break;
+          
+        case 'multi':
+          if (!selectedFiles.length) {
+            throw new Error('Please select PDF files');
+          }
+          if (!folderName.trim()) {
+            throw new Error('Please provide a folder name for organizing files');
+          }
+          console.log(`🚀 Multi files upload: ${selectedFiles.length} PDFs`);
+          response = await apiService.uploadMultiFiles(
+            selectedFiles,
+            extractMode, // text, tables, or complete
+            folderName.trim()
+          );
+          onExtractComplete(response, 'multi', selectedFiles.length);
+          break;
+          
+        case 'folder_tables':
+          if (!folderFiles.length || !folderName.trim()) {
+            throw new Error('Please select a folder and provide a folder name');
+          }
+          console.log(`🚀 Folder tables upload: ${folderFiles.length} PDFs`);
+          response = await apiService.uploadFolderTables(folderFiles, folderName.trim());
+          onExtractComplete(response, 'folder_tables', folderFiles.length);
+          break;
+          
+        case 'folder_text':
+          if (!folderFiles.length || !folderName.trim()) {
+            throw new Error('Please select a folder and provide a folder name');
+          }
+          console.log(`🚀 Folder text upload: ${folderFiles.length} PDFs`);
+          response = await apiService.uploadFolderText(folderFiles, folderName.trim());
+          onExtractComplete(response, 'folder_text', folderFiles.length);
+          break;
+          
+        default:
+          throw new Error('Invalid upload mode');
+      }
+      
     } catch (error) {
-      console.error('❌ Folder processing failed:', error);
-      onError(error.message || 'Folder processing failed');
+      console.error('❌ Upload failed:', error);
+      onError(error.message || 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -104,35 +158,12 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
       return;
     }
 
-    console.log(`Processing ${pdfFiles.length} PDF files in ${uploadMode} mode`);
-
-    setIsUploading(true);
-
-    try {
-      let response;
-      
-      if (!user?.uid) {
-        onError('Please log in to extract PDF files');
-        return;
-      }
-      
-      if (uploadMode === 'single' && pdfFiles.length === 1) {
-        // Single file extraction with immediate response
-        response = await apiService.extractSinglePDFWithUser(pdfFiles[0], extractMode, 'both', user.uid);
-        console.log('Single file extraction response:', response);
-      } else {
-        // Bulk extraction (background processing)
-        response = await apiService.extractBulkPDFsWithUser(pdfFiles, extractMode, user.uid);
-        console.log('Bulk extraction response:', response);
-      }
-
-      onExtractComplete(response, uploadMode, pdfFiles.length);
-    } catch (error) {
-      console.error('Extraction error:', error);
-      onError(error.message || 'Extraction failed');
-    } finally {
-      setIsUploading(false);
+    if (uploadMode === 'single' && pdfFiles.length > 1) {
+      onError('Single mode: Please select only one PDF file');
+      return;
     }
+
+    setSelectedFiles(pdfFiles);
   };
 
   const buttonStyle = {
@@ -223,67 +254,115 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               📄 Single File (Instant)
             </button>
             <button
-              style={uploadMode === 'bulk' ? activeButtonStyle : inactiveButtonStyle}
-              onClick={() => setUploadMode('bulk')}
+              style={uploadMode === 'multi' ? activeButtonStyle : inactiveButtonStyle}
+              onClick={() => setUploadMode('multi')}
             >
-              📚 Multiple Files (Background)
+              📚 Multiple Files
             </button>
             <button
-              style={uploadMode === 'folder' ? activeButtonStyle : inactiveButtonStyle}
-              onClick={() => setUploadMode('folder')}
+              style={uploadMode === 'folder_tables' ? activeButtonStyle : inactiveButtonStyle}
+              onClick={() => setUploadMode('folder_tables')}
             >
-              📁 Folder Upload (Fast)
+              📊 Folder (Tables Only)
+            </button>
+            <button
+              style={uploadMode === 'folder_text' ? activeButtonStyle : inactiveButtonStyle}
+              onClick={() => setUploadMode('folder_text')}
+            >
+              � Folder (Text Only)
             </button>
           </div>
         </div>
 
-        {/* Extract Mode Selection */}
+        {/* Extract Mode Selection - Only for single and multi modes */}
+        {(uploadMode === 'single' || uploadMode === 'multi') && (
+          <div style={{ 
+            marginBottom: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '0.75rem'
+          }}>
+            <label style={{ 
+              color: 'var(--text-color-dark)', 
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              marginBottom: '0.5rem',
+              textAlign: 'left'
+            }}>
+              Extraction Method:
+            </label>
+            <div style={{ 
+              display: 'flex', 
+              gap: '0.75rem', 
+              flexWrap: 'wrap',
+              justifyContent: 'flex-start'
+            }}>
+              <button
+                style={extractMode === 'text' ? activeButtonStyle : inactiveButtonStyle}
+                onClick={() => setExtractMode('text')}
+              >
+                📝 Text Only
+              </button>
+              <button
+                style={extractMode === 'tables' ? activeButtonStyle : inactiveButtonStyle}
+                onClick={() => setExtractMode('tables')}
+              >
+                📊 Tables Only
+              </button>
+              <button
+                style={extractMode === 'complete' ? activeButtonStyle : inactiveButtonStyle}
+                onClick={() => setExtractMode('complete')}
+              >
+                🔄 Complete (Text + Tables)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Folder Name Input - Required for all modes */}
         <div style={{ 
           marginBottom: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          gap: '0.75rem'
+          gap: '0.5rem'
         }}>
           <label style={{ 
             color: 'var(--text-color-dark)', 
             fontWeight: '600',
             fontSize: '0.875rem',
-            marginBottom: '0.5rem',
             textAlign: 'left'
           }}>
-            Extraction Method:
+            Folder Name (Required):
           </label>
-          <div style={{ 
-            display: 'flex', 
-            gap: '0.75rem', 
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start'
+          <input
+            type="text"
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            placeholder="Enter folder name for organizing files..."
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: '1px solid #e9ecef',
+              borderRadius: '4px',
+              fontSize: '0.9rem',
+              background: 'white'
+            }}
+          />
+          <p style={{ 
+            color: 'var(--text-color-light)', 
+            fontSize: '0.8rem',
+            margin: '0',
+            textAlign: 'left'
           }}>
-            <button
-              style={extractMode === 'both' ? activeButtonStyle : inactiveButtonStyle}
-              onClick={() => setExtractMode('both')}
-            >
-              Both
-            </button>
-            <button
-              style={extractMode === 'stream' ? activeButtonStyle : inactiveButtonStyle}
-              onClick={() => setExtractMode('stream')}
-            >
-              Stream
-            </button>
-            <button
-              style={extractMode === 'lattice' ? activeButtonStyle : inactiveButtonStyle}
-              onClick={() => setExtractMode('lattice')}
-            >
-              Lattice
-            </button>
-          </div>
+            All uploaded files and extracted data will be organized under this folder name.
+          </p>
         </div>
       </div>
 
       {/* Upload Area */}
-      {uploadMode === 'folder' ? (
+      {uploadMode === 'folder_tables' || uploadMode === 'folder_text' ? (
         // Folder Upload Mode
         <div style={{
           ...dropZoneStyle,
@@ -332,7 +411,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
                   fontWeight: '600',
                   marginBottom: '0.5rem' 
                 }}>
-                  📁 {folderName || 'Selected Folder'}: {folderFiles.length} PDF files
+                  📁 Selected Folder: {folderFiles.length} PDF files
                 </p>
                 <div style={{
                   maxHeight: '150px',
@@ -365,9 +444,9 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               </div>
             )}
 
-            {folderFiles.length > 0 && (
+            {folderFiles.length > 0 && folderName.trim() && (
               <button
-                onClick={processFolder}
+                onClick={processUpload}
                 disabled={isUploading}
                 style={{
                   width: '100%',
@@ -399,7 +478,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
                   </>
                 ) : (
                   <>
-                    🚀 Process {folderFiles.length} PDFs ({extractMode === 'both' ? 'with tables' : 'text only'})
+                    🚀 Process {folderFiles.length} PDFs ({uploadMode === 'folder_tables' ? 'Tables Only' : 'Text Only'})
                   </>
                 )}
               </button>
@@ -413,34 +492,48 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               marginTop: '1rem',
               textAlign: 'center'
             }}>
-              Estimated time: {folderFiles.length > 0 ? 
-                `~${extractMode === 'both' ? Math.ceil(folderFiles.length * 0.3) : Math.ceil(folderFiles.length * 0.05)} minutes` : 
-                'Select folder to estimate'
+              {uploadMode === 'folder_tables' ? 
+                `Fast table extraction (Camelot-py): ~${Math.ceil(folderFiles.length * 0.1)} minutes` :
+                `Ultra-fast text extraction: ~${Math.ceil(folderFiles.length * 0.05)} minutes`
               }
             </p>
           </div>
         </div>
       ) : (
-        // Single/Bulk File Upload Mode  
+        // Single/Multi File Upload Mode  
         <div
           style={dropZoneStyle}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => {
+            if (uploadMode === 'single') {
+              fileInputRef.current?.click();
+            } else {
+              multiFileInputRef.current?.click();
+            }
+          }}
         >
           <input
             ref={fileInputRef}
             type="file"
-            multiple={uploadMode === 'bulk'}
             accept=".pdf"
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />
           
+          <input
+            ref={multiFileInputRef}
+            type="file"
+            multiple
+            accept=".pdf"
+            onChange={handleMultiFileSelect}
+            style={{ display: 'none' }}
+          />
+          
           {isUploading ? (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', width: '100%' }}>
               <div style={{
                 width: '50px',
                 height: '50px',
@@ -451,11 +544,11 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
                 margin: '0 auto 1rem'
               }} />
               <p style={{ color: 'var(--sub-color)', fontWeight: '600' }}>
-                {uploadMode === 'single' ? 'Processing PDF...' : 'Uploading files...'}
+                Processing {selectedFiles.length} PDF{selectedFiles.length > 1 ? 's' : ''}... {formatMMSS(timerSec)}
               </p>
             </div>
           ) : (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', width: '100%' }}>
               <div style={{
                 fontSize: '4rem',
                 color: dragActive ? 'var(--sub-color)' : 'var(--text-color-light)',
@@ -479,14 +572,65 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               }}>
                 {uploadMode === 'single' 
                   ? 'Single file mode: Get instant results'
-                  : 'Bulk mode: Process multiple files in background'
+                  : 'Multi-file mode: Process multiple files efficiently'
                 }
               </p>
+
+              {selectedFiles.length > 0 && (
+                <div style={{ 
+                  marginBottom: '1rem',
+                  padding: '1rem',
+                  background: '#f8f9fa',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <p style={{ 
+                    color: 'var(--text-color-dark)', 
+                    fontWeight: '600',
+                    marginBottom: '0.5rem' 
+                  }}>
+                    Selected Files ({selectedFiles.length}):
+                  </p>
+                  <div style={{ maxHeight: '100px', overflow: 'auto' }}>
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--text-color-light)',
+                        padding: '0.2rem 0'
+                      }}>
+                        📄 {file.name} ({(file.size / (1024*1024)).toFixed(2)} MB)
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedFiles.length > 0 && folderName.trim() && (
+                <button
+                  onClick={processUpload}
+                  disabled={isUploading}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: 'var(--sub-color)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '1rem'
+                  }}
+                >
+                  🚀 Process {selectedFiles.length} PDF{selectedFiles.length > 1 ? 's' : ''} ({extractMode})
+                </button>
+              )}
+
               <p style={{ 
                 color: 'var(--text-color-light)', 
                 fontSize: '0.9rem',
                 opacity: 0.8,
-                lineHeight: '1.4'
+                lineHeight: '1.4',
+                marginTop: '1rem'
               }}>
                 Maximum file size: 100MB | Supported format: PDF
               </p>

@@ -233,6 +233,10 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
             <div style={{ 
               display: 'flex', 
               gap: 'clamp(1rem, 3vw, 2rem)', 
+<<<<<<< HEAD
+=======
+              // alignItems: 'center',
+>>>>>>> e23839e (vikki:the data fetches and display from s3)
               flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
               alignItems: window.innerWidth <= 768 ? 'stretch' : 'center'
             }}>

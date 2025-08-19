@@ -558,212 +558,6 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-    const FileGrid = () => {
-        if (!selectedFolder) return null;
-        const folderFiles = uploadedFolders[selectedFolder]?.files || [];
-        
-        return (
-            <div>
-                {/* Breadcrumb */}
-                <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #e9ecef'
-                }}>
-                    <button
-                        onClick={() => {
-                            setView('folders');
-                            setSelectedFolder(null);
-                            setSelectedFile(null);
-                            setSelectedFileJson(null);
-                        }}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--sub-color)',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            padding: '0',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        ← Back to Folders
-                    </button>
-                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                </div>
-                
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: '1rem',
-                    marginBottom: '2rem'
-                }}>
-                    {folderFiles.map((file, index) => (
-                        <div
-                            key={index}
-                            onClick={() => selectFile(file)}
-                            style={{
-                                border: '1px solid #e9ecef',
-                                borderRadius: '8px',
-                                padding: '1rem',
-                                cursor: 'pointer',
-                                background: selectedFile === file ? 'var(--sub-color)' : 'white',
-                                color: selectedFile === file ? 'white' : 'var(--text-color-dark)',
-                                transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-light)'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (selectedFile !== file) {
-                                    e.target.style.background = 'var(--background-color)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (selectedFile !== file) {
-                                    e.target.style.background = 'white';
-                                }
-                            }}
-                        >
-                            <div style={{
-                                fontSize: '2rem',
-                                textAlign: 'center',
-                                marginBottom: '0.5rem'
-                            }}>
-                                {getFileType(file.name) === 'pdf' ? '📄' : '📁'}
-                            </div>
-                            <div style={{
-                                fontWeight: '600',
-                                fontSize: '0.9rem',
-                                marginBottom: '0.25rem',
-                                wordBreak: 'break-word'
-                            }}>
-                                {file.name}
-                            </div>
-                            <div style={{
-                                fontSize: '0.8rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                marginBottom: '0.25rem'
-                            }}>
-                                {formatFileSize(file.size)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                opacity: selectedFile === file ? 0.8 : 0.6,
-                                marginBottom: '0.25rem'
-                            }}>
-                                {formatDate(file.created_at)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.7rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.25rem'
-                            }}>
-                                {getModeIcon(file.mode)} {getModeLabel(file.mode)}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
-    const FileList = () => {
-        if (!selectedFolder) return null;
-        const folderFiles = uploadedFolders[selectedFolder]?.files || [];
-        
-        return (
-            <div style={{ marginBottom: '2rem' }}>
-                {/* Breadcrumb */}
-                <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #e9ecef'
-                }}>
-                    <button
-                        onClick={() => {
-                            setView('folders');
-                            setSelectedFolder(null);
-                            setSelectedFile(null);
-                            setSelectedFileJson(null);
-                        }}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--sub-color)',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            padding: '0',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        ← Back to Folders
-                    </button>
-                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                </div>
-                
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '2px solid #e9ecef' }}>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Name</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Size</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Mode</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Created</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>JSON</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {folderFiles.map((file, index) => (
-                            <tr
-                                key={index}
-                                onClick={() => selectFile(file)}
-                                style={{
-                                    borderBottom: '1px solid #e9ecef',
-                                    cursor: 'pointer',
-                                    background: selectedFile === file ? 'var(--sub-color)' : 'transparent',
-                                    color: selectedFile === file ? 'white' : 'var(--text-color-dark)'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (selectedFile !== file) {
-                                        e.target.style.background = 'var(--background-color)';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (selectedFile !== file) {
-                                        e.target.style.background = 'transparent';
-                                    }
-                                }}
-                            >
-                                <td style={{ padding: '0.5rem', wordBreak: 'break-word' }}>
-                                    {getFileType(file.name) === 'pdf' ? '📄' : '📁'} {file.name}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {getFileType(file.name).toUpperCase()}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {formatFileSize(file.size)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {getModeIcon(file.mode)} {getModeLabel(file.mode)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {formatDate(file.created_at)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {file.hasJson ? '✅' : '❌'}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        );
-    };
-
     // JSON Data Viewer for selected file
     const JsonViewer = () => {
         if (jsonLoading) {
@@ -777,7 +571,7 @@ function Explorer({ onMenuClick }) {
         if (!selectedFile) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>�</div>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
                     <h3>No File Selected</h3>
                     <p>Select a file from the left panel to view its extracted data</p>
                 </div>
@@ -825,58 +619,58 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-  return (
+    return (
         <div style={{ minHeight: '100vh', background: 'white', padding: '1rem' }}>
             {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                <button
+            <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                    <button
                         onClick={() => onMenuClick && onMenuClick()}
-                    style={{
-                        background: 'rgba(63, 114, 175, 0.1)',
-                        border: '1px solid rgba(63, 114, 175, 0.3)',
-                        color: 'var(--main-color)',
-                        borderRadius: '6px',
-                        padding: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        minWidth: '36px',
-                        minHeight: '36px'
-                    }}
-                >
-                    ☰
-                </button>
-                <h1 style={{ 
-                    margin: 0,
-                    fontSize: 'clamp(18px, 5vw, 28px)',
+                        style={{
+                            background: 'rgba(63, 114, 175, 0.1)',
+                            border: '1px solid rgba(63, 114, 175, 0.3)',
+                            color: 'var(--main-color)',
+                            borderRadius: '6px',
+                            padding: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            minWidth: '36px',
+                            minHeight: '36px'
+                        }}
+                    >
+                        ☰
+                    </button>
+                    <h1 style={{ 
+                        margin: 0,
+                        fontSize: 'clamp(18px, 5vw, 28px)',
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
-                        📁  Maker and Checker
+                        📁 Maker and Checker - User Data Explorer
                     </h1>
-            </div>
+                </div>
                 <p style={{ fontSize: '1rem', color: 'var(--text-color-light)', marginBottom: '0' }}>
-                    Browse uploaded files and view their extracted JSON data
+                    Browse your uploaded files organized by folder and view extracted JSON data
                 </p>
             </div>
-            
+
             {/* Error Display */}
             {error && (
-                        <div style={{ 
+                <div style={{
                     background: 'rgba(220, 53, 69, 0.1)',
                     color: 'var(--error-color)',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
                     border: '1px solid var(--error-color)',
                     marginBottom: '1rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                }}>
                     <span>⚠️</span>
                     <span>{error}</span>
                     <button
@@ -892,30 +686,25 @@ function Explorer({ onMenuClick }) {
                     >
                         ×
                     </button>
-          </div>
-        )}
+                </div>
+            )}
 
             {/* Main Content */}
-            <div style={{ 
+            <div style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '2rem',
                 minHeight: '600px'
             }}>
-<<<<<<< HEAD
-                {/* Left Panel - Original Files */}
-            <div style={{ 
-=======
-                {/* Left Panel - Folders and Files */}
+                {/* Left Panel - User Folders and Files */}
                 <div style={{
->>>>>>> e23839e (vikki:the data fetches and display from s3)
                     background: 'white',
-                borderRadius: 'var(--border-radius)', 
+                    borderRadius: 'var(--border-radius)',
                     border: '1px solid #e9ecef',
                     boxShadow: 'var(--shadow-light)',
                     padding: '1.5rem'
                 }}>
-                        <div style={{ 
+                    <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
@@ -923,87 +712,40 @@ function Explorer({ onMenuClick }) {
                     }}>
                         <h3 style={{ margin: 0, color: 'var(--main-color)' }}>
                             {view === 'folders' ? 
-                                `� Upload Folders (${Object.keys(uploadedFolders).length})` :
-                                `📄 Files in ${selectedFolder} (${uploadedFolders[selectedFolder]?.files?.length || 0})`
+                                `📁 Your Folders ${user ? `(${folders.length})` : ''}` :
+                                `📄 Files in ${selectedFolder} (${folderFiles.length})`
                             }
                         </h3>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {view !== 'folders' && (
-                                <>
-                                    <button
-                                        onClick={() => setView('grid')}
-                                        style={{
-                                            padding: '0.25rem 0.5rem',
-                                            border: '1px solid #e9ecef',
-                                            background: view === 'grid' ? 'var(--sub-color)' : 'white',
-                                            color: view === 'grid' ? 'white' : 'var(--text-color-dark)',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem'
-                                        }}
-                                    >
-                                        ⊞ Grid
-                                    </button>
-                                    <button
-                                        onClick={() => setView('list')}
-                                        style={{
-                                            padding: '0.25rem 0.5rem',
-                                            border: '1px solid #e9ecef',
-                                            background: view === 'list' ? 'var(--sub-color)' : 'white',
-                                            color: view === 'list' ? 'white' : 'var(--text-color-dark)',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem'
-                                        }}
-                                    >
-                                        ☰ List
-                                    </button>
-                                </>
-                            )}
                             <button
-                                onClick={loadUploadedFiles}
+                                onClick={() => user?.id && loadUserFolders(user.id)}
+                                disabled={!user?.id || loading}
                                 style={{
                                     padding: '0.25rem 0.5rem',
                                     border: '1px solid #e9ecef',
                                     background: 'white',
                                     color: 'var(--text-color-dark)',
                                     borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem'
+                                    cursor: user?.id && !loading ? 'pointer' : 'not-allowed',
+                                    fontSize: '0.8rem',
+                                    opacity: user?.id && !loading ? 1 : 0.6
                                 }}
                             >
                                 🔄 Refresh
                             </button>
-                            </div>
-                                </div>
-                                
+                        </div>
+                    </div>
+
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <div>Loading files...</div>
-<<<<<<< HEAD
-                                </div>
-                    ) : uploadedFiles.length === 0 ? (
-=======
-                        </div>
-                    ) : Object.keys(uploadedFolders).length === 0 ? (
->>>>>>> e23839e (vikki:the data fetches and display from s3)
-                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
-                            <h3>No Folders Found</h3>
-                            <p>Upload some files using the Smart PDF Extraction page</p>
-<<<<<<< HEAD
-                            </div>
-                        ) : (
-=======
+                            <div>Loading...</div>
                         </div>
                     ) : (
-                        view === 'folders' ? <FolderView /> : 
->>>>>>> e23839e (vikki:the data fetches and display from s3)
-                        view === 'grid' ? <FileGrid /> : <FileList />
-                        )}
+                        view === 'folders' ? <UserFoldersView /> : <UserFilesView />
+                    )}
                 </div>
 
-                {/* Right Panel - JSON Data */}
+                {/* Right Panel - JSON Data Viewer */}
                 <div style={{
                     background: 'white',
                     borderRadius: 'var(--border-radius)',
@@ -1012,8 +754,8 @@ function Explorer({ onMenuClick }) {
                     padding: '1.5rem'
                 }}>
                     <h3 style={{ margin: '0 0 1rem 0', color: 'var(--main-color)' }}>
-                        📊 JSON Data
-                        </h3>
+                        📊 Extracted Data
+                    </h3>
                     <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
                         <JsonViewer />
                     </div>

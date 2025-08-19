@@ -142,6 +142,144 @@ def _extract_text_ultrafast(pdf_path: str) -> Dict[int, str]:
     return out
 
 
+def _extract_tables_complete(pdf_path: str, total_pages: int) -> Dict[int, List[List[List[str]]]]:
+    """OPTIMIZED: Complete table extraction with speed improvements.
+    Uses smart page limiting and optimized Camelot parameters for 4-minute target.
+    """
+    result: Dict[int, List[List[List[str]]]] = defaultdict(list)
+
+    # Skip if Camelot not available
+    if not _CAMELOT_AVAILABLE or camelot is None:
+        print(
+            f"⚠️ Camelot not available - skipping table extraction for {os.path.basename(pdf_path)}")
+        return result
+
+    try:
+        # OPTIMIZATION 1: Limit pages for speed (most financial docs have tables in the first few pages)
+        # Process max 10 pages for speed
+        max_pages_to_process = min(10, total_pages)
+        pages_str = f"1-{max_pages_to_process}" if max_pages_to_process > 1 else "1"
+
+        print(
+            f"📊 FAST extracting tables from {max_pages_to_process}/{total_pages} pages in {os.path.basename(pdf_path)}...")
+
+        # OPTIMIZATION 2: Try lattice first with optimized parameters
+        try:
+            tables_lattice = camelot.read_pdf(
+                pdf_path,
+                pages=pages_str,
+                flavor='lattice',
+                table_areas=None,  # Auto-detect
+                strip_text='\n',   # Clean text
+                split_text=True,   # Better text handling
+                flag_size=True     # Skip tiny tables
+            )
+            if tables_lattice and len(tables_lattice) > 0:
+                print(f"  ✅ Lattice method found {len(tables_lattice)} tables")
+                for table in tables_lattice:
+                    try:
+                        page_num = int(
+                            str(getattr(table, "page", "1")).split(",")[0])
+                        if 1 <= page_num <= max_pages_to_process:
+                            # OPTIMIZATION 3: Quick data conversion
+                            df_data = table.df.values.tolist()
+                            # Filter out completely empty rows (faster check)
+                            cleaned_data = [row for row in df_data if any(
+                                str(cell).strip() for cell in row if cell)]
+                            # Only keep tables with at least 2 rows
+                            if cleaned_data and len(cleaned_data) >= 2:
+                                result[page_num].append(cleaned_data)
+                    except Exception as e:
+                        print(f"    ⚠️ Error processing lattice table: {e}")
+                        continue
+        except Exception as e:
+            print(f"  ⚠️ Lattice method failed: {e}")
+
+        # OPTIMIZATION 4: Only try stream if lattice found very few tables AND we have time budget
+        current_tables = sum(len(tables) for tables in result.values())
+        if current_tables < 2 and max_pages_to_process <= 5:  # Only for small docs with few tables
+            try:
+                tables_stream = camelot.read_pdf(
+                    pdf_path,
+                    pages=pages_str,
+                    flavor='stream',
+                    edge_tol=500,      # Faster edge detection
+                    row_tol=2          # Less strict row detection
+                )
+                if tables_stream and len(tables_stream) > 0:
+                    print(
+                        f"  ✅ Stream method found {len(tables_stream)} additional tables")
+                    for table in tables_stream:
+                        try:
+                            page_num = int(
+                                str(getattr(table, "page", "1")).split(",")[0])
+                            if 1 <= page_num <= max_pages_to_process:
+                                df_data = table.df.values.tolist()
+                                cleaned_data = [row for row in df_data if any(
+                                    str(cell).strip() for cell in row if cell)]
+                                if cleaned_data and len(cleaned_data) >= 2:
+                                    result[page_num].append(cleaned_data)
+                        except Exception as e:
+                            print(f"    ⚠️ Error processing stream table: {e}")
+                            continue
+            except Exception as e:
+                print(f"  ⚠️ Stream method failed: {e}")
+
+        total_tables = sum(len(tables) for tables in result.values())
+        print(
+            f"  📋 FAST extracted {total_tables} tables from {max_pages_to_process} pages")
+
+    except Exception as e:
+        print(
+            f"❌ Fast table extraction failed for {os.path.basename(pdf_path)}: {e}")
+
+    return result
+
+
+def _extract_tables_minimal(pdf_path: str, total_pages: int) -> Dict[int, List[List[List[str]]]]:
+    """Minimal table extraction - only extract from first few pages as sample.
+    Used for quick preview when full extraction is not needed.
+    """
+    result: Dict[int, List[List[List[str]]]] = defaultdict(list)
+
+    # Skip if Camelot not available
+    if not _CAMELOT_AVAILABLE or camelot is None:
+        return result
+
+    try:
+        # Only extract tables from first 5 pages as sample (reasonable balance)
+        sample_pages = min(5, total_pages)
+        if sample_pages > 0:
+            print(
+                f"📊 Quick table extraction from first {sample_pages} pages of {os.path.basename(pdf_path)}")
+            tables = camelot.read_pdf(
+                pdf_path, pages=f"1-{sample_pages}", flavor="lattice")
+            for t in tables or []:
+                try:
+                    p = int(str(getattr(t, "page", "1")).split(",")[0])
+                    if p <= sample_pages:
+                        df_data = t.df.values.tolist()
+                        cleaned_data = [row for row in df_data if any(
+                            str(cell).strip() for cell in row)]
+                        if cleaned_data:
+                            result[p].append(cleaned_data)
+                except Exception:
+                    continue
+
+            total_tables = sum(len(tables) for tables in result.values())
+            print(
+                f"  📋 Found {total_tables} tables in first {sample_pages} pages")
+    except Exception as e:
+        print(f"⚠️ Minimal table extraction failed: {e}")
+
+    return result
+
+
+def _extract_tables_skip() -> Dict[int, List[List[List[str]]]]:
+    """Skip table extraction entirely for maximum speed."""
+    return defaultdict(list)
+
+
 def _extract_tables_fast_camelot(pdf_path: str, total_pages: int) -> Dict[int, List[Dict[str, Any]]]:
     """FAST table extraction using camelot-py with proper table structure.
     Returns tables in a structured format with headers and data.
@@ -344,9 +482,11 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
         # Table extraction based on mode with better error handling
         if mode == "text":
             tables_by_page = defaultdict(list)
-        elif mode in ["tables", "complete"]:
+        elif mode == "tables":
             tables_by_page = _extract_tables_fast_camelot(
                 pdf_path, total_pages)
+        elif mode == "complete":
+            tables_by_page = _extract_tables_complete(pdf_path, total_pages)
         else:
             tables_by_page = defaultdict(list)
 
@@ -416,268 +556,330 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
         }
 
 
-# === NEW USER-BASED ENDPOINTS ===
+# === 4 UPLOAD MODES ===
 
 @router.post("/upload_single_instant")
-async def upload_single_pdf_instant(
+async def upload_single_instant(
     file: UploadFile = File(...),
     user_id: str = Form(...),
+    mode: str = Form("text"),
     folder_name: str = Form(...)
 ):
-    """Upload a single PDF and extract text/tables instantly with user-based organization"""
-    t0 = time.perf_counter()
+    """Mode 1: Single file instant upload with immediate processing.
+    mode: 'text' (text only) or 'tables' (fast table extraction)
+    user_id: Required user ID for organization
+    folder_name: Required folder name for organization
+    """
+    if not file or not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Please upload a PDF file")
 
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(
-            status_code=400, detail="Only PDF files are allowed")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
 
-    # Save to temp first
-    safe_filename = os.path.basename(file.filename.replace("\\", "/"))
-    temp_path = os.path.join(TEMP_INPUT_DIR, safe_filename)
+    if not folder_name:
+        raise HTTPException(status_code=400, detail="Folder name is required")
+
+    safe_name = os.path.basename(file.filename.replace("\\", "/"))
+    temp_path = os.path.join(
+        TEMP_INPUT_DIR, f"{int(time.time()*1000)}_{safe_name}")
+
+    # Save uploaded file
+    with open(temp_path, "wb") as out:
+        shutil.copyfileobj(file.file, out)
 
     try:
-        with open(temp_path, "wb") as temp_file:
-            shutil.copyfileobj(file.file, temp_file)
-
-        # Extract with table support
-        result = extract_pdf_to_json(temp_path, user_id, folder_name, "tables")
-
-        total_time_ms = int((time.perf_counter() - t0) * 1000)
-
-        return {
-            "status": "success",
-            "filename": safe_filename,
-            "user_id": user_id,
-            "folder_name": folder_name,
-            "result": result,
-            "total_time_ms": total_time_ms,
-            "message": f"✅ Single PDF processed in {total_time_ms}ms with table extraction"
-        }
-
+        result = extract_pdf_to_json(temp_path, user_id, folder_name, mode)
+        result["upload_mode"] = "single_instant"
+        return {"status": "completed", "result": result}
     except Exception as e:
-        logger.error(f"Single PDF upload failed: {str(e)}")
+        logger.error(f"Single instant upload failed: {e}")
         raise HTTPException(
             status_code=500, detail=f"Processing failed: {str(e)}")
     finally:
         # Clean up temp file
-        if os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-            except Exception:
-                pass
+        try:
+            os.remove(temp_path)
+        except Exception:
+            pass
 
 
 @router.post("/upload_multi_files")
-async def upload_multiple_pdfs(
+async def upload_multi_files(
     files: List[UploadFile] = File(...),
     user_id: str = Form(...),
-    folder_name: str = Form(...),
-    mode: str = Form("tables")
+    mode: str = Form("text"),
+    folder_name: str = Form(...)
 ):
-    """Upload multiple PDFs with parallel processing and user-based organization"""
-    t0_total = time.perf_counter()
-
+    """Mode 2: Multiple files upload with batch processing.
+    mode: 'text' (text only) or 'tables' (fast table extraction)
+    user_id: Required user ID for organization
+    folder_name: Required folder name for organization
+    """
     if not files or len(files) == 0:
         raise HTTPException(status_code=400, detail="No files uploaded")
 
-    # Filter and save PDFs
-    saved_paths: List[str] = []
-    for uploaded_file in files:
-        if not uploaded_file.filename or not uploaded_file.filename.lower().endswith(".pdf"):
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    if not folder_name:
+        raise HTTPException(status_code=400, detail="Folder name is required")
+
+    # Filter and save PDF files
+    saved_paths = []
+    for uf in files:
+        if not uf.filename or not uf.filename.lower().endswith('.pdf'):
             continue
-
-        safe_name = os.path.basename(uploaded_file.filename.replace("\\", "/"))
-        temp_path = os.path.join(TEMP_INPUT_DIR, safe_name)
-
+        safe_name = os.path.basename(uf.filename.replace("\\", "/"))
+        temp_path = os.path.join(
+            TEMP_INPUT_DIR, f"{int(time.time()*1000)}_{safe_name}")
         with open(temp_path, "wb") as out:
-            shutil.copyfileobj(uploaded_file.file, out)
+            shutil.copyfileobj(uf.file, out)
         saved_paths.append(temp_path)
 
-    if len(saved_paths) == 0:
+    if not saved_paths:
         raise HTTPException(status_code=400, detail="No valid PDF files found")
 
-    # Process in parallel
+    t0 = time.perf_counter()
     outputs = []
     errors = []
-    cpu = os.cpu_count() or 1
-    max_workers = min(max(4, cpu * 2), 16)
 
-    print(
-        f"📄 Processing {len(saved_paths)} PDFs with {max_workers} workers (mode: {mode})")
+    # Use moderate parallelism for multi-file
+    workers = min(8, len(saved_paths))
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         future_map = {
             executor.submit(extract_pdf_to_json, path, user_id, folder_name, mode): path
             for path in saved_paths
         }
 
         for future in as_completed(future_map):
-            src_path = future_map[future]
+            path = future_map[future]
             try:
-                result = future.result(timeout=120)
+                result = future.result()
+                result["upload_mode"] = "multi_files"
                 outputs.append(result)
             except Exception as e:
-                errors.append({
-                    "file": os.path.basename(src_path),
-                    "error": str(e)
-                })
-                logger.error(
-                    f"Error processing {os.path.basename(src_path)}: {e}")
+                errors.append(
+                    {"file": os.path.basename(path), "error": str(e)})
+            finally:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
 
-    # Clean up temp files
-    for temp_path in saved_paths:
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass
-
-    total_time_ms = int((time.perf_counter() - t0_total) * 1000)
-    total_pages = sum(o.get("pages", 0) for o in outputs)
-    s3_uploads_successful = sum(
-        1 for o in outputs if o.get("s3_upload", False))
+    total_time_ms = int((time.perf_counter() - t0) * 1000)
+    total_tables = sum(o.get("tables_found", 0) for o in outputs)
 
     return {
         "status": "completed",
-        "user_id": user_id,
-        "folder_name": folder_name,
+        "upload_mode": "multi_files",
         "processed_count": len(outputs),
         "errors": errors,
         "outputs": outputs,
         "total_time_ms": total_time_ms,
-        "total_pages": total_pages,
-        "extraction_mode": mode,
-        "s3_uploads_successful": s3_uploads_successful,
-        "s3_uploads_failed": len(outputs) - s3_uploads_successful,
-        "message": f"✅ Processed {len(outputs)} PDFs in {total_time_ms/1000:.2f}s | S3: {s3_uploads_successful}/{len(outputs)} uploaded"
+        "total_tables_found": total_tables,
+        "mode": mode,
+        "folder_name": folder_name
     }
 
 
 @router.post("/upload_folder_tables")
-async def upload_pdf_folder_with_tables(
+async def upload_folder_tables(
     files: List[UploadFile] = File(...),
     user_id: str = Form(...),
     folder_name: str = Form(...)
 ):
-    """Upload a folder of PDFs with full table extraction and user-based organization"""
-    t0_total = time.perf_counter()
+    """Mode 3: Folder upload for TABLE extraction only (very fast with camelot-py).
+    Optimized for speed with table extraction from first 10 pages.
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    if not folder_name:
+        raise HTTPException(status_code=400, detail="Folder name is required")
 
     if not files or len(files) == 0:
         raise HTTPException(status_code=400, detail="No files uploaded")
 
-    # Filter PDFs and persist to disk
-    saved_paths: List[str] = []
+    # Filter and save PDF files
+    saved_paths = []
     for uf in files:
-        filename = uf.filename or "unknown.pdf"
-        if not filename.lower().endswith(".pdf"):
+        if not uf.filename or not uf.filename.lower().endswith('.pdf'):
             continue
-
-        safe_name = os.path.basename(filename.replace("\\", "/"))
-        temp_path = os.path.join(TEMP_INPUT_DIR, safe_name)
-
+        safe_name = os.path.basename(uf.filename.replace("\\", "/"))
+        temp_path = os.path.join(
+            TEMP_INPUT_DIR, f"tbl_{int(time.time()*1000)}_{safe_name}")
         with open(temp_path, "wb") as out:
             shutil.copyfileobj(uf.file, out)
         saved_paths.append(temp_path)
 
-    if len(saved_paths) == 0:
-        raise HTTPException(
-            status_code=400, detail="No valid PDF files found in selection")
+    if not saved_paths:
+        raise HTTPException(status_code=400, detail="No valid PDF files found")
 
-    # Process with optimized workers for table extraction
+    t0 = time.perf_counter()
     outputs = []
     errors = []
-    cpu = os.cpu_count() or 1
-    pdf_workers = min(max(8, cpu * 3), 20)
+
+    # High parallelism for table extraction folder upload
+    workers = min(8, len(saved_paths))  # Reduced workers for better stability
 
     print(
-        f"🚀 Processing {len(saved_paths)} PDFs with {pdf_workers} workers (TABLES + TEXT)")
+        f"🚀 FOLDER TABLES: Processing {len(saved_paths)} PDFs with {workers} workers for user {user_id}")
 
-    with ThreadPoolExecutor(max_workers=pdf_workers) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         future_map = {
-            executor.submit(extract_pdf_to_json, p, user_id, folder_name, "tables"): p
-            for p in saved_paths
+            executor.submit(extract_pdf_to_json, path, user_id, folder_name, "tables"): path
+            for path in saved_paths
         }
 
         completed = 0
         for future in as_completed(future_map):
-            src_path = future_map[future]
+            path = future_map[future]
             try:
-                res = future.result(timeout=120)
-                outputs.append(res)
+                result = future.result()
+                result["upload_mode"] = "folder_tables"
+                outputs.append(result)
                 completed += 1
-                if completed % 2 == 0:
-                    elapsed = time.perf_counter() - t0_total
-                    eta = (elapsed / completed) * len(saved_paths) - elapsed
-                    print(
-                        f"✅ Completed {completed}/{len(saved_paths)} PDFs - ETA: {eta/60:.1f}min")
+                if completed % 5 == 0:
+                    print(f"✅ Completed {completed}/{len(saved_paths)} PDFs")
             except Exception as e:
+                print(f"❌ Error processing {os.path.basename(path)}: {str(e)}")
                 errors.append(
-                    {"file": os.path.basename(src_path), "error": str(e)})
-                print(f"❌ Error processing {os.path.basename(src_path)}: {e}")
+                    {"file": os.path.basename(path), "error": str(e)})
+            finally:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
 
-    # Clean up temp files
-    for temp_path in saved_paths:
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass
-
-    total_time_ms = int((time.perf_counter() - t0_total) * 1000)
+    total_time_ms = int((time.perf_counter() - t0) * 1000)
+    total_tables = sum(o.get("tables_found", 0) for o in outputs)
     total_pages = sum(o.get("pages", 0) for o in outputs)
-    pages_per_sec = total_pages / \
-        (total_time_ms / 1000) if total_time_ms > 0 else 0
-
-    s3_uploads_successful = sum(
-        1 for o in outputs if o.get("s3_upload", False))
-    s3_uploads_failed = len(outputs) - s3_uploads_successful
-    s3_upload_rate = (s3_uploads_successful / len(outputs)
-                      * 100) if outputs else 0
-
-    print(
-        f"🎉 COMPLETE: {len(outputs)} PDFs ({total_pages} pages) with tables in {total_time_ms/1000:.2f}s")
-    print(
-        f"☁️ S3 UPLOADS: {s3_uploads_successful}/{len(outputs)} successful ({s3_upload_rate:.1f}%)")
 
     return {
         "status": "completed",
-        "user_id": user_id,
-        "folder_name": folder_name,
+        "upload_mode": "folder_tables",
         "processed_count": len(outputs),
         "errors": errors,
         "outputs": outputs,
-        "workers": pdf_workers,
         "total_time_ms": total_time_ms,
         "total_pages": total_pages,
-        "pages_per_second": round(pages_per_sec, 1),
-        "extraction_mode": "TABLES_AND_TEXT",
-        "s3_uploads_successful": s3_uploads_successful,
-        "s3_uploads_failed": s3_uploads_failed,
-        "s3_upload_rate": round(s3_upload_rate, 1),
-        "message": f"🚀 Processing: {len(outputs)} PDFs ({total_pages} pages) with tables in {total_time_ms/1000:.2f}s | S3: {s3_uploads_successful}/{len(outputs)} uploaded"
+        "total_tables_found": total_tables,
+        "pages_per_second": round(total_pages / (total_time_ms / 1000), 1) if total_time_ms > 0 else 0,
+        "folder_name": folder_name,
+        "message": f"FAST table extraction: {len(outputs)} PDFs, {total_tables} tables in {total_time_ms/1000:.2f}s"
     }
 
 
 @router.post("/upload_folder_text")
-async def upload_pdf_folder_text_only(
+async def upload_folder_text(
     files: List[UploadFile] = File(...),
     user_id: str = Form(...),
     folder_name: str = Form(...)
 ):
-    """Upload a folder of PDFs with text-only extraction (ultra-fast) and user-based organization"""
+    """Mode 4: Folder upload for TEXT extraction only (ultra-fast, no tables).
+    Maximum speed for text-only extraction.
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    if not folder_name:
+        raise HTTPException(status_code=400, detail="Folder name is required")
+
+    if not files or len(files) == 0:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    # Filter and save PDF files
+    saved_paths = []
+    for uf in files:
+        if not uf.filename or not uf.filename.lower().endswith('.pdf'):
+            continue
+        safe_name = os.path.basename(uf.filename.replace("\\", "/"))
+        temp_path = os.path.join(
+            TEMP_INPUT_DIR, f"txt_{int(time.time()*1000)}_{safe_name}")
+        with open(temp_path, "wb") as out:
+            shutil.copyfileobj(uf.file, out)
+        saved_paths.append(temp_path)
+
+    if not saved_paths:
+        raise HTTPException(status_code=400, detail="No valid PDF files found")
+
+    t0 = time.perf_counter()
+    outputs = []
+    errors = []
+
+    # Maximum parallelism for ultra-fast text extraction
+    workers = min(16, len(saved_paths))
+
+    print(
+        f"🚀 FOLDER TEXT: Processing {len(saved_paths)} PDFs with {workers} workers (TEXT ONLY mode)")
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        future_map = {
+            executor.submit(extract_pdf_to_json, path, user_id, folder_name, "text"): path
+            for path in saved_paths
+        }
+
+        completed = 0
+        for future in as_completed(future_map):
+            path = future_map[future]
+            try:
+                result = future.result()
+                result["upload_mode"] = "folder_text"
+                outputs.append(result)
+                completed += 1
+                if completed % 10 == 0:
+                    print(f"✅ Completed {completed}/{len(saved_paths)} PDFs")
+            except Exception as e:
+                errors.append(
+                    {"file": os.path.basename(path), "error": str(e)})
+            finally:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+
+    total_time_ms = int((time.perf_counter() - t0) * 1000)
+    total_pages = sum(o.get("pages", 0) for o in outputs)
+
+    return {
+        "status": "completed",
+        "upload_mode": "folder_text",
+        "processed_count": len(outputs),
+        "errors": errors,
+        "outputs": outputs,
+        "total_time_ms": total_time_ms,
+        "total_pages": total_pages,
+        "pages_per_second": round(total_pages / (total_time_ms / 1000), 1) if total_time_ms > 0 else 0,
+        "folder_name": folder_name,
+        "message": f"ULTRA-FAST text extraction: {len(outputs)} PDFs, {total_pages} pages in {total_time_ms/1000:.2f}s"
+    }
+
+
+# === LEGACY ENDPOINTS (keep for compatibility) ===
+async def upload_pdf_folder(files: List[UploadFile] = File(...)):
+    """Accept multiple PDF files (from a folder selection on the frontend),
+    process each concurrently, and store JSON outputs under pdf_folder_extracted/<pdf_name>/.
+    Returns timing info for each file and overall.
+    ULTRA-OPTIMIZED: Maximum speed by skipping tables and using aggressive parallelism.
+    """
     t0_total = time.perf_counter()
 
     if not files or len(files) == 0:
         raise HTTPException(status_code=400, detail="No files uploaded")
 
-    # Filter PDFs and persist to disk
+    # Filter PDFs and persist to disk with minimal overhead
     saved_paths: List[str] = []
     for uf in files:
         filename = uf.filename or "unknown.pdf"
         if not filename.lower().endswith(".pdf"):
             continue
 
+        # Use simpler filename handling
         safe_name = os.path.basename(filename.replace("\\", "/"))
         temp_path = os.path.join(TEMP_INPUT_DIR, safe_name)
 
+        # Write file directly without creating intermediate directories
         with open(temp_path, "wb") as out:
             shutil.copyfileobj(uf.file, out)
         saved_paths.append(temp_path)
@@ -686,18 +888,22 @@ async def upload_pdf_folder_text_only(
         raise HTTPException(
             status_code=400, detail="No valid PDF files found in selection")
 
-    # Ultra-fast processing with high worker count
+    # Ultra-aggressive parallelism for maximum speed
     outputs = []
     errors = []
     cpu = os.cpu_count() or 1
-    pdf_workers = min(max(16, cpu * 4), 32)  # High worker count for text-only
+
+    # Use maximum workers possible - each PDF extraction is now very lightweight
+    # 16-32 workers for ultra-fast processing
+    pdf_workers = min(max(16, cpu * 4), 32)
 
     print(
-        f"⚡ Ultra-fast processing {len(saved_paths)} PDFs with {pdf_workers} workers (TEXT ONLY)")
+        f"🚀 Processing {len(saved_paths)} PDFs with {pdf_workers} workers (TEXT ONLY - no tables for speed)")
 
     with ThreadPoolExecutor(max_workers=pdf_workers) as executor:
+        # Submit all jobs with table extraction disabled for speed
         future_map = {
-            executor.submit(extract_pdf_to_json, p, user_id, folder_name, "text"): p
+            executor.submit(extract_pdf_to_json, p, BASE_OUTPUT_DIR, True): p
             for p in saved_paths
         }
 
@@ -705,32 +911,24 @@ async def upload_pdf_folder_text_only(
         for future in as_completed(future_map):
             src_path = future_map[future]
             try:
-                # Shorter timeout for text-only
-                res = future.result(timeout=60)
+                res = future.result()
                 outputs.append(res)
                 completed += 1
-                if completed % 5 == 0:  # More frequent updates
-                    elapsed = time.perf_counter() - t0_total
-                    eta = (elapsed / completed) * len(saved_paths) - elapsed
-                    print(
-                        f"⚡ Completed {completed}/{len(saved_paths)} PDFs - ETA: {eta:.1f}s")
+                if completed % 5 == 0:  # Progress indicator
+                    print(f"✅ Completed {completed}/{len(saved_paths)} PDFs")
             except Exception as e:
                 errors.append(
                     {"file": os.path.basename(src_path), "error": str(e)})
                 print(f"❌ Error processing {os.path.basename(src_path)}: {e}")
 
-    # Clean up temp files
-    for temp_path in saved_paths:
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass
-
     total_time_ms = int((time.perf_counter() - t0_total) * 1000)
+
+    # Calculate performance metrics
     total_pages = sum(o.get("pages", 0) for o in outputs)
     pages_per_sec = total_pages / \
         (total_time_ms / 1000) if total_time_ms > 0 else 0
 
+    # Calculate S3 upload statistics
     s3_uploads_successful = sum(
         1 for o in outputs if o.get("s3_upload", False))
     s3_uploads_failed = len(outputs) - s3_uploads_successful
@@ -738,17 +936,16 @@ async def upload_pdf_folder_text_only(
                       * 100) if outputs else 0
 
     print(
-        f"⚡ ULTRA-FAST COMPLETE: {len(outputs)} PDFs ({total_pages} pages) in {total_time_ms/1000:.2f}s")
+        f"🎉 COMPLETED: {len(outputs)} PDFs ({total_pages} pages) in {total_time_ms/1000:.2f}s = {pages_per_sec:.1f} pages/sec")
     print(
         f"☁️ S3 UPLOADS: {s3_uploads_successful}/{len(outputs)} successful ({s3_upload_rate:.1f}%)")
 
     return {
         "status": "completed",
-        "user_id": user_id,
-        "folder_name": folder_name,
         "processed_count": len(outputs),
         "errors": errors,
         "outputs": outputs,
+        "output_root": os.path.relpath(BASE_OUTPUT_DIR, BACKEND_DIR),
         "workers": pdf_workers,
         "total_time_ms": total_time_ms,
         "total_pages": total_pages,
@@ -761,7 +958,292 @@ async def upload_pdf_folder_text_only(
     }
 
 
-# === USER-BASED DATA MANAGEMENT ENDPOINTS ===
+# === LEGACY ENDPOINTS HAVE BEEN REMOVED ===
+# All legacy endpoints that used BASE_OUTPUT_DIR have been removed in favor of the new user-based structure.
+# The old endpoints did not support the user-based folder organization and have been replaced by:
+# - /upload_single_instant
+# - /upload_multi_files
+# - /upload_folder_tables
+# - /upload_folder_text
+# - /user_folders/{user_id}
+# - /user_folder_files/{user_id}/{folder_name}
+# - /user_json_data/{user_id}/{folder_name}/{filename}
+
+# === NEW USER-BASED ENDPOINTS ===
+# async def upload_pdf_folder_with_tables(files: List[UploadFile] = File(...)):
+    """Same as folder_uploader but WITH table extraction (slower but complete).
+    Use this endpoint when you need tables extracted from PDFs.
+    """
+    t0_total = time.perf_counter()
+
+    if not files or len(files) == 0:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    # Filter PDFs and persist to disk
+    saved_paths: List[str] = []
+    for uf in files:
+        filename = uf.filename or "unknown.pdf"
+        if not filename.lower().endswith(".pdf"):
+            continue
+
+        safe_name = os.path.basename(filename.replace("\\", "/"))
+        temp_path = os.path.join(TEMP_INPUT_DIR, safe_name)
+
+        with open(temp_path, "wb") as out:
+            shutil.copyfileobj(uf.file, out)
+        saved_paths.append(temp_path)
+
+    if len(saved_paths) == 0:
+        raise HTTPException(
+            status_code=400, detail="No valid PDF files found in selection")
+
+    # OPTIMIZED: More aggressive worker count for 4-minute target
+    outputs = []
+    errors = []
+    cpu = os.cpu_count() or 1
+
+    # OPTIMIZATION: Higher worker count since table extraction is now faster
+    # Target: Process multiple PDFs in parallel for speed
+    # Increased from conservative 12 to aggressive 20
+    pdf_workers = min(max(8, cpu * 3), 20)
+
+    print(
+        f"� OPTIMIZED: Processing {len(saved_paths)} PDFs with {pdf_workers} workers (FAST TABLES + TEXT)")
+
+    with ThreadPoolExecutor(max_workers=pdf_workers) as executor:
+        future_map = {
+            executor.submit(extract_pdf_to_json, p, BASE_OUTPUT_DIR, False): p
+            for p in saved_paths
+        }
+
+        completed = 0
+        for future in as_completed(future_map):
+            src_path = future_map[future]
+            try:
+                # OPTIMIZATION: Add timeout to prevent hanging (max 2 minutes per PDF)
+                res = future.result(timeout=120)  # 2-minute timeout per PDF
+                outputs.append(res)
+                completed += 1
+                if completed % 2 == 0:  # More frequent progress updates
+                    elapsed = time.perf_counter() - t0_total
+                    eta = (elapsed / completed) * len(saved_paths) - elapsed
+                    print(
+                        f"✅ Completed {completed}/{len(saved_paths)} PDFs - ETA: {eta/60:.1f}min")
+            except Exception as e:
+                errors.append(
+                    {"file": os.path.basename(src_path), "error": str(e)})
+                print(f"❌ Error processing {os.path.basename(src_path)}: {e}")
+
+    total_time_ms = int((time.perf_counter() - t0_total) * 1000)
+    total_pages = sum(o.get("pages", 0) for o in outputs)
+    pages_per_sec = total_pages / \
+        (total_time_ms / 1000) if total_time_ms > 0 else 0
+
+    # Calculate S3 upload statistics
+    s3_uploads_successful = sum(
+        1 for o in outputs if o.get("s3_upload", False))
+    s3_uploads_failed = len(outputs) - s3_uploads_successful
+    s3_upload_rate = (s3_uploads_successful / len(outputs)
+                      * 100) if outputs else 0
+
+    print(
+        f"🎉 OPTIMIZED COMPLETE: {len(outputs)} PDFs ({total_pages} pages) with FAST tables in {total_time_ms/1000:.2f}s")
+    print(
+        f"☁️ S3 UPLOADS: {s3_uploads_successful}/{len(outputs)} successful ({s3_upload_rate:.1f}%)")
+
+    return {
+        "status": "completed",
+        "processed_count": len(outputs),
+        "errors": errors,
+        "outputs": outputs,
+        "output_root": os.path.relpath(BASE_OUTPUT_DIR, BACKEND_DIR),
+        "workers": pdf_workers,
+        "total_time_ms": total_time_ms,
+        "total_pages": total_pages,
+        "pages_per_second": round(pages_per_sec, 1),
+        "extraction_mode": "OPTIMIZED_TEXT_AND_TABLES",
+        "s3_uploads_successful": s3_uploads_successful,
+        "s3_uploads_failed": s3_uploads_failed,
+        "s3_upload_rate": round(s3_upload_rate, 1),
+        "message": f"� OPTIMIZED processing: {len(outputs)} PDFs ({total_pages} pages) with FAST tables in {total_time_ms/1000:.2f}s | S3: {s3_uploads_successful}/{len(outputs)} uploaded | Target: <4min ✅"
+    }
+
+
+# @router.post("/folder_uploader/zip")
+# async def zip_folder_jsons(payload: Dict[str, Any]):
+    """Create and return a ZIP containing provided JSON output files.
+    Expects payload: { "outputs": ["pdf_folder_extracted/NAME/NAME.json", ...] }
+    Paths are validated to be within BASE_OUTPUT_DIR.
+    """
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid request body")
+
+    rel_paths = payload.get("outputs")
+    if not rel_paths or not isinstance(rel_paths, list):
+        raise HTTPException(status_code=400, detail="No outputs provided")
+
+    # Resolve and validate paths
+    valid_files: List[str] = []
+    base_real = os.path.realpath(BASE_OUTPUT_DIR)
+    for p in rel_paths:
+        if not isinstance(p, str):
+            continue
+        # Normalize path and ensure it's under BASE_OUTPUT_DIR
+        abs_p = os.path.realpath(os.path.join(BACKEND_DIR, p))
+        try:
+            common = os.path.commonpath([base_real, abs_p])
+        except ValueError:
+            # Different drives on Windows
+            continue
+        if common != base_real:
+            continue
+        if os.path.isfile(abs_p):
+            valid_files.append(abs_p)
+
+    if not valid_files:
+        raise HTTPException(
+            status_code=400, detail="No valid JSON files to zip")
+
+    # Create ZIP in temp folder
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    zip_name = f"pdf_jsons_{ts}.zip"
+    zip_path = os.path.join(ZIP_OUTPUT_DIR, zip_name)
+    # Write with directory structure relative to BASE_OUTPUT_DIR for clarity
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for f in valid_files:
+            arcname = os.path.relpath(f, BASE_OUTPUT_DIR)
+            zf.write(f, arcname)
+
+    return FileResponse(zip_path, media_type="application/zip", filename=zip_name)
+
+
+@router.get("/uploaded-files")
+async def get_uploaded_files():
+    """Get grouped list of uploaded folders and their files for maker-checker display.
+    Returns organized structure: {groups: [{group_name, files: [...]}]}
+    """
+    try:
+        groups = []
+
+        # Scan pdf_folder_extracted directory for organized folders
+        if os.path.exists(BASE_OUTPUT_DIR):
+            for item in os.listdir(BASE_OUTPUT_DIR):
+                item_path = os.path.join(BASE_OUTPUT_DIR, item)
+
+                if os.path.isdir(item_path):
+                    # Check if this is a folder group (contains subfolders) or single file folder
+                    subfolders = [f for f in os.listdir(
+                        item_path) if os.path.isdir(os.path.join(item_path, f))]
+
+                    if subfolders:
+                        # This is a group folder containing multiple PDF folders
+                        group_entry = {"group_name": item, "files": []}
+
+                        for pdf_folder in subfolders:
+                            pdf_dir = os.path.join(item_path, pdf_folder)
+                            json_file = os.path.join(
+                                pdf_dir, f"{pdf_folder}.json")
+
+                            if os.path.exists(json_file):
+                                json_stat = os.stat(json_file)
+
+                                # Try to read mode from JSON
+                                mode = "unknown"
+                                try:
+                                    with open(json_file, 'r') as f:
+                                        json_data = json.load(f)
+                                        mode = json_data.get("mode", "unknown")
+                                except Exception:
+                                    pass
+
+                                file_info = {
+                                    "name": pdf_folder,
+                                    "type": "pdf",
+                                    "group": item,
+                                    "mode": mode,
+                                    "folder_path": pdf_dir,
+                                    "json_path": json_file,
+                                    "json_relative_path": f"pdf_folder_extracted/{item}/{pdf_folder}/{pdf_folder}.json",
+                                    "size": json_stat.st_size,
+                                    "created_at": datetime.fromtimestamp(json_stat.st_ctime).isoformat(),
+                                    "modified_at": datetime.fromtimestamp(json_stat.st_mtime).isoformat(),
+                                    "hasJson": True,
+                                    "source": "folder_upload"
+                                }
+                                group_entry["files"].append(file_info)
+
+                        if group_entry["files"]:
+                            # Sort files by creation time (newest first)
+                            group_entry["files"].sort(
+                                key=lambda x: x["created_at"], reverse=True)
+                            groups.append(group_entry)
+
+                    else:
+                        # This is a single file folder (legacy format)
+                        json_file = os.path.join(item_path, f"{item}.json")
+                        if os.path.exists(json_file):
+                            json_stat = os.stat(json_file)
+
+                            # Try to read mode from JSON
+                            mode = "unknown"
+                            try:
+                                with open(json_file, 'r') as f:
+                                    json_data = json.load(f)
+                                    mode = json_data.get("mode", "legacy")
+                            except Exception:
+                                pass
+
+                            # Create a single-file group
+                            group_entry = {
+                                "group_name": "Individual Files",
+                                "files": [{
+                                    "name": item,
+                                    "type": "pdf",
+                                    "group": "Individual Files",
+                                    "mode": mode,
+                                    "folder_path": item_path,
+                                    "json_path": json_file,
+                                    "json_relative_path": f"pdf_folder_extracted/{item}/{item}.json",
+                                    "size": json_stat.st_size,
+                                    "created_at": datetime.fromtimestamp(json_stat.st_ctime).isoformat(),
+                                    "modified_at": datetime.fromtimestamp(json_stat.st_mtime).isoformat(),
+                                    "hasJson": True,
+                                    "source": "single_upload"
+                                }]
+                            }
+
+                            # Check if "Individual Files" group already exists
+                            existing_group = next(
+                                (g for g in groups if g["group_name"] == "Individual Files"), None)
+                            if existing_group:
+                                existing_group["files"].extend(
+                                    group_entry["files"])
+                            else:
+                                groups.append(group_entry)
+
+        # Sort groups by newest file in each group
+        for group in groups:
+            if group["files"]:
+                group["files"].sort(
+                    key=lambda x: x["created_at"], reverse=True)
+
+        groups.sort(key=lambda g: g["files"][0]["created_at"]
+                    if g["files"] else "", reverse=True)
+
+        return {
+            "status": "success",
+            "groups": groups,
+            "total_groups": len(groups),
+            "total_files": sum(len(g["files"]) for g in groups)
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting uploaded files: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get uploaded files: {str(e)}")
+
+
+# === NEW USER-BASED ENDPOINTS ===
 
 @router.get("/user_folders/{user_id}")
 async def get_user_folders(user_id: str):
@@ -960,191 +1442,3 @@ async def delete_user_folder(user_id: str, folder_name: str):
         logger.error(f"Error deleting user folder: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to delete folder: {str(e)}")
-
-
-@router.get("/all_users_data")
-async def get_all_users_data():
-    """Get folders and files from all users for maker-checker view"""
-    try:
-        all_users_data = {}
-        users_base_path = os.path.join(VIFILES_BASE_DIR, "users")
-
-        if not os.path.exists(users_base_path):
-            return {
-                "total_users": 0,
-                "users_data": {},
-                "s3_data": {}
-            }
-
-        # Get local data for all users
-        for user_id in os.listdir(users_base_path):
-            user_path = os.path.join(users_base_path, user_id)
-            if os.path.isdir(user_path):
-                user_folders = []
-
-                for folder_name in os.listdir(user_path):
-                    folder_path = os.path.join(user_path, folder_name)
-                    if os.path.isdir(folder_path):
-                        pdf_dir = os.path.join(folder_path, "pdf")
-                        json_dir = os.path.join(folder_path, "json")
-
-                        folder_info = {
-                            "folder_name": folder_name,
-                            "pdf_count": 0,
-                            "json_count": 0,
-                            "created_at": datetime.fromtimestamp(os.path.getctime(folder_path)).isoformat(),
-                            "files": []
-                        }
-
-                        # Get PDF files info
-                        if os.path.exists(pdf_dir):
-                            for pdf_file in os.listdir(pdf_dir):
-                                if pdf_file.lower().endswith('.pdf'):
-                                    pdf_path = os.path.join(pdf_dir, pdf_file)
-                                    json_filename = pdf_file.replace(
-                                        '.pdf', '.json').replace('.PDF', '.json')
-                                    json_path = os.path.join(
-                                        json_dir, json_filename) if os.path.exists(json_dir) else None
-                                    has_json = json_path and os.path.exists(
-                                        json_path)
-
-                                    file_info = {
-                                        "filename": pdf_file,
-                                        "size": os.path.getsize(pdf_path),
-                                        "created_at": datetime.fromtimestamp(os.path.getctime(pdf_path)).isoformat(),
-                                        "has_json": has_json,
-                                        "json_filename": json_filename if has_json else None
-                                    }
-                                    folder_info["files"].append(file_info)
-                                    folder_info["pdf_count"] += 1
-
-                        # Count JSON files
-                        if os.path.exists(json_dir):
-                            folder_info["json_count"] = len([f for f in os.listdir(json_dir)
-                                                             if f.lower().endswith('.json')])
-
-                        user_folders.append(folder_info)
-
-                if user_folders:  # Only include users who have folders
-                    all_users_data[user_id] = {
-                        "user_id": user_id,
-                        "total_folders": len(user_folders),
-                        "folders": user_folders
-                    }
-
-        # Get S3 data for all users if available
-        s3_data = {}
-        if S3_AVAILABLE and s3_service:
-            try:
-                s3_result = s3_service.list_all_users_data()
-                if s3_result.get("success"):
-                    s3_data = s3_result.get("data", {})
-            except Exception as e:
-                logger.warning(f"Failed to get S3 data for all users: {e}")
-
-        return {
-            "total_users": len(all_users_data),
-            "users_data": all_users_data,
-            "s3_data": s3_data
-        }
-
-    except Exception as e:
-        logger.error(f"Error getting all users data: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get all users data: {str(e)}")
-
-
-@router.get("/all_users_files/{user_id}/{folder_name}")
-async def get_all_users_folder_files(user_id: str, folder_name: str):
-    """Get files from a specific folder for any user (for maker-checker view)"""
-    try:
-        folder_path = get_user_folder_path(user_id, folder_name)
-        if not os.path.exists(folder_path):
-            raise HTTPException(status_code=404, detail="Folder not found")
-
-        pdf_dir = os.path.join(folder_path, "pdf")
-        json_dir = os.path.join(folder_path, "json")
-        files = []
-
-        if os.path.exists(pdf_dir):
-            for filename in os.listdir(pdf_dir):
-                if filename.lower().endswith('.pdf'):
-                    file_path = os.path.join(pdf_dir, filename)
-                    json_filename = filename.replace(
-                        '.pdf', '.json').replace('.PDF', '.json')
-                    json_path = os.path.join(
-                        json_dir, json_filename) if os.path.exists(json_dir) else None
-                    has_json = json_path and os.path.exists(json_path)
-
-                    file_info = {
-                        "filename": filename,
-                        "size": os.path.getsize(file_path),
-                        "created_at": datetime.fromtimestamp(os.path.getctime(file_path)).isoformat(),
-                        "has_json": has_json,
-                        "json_filename": json_filename if has_json else None
-                    }
-                    files.append(file_info)
-
-        return {
-            "user_id": user_id,
-            "folder_name": folder_name,
-            "total_files": len(files),
-            "files": files
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(
-            f"Error getting files for user {user_id}, folder {folder_name}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get files: {str(e)}")
-
-
-@router.get("/all_users_json_data/{user_id}/{folder_name}/{filename}")
-async def get_all_users_json_data(user_id: str, folder_name: str, filename: str):
-    """Get JSON data from any user's folder (for maker-checker view)"""
-    try:
-        folder_path = get_user_folder_path(user_id, folder_name)
-        json_dir = os.path.join(folder_path, "json")
-        json_path = os.path.join(json_dir, filename)
-
-        if not os.path.exists(json_path):
-            # Try S3 if available
-            if S3_AVAILABLE and s3_service:
-                try:
-                    s3_result = s3_service.get_json_data(
-                        user_id, folder_name, filename)
-                    if s3_result.get("success"):
-                        return {
-                            "user_id": user_id,
-                            "folder_name": folder_name,
-                            "filename": filename,
-                            "source": "s3",
-                            "data": s3_result.get("data")
-                        }
-                except Exception as e:
-                    logger.warning(f"Failed to get JSON from S3: {e}")
-
-            raise HTTPException(status_code=404, detail="JSON file not found")
-
-        # Read local JSON file
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        return {
-            "user_id": user_id,
-            "folder_name": folder_name,
-            "filename": filename,
-            "source": "local",
-            "data": data
-        }
-
-    except HTTPException:
-        raise
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=422, detail="Invalid JSON file")
-    except Exception as e:
-        logger.error(f"Error getting JSON data: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get JSON data: {str(e)}")

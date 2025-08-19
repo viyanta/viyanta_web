@@ -405,17 +405,19 @@ class ApiService {
 
   async getUploadedFiles() {
     try {
-      // Get files from pdf_folder_extracted directory
+      // Get grouped files from pdf_folder_extracted directory
       const response = await fetch(`${API_BASE_URL}/uploaded-files`);
       if (response.ok) {
-        return response.json();
+        const data = await response.json();
+        // Return the full response with groups structure
+        return data;
       } else {
-        // Fallback: return empty array if endpoint doesn't exist
-        return [];
+        // Fallback: return empty groups structure
+        return { status: "success", groups: [], total_groups: 0, total_files: 0 };
       }
     } catch (error) {
       console.error('Failed to get uploaded files:', error);
-      return [];
+      return { status: "error", groups: [], total_groups: 0, total_files: 0 };
     }
   }
 
@@ -443,6 +445,278 @@ class ApiService {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
+
+  // === NEW 4 UPLOAD MODES ===
+
+  // Mode 1: Single instant upload
+  async uploadSingleInstant(file, mode = 'text', folderName = null, userId = null) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('mode', mode);
+    
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    formData.append('user_id', userId);
+    
+    // Use a default folder name if not provided
+    if (!folderName) {
+      folderName = `upload_${new Date().toISOString().split('T')[0]}`;
+    }
+    formData.append('folder_name', folderName);
+
+    const response = await fetch(`${API_BASE_URL}/upload_single_instant`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Single instant upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Mode 2: Multiple files upload
+  async uploadMultiFiles(files, mode = 'text', folderName = null, userId = null) {
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    formData.append('mode', mode);
+    
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    formData.append('user_id', userId);
+    
+    // Use a default folder name if not provided
+    if (!folderName) {
+      folderName = `upload_${new Date().toISOString().split('T')[0]}`;
+    }
+    formData.append('folder_name', folderName);
+
+    const response = await fetch(`${API_BASE_URL}/upload_multi_files`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Multi files upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Mode 3: Folder upload for tables only (fast)
+  async uploadFolderTables(files, folderName, userId = null) {
+    if (!folderName) throw new Error('Folder name is required for folder table upload');
+    
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    formData.append('user_id', userId);
+    formData.append('folder_name', folderName);
+
+    const response = await fetch(`${API_BASE_URL}/upload_folder_tables`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Folder tables upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Mode 4: Folder upload for text only (ultra-fast)
+  async uploadFolderText(files, folderName, userId = null) {
+    if (!folderName) throw new Error('Folder name is required for folder text upload');
+    
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    formData.append('user_id', userId);
+    formData.append('folder_name', folderName);
+
+    const response = await fetch(`${API_BASE_URL}/upload_folder_text`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Folder text upload failed');
+    }
+
+    return response.json();
+  }
+
+  // === NEW USER-BASED FOLDER MANAGEMENT ===
+  
+  async getUserFolders(userId = null) {
+    // Get user from localStorage if not provided
+    if (!userId) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        userId = user.id || user.user_id || 'default_user';
+      } else {
+        userId = 'default_user';
+      }
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/user_folders/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get user folders');
+    }
+
+    return response.json();
+  }
+  
+  async getUserFolderFiles(userId, folderName) {
+    const response = await fetch(`${API_BASE_URL}/user_folder_files/${userId}/${encodeURIComponent(folderName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get folder files');
+    }
+
+    return response.json();
+  }
+  
+  async getUserJsonData(userId, folderName, filename) {
+    const response = await fetch(`${API_BASE_URL}/user_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get JSON data');
+    }
+
+    return response.json();
+  }
+  
+  async deleteUserFolder(userId, folderName) {
+    const response = await fetch(`${API_BASE_URL}/user_folder/${userId}/${encodeURIComponent(folderName)}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete folder');
+    }
+
+    return response.json();
+  }
+
+  // === ALL USERS DATA METHODS (for maker-checker view) ===
+  async getAllUsersData() {
+    const response = await fetch(`${API_BASE_URL}/all_users_data`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get all users data');
+    }
+
+    return response.json();
+  }
+  
+  async getAllUsersFolderFiles(userId, folderName) {
+    const response = await fetch(`${API_BASE_URL}/all_users_files/${userId}/${encodeURIComponent(folderName)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get folder files');
+    }
+
+    return response.json();
+  }
+  
+  async getAllUsersJsonData(userId, folderName, filename) {
+    const response = await fetch(`${API_BASE_URL}/all_users_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get JSON data');
+    }
+
+    return response.json();
+  }
+
+  // === LEGACY METHODS (kept for compatibility) ===
 }
 
 export default new ApiService();

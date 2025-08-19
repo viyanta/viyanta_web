@@ -6,31 +6,31 @@ import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
 import { subscribeToAuthChanges } from '../firebase/auth.js'
 
-function Explorer({ onMenuClick }) {
+function ExplorerAllUsers({ onMenuClick }) {
     const { refreshStats } = useStats();
     const [error, setError] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
     const [user, setUser] = React.useState(null);
     const [authLoading, setAuthLoading] = React.useState(true);
     
-    // New user-based state
-    const [folders, setFolders] = React.useState([]);
+    // All users data state
+    const [allUsersData, setAllUsersData] = React.useState({});
+    const [selectedUser, setSelectedUser] = React.useState(null);
     const [selectedFolder, setSelectedFolder] = React.useState(null);
     const [folderFiles, setFolderFiles] = React.useState([]);
     const [selectedFile, setSelectedFile] = React.useState(null);
     const [jsonData, setJsonData] = React.useState(null);
     const [jsonLoading, setJsonLoading] = React.useState(false);
-    const [view, setView] = React.useState('folders'); // 'folders' | 'files'
+    const [view, setView] = React.useState('users'); // 'users' | 'folders' | 'files'
     
-    // AWS S3 details state
-    const [s3Details, setS3Details] = React.useState(null);
+    // S3 data state
+    const [s3Data, setS3Data] = React.useState({});
     
-    // Set up Firebase auth listener and load user data
+    // Set up Firebase auth listener (for authentication context)
     React.useEffect(() => {
         const unsubscribe = subscribeToAuthChanges((authUser) => {
             setAuthLoading(false);
             if (authUser) {
-                // Use Firebase user data
                 const userData = {
                     id: authUser.uid,
                     email: authUser.email,
@@ -39,62 +39,50 @@ function Explorer({ onMenuClick }) {
                 };
                 setUser(userData);
                 console.log('Firebase user authenticated:', userData);
-                loadUserFolders(authUser.uid);
             } else {
-                // No user authenticated
                 setUser(null);
-                setFolders([]);
-                setS3Details(null);
                 console.log('No user authenticated');
             }
         });
 
         return () => unsubscribe();
     }, []);
-    
-    // Load user folders using new API
-    const loadUserFolders = async (userId) => {
-        if (!userId) {
-            console.log('No user ID provided');
-            return;
-        }
 
+    // Load all users data on component mount
+    React.useEffect(() => {
+        loadAllUsersData();
+    }, []);
+    
+    // Load all users data using new API
+    const loadAllUsersData = async () => {
         setLoading(true);
         setError(null);
         try {
-            console.log('Loading folders for user:', userId);
-            const response = await ApiService.getUserFolders(userId);
-            console.log('User folders response:', response);
+            console.log('Loading all users data...');
+            const response = await ApiService.getAllUsersData();
+            console.log('All users data response:', response);
             
-            setFolders(response.folders || []);
-            setS3Details({
-                s3_folders: response.s3_folders || [],
-                total_folders: response.total_folders || 0,
-                user_id: response.user_id
-            });
+            setAllUsersData(response.users_data || {});
+            setS3Data(response.s3_data || {});
         } catch (error) {
-            console.error('Failed to load user folders:', error);
-            setError('Failed to load user folders: ' + error.message);
+            console.error('Failed to load all users data:', error);
+            setError('Failed to load all users data: ' + error.message);
         } finally {
             setLoading(false);
         }
     };
 
-    // Load files for a specific folder
-    const loadFolderFiles = async (folderName) => {
-        if (!user?.id) {
-            setError('No user authenticated');
-            return;
-        }
-
+    // Load files for a specific user's folder
+    const loadUserFolderFiles = async (userId, folderName) => {
         setLoading(true);
         setError(null);
         try {
-            console.log('Loading files for folder:', folderName, 'user:', user.id);
-            const response = await ApiService.getUserFolderFiles(user.id, folderName);
+            console.log('Loading files for user:', userId, 'folder:', folderName);
+            const response = await ApiService.getAllUsersFolderFiles(userId, folderName);
             console.log('Folder files response:', response);
             
             setFolderFiles(response.files || []);
+            setSelectedUser(userId);
             setSelectedFolder(folderName);
             setView('files');
         } catch (error) {
@@ -107,7 +95,7 @@ function Explorer({ onMenuClick }) {
 
     // Select and load JSON for a file
     const selectFile = async (file) => {
-        if (!user?.id || !selectedFolder) {
+        if (!selectedUser || !selectedFolder) {
             setError('No user or folder selected');
             return;
         }
@@ -119,8 +107,8 @@ function Explorer({ onMenuClick }) {
         try {
             if (file.has_json && file.json_filename) {
                 console.log('Loading JSON for file:', file.json_filename);
-                const response = await ApiService.getUserJsonData(
-                    user.id, 
+                const response = await ApiService.getAllUsersJsonData(
+                    selectedUser, 
                     selectedFolder, 
                     file.json_filename
                 );
@@ -137,8 +125,18 @@ function Explorer({ onMenuClick }) {
         }
     };
 
+    // Navigate back to users view
+    const navigateToUsers = () => {
+        setView('users');
+        setSelectedUser(null);
+        setSelectedFolder(null);
+        setFolderFiles([]);
+        setSelectedFile(null);
+        setJsonData(null);
+    };
+
     // Navigate back to folders view
-    const navigateBack = () => {
+    const navigateToFolders = () => {
         setView('folders');
         setSelectedFolder(null);
         setFolderFiles([]);
@@ -254,35 +252,135 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-    // New User Folders View
-    const UserFoldersView = () => {
-        if (authLoading) {
+    // All Users View
+    const AllUsersView = () => {
+        const usersList = Object.entries(allUsersData);
+        
+        if (usersList.length === 0) {
             return (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <div>Loading user authentication...</div>
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
+                    <h3>No Users Found</h3>
+                    <p>No user data available at the moment</p>
                 </div>
             );
         }
 
-        if (!user) {
+        return (
+            <div>
+                {/* Users Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                    gap: '1rem',
+                    marginBottom: '2rem'
+                }}>
+                    {usersList.map(([userId, userData]) => (
+                        <div
+                            key={userId}
+                            onClick={() => {
+                                setSelectedUser(userId);
+                                setView('folders');
+                            }}
+                            style={{
+                                border: '1px solid #e9ecef',
+                                borderRadius: '8px',
+                                padding: '1.5rem',
+                                cursor: 'pointer',
+                                background: 'white',
+                                transition: 'all 0.2s ease',
+                                boxShadow: 'var(--shadow-light)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'var(--background-color)';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'white';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            <div style={{
+                                fontSize: '3rem',
+                                textAlign: 'center',
+                                marginBottom: '1rem'
+                            }}>
+                                👤
+                            </div>
+                            <div style={{
+                                fontWeight: '600',
+                                fontSize: '1rem',
+                                marginBottom: '0.5rem',
+                                textAlign: 'center',
+                                color: 'var(--main-color)',
+                                wordBreak: 'break-word'
+                            }}>
+                                {userId}
+                            </div>
+                            <div style={{
+                                fontSize: '0.85rem',
+                                color: 'var(--text-color-light)',
+                                textAlign: 'center',
+                                marginBottom: '0.5rem'
+                            }}>
+                                {userData.total_folders} folders
+                            </div>
+                            <div style={{
+                                fontSize: '0.75rem',
+                                color: 'var(--text-color-light)',
+                                textAlign: 'center'
+                            }}>
+                                {userData.folders.reduce((sum, folder) => sum + folder.pdf_count, 0)} PDFs •{' '}
+                                {userData.folders.reduce((sum, folder) => sum + folder.json_count, 0)} JSONs
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* S3 Data Info (if any) */}
+                {Object.keys(s3Data).length > 0 && (
+                    <div>
+                        <h4 style={{ color: 'var(--sub-color)', marginBottom: '1rem' }}>
+                            ☁️ AWS S3 Users ({Object.keys(s3Data).length})
+                        </h4>
+                        <div style={{
+                            background: 'rgba(63, 114, 175, 0.05)',
+                            border: '1px solid rgba(63, 114, 175, 0.3)',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '2rem'
+                        }}>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-color-light)', margin: 0 }}>
+                                Additional data available in S3 storage
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // User Folders View
+    const UserFoldersView = () => {
+        if (!selectedUser || !allUsersData[selectedUser]) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-                    <h3>Please Log In</h3>
-                    <p>You need to be logged in to view your folders</p>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📁</div>
+                    <h3>No User Selected</h3>
+                    <p>Please select a user to view their folders</p>
                 </div>
             );
         }
+
+        const userData = allUsersData[selectedUser];
+        const folders = userData.folders || [];
 
         if (folders.length === 0) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
                     <h3>No Folders Found</h3>
-                    <p>Upload some PDFs using the Smart PDF Extraction page to get started</p>
-                    <p style={{ fontSize: '0.9rem', marginTop: '1rem' }}>
-                        Logged in as: <strong>{user.name || user.email}</strong>
-                    </p>
+                    <p>This user has no folders</p>
                 </div>
             );
         }
@@ -298,24 +396,13 @@ function Explorer({ onMenuClick }) {
                     border: '1px solid #e9ecef'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {user.photoURL && (
-                            <img 
-                                src={user.photoURL} 
-                                alt="User Avatar" 
-                                style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    border: '2px solid var(--main-color)'
-                                }}
-                            />
-                        )}
+                        <div style={{ fontSize: '2rem' }}>👤</div>
                         <div>
                             <div style={{ fontWeight: '600', color: 'var(--main-color)' }}>
-                                {user.name || user.email}
+                                User: {selectedUser}
                             </div>
                             <div style={{ fontSize: '0.85rem', color: 'var(--text-color-light)' }}>
-                                {folders.length} folders • {s3Details?.s3_folders?.length || 0} S3 folders
+                                {folders.length} folders
                             </div>
                         </div>
                     </div>
@@ -331,7 +418,7 @@ function Explorer({ onMenuClick }) {
                     {folders.map((folder, index) => (
                         <div
                             key={index}
-                            onClick={() => loadFolderFiles(folder.folder_name)}
+                            onClick={() => loadUserFolderFiles(selectedUser, folder.folder_name)}
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
@@ -385,66 +472,13 @@ function Explorer({ onMenuClick }) {
                         </div>
                     ))}
                 </div>
-
-                {/* S3 Folders (if any) */}
-                {s3Details?.s3_folders && s3Details.s3_folders.length > 0 && (
-                    <div>
-                        <h4 style={{ color: 'var(--sub-color)', marginBottom: '1rem' }}>
-                            ☁️ AWS S3 Folders ({s3Details.s3_folders.length})
-                        </h4>
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                            gap: '1rem',
-                            marginBottom: '2rem'
-                        }}>
-                            {s3Details.s3_folders.map((s3Folder, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        border: '1px solid rgba(63, 114, 175, 0.3)',
-                                        borderRadius: '8px',
-                                        padding: '1rem',
-                                        background: 'rgba(63, 114, 175, 0.05)',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                >
-                                    <div style={{
-                                        fontSize: '2rem',
-                                        textAlign: 'center',
-                                        marginBottom: '0.5rem'
-                                    }}>
-                                        ☁️
-                                    </div>
-                                    <div style={{
-                                        fontWeight: '600',
-                                        fontSize: '0.9rem',
-                                        textAlign: 'center',
-                                        color: 'var(--sub-color)',
-                                        wordBreak: 'break-word'
-                                    }}>
-                                        {s3Folder.folder_name || s3Folder.name}
-                                    </div>
-                                    <div style={{
-                                        fontSize: '0.75rem',
-                                        color: 'var(--text-color-light)',
-                                        textAlign: 'center',
-                                        marginTop: '0.25rem'
-                                    }}>
-                                        S3 Storage
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         );
     };
 
     // Files View for Selected Folder
-    const UserFilesView = () => {
-        if (!selectedFolder || folderFiles.length === 0) {
+    const FilesView = () => {
+        if (!selectedUser || !selectedFolder || folderFiles.length === 0) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📄</div>
@@ -456,30 +490,6 @@ function Explorer({ onMenuClick }) {
 
         return (
             <div>
-                {/* Breadcrumb */}
-                <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #e9ecef'
-                }}>
-                    <button
-                        onClick={navigateBack}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--sub-color)',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            padding: '0',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        ← Back to Folders
-                    </button>
-                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                </div>
-                
                 {/* Files Grid */}
                 <div style={{
                     display: 'grid',
@@ -558,212 +568,6 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-    const FileGrid = () => {
-        if (!selectedFolder) return null;
-        const folderFiles = uploadedFolders[selectedFolder]?.files || [];
-        
-        return (
-            <div>
-                {/* Breadcrumb */}
-                <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #e9ecef'
-                }}>
-                    <button
-                        onClick={() => {
-                            setView('folders');
-                            setSelectedFolder(null);
-                            setSelectedFile(null);
-                            setSelectedFileJson(null);
-                        }}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--sub-color)',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            padding: '0',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        ← Back to Folders
-                    </button>
-                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                </div>
-                
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: '1rem',
-                    marginBottom: '2rem'
-                }}>
-                    {folderFiles.map((file, index) => (
-                        <div
-                            key={index}
-                            onClick={() => selectFile(file)}
-                            style={{
-                                border: '1px solid #e9ecef',
-                                borderRadius: '8px',
-                                padding: '1rem',
-                                cursor: 'pointer',
-                                background: selectedFile === file ? 'var(--sub-color)' : 'white',
-                                color: selectedFile === file ? 'white' : 'var(--text-color-dark)',
-                                transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-light)'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (selectedFile !== file) {
-                                    e.target.style.background = 'var(--background-color)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (selectedFile !== file) {
-                                    e.target.style.background = 'white';
-                                }
-                            }}
-                        >
-                            <div style={{
-                                fontSize: '2rem',
-                                textAlign: 'center',
-                                marginBottom: '0.5rem'
-                            }}>
-                                {getFileType(file.name) === 'pdf' ? '📄' : '📁'}
-                            </div>
-                            <div style={{
-                                fontWeight: '600',
-                                fontSize: '0.9rem',
-                                marginBottom: '0.25rem',
-                                wordBreak: 'break-word'
-                            }}>
-                                {file.name}
-                            </div>
-                            <div style={{
-                                fontSize: '0.8rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                marginBottom: '0.25rem'
-                            }}>
-                                {formatFileSize(file.size)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                opacity: selectedFile === file ? 0.8 : 0.6,
-                                marginBottom: '0.25rem'
-                            }}>
-                                {formatDate(file.created_at)}
-                            </div>
-                            <div style={{
-                                fontSize: '0.7rem',
-                                opacity: selectedFile === file ? 0.9 : 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.25rem'
-                            }}>
-                                {getModeIcon(file.mode)} {getModeLabel(file.mode)}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
-    const FileList = () => {
-        if (!selectedFolder) return null;
-        const folderFiles = uploadedFolders[selectedFolder]?.files || [];
-        
-        return (
-            <div style={{ marginBottom: '2rem' }}>
-                {/* Breadcrumb */}
-                <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #e9ecef'
-                }}>
-                    <button
-                        onClick={() => {
-                            setView('folders');
-                            setSelectedFolder(null);
-                            setSelectedFile(null);
-                            setSelectedFileJson(null);
-                        }}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--sub-color)',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            padding: '0',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        ← Back to Folders
-                    </button>
-                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                </div>
-                
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '2px solid #e9ecef' }}>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Name</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Size</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Mode</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>Created</th>
-                            <th style={{ padding: '0.5rem', textAlign: 'left' }}>JSON</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {folderFiles.map((file, index) => (
-                            <tr
-                                key={index}
-                                onClick={() => selectFile(file)}
-                                style={{
-                                    borderBottom: '1px solid #e9ecef',
-                                    cursor: 'pointer',
-                                    background: selectedFile === file ? 'var(--sub-color)' : 'transparent',
-                                    color: selectedFile === file ? 'white' : 'var(--text-color-dark)'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (selectedFile !== file) {
-                                        e.target.style.background = 'var(--background-color)';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (selectedFile !== file) {
-                                        e.target.style.background = 'transparent';
-                                    }
-                                }}
-                            >
-                                <td style={{ padding: '0.5rem', wordBreak: 'break-word' }}>
-                                    {getFileType(file.name) === 'pdf' ? '📄' : '📁'} {file.name}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {getFileType(file.name).toUpperCase()}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {formatFileSize(file.size)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {getModeIcon(file.mode)} {getModeLabel(file.mode)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {formatDate(file.created_at)}
-                                </td>
-                                <td style={{ padding: '0.5rem' }}>
-                                    {file.hasJson ? '✅' : '❌'}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        );
-    };
-
     // JSON Data Viewer for selected file
     const JsonViewer = () => {
         if (jsonLoading) {
@@ -777,7 +581,7 @@ function Explorer({ onMenuClick }) {
         if (!selectedFile) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>�</div>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
                     <h3>No File Selected</h3>
                     <p>Select a file from the left panel to view its extracted data</p>
                 </div>
@@ -812,10 +616,11 @@ function Explorer({ onMenuClick }) {
                         flexWrap: 'wrap',
                         gap: '1rem'
                     }}>
+                        <span>👤 User: {selectedUser}</span>
+                        <span>📁 Folder: {selectedFolder}</span>
                         <span>📄 {jsonData.total_pages || 0} pages</span>
                         <span>📊 {jsonData.summary?.total_tables_found || 0} tables</span>
                         <span>🔧 Mode: {jsonData.mode || 'unknown'}</span>
-                        <span>📅 {jsonData.created_at ? new Date(jsonData.created_at).toLocaleDateString() : 'Unknown date'}</span>
                     </div>
                 </div>
 
@@ -825,58 +630,58 @@ function Explorer({ onMenuClick }) {
         );
     };
 
-  return (
+    return (
         <div style={{ minHeight: '100vh', background: 'white', padding: '1rem' }}>
             {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                <button
+            <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                    <button
                         onClick={() => onMenuClick && onMenuClick()}
-                    style={{
-                        background: 'rgba(63, 114, 175, 0.1)',
-                        border: '1px solid rgba(63, 114, 175, 0.3)',
-                        color: 'var(--main-color)',
-                        borderRadius: '6px',
-                        padding: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        minWidth: '36px',
-                        minHeight: '36px'
-                    }}
-                >
-                    ☰
-                </button>
-                <h1 style={{ 
-                    margin: 0,
-                    fontSize: 'clamp(18px, 5vw, 28px)',
+                        style={{
+                            background: 'rgba(63, 114, 175, 0.1)',
+                            border: '1px solid rgba(63, 114, 175, 0.3)',
+                            color: 'var(--main-color)',
+                            borderRadius: '6px',
+                            padding: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            minWidth: '36px',
+                            minHeight: '36px'
+                        }}
+                    >
+                        ☰
+                    </button>
+                    <h1 style={{ 
+                        margin: 0,
+                        fontSize: 'clamp(18px, 5vw, 28px)',
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
-                        📁  Maker and Checker
+                        👥 Maker and Checker - All Users Data
                     </h1>
-            </div>
+                </div>
                 <p style={{ fontSize: '1rem', color: 'var(--text-color-light)', marginBottom: '0' }}>
-                    Browse uploaded files and view their extracted JSON data
+                    Browse all users' uploaded files and view extracted JSON data from S3 vifiles/users/all
                 </p>
             </div>
-            
+
             {/* Error Display */}
             {error && (
-                        <div style={{ 
+                <div style={{
                     background: 'rgba(220, 53, 69, 0.1)',
                     color: 'var(--error-color)',
                     padding: '0.75rem 1rem',
                     borderRadius: '8px',
                     border: '1px solid var(--error-color)',
                     marginBottom: '1rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                }}>
                     <span>⚠️</span>
                     <span>{error}</span>
                     <button
@@ -892,118 +697,123 @@ function Explorer({ onMenuClick }) {
                     >
                         ×
                     </button>
-          </div>
-        )}
+                </div>
+            )}
 
             {/* Main Content */}
-            <div style={{ 
+            <div style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '2rem',
                 minHeight: '600px'
             }}>
-<<<<<<< HEAD
-                {/* Left Panel - Original Files */}
-            <div style={{ 
-=======
-                {/* Left Panel - Folders and Files */}
+                {/* Left Panel - Users, Folders and Files */}
                 <div style={{
->>>>>>> e23839e (vikki:the data fetches and display from s3)
                     background: 'white',
-                borderRadius: 'var(--border-radius)', 
+                    borderRadius: 'var(--border-radius)',
                     border: '1px solid #e9ecef',
                     boxShadow: 'var(--shadow-light)',
                     padding: '1.5rem'
                 }}>
-                        <div style={{ 
+                    {/* Navigation Header */}
+                    <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
                         marginBottom: '1rem' 
                     }}>
                         <h3 style={{ margin: 0, color: 'var(--main-color)' }}>
-                            {view === 'folders' ? 
-                                `� Upload Folders (${Object.keys(uploadedFolders).length})` :
-                                `📄 Files in ${selectedFolder} (${uploadedFolders[selectedFolder]?.files?.length || 0})`
+                            {view === 'users' ? 
+                                `👥 All Users (${Object.keys(allUsersData).length})` :
+                                view === 'folders' ?
+                                `📁 ${selectedUser}'s Folders` :
+                                `📄 Files in ${selectedFolder} (${folderFiles.length})`
                             }
                         </h3>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {view !== 'folders' && (
-                                <>
-                                    <button
-                                        onClick={() => setView('grid')}
-                                        style={{
-                                            padding: '0.25rem 0.5rem',
-                                            border: '1px solid #e9ecef',
-                                            background: view === 'grid' ? 'var(--sub-color)' : 'white',
-                                            color: view === 'grid' ? 'white' : 'var(--text-color-dark)',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem'
-                                        }}
-                                    >
-                                        ⊞ Grid
-                                    </button>
-                                    <button
-                                        onClick={() => setView('list')}
-                                        style={{
-                                            padding: '0.25rem 0.5rem',
-                                            border: '1px solid #e9ecef',
-                                            background: view === 'list' ? 'var(--sub-color)' : 'white',
-                                            color: view === 'list' ? 'white' : 'var(--text-color-dark)',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem'
-                                        }}
-                                    >
-                                        ☰ List
-                                    </button>
-                                </>
-                            )}
                             <button
-                                onClick={loadUploadedFiles}
+                                onClick={loadAllUsersData}
+                                disabled={loading}
                                 style={{
                                     padding: '0.25rem 0.5rem',
                                     border: '1px solid #e9ecef',
                                     background: 'white',
                                     color: 'var(--text-color-dark)',
                                     borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem'
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.8rem',
+                                    opacity: loading ? 0.6 : 1
                                 }}
                             >
                                 🔄 Refresh
                             </button>
-                            </div>
-                                </div>
-                                
+                        </div>
+                    </div>
+
+                    {/* Breadcrumb Navigation */}
+                    {view !== 'users' && (
+                        <div style={{ 
+                            marginBottom: '1rem', 
+                            padding: '0.5rem 0',
+                            borderBottom: '1px solid #e9ecef'
+                        }}>
+                            <button
+                                onClick={navigateToUsers}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--sub-color)',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    padding: '0',
+                                    fontSize: '0.9rem'
+                                }}
+                            >
+                                ← All Users
+                            </button>
+                            
+                            {view === 'files' && (
+                                <>
+                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                    <button
+                                        onClick={navigateToFolders}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: 'var(--sub-color)',
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline',
+                                            padding: '0',
+                                            fontSize: '0.9rem'
+                                        }}
+                                    >
+                                        {selectedUser}
+                                    </button>
+                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
+                                </>
+                            )}
+                            
+                            {view === 'folders' && (
+                                <>
+                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedUser}</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <div>Loading files...</div>
-<<<<<<< HEAD
-                                </div>
-                    ) : uploadedFiles.length === 0 ? (
-=======
-                        </div>
-                    ) : Object.keys(uploadedFolders).length === 0 ? (
->>>>>>> e23839e (vikki:the data fetches and display from s3)
-                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
-                            <h3>No Folders Found</h3>
-                            <p>Upload some files using the Smart PDF Extraction page</p>
-<<<<<<< HEAD
-                            </div>
-                        ) : (
-=======
+                            <div>Loading...</div>
                         </div>
                     ) : (
-                        view === 'folders' ? <FolderView /> : 
->>>>>>> e23839e (vikki:the data fetches and display from s3)
-                        view === 'grid' ? <FileGrid /> : <FileList />
-                        )}
+                        view === 'users' ? <AllUsersView /> : 
+                        view === 'folders' ? <UserFoldersView /> : <FilesView />
+                    )}
                 </div>
 
-                {/* Right Panel - JSON Data */}
+                {/* Right Panel - JSON Data Viewer */}
                 <div style={{
                     background: 'white',
                     borderRadius: 'var(--border-radius)',
@@ -1012,8 +822,8 @@ function Explorer({ onMenuClick }) {
                     padding: '1.5rem'
                 }}>
                     <h3 style={{ margin: '0 0 1rem 0', color: 'var(--main-color)' }}>
-                        📊 JSON Data
-                        </h3>
+                        📊 Extracted Data
+                    </h3>
                     <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
                         <JsonViewer />
                     </div>
@@ -1023,4 +833,4 @@ function Explorer({ onMenuClick }) {
     );
 }
 
-export default Explorer
+export default ExplorerAllUsers

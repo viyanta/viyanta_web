@@ -9,6 +9,7 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
   const { hasRole } = useUser();
 
   const menuItems = [
+<<<<<<< HEAD
     { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics', role: 'user' },
     { path: '/explorer', label: 'Maker-Checker', icon: '📁', description: 'Maker and Checker', role: 'user' },
     { path: '/smart-extraction', label: 'Smart Extraction', icon: '🚀', description: 'AI-Powered PDF Extraction', role: 'admin' },
@@ -17,6 +18,16 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
     { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics', role: 'user' },
     { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics', role: 'user' },
     { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings', role: 'user' }
+=======
+    { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics' },
+    { path: '/explorer', label: 'Maker-Checker (All Users)', icon: '�', description: 'Browse All Users Data' },
+    { path: '/smart-extraction', label: 'Smart Extraction', icon: '🚀', description: 'AI-Powered PDF Extraction' },
+    { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
+    { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module' },
+    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
+    { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
+    { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings' }
+>>>>>>> e23839e (vikki:the data fetches and display from s3)
   ];
 
   // Filter menu items based on user role

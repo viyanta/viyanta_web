@@ -48,6 +48,8 @@ app.mount("/extracted", StaticFiles(directory=os.path.join(BASE_DIR,
           "extracted")), name="extracted")
 app.mount("/pdf_folder_extracted",
           StaticFiles(directory=os.path.join(BASE_DIR, "pdf_folder_extracted")), name="pdf_folder_extracted")
+app.mount("/vifiles", StaticFiles(directory=os.path.join(BASE_DIR,
+          "vifiles")), name="vifiles")
 
 
 @app.get("/")
