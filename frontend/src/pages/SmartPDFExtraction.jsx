@@ -6,10 +6,64 @@ import BulkResultsViewer from '../components/BulkResultsViewer';
 import JobStatusTracker from '../components/JobStatusTracker';
 import apiService from '../services/api';
 import { subscribeToAuthChanges } from '../firebase/auth.js';
+import { useUser } from '../context/UserContext.jsx';
+import { Navigate } from 'react-router-dom';
 
  
 
-const SmartPDFExtraction = ({ onMenuClick }) => {
+function SmartPDFExtraction({ onMenuClick }) {
+  const { hasRole, loading } = useUser();
+
+  // Check if user has admin access
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh',
+        fontSize: '1.2rem',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (!hasRole('admin')) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh',
+        textAlign: 'center',
+        padding: '2rem'
+      }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚫</div>
+        <h2 style={{ color: '#dc3545', marginBottom: '1rem' }}>Access Denied</h2>
+        <p style={{ color: '#666', fontSize: '1.1rem' }}>
+          You don't have permission to access Smart Extraction. This feature is only available to admin users.
+        </p>
+        <button 
+          onClick={() => window.history.back()} 
+          style={{
+            marginTop: '1rem',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '1rem'
+          }}
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   const [user, setUser] = useState(null);
   const [currentResults, setCurrentResults] = useState(null);

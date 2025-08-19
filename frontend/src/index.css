@@ -704,8 +704,8 @@ li {
   padding: 2rem 1rem;
   border-right: 1px solid #e9ecef;
   position: fixed;
-  top: 80px;
-  left: -100%;
+  top: 90px; /* Changed from 80px to 90px to add space below navbar */
+  left: 0; /* Changed from -100% to 0 to show by default on desktop */
   box-shadow: var(--shadow-medium);
   overflow-y: auto;
   transition: left 0.3s ease, transform 0.3s ease;
@@ -718,7 +718,7 @@ li {
 
 /* Sidebar Mobile Header */
 .sidebar__mobile-header {
-  display: flex;
+  display: none; /* Hide mobile header on desktop */
   position: absolute;
   top: 12px;
   right: 12px;
@@ -877,7 +877,7 @@ li {
   background-color: white;
   min-height: calc(100vh - 80px);
   overflow-y: auto;
-  margin-left: 0;
+  margin-left: 280px; /* Changed from 0 to 280px to account for sidebar being visible by default */
   transition: margin-left 0.3s ease;
 }
 
@@ -946,6 +946,11 @@ li {
   }
 }
 
+/* Hide hamburger menu on desktop, show only on mobile */
+.hide-hamburger-desktop {
+  display: none !important;
+}
+
 /* Mobile responsiveness for sidebar and layout */
 @media (max-width: 768px) {
   .layout {
@@ -955,16 +960,31 @@ li {
   .main-content {
     padding: 1rem;
     min-height: auto;
+    margin-left: 0; /* Reset margin on mobile since sidebar is hidden by default */
   }
 
   .sidebar {
     width: 80vw;
     max-width: 320px;
     padding: 1rem;
+    left: -100%; /* Hide sidebar by default on mobile */
+  }
+
+  .sidebar.open {
+    left: 0; /* Show sidebar when open on mobile */
+  }
+
+  .sidebar__mobile-header {
+    display: flex; /* Show mobile header only on mobile */
   }
 
   .main-content.sidebar-open {
     margin-left: 0;
+  }
+
+  /* Show hamburger menu on mobile */
+  .hide-hamburger-desktop {
+    display: inline-flex !important;
   }
 
   .show-on-mobile { display: inline-flex; }

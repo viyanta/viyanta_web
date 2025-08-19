@@ -1,21 +1,26 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useStats } from '../context/StatsContext.jsx'
+import { useUser } from '../context/UserContext.jsx'
 
 function SideMenu({ isOpen = false, onClose = () => {} }) {
   const location = useLocation();
   const { stats } = useStats();
+  const { hasRole } = useUser();
 
   const menuItems = [
-    { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics' },
-    { path: '/explorer', label: 'Maker-Checker', icon: '📁', description: 'Maker and Checker' },
-    { path: '/smart-extraction', label: 'Smart Extraction', icon: '🚀', description: 'AI-Powered PDF Extraction' },
-    { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
-    { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module' },
-    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
-    { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
-    { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings' }
+    { path: '/', label: 'Dashboard', icon: '📊', description: 'Overview & Analytics', role: 'user' },
+    { path: '/explorer', label: 'Maker-Checker', icon: '📁', description: 'Maker and Checker', role: 'user' },
+    { path: '/smart-extraction', label: 'Smart Extraction', icon: '🚀', description: 'AI-Powered PDF Extraction', role: 'admin' },
+    { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management', role: 'user' },
+    { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module', role: 'user' },
+    { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics', role: 'user' },
+    { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics', role: 'user' },
+    { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings', role: 'user' }
   ];
+
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter(item => hasRole(item.role));
 
   const isActiveRoute = (path) => location.pathname === path;
 
@@ -39,7 +44,7 @@ function SideMenu({ isOpen = false, onClose = () => {} }) {
       
       <nav className="sidebar__navigation">
         <ul className="sidebar__menu">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <li key={item.path} className="sidebar__menu-item">
               <Link 
                 to={item.path}

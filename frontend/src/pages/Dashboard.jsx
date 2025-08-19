@@ -275,6 +275,7 @@ function Dashboard({ onMenuClick }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
             {/* Hamburger Menu Icon */}
             <button
+              className="hide-hamburger-desktop"
               onClick={() => {
                 console.log('Dashboard hamburger clicked!');
                 if (onMenuClick) {

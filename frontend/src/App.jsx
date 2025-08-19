@@ -7,6 +7,7 @@ import Explorer from './pages/Explorer.jsx'
 import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
+import { UserProvider } from './context/UserContext.jsx'
 import Lform from './pages/Lform.jsx'
 import DMML2Form from './pages/DMML2Form.jsx'
 import PDFExtraction from './pages/PDFExtraction.jsx'
@@ -49,44 +50,46 @@ function App() {
   const openSidebar = () => setSidebarOpen(true);
 
   return (
-    <StatsProvider>
-      <Router>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
-          
-          {/* Protected Routes */}
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <div className="app-container">
-                <Navbar onMenuClick={openSidebar} />
-                <div className="layout">
-                  <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
-                  <main 
-                    className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} 
-                    onClick={() => sidebarOpen && closeSidebar()}
-                  >
-                    <Routes>
-                      <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
-                      <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
-                      <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
-                      <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
-                      <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
-                      <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
-                      <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
-                      <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
-                      <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
-                    </Routes>
-                  </main>
+    <UserProvider>
+      <StatsProvider>
+        <Router>
+          <Routes>
+            {/* Public Route */}
+            <Route path="/login" element={<Login />} />
+            
+            {/* Protected Routes */}
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <div className="app-container">
+                  <Navbar onMenuClick={openSidebar} />
+                  <div className="layout">
+                    <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+                    <main 
+                      className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} 
+                      onClick={() => sidebarOpen && closeSidebar()}
+                    >
+                      <Routes>
+                        <Route path="/" element={<Dashboard onMenuClick={openSidebar} />} />
+                        <Route path="/explorer" element={<Explorer onMenuClick={openSidebar} />} />
+                        <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                        <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
+                        <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
+                        <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
+                        <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
+                        <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
+                        <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
+                      </Routes>
+                    </main>
+                  </div>
+                  {/* Mobile backdrop */}
+                  <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
                 </div>
-                {/* Mobile backdrop */}
-                <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
-              </div>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
-    </StatsProvider>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </StatsProvider>
+    </UserProvider>
   )
 }
 

@@ -240,16 +240,17 @@ function Explorer({ onMenuClick }) {
         {/* Header Section */}
         <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                {/* Hamburger Menu Icon */}
-                <button
-                    onClick={() => {
-                        console.log('Explorer hamburger clicked!');
-                        if (onMenuClick) {
-                            onMenuClick();
-                        } else {
-                            console.log('onMenuClick is not defined');
-                        }
-                    }}
+                                        {/* Hamburger Menu Icon */}
+            <button
+              className="hide-hamburger-desktop"
+              onClick={() => {
+                console.log('Explorer hamburger clicked!');
+                if (onMenuClick) {
+                  onMenuClick();
+                } else {
+                  console.log('onMenuClick is not defined');
+                }
+              }}
                     style={{
                         background: 'rgba(63, 114, 175, 0.1)',
                         border: '1px solid rgba(63, 114, 175, 0.3)',

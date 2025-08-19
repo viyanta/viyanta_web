@@ -239,7 +239,24 @@ class ApiService {
     if (!response.ok) {
       throw new Error('Failed to fetch dropdown data');
     }
+    return response.json();
+  }
 
+  async getS3Companies() {
+    const response = await fetch(`${API_BASE_URL}/files/s3-companies`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch S3 companies');
+    }
+    return response.json();
+  }
+
+  async getCompanyData(companyName) {
+    const response = await fetch(`${API_BASE_URL}/files/company-data/${encodeURIComponent(companyName)}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch company data');
+    }
     return response.json();
   }
 

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useStats } from '../context/StatsContext.jsx';
-import dashboardData from '../data/dashboardData.json';
-import companyDistributionData from '../data/companyDistribution.json';
+import ApiService from '../services/api';
 import './InsuranceDashboard.css';
 
 // Chart Component for Monthly Trends
@@ -26,7 +25,8 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
   return (
     <div className="monthly-chart" style={{ 
       minHeight: `${chartHeight}px`,
-      overflowX: 'auto'
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch'
     }}>
       {/* Y-axis and Chart Container */}
       <div className="chart-container" style={{ height: `${chartHeight - 30}px` }}>
@@ -45,7 +45,12 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
         </div>
         
         {/* Chart Bars */}
-        <div className="chart-bars">
+        <div className="chart-bars" style={{
+          minWidth: data.length > 6 ? `${data.length * 60}px` : '100%',
+          display: 'flex',
+          gap: 'clamp(4px, 1vw, 8px)',
+          justifyContent: data.length > 6 ? 'flex-start' : 'space-around'
+        }}>
           {/* Y-axis Grid Lines */}
           {Array.from({ length: yAxisSteps + 1 }, (_, i) => (
             <div
@@ -58,11 +63,15 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
           ))}
           
           {data.map((item, index) => (
-            <div key={index} className="bar-container">
+            <div key={index} className="bar-container" style={{
+              flex: data.length > 6 ? '0 0 50px' : '1',
+              minWidth: data.length > 6 ? '50px' : 'auto'
+            }}>
               <div 
                 className={`bar ${metricType}`}
                 style={{
-                  height: `${getBarHeight(item.value)}px`
+                  height: `${getBarHeight(item.value)}px`,
+                  width: '100%'
                 }}
               />
             </div>
@@ -71,16 +80,27 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
       </div>
       
       {/* X-axis Labels Below Chart */}
-      <div className="x-axis-labels">
+      <div className="x-axis-labels" style={{
+        minWidth: data.length > 6 ? `${data.length * 60}px` : '100%',
+        display: 'flex',
+        gap: 'clamp(4px, 1vw, 8px)',
+        justifyContent: data.length > 6 ? 'flex-start' : 'space-around'
+      }}>
         {data.map((item, index) => (
-          <div key={index} className="x-axis-item">
+          <div key={index} className="x-axis-item" style={{
+            flex: data.length > 6 ? '0 0 50px' : '1',
+            minWidth: data.length > 6 ? '50px' : 'auto',
+            textAlign: 'center'
+          }}>
             <div className="month-label" style={{
-              fontSize: 'clamp(10px, 2.5vw, 12px)'
+              fontSize: 'clamp(10px, 2.5vw, 12px)',
+              whiteSpace: 'nowrap'
             }}>
               {item.month}
             </div>
             <div className="value-label" style={{
-              fontSize: 'clamp(9px, 2vw, 11px)'
+              fontSize: 'clamp(9px, 2vw, 11px)',
+              whiteSpace: 'nowrap'
             }}>
               {item.value >= 1000 ? `${(item.value / 1000).toFixed(0)}K` : item.value}
             </div>
@@ -93,18 +113,33 @@ const MonthlyChart = ({ data, title, color, metricType }) => {
 
 // Company Distribution Chart
 const CompanyDistributionChart = ({ data, title, color }) => {
-  const sortedData = [...data].sort((a, b) => b.percentage - a.percentage).slice(0, 10); // Reduced to 10 items
+  const sortedData = [...data].sort((a, b) => b.percentage - a.percentage); // Show all companies found
   const total = sortedData.reduce((sum, item) => sum + item.percentage, 0);
   
   return (
     <div className="company-distribution-chart" style={{
       overflowX: 'auto'
     }}>
+      {/* Summary Header */}
+      <div style={{
+        fontSize: 'clamp(10px, 2.5vw, 12px)',
+        color: '#666',
+        marginBottom: '8px',
+        textAlign: 'center',
+        fontWeight: '500'
+      }}>
+        {sortedData.length} Companies Found
+        {total > 0 && ` • Total: ${total.toFixed(1)}%`}
+        {total === 0 && sortedData.length > 0 && ` • All companies found in PDF (0% = no market share data)`}
+      </div>
+      
       <div className="company-boxes" style={{
-        minWidth: '300px' // Ensure minimum width for mobile
+        minWidth: '300px', // Ensure minimum width for mobile
+        maxHeight: '200px', // Limit height for many companies
+        overflowY: 'auto' // Add scroll for many companies
       }}>
         {sortedData.map((item, index) => {
-          const width = Math.max((item.percentage / total) * 100, 12); // Minimum 12% width
+          const width = Math.max((item.percentage / total) * 100, 8); // Reduced minimum width for more companies
           
           return (
             <div
@@ -113,17 +148,18 @@ const CompanyDistributionChart = ({ data, title, color }) => {
               style={{
                 backgroundColor: item.color,
                 minWidth: `${width}%`,
-                flex: `1 1 ${width}%`
+                flex: `1 1 ${width}%`,
+                fontSize: 'clamp(8px, 2vw, 10px)' // Smaller font for more companies
               }}
-              title={`${item.name}: ${item.percentage}%`}
+              title={`${item.name}: ${item.percentage}%${item.note ? ` - ${item.note}` : ''}`}
             >
               <div className="company-name" style={{
-                fontSize: 'clamp(10px, 2.5vw, 12px)'
+                fontSize: 'clamp(8px, 2vw, 10px)'
               }}>
                 {item.name}
               </div>
               <div className="company-percentage" style={{
-                fontSize: 'clamp(9px, 2vw, 11px)'
+                fontSize: 'clamp(7px, 1.8vw, 9px)'
               }}>
                 {item.percentage}%
               </div>
@@ -262,11 +298,88 @@ const TreemapSection = ({ title, data, colors }) => {
 function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
   const [activeTab, setActiveTab] = useState('Industry Metrics');
-  const [selectedCompany, setSelectedCompany] = useState('HDFC Life');
-
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [s3Companies, setS3Companies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [companiesError, setCompaniesError] = useState(null);
   
-  // Get the current company's data
-  const currentCompanyData = dashboardData.companies[selectedCompany] || dashboardData.companies['HDFC Life'];
+  // New state for company-specific data
+  const [companyData, setCompanyData] = useState(null);
+  const [loadingCompanyData, setLoadingCompanyData] = useState(false);
+  const [companyDataError, setCompanyDataError] = useState(null);
+
+  // Fetch companies from S3 when component mounts
+  useEffect(() => {
+    fetchS3Companies();
+  }, []);
+
+  // Fetch company data when selectedCompany changes
+  useEffect(() => {
+    if (selectedCompany) {
+      fetchCompanyData(selectedCompany);
+    }
+  }, [selectedCompany]);
+
+  const fetchS3Companies = async () => {
+    try {
+      setLoadingCompanies(true);
+      setCompaniesError(null);
+      const response = await ApiService.getS3Companies();
+      
+      if (response.success) {
+        setS3Companies(response.companies);
+        // Set first company as default if available
+        if (response.companies.length > 0 && !selectedCompany) {
+          setSelectedCompany(response.companies[0].name);
+        }
+      } else {
+        setCompaniesError(response.error || 'Failed to fetch companies');
+      }
+    } catch (error) {
+      setCompaniesError(`Error: ${error.message}`);
+      console.error('Failed to fetch S3 companies:', error);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  const fetchCompanyData = async (companyName) => {
+    try {
+      setLoadingCompanyData(true);
+      setCompanyDataError(null);
+      const response = await ApiService.getCompanyData(companyName);
+      
+      if (response.success) {
+        setCompanyData(response.data);
+      } else {
+        setCompanyDataError(response.error || 'Failed to fetch company data');
+        setCompanyData(null);
+      }
+    } catch (error) {
+      setCompanyDataError(`Error: ${error.message}`);
+      console.error('Failed to fetch company data:', error);
+      setCompanyData(null);
+    } finally {
+      setLoadingCompanyData(false);
+    }
+  };
+
+  // Get the current company's data - now from dynamic API instead of static JSON
+  const currentCompanyData = companyData || {
+    company_name: selectedCompany || 'Select Company',
+    metrics: {
+      premiumValue: { total: 0, unit: 'Crs', monthlyData: [] },
+      sumAssured: { total: 0, unit: 'Crs', monthlyData: [] },
+      numberOfLives: { total: 0, unit: 'Lives', monthlyData: [] },
+      numberOfPolicies: { total: 0, unit: 'Policies', monthlyData: [] }
+    },
+    companyDistribution: {
+      premiumValue: [],
+      sumAssured: [],
+      numberOfLives: [],
+      numberOfPolicies: []
+    }
+  };
 
   const tabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
@@ -292,6 +405,7 @@ function InsuranceDashboard({ onMenuClick }) {
         }}>
           {/* Hamburger Menu Icon */}
           <button
+            className="hide-hamburger-desktop"
             onClick={() => {
               console.log('InsuranceDashboard hamburger clicked!');
               if (onMenuClick) {
@@ -418,24 +532,133 @@ function InsuranceDashboard({ onMenuClick }) {
                 }}>
                   Select Company
                 </label>
-                <select
-                  value={selectedCompany}
-                  onChange={(e) => setSelectedCompany(e.target.value)}
-                  className="dropdown-select"
-                  style={{
-                    width: '100%',
-                    padding: 'clamp(10px, 2.5vw, 12px)',
-                    fontSize: 'clamp(14px, 3vw, 16px)',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px'
-                  }}
-                >
-                  <option value="">Select a company...</option>
-                  <option value="HDFC Life">HDFC Life Insurance Company Limited</option>
-                  <option value="SBI Life">SBI Life Insurance Company Limited</option>
-                  <option value="ICICI Pru">ICICI Prudential Life Insurance Company Limited</option>
-                  <option value="LIC">Life Insurance Corporation of India</option>
-                </select>
+                
+                {/* Company Dropdown and Refresh Button Row */}
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'flex-end'
+                }}>
+                  <select
+                    value={selectedCompany}
+                    onChange={(e) => setSelectedCompany(e.target.value)}
+                    className="dropdown-select"
+                    style={{
+                      flex: 1,
+                      padding: 'clamp(10px, 2.5vw, 12px)',
+                      fontSize: 'clamp(14px, 3vw, 16px)',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}
+                    disabled={loadingCompanies}
+                  >
+                    <option value="">
+                      {loadingCompanies ? 'Loading companies...' : 'Select a company...'}
+                    </option>
+                    {s3Companies.map(company => (
+                      <option key={company.id} value={company.name}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {/* Refresh Button */}
+                  <button
+                    onClick={fetchS3Companies}
+                    disabled={loadingCompanies}
+                    style={{
+                      padding: 'clamp(10px, 2.5vw, 12px)',
+                      fontSize: 'clamp(14px, 3vw, 16px)',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      backgroundColor: '#f8f9fa',
+                      cursor: loadingCompanies ? 'not-allowed' : 'pointer',
+                      color: loadingCompanies ? '#6c757d' : '#495057',
+                      minWidth: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Refresh companies from S3"
+                  >
+                    🔄
+                  </button>
+                </div>
+                
+                {/* Error message */}
+                {companiesError && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#dc3545',
+                    margin: '5px 0 0 0'
+                  }}>
+                    {companiesError}
+                  </p>
+                )}
+                
+                {/* Success message */}
+                {!loadingCompanies && !companiesError && s3Companies.length > 0 && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#28a745',
+                    margin: '5px 0 0 0'
+                  }}>
+                    Found {s3Companies.length} companies in S3
+                  </p>
+                )}
+                
+                {/* Company Data Loading Indicator */}
+                {selectedCompany && loadingCompanyData && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#17a2b8',
+                    margin: '5px 0 0 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <span>🔄</span> Loading data for {selectedCompany}...
+                  </p>
+                )}
+                
+                {/* Company Data Success Message */}
+                {selectedCompany && !loadingCompanyData && companyData && !companyDataError && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#28a745',
+                    margin: '5px 0 0 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <span>✅</span> Data loaded successfully
+                  </p>
+                )}
+                
+                {/* Company Data Error Message */}
+                {selectedCompany && !loadingCompanyData && companyDataError && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#dc3545',
+                    margin: '5px 0 0 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <span>⚠️</span> Failed to load data
+                  </p>
+                )}
+                
+                {/* No companies message */}
+                {!loadingCompanies && !companiesError && s3Companies.length === 0 && (
+                  <p style={{
+                    fontSize: 'clamp(11px, 2.5vw, 12px)',
+                    color: '#ffc107',
+                    margin: '5px 0 0 0'
+                  }}>
+                    No companies found in S3. Upload some files first.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -446,49 +669,122 @@ function InsuranceDashboard({ onMenuClick }) {
             flexDirection: 'column', 
             gap: 'clamp(1rem, 3vw, 2rem)'
           }}>
-            <KPICard
-              title="Premium Value"
-              value={currentCompanyData.metrics.premiumValue.total}
-              unit={currentCompanyData.metrics.premiumValue.unit}
-              icon="💰"
-              color="#28a745"
-              monthlyData={currentCompanyData.metrics.premiumValue.monthlyData}
-              companyData={companyDistributionData.premiumValue.companies}
-              metricType="premium-value"
-            />
+            {/* Company Data Loading/Error States */}
+            {loadingCompanyData && (
+              <div style={{
+                textAlign: 'center',
+                padding: 'clamp(20px, 5vw, 40px)',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                border: '1px solid #dee2e6'
+              }}>
+                <div style={{ fontSize: 'clamp(16px, 4vw, 20px)', marginBottom: '10px' }}>
+                  🔄 Loading data for {selectedCompany}...
+                </div>
+                <div style={{ fontSize: 'clamp(12px, 3vw, 14px)', color: '#6c757d' }}>
+                  Fetching Premium Value, Sum Assured, and other metrics...
+                </div>
+              </div>
+            )}
 
-            <KPICard
-              title="Sum Assured"
-              value={currentCompanyData.metrics.sumAssured.total}
-              unit={currentCompanyData.metrics.sumAssured.unit}
-              icon="🛡️"
-              color="#17a2b8"
-              monthlyData={currentCompanyData.metrics.sumAssured.monthlyData}
-              companyData={companyDistributionData.sumAssured.companies}
-              metricType="sum-assured"
-            />
+            {companyDataError && (
+              <div style={{
+                textAlign: 'center',
+                padding: 'clamp(20px, 5vw, 40px)',
+                backgroundColor: '#f8d7da',
+                borderRadius: '8px',
+                border: '1px solid #f5c6cb',
+                color: '#721c24'
+              }}>
+                <div style={{ fontSize: 'clamp(16px, 4vw, 20px)', marginBottom: '10px' }}>
+                  ⚠️ Error Loading Company Data
+                </div>
+                <div style={{ fontSize: 'clamp(12px, 3vw, 14px)', marginBottom: '15px' }}>
+                  {companyDataError}
+                </div>
+                <button
+                  onClick={() => fetchCompanyData(selectedCompany)}
+                  style={{
+                    padding: 'clamp(8px, 2vw, 12px)',
+                    fontSize: 'clamp(12px, 3vw, 14px)',
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
-            <KPICard
-              title="No of Lives"
-              value={currentCompanyData.metrics.numberOfLives.total}
-              unit={currentCompanyData.metrics.numberOfLives.unit}
-              icon="👥"
-              color="#ffc107"
-              monthlyData={currentCompanyData.metrics.numberOfLives.monthlyData}
-              companyData={companyDistributionData.numberOfLives.companies}
-              metricType="number-of-lives"
-            />
+            {/* KPI Cards - Only show when data is loaded */}
+            {!loadingCompanyData && !companyDataError && companyData && (
+              <>
+                <KPICard
+                  title="Premium Value"
+                  value={currentCompanyData.metrics.premiumValue.total}
+                  unit={currentCompanyData.metrics.premiumValue.unit}
+                  icon="💰"
+                  color="#28a745"
+                  monthlyData={currentCompanyData.metrics.premiumValue.monthlyData}
+                  companyData={currentCompanyData.companyDistribution.premiumValue}
+                  metricType="premium-value"
+                />
 
-            <KPICard
-              title="No of Policies"
-              value={currentCompanyData.metrics.numberOfPolicies.total}
-              unit={currentCompanyData.metrics.numberOfPolicies.unit}
-              icon="📄"
-              color="#BD0B50"
-              monthlyData={currentCompanyData.metrics.numberOfPolicies.monthlyData}
-              companyData={companyDistributionData.numberOfPolicies.companies}
-              metricType="number-of-policies"
-            />
+                <KPICard
+                  title="Sum Assured"
+                  value={currentCompanyData.metrics.sumAssured.total}
+                  unit={currentCompanyData.metrics.sumAssured.unit}
+                  icon="🛡️"
+                  color="#17a2b8"
+                  monthlyData={currentCompanyData.metrics.sumAssured.monthlyData}
+                  companyData={currentCompanyData.companyDistribution.sumAssured}
+                  metricType="sum-assured"
+                />
+
+                <KPICard
+                  title="No of Lives"
+                  value={currentCompanyData.metrics.numberOfLives.total}
+                  unit={currentCompanyData.metrics.numberOfLives.unit}
+                  icon="👥"
+                  color="#ffc107"
+                  monthlyData={currentCompanyData.metrics.numberOfLives.monthlyData}
+                  companyData={currentCompanyData.companyDistribution.numberOfLives}
+                  metricType="number-of-lives"
+                />
+
+                <KPICard
+                  title="No of Policies"
+                  value={currentCompanyData.metrics.numberOfPolicies.total}
+                  unit={currentCompanyData.metrics.numberOfPolicies.unit}
+                  icon="📄"
+                  color="#BD0B50"
+                  monthlyData={currentCompanyData.metrics.numberOfPolicies.monthlyData}
+                  companyData={currentCompanyData.companyDistribution.numberOfPolicies}
+                  metricType="number-of-policies"
+                />
+              </>
+            )}
+
+            {/* No Company Selected State */}
+            {!selectedCompany && !loadingCompanies && (
+              <div style={{
+                textAlign: 'center',
+                padding: 'clamp(40px, 8vw, 80px)',
+                backgroundColor: '#e9ecef',
+                borderRadius: '8px',
+                border: '1px solid #dee2e6'
+              }}>
+                <div style={{ fontSize: 'clamp(18px, 4vw, 24px)', marginBottom: '15px', color: '#6c757d' }}>
+                  📊 Select a Company
+                </div>
+                <div style={{ fontSize: 'clamp(14px, 3vw, 16px)', color: '#6c757d' }}>
+                  Choose a company from the dropdown above to view their metrics and data
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
