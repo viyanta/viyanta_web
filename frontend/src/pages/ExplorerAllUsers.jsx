@@ -105,18 +105,53 @@ function ExplorerAllUsers({ onMenuClick }) {
         setJsonLoading(true);
         
         try {
-            if (file.has_json && file.json_filename) {
-                console.log('Loading JSON for file:', file.json_filename);
-                const response = await ApiService.getAllUsersJsonData(
-                    selectedUser, 
-                    selectedFolder, 
-                    file.json_filename
-                );
-                console.log('JSON data response:', response);
-                setJsonData(response.data);
+            // Use the base filename to load the best available JSON (Gemini verified preferred)
+            const filenameToLoad = file.base_name || file.filename || file.json_filename;
+            console.log('Loading JSON for file:', filenameToLoad, 'with verification status:', file.has_gemini_verification);
+            
+            const response = await ApiService.getAllUsersJsonData(
+                selectedUser, 
+                selectedFolder, 
+                filenameToLoad  // Backend will prioritize Gemini verified > extracted > legacy
+            );
+            console.log('JSON data response:', response);
+            // Extract the actual data based on verification status
+            let actualData = response.data;
+            let pages = [];
+            let totalPages = 0;
+            let summary = {};
+            
+            // For Gemini verified data, extract from corrected_data
+            if (response.verification_status === 'gemini_verified' && actualData.corrected_data) {
+                pages = actualData.corrected_data.pages || [];
+                totalPages = actualData.corrected_data.total_pages || 0;
+                summary = actualData.corrected_data.summary || {};
             } else {
-                setJsonData(null);
+                // For extracted or legacy data, use direct structure
+                pages = actualData.pages || [];
+                totalPages = actualData.total_pages || 0;
+                summary = actualData.summary || {};
             }
+            
+            // Calculate total tables if not in summary
+            const totalTables = summary.total_tables_found || 
+                pages.reduce((total, page) => total + (page.tables?.length || 0), 0);
+            
+            setJsonData({
+                pages: pages,
+                total_pages: totalPages,
+                summary: {
+                    ...summary,
+                    total_tables_found: totalTables
+                },
+                mode: actualData.mode || actualData.corrected_data?.mode || 'unknown',
+                metadata: {
+                    verification_status: response.verification_status,
+                    gemini_verified: response.metadata?.gemini_verified || false,
+                    data_priority: response.metadata?.data_priority || 'unknown',
+                    file_source: response.metadata?.file_source || 'unknown'
+                }
+            });
         } catch (error) {
             console.error('Failed to load JSON data:', error);
             setError('Failed to load JSON data: ' + error.message);
@@ -271,7 +306,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Users Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 2fr))',
                     gap: '1rem',
                     marginBottom: '2rem'
                 }}>
@@ -535,7 +570,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 marginBottom: '0.25rem',
                                 wordBreak: 'break-word'
                             }}>
-                                {file.filename}
+                                {file.base_name || file.filename}
                             </div>
                             <div style={{
                                 fontSize: '0.8rem',
@@ -551,15 +586,34 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}>
                                 {formatDate(file.created_at)}
                             </div>
+                            
+                            {/* Gemini Verification Status */}
+                            <div style={{
+                                fontSize: '0.7rem',
+                                marginBottom: '0.25rem',
+                                padding: '2px 6px',
+                                borderRadius: '10px',
+                                textAlign: 'center',
+                                background: file.has_gemini_verification 
+                                    ? (selectedFile === file ? 'rgba(40, 167, 69, 0.2)' : '#28a745')
+                                    : (selectedFile === file ? 'rgba(255, 193, 7, 0.2)' : '#ffc107'),
+                                color: selectedFile === file 
+                                    ? 'white'
+                                    : (file.has_gemini_verification ? 'white' : '#856404'),
+                                fontWeight: '600'
+                            }}>
+                                {file.has_gemini_verification ? '🤖 Gemini Verified' : 
+                                 file.json_priority === 'extracted' ? '🔄 Extracted' : 
+                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'}
+                            </div>
+                            
+                            {/* Available Files Count */}
                             <div style={{
                                 fontSize: '0.7rem',
                                 opacity: selectedFile === file ? 0.9 : 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.25rem'
+                                textAlign: 'center'
                             }}>
-                                {file.has_json ? '✅ JSON' : '❌ No JSON'}
+                                {file.available_files ? Object.keys(file.available_files).length : 1} files
                             </div>
                         </div>
                     ))}
@@ -588,24 +642,56 @@ function ExplorerAllUsers({ onMenuClick }) {
             );
         }
 
-        if (!selectedFile.has_json || !jsonData) {
+        if (!jsonData || (!selectedFile.has_gemini_verification && !selectedFile.json_priority)) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>❌</div>
                     <h3>No JSON Data</h3>
                     <p>This file does not have extracted JSON data</p>
-                    <p style={{ fontSize: '0.9rem' }}>File: {selectedFile.filename}</p>
+                    <p style={{ fontSize: '0.9rem' }}>File: {selectedFile.base_name || selectedFile.filename}</p>
+                    {selectedFile.available_files && (
+                        <div style={{ marginTop: '1rem', fontSize: '0.8rem' }}>
+                            <p>Available files:</p>
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                {Object.keys(selectedFile.available_files).map(fileType => (
+                                    <li key={fileType}>• {fileType.replace('_', ' ')}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             );
         }
 
         return (
             <div>
-                {/* File Info Header */}
+                {/* File Info Header with Gemini Status */}
                 <div style={{ marginBottom: '1.5rem' }}>
                     <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
-                        📊 Extraction Data: {selectedFile.filename}
+                        📊 Extraction Data: {selectedFile.base_name || selectedFile.filename}
                     </h4>
+                    
+                    {/* Verification Status Badge */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                        <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            background: jsonData.metadata?.gemini_verified 
+                                ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'
+                                : jsonData.metadata?.verification_status === 'extracted'
+                                ? 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)'
+                                : 'linear-gradient(135deg, #6c757d 0%, #495057 100%)',
+                            color: 'white',
+                            boxShadow: 'var(--shadow-light)'
+                        }}>
+                            {jsonData.metadata?.gemini_verified ? '🤖 Gemini AI Verified' :
+                             jsonData.metadata?.verification_status === 'extracted' ? '🔄 Machine Extracted' :
+                             '📄 Legacy Data'} 
+                        </span>
+                    </div>
+                    
                     <div style={{ 
                         fontSize: '0.9rem', 
                         color: 'var(--text-color-light)',
@@ -621,6 +707,9 @@ function ExplorerAllUsers({ onMenuClick }) {
                         <span>📄 {jsonData.total_pages || 0} pages</span>
                         <span>📊 {jsonData.summary?.total_tables_found || 0} tables</span>
                         <span>🔧 Mode: {jsonData.mode || 'unknown'}</span>
+                        {jsonData.metadata?.data_priority && (
+                            <span>🏆 Priority: {jsonData.metadata.data_priority}</span>
+                        )}
                     </div>
                 </div>
 

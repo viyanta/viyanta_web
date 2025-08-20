@@ -10,7 +10,7 @@ export default function SideMenu({ isOpen = false, onClose = () => {} }) {
 
   const menuItems = [
     { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
-    { path: '/explorer', label: 'Maker-Checker (All Users)', icon: '🗂️', description: 'Browse All Users Data' },
+    // { path: '/explorer', label: 'Maker-Checker (All Users)', icon: '🗂️', description: 'Browse All Users Data' },
     { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
     { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
     { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module' },
@@ -20,11 +20,17 @@ export default function SideMenu({ isOpen = false, onClose = () => {} }) {
 
   // Add Smart Extraction only for admin users
   if (isAdmin) {
-    menuItems.splice(2, 0, { 
+    menuItems.splice(1, 0, { 
       path: '/smart-extraction', 
       label: 'Smart Extraction', 
       icon: '🚀', 
       description: 'AI-Powered PDF Extraction (Admin Only)' 
+    }),
+    menuItems.splice(1, 0, {
+      path: '/explorer',
+      label: 'Maker-Checker (All Users)',
+      icon: '🗂️',
+      description: 'Browse All Users Data'
     })
   }
 

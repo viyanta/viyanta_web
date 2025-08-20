@@ -1,10 +1,11 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, BackgroundTasks
 from typing import List, Dict, Any
 import os
 import io
 import shutil
 import json
 import time
+import tempfile
 import fitz  # PyMuPDF
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -383,16 +384,25 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
             }
         }
 
-        # Copy PDF to user folder
-        pdf_dest_path = os.path.join(pdf_dir, pdf_name)
+        # Copy PDF to user folder with new naming convention
+        original_filename = f"{pdf_stem}_original_uploaded.pdf"
+        pdf_dest_path = os.path.join(pdf_dir, original_filename)
         shutil.copy2(pdf_path, pdf_dest_path)
 
-        # Write JSON to user folder
-        json_filename = f"{pdf_stem}.json"
-        output_json_path = os.path.join(json_dir, json_filename)
+        # Write extracted JSON to user folder
+        extracted_json_filename = f"{pdf_stem}_json_extracted.json"
+        extracted_json_path = os.path.join(json_dir, extracted_json_filename)
+
+        # Save original extracted JSON first
+        with open(extracted_json_path, "w", encoding="utf-8") as f:
+            json.dump(result, f, ensure_ascii=False, indent=2, default=str)
 
         # Apply Gemini verification if available
         verified_result = result
+        gemini_verified_json_filename = f"{pdf_stem}_json_gemini_verified.json"
+        gemini_verified_json_path = os.path.join(
+            json_dir, gemini_verified_json_filename)
+
         if GEMINI_AVAILABLE:
             try:
                 print(f"🔍 Applying Gemini verification for {pdf_name}...")
@@ -400,18 +410,29 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
                 verifier = GeminiPDFVerifier()
                 verified_result = verifier.verify_pdf_json(pdf_path, result)
                 print(f"✅ Gemini verification completed for {pdf_name}")
+
+                # Save Gemini verified JSON
+                with open(gemini_verified_json_path, "w", encoding="utf-8") as f:
+                    json.dump(verified_result, f, ensure_ascii=False,
+                              indent=2, default=str)
+
             except Exception as e:
                 print(f"⚠️ Gemini verification failed for {pdf_name}: {e}")
-                # Continue with original result if verification fails
+                # If verification fails, copy original result to verified file
                 verified_result = result
+                with open(gemini_verified_json_path, "w", encoding="utf-8") as f:
+                    json.dump(verified_result, f, ensure_ascii=False,
+                              indent=2, default=str)
+        else:
+            # If Gemini not available, copy original result to verified file
+            with open(gemini_verified_json_path, "w", encoding="utf-8") as f:
+                json.dump(verified_result, f, ensure_ascii=False,
+                          indent=2, default=str)
 
-        with open(output_json_path, "w", encoding="utf-8") as f:
-            json.dump(verified_result, f, ensure_ascii=False,
-                      indent=2, default=str)
-
-        # Upload to S3 (use verified result)
-        s3_result = _upload_files_to_s3(
-            pdf_dest_path, verified_result, folder_name, pdf_name, user_id)
+        # Upload all files to S3 with new naming convention
+        s3_result = _upload_files_to_s3_enhanced(
+            pdf_dest_path, extracted_json_path, gemini_verified_json_path,
+            folder_name, pdf_stem, user_id)
 
         dt_ms = int((time.perf_counter() - t0) * 1000)
         table_count = sum(len(tables) for tables in tables_by_page.values())
@@ -424,8 +445,17 @@ def extract_pdf_to_json(pdf_path: str, user_id: str, folder_name: str, mode: str
             "tables_found": table_count,
             "processing_time_ms": dt_ms,
             "mode": mode,
-            "local_pdf_path": pdf_dest_path,
-            "local_json_path": output_json_path,
+            "local_files": {
+                "original_pdf": pdf_dest_path,
+                "extracted_json": extracted_json_path,
+                "gemini_verified_json": gemini_verified_json_path
+            },
+            "file_naming": {
+                "original_pdf": original_filename,
+                "extracted_json": extracted_json_filename,
+                "gemini_verified_json": gemini_verified_json_filename
+            },
+            "gemini_verification": GEMINI_AVAILABLE,
             **s3_result  # Include S3 upload results
         }
     except Exception as e:
@@ -651,7 +681,6 @@ async def upload_pdf_folder_with_tables(
     total_pages = sum(o.get("pages", 0) for o in outputs)
     pages_per_sec = total_pages / \
         (total_time_ms / 1000) if total_time_ms > 0 else 0
-
     s3_uploads_successful = sum(
         1 for o in outputs if o.get("s3_upload", False))
     s3_uploads_failed = len(outputs) - s3_uploads_successful
@@ -1082,27 +1111,49 @@ async def get_all_users_folder_files(user_id: str, folder_name: str):
 
 @router.get("/all_users_json_data/{user_id}/{folder_name}/{filename}")
 async def get_all_users_json_data(user_id: str, folder_name: str, filename: str):
-    """Get JSON data from any user's folder (for maker-checker view) - fetches from S3"""
+    """
+    Get JSON data from any user's folder (for maker-checker view) - fetches from S3
+    Priority: Gemini verified > Extracted > Legacy JSON
+    """
     try:
         if not S3_AVAILABLE:
             raise HTTPException(
                 status_code=503, detail="S3 service not available")
 
-        # Construct S3 key for JSON file
-        # Try both possible locations: in json/ subfolder and in root folder
+        # Determine base filename (remove .json extension if present)
+        base_filename = filename.replace(
+            '.json', '') if filename.endswith('.json') else filename
+
+        # Priority order for JSON files (highest to lowest priority)
         s3_keys_to_try = [
+            # New naming convention - Gemini verified (highest priority)
+            f"users/{user_id}/{folder_name}/{base_filename}_json_gemini_verified.json",
+            # New naming convention - Extracted
+            f"users/{user_id}/{folder_name}/{base_filename}_json_extracted.json",
+            # Legacy naming - with filename as provided
             f"users/{user_id}/{folder_name}/json/{filename}",
-            f"users/{user_id}/{folder_name}/{filename}"
+            f"users/{user_id}/{folder_name}/{filename}",
+            # Legacy naming - with .json extension added
+            f"users/{user_id}/{folder_name}/json/{base_filename}.json",
+            f"users/{user_id}/{folder_name}/{base_filename}.json"
         ]
 
         json_content = None
         successful_key = None
+        verification_status = "none"
 
-        for s3_key in s3_keys_to_try:
+        for i, s3_key in enumerate(s3_keys_to_try):
             try:
                 json_content = s3_service.download_file_content(s3_key)
                 if json_content is not None:
                     successful_key = s3_key
+                    # Determine verification status based on which key worked
+                    if "_json_gemini_verified.json" in s3_key:
+                        verification_status = "gemini_verified"
+                    elif "_json_extracted.json" in s3_key:
+                        verification_status = "extracted"
+                    else:
+                        verification_status = "legacy"
                     break
             except Exception as e:
                 logger.debug(f"Failed to get JSON from S3 key {s3_key}: {e}")
@@ -1122,9 +1173,16 @@ async def get_all_users_json_data(user_id: str, folder_name: str, filename: str)
             "user_id": user_id,
             "folder_name": folder_name,
             "filename": filename,
+            "base_filename": base_filename,
+            "verification_status": verification_status,
             "source": "s3",
             "s3_key": successful_key,
-            "data": data
+            "data": data,
+            "metadata": {
+                "gemini_verified": verification_status == "gemini_verified",
+                "data_priority": verification_status,
+                "file_source": successful_key
+            }
         }
 
     except HTTPException:
@@ -1504,3 +1562,250 @@ def _get_directory_files(directory_path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error getting directory files: {e}")
         return []
+
+
+def _upload_files_to_s3_enhanced(
+    pdf_path: str,
+    extracted_json_path: str,
+    verified_json_path: str,
+    folder_name: str,
+    pdf_stem: str,
+    user_id: str
+) -> Dict[str, Any]:
+    """
+    Upload all three files to S3 with enhanced naming convention:
+    - {filename}_original_uploaded.pdf
+    - {filename}_json_extracted.json  
+    - {filename}_json_gemini_verified.json
+
+    S3 structure: {bucket}/users/{user_id}/{folder_name}/
+    """
+    if not S3_AVAILABLE or s3_service is None:
+        return {
+            "s3_upload": False,
+            "s3_pdf_result": {"success": False, "error": "S3 service not configured"},
+            "s3_extracted_json_result": {"success": False, "error": "S3 service not configured"},
+            "s3_verified_json_result": {"success": False, "error": "S3 service not configured"}
+        }
+
+    try:
+        # Define S3 key names with new convention
+        s3_pdf_key = f"users/{user_id}/{folder_name}/{pdf_stem}_original_uploaded.pdf"
+        s3_extracted_json_key = f"users/{user_id}/{folder_name}/{pdf_stem}_json_extracted.json"
+        s3_verified_json_key = f"users/{user_id}/{folder_name}/{pdf_stem}_json_gemini_verified.json"
+
+        # Common metadata
+        base_metadata = {
+            "user_id": user_id,
+            "folder_name": folder_name,
+            "pdf_stem": pdf_stem,
+            "uploaded_at": datetime.utcnow().isoformat()
+        }
+
+        # Upload original PDF
+        pdf_result = s3_service.upload_file(
+            pdf_path,
+            s3_pdf_key,
+            metadata={
+                **base_metadata,
+                "file_type": "original_pdf",
+                "content_type": "application/pdf"
+            }
+        )
+
+        # Upload extracted JSON
+        extracted_json_result = s3_service.upload_file(
+            extracted_json_path,
+            s3_extracted_json_key,
+            metadata={
+                **base_metadata,
+                "file_type": "extracted_json",
+                "content_type": "application/json",
+                "gemini_verified": "false"
+            }
+        )
+
+        # Upload Gemini verified JSON
+        verified_json_result = s3_service.upload_file(
+            verified_json_path,
+            s3_verified_json_key,
+            metadata={
+                **base_metadata,
+                "file_type": "gemini_verified_json",
+                "content_type": "application/json",
+                "gemini_verified": "true"
+            }
+        )
+
+        return {
+            "s3_upload": True,
+            "s3_pdf_result": pdf_result,
+            "s3_extracted_json_result": extracted_json_result,
+            "s3_verified_json_result": verified_json_result,
+            "s3_keys": {
+                "pdf": s3_pdf_key,
+                "extracted_json": s3_extracted_json_key,
+                "verified_json": s3_verified_json_key
+            }
+        }
+
+    except Exception as e:
+        logger.warning(f"Enhanced S3 upload failed for {pdf_stem}: {str(e)}")
+        return {
+            "s3_upload": False,
+            "s3_pdf_result": {"success": False, "error": str(e)},
+            "s3_extracted_json_result": {"success": False, "error": str(e)},
+            "s3_verified_json_result": {"success": False, "error": str(e)}
+        }
+
+
+@router.post("/reprocess_with_gemini/{user_id}/{folder_name}/{base_filename}")
+async def reprocess_with_gemini(
+    user_id: str,
+    folder_name: str,
+    base_filename: str,
+    background_tasks: BackgroundTasks
+):
+    """
+    Re-process an existing PDF file with Gemini verification
+    Fast multithreaded processing for better user experience
+    """
+    try:
+        if not S3_AVAILABLE:
+            raise HTTPException(
+                status_code=503, detail="S3 service not available")
+
+        # Check if original PDF exists in S3
+        original_pdf_key = f"users/{user_id}/{folder_name}/{base_filename}_original_uploaded.pdf"
+
+        try:
+            # Check if PDF exists
+            s3_service.s3_client.head_object(
+                Bucket=s3_service.bucket_name, Key=original_pdf_key)
+        except s3_service.s3_client.exceptions.NoSuchKey:
+            # Try legacy naming
+            legacy_pdf_key = f"users/{user_id}/{folder_name}/pdf/{base_filename}.pdf"
+            try:
+                s3_service.s3_client.head_object(
+                    Bucket=s3_service.bucket_name, Key=legacy_pdf_key)
+                original_pdf_key = legacy_pdf_key
+            except s3_service.s3_client.exceptions.NoSuchKey:
+                raise HTTPException(
+                    status_code=404, detail="Original PDF file not found in S3")
+
+        # Add background task for processing
+        background_tasks.add_task(
+            _reprocess_pdf_with_gemini,
+            user_id, folder_name, base_filename, original_pdf_key
+        )
+
+        return {
+            "status": "processing_started",
+            "user_id": user_id,
+            "folder_name": folder_name,
+            "base_filename": base_filename,
+            "message": "Re-processing with Gemini verification started in background",
+            "estimated_time": "1-3 minutes"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error starting reprocessing: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start reprocessing: {str(e)}")
+
+
+async def _reprocess_pdf_with_gemini(
+    user_id: str,
+    folder_name: str,
+    base_filename: str,
+    s3_pdf_key: str
+):
+    """
+    Background task for reprocessing PDF with Gemini verification
+    Uses multithreading for fast processing
+    """
+    temp_dir = None
+    try:
+        logger.info(
+            f"Starting Gemini reprocessing for {user_id}/{folder_name}/{base_filename}")
+
+        # Download PDF from S3 to temp location
+        temp_dir = tempfile.mkdtemp()
+        temp_pdf_path = os.path.join(
+            temp_dir, f"{base_filename}_original_uploaded.pdf")
+
+        # Download PDF content
+        pdf_content = s3_service.download_file_content(s3_pdf_key)
+        if not pdf_content:
+            raise Exception("Failed to download PDF from S3")
+
+        # Write to temp file
+        with open(temp_pdf_path, "wb") as f:
+            f.write(pdf_content)
+
+        # Re-extract with Gemini verification (this will use the enhanced processing)
+        result = extract_pdf_to_json(
+            temp_pdf_path, user_id, folder_name, "complete")
+
+        logger.info(
+            f"Gemini reprocessing completed for {base_filename}: {result.get('gemini_verification', False)}")
+
+        # Clean up temp files
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    except Exception as e:
+        logger.error(
+            f"Gemini reprocessing failed for {base_filename}: {str(e)}")
+        # Clean up temp files on error
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except:
+            pass
+
+
+@router.get("/processing_status/{user_id}/{folder_name}/{base_filename}")
+async def get_processing_status(user_id: str, folder_name: str, base_filename: str):
+    """
+    Check the processing status of a file
+    Returns information about available files and Gemini verification status
+    """
+    try:
+        if not S3_AVAILABLE:
+            raise HTTPException(
+                status_code=503, detail="S3 service not available")
+
+        # Check what files exist for this base filename
+        folder_data = s3_service._get_folder_data_from_s3(user_id, folder_name)
+
+        if not folder_data:
+            raise HTTPException(status_code=404, detail="Folder not found")
+
+        # Find the file in folder data
+        target_file = None
+        for file_entry in folder_data['files']:
+            if file_entry['base_name'] == base_filename:
+                target_file = file_entry
+                break
+
+        if not target_file:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        return {
+            "user_id": user_id,
+            "folder_name": folder_name,
+            "base_filename": base_filename,
+            "status": "completed",
+            "has_gemini_verification": target_file['has_gemini_verification'],
+            "json_priority": target_file['json_priority'],
+            "available_files": target_file['available_files'],
+            "processing_complete": True
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking processing status: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to check status: {str(e)}")

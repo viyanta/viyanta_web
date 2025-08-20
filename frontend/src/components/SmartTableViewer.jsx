@@ -1,13 +1,21 @@
 import React, { useState, useMemo } from 'react';
 
-const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
+const SmartTableViewer = ({ tables, data, filename, jobId, extractionSummary }) => {
   const [currentTableIndex, setCurrentTableIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Memoized filtered and paginated data
-  const currentTable = tables[currentTableIndex];
+  // Handle both 'tables' and 'data' props for backwards compatibility
+  const tableData = tables || (data?.tables) || (data?.tabular_results) || (data?.results?.tables) || [];
+  
+  // Debug logging to understand data structure
+  React.useEffect(() => {
+    console.log('SmartTableViewer received:', { tables, data, tableData });
+  }, [tables, data, tableData]);
+  
+  // Ensure we have valid table data
+  const currentTable = tableData && tableData.length > 0 ? tableData[currentTableIndex] : null;
   
   const filteredData = useMemo(() => {
     if (!currentTable || !currentTable.data || !searchTerm) {
@@ -43,7 +51,7 @@ const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
   };
 
   const downloadTableCSV = (tableIndex) => {
-    const table = tables[tableIndex];
+    const table = tableData[tableIndex];
     if (!table) return;
 
     const csvContent = [
@@ -60,7 +68,7 @@ const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
     URL.revokeObjectURL(url);
   };
 
-  if (!tables || tables.length === 0) {
+  if (!tableData || tableData.length === 0) {
     return (
       <div style={{
         background: '#fff',
@@ -179,7 +187,7 @@ const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
             📊 Extracted Tables
           </h3>
           <p style={{ margin: '4px 0 0 0', color: '#6c757d', fontSize: '14px' }}>
-            {filename} • {tables.length} table{tables.length > 1 ? 's' : ''} found
+            {filename} • {tableData.length} table{tableData.length > 1 ? 's' : ''} found
             {extractionSummary && (
               <> • {extractionSummary.pages_processed} pages processed</>
             )}
@@ -213,10 +221,10 @@ const SmartTableViewer = ({ tables, filename, jobId, extractionSummary }) => {
       </div>
 
       {/* Table Navigation */}
-      {tables.length > 1 && (
+      {tableData.length > 1 && (
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '1rem' }}>
-            {tables.map((table, index) => (
+            {tableData.map((table, index) => (
               <button
                 key={index}
                 style={index === currentTableIndex ? activeTabStyle : inactiveTabStyle}

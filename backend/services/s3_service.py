@@ -1049,9 +1049,8 @@ class S3Service:
             folder_created_at = None
 
             if 'Contents' in response:
-                # Group files by type
-                pdf_files = {}
-                json_files = {}
+                # Group files by base name and type for enhanced naming convention
+                file_groups = {}  # base_name -> {original_pdf, extracted_json, gemini_verified_json}
 
                 for obj in response['Contents']:
                     key = obj['Key']
@@ -1066,42 +1065,121 @@ class S3Service:
                     if folder_created_at is None or obj['LastModified'] < folder_created_at:
                         folder_created_at = obj['LastModified']
 
-                    # Categorize files
-                    if filename.lower().endswith('.pdf'):
-                        # Check if it's in pdf/ subfolder or root folder
-                        if '/pdf/' in key or not '/' in relative_path:
-                            pdf_files[filename] = {
-                                'size': obj['Size'],
-                                'created_at': obj['LastModified'].isoformat(),
-                                's3_key': key
-                            }
-                            pdf_count += 1
+                    # Parse new naming convention
+                    if filename.endswith('_original_uploaded.pdf'):
+                        base_name = filename.replace(
+                            '_original_uploaded.pdf', '')
+                        if base_name not in file_groups:
+                            file_groups[base_name] = {}
+                        file_groups[base_name]['original_pdf'] = {
+                            'filename': filename,
+                            'size': obj['Size'],
+                            'created_at': obj['LastModified'].isoformat(),
+                            's3_key': key,
+                            'type': 'original_pdf'
+                        }
+                        pdf_count += 1
 
-                    elif filename.lower().endswith('.json'):
-                        # Check if it's in json/ subfolder or root folder
-                        if '/json/' in key or not '/' in relative_path:
-                            json_files[filename] = {
-                                'size': obj['Size'],
-                                'created_at': obj['LastModified'].isoformat(),
-                                's3_key': key
-                            }
-                            json_count += 1
+                    elif filename.endswith('_json_extracted.json'):
+                        base_name = filename.replace(
+                            '_json_extracted.json', '')
+                        if base_name not in file_groups:
+                            file_groups[base_name] = {}
+                        file_groups[base_name]['extracted_json'] = {
+                            'filename': filename,
+                            'size': obj['Size'],
+                            'created_at': obj['LastModified'].isoformat(),
+                            's3_key': key,
+                            'type': 'extracted_json'
+                        }
+                        json_count += 1
 
-                # Match PDFs with their JSON files
-                for pdf_filename, pdf_info in pdf_files.items():
-                    # Look for corresponding JSON file
-                    json_filename = pdf_filename.replace('.pdf', '.json')
-                    has_json = json_filename in json_files
+                    elif filename.endswith('_json_gemini_verified.json'):
+                        base_name = filename.replace(
+                            '_json_gemini_verified.json', '')
+                        if base_name not in file_groups:
+                            file_groups[base_name] = {}
+                        file_groups[base_name]['gemini_verified_json'] = {
+                            'filename': filename,
+                            'size': obj['Size'],
+                            'created_at': obj['LastModified'].isoformat(),
+                            's3_key': key,
+                            'type': 'gemini_verified_json'
+                        }
+                        json_count += 1
 
+                    # Handle legacy files for backward compatibility
+                    elif filename.lower().endswith('.pdf') and not filename.endswith('_original_uploaded.pdf'):
+                        base_name = os.path.splitext(filename)[0]
+                        if base_name not in file_groups:
+                            file_groups[base_name] = {}
+                        file_groups[base_name]['legacy_pdf'] = {
+                            'filename': filename,
+                            'size': obj['Size'],
+                            'created_at': obj['LastModified'].isoformat(),
+                            's3_key': key,
+                            'type': 'legacy_pdf'
+                        }
+                        pdf_count += 1
+
+                    elif filename.lower().endswith('.json') and not any(suffix in filename for suffix in ['_json_extracted.json', '_json_gemini_verified.json']):
+                        base_name = os.path.splitext(filename)[0]
+                        if base_name not in file_groups:
+                            file_groups[base_name] = {}
+                        file_groups[base_name]['legacy_json'] = {
+                            'filename': filename,
+                            'size': obj['Size'],
+                            'created_at': obj['LastModified'].isoformat(),
+                            's3_key': key,
+                            'type': 'legacy_json'
+                        }
+                        json_count += 1
+
+                # Convert file groups to file list with priority for Gemini verified JSON
+                for base_name, file_group in file_groups.items():
+                    # Determine best JSON file (priority: gemini_verified > extracted > legacy)
+                    best_json = None
+                    json_priority = 'none'
+
+                    if 'gemini_verified_json' in file_group:
+                        best_json = file_group['gemini_verified_json']
+                        json_priority = 'gemini_verified'
+                    elif 'extracted_json' in file_group:
+                        best_json = file_group['extracted_json']
+                        json_priority = 'extracted'
+                    elif 'legacy_json' in file_group:
+                        best_json = file_group['legacy_json']
+                        json_priority = 'legacy'
+
+                    # Determine best PDF file (priority: original > legacy)
+                    best_pdf = None
+                    if 'original_pdf' in file_group:
+                        best_pdf = file_group['original_pdf']
+                    elif 'legacy_pdf' in file_group:
+                        best_pdf = file_group['legacy_pdf']
+
+                    # Create file entry
                     file_entry = {
-                        'filename': pdf_filename,
-                        'size': pdf_info['size'],
-                        'created_at': pdf_info['created_at'],
-                        'has_json': has_json,
-                        'json_filename': json_filename if has_json else None,
-                        's3_pdf_key': pdf_info['s3_key'],
-                        's3_json_key': json_files[json_filename]['s3_key'] if has_json else None
+                        'base_name': base_name,
+                        'json_priority': json_priority,
+                        'has_gemini_verification': 'gemini_verified_json' in file_group,
+                        'available_files': {
+                            k: v for k, v in file_group.items()
+                        }
                     }
+
+                    if best_json:
+                        file_entry.update({
+                            'filename': best_json['filename'],
+                            'size': best_json['size'],
+                            'created_at': best_json['created_at'],
+                            's3_key': best_json['s3_key'],
+                            'type': best_json['type']
+                        })
+
+                    if best_pdf:
+                        file_entry['pdf_info'] = best_pdf
+
                     files.append(file_entry)
 
             return {

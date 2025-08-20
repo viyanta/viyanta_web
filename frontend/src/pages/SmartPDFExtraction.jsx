@@ -603,7 +603,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
             <SmartPDFExtractor
               onExtractComplete={handleExtractComplete}
               onError={handleError}
-              currentUser={user}
+              user={user}
             />
           </div>
         )}

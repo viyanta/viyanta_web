@@ -850,7 +850,7 @@ class ApiService {
       }
     }
     
-    const response = await fetch(`${API_BASE_URL}/upload-history/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/extraction/upload-history/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
