@@ -9,6 +9,53 @@ UPLOAD_DIR = "uploads"
 CONVERTED_DIR = "converted"
 
 
+@router.get("/view/original/{file_id}")
+async def view_original_file(file_id: str):
+    """View original uploaded file inline (for PDF viewer)"""
+    try:
+        file_record = get_file_by_id(file_id)
+        if not file_record:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        file_path = os.path.join(UPLOAD_DIR, file_record['stored_filename'])
+        if not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=404, detail="File not found on disk")
+
+        # Determine the correct media type based on file extension
+        original_filename = file_record['original_filename']
+        file_extension = original_filename.split('.')[-1].lower() if '.' in original_filename else ''
+        
+        media_type_map = {
+            'pdf': 'application/pdf',
+            'txt': 'text/plain',
+            'csv': 'text/csv',
+            'json': 'application/json',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls': 'application/vnd.ms-excel',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'doc': 'application/msword'
+        }
+        
+        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+
+        # For PDFs, add headers to allow inline viewing
+        headers = {}
+        if file_extension == 'pdf':
+            headers['Content-Disposition'] = 'inline'
+            headers['X-Content-Type-Options'] = 'nosniff'
+
+        return FileResponse(
+            path=file_path,
+            filename=original_filename,
+            media_type=media_type,
+            headers=headers
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"View failed: {str(e)}")
+
+
 @router.get("/download/original/{file_id}")
 async def download_original_file(file_id: str):
     """Download original uploaded file"""
@@ -22,10 +69,27 @@ async def download_original_file(file_id: str):
             raise HTTPException(
                 status_code=404, detail="File not found on disk")
 
+        # Determine the correct media type based on file extension
+        original_filename = file_record['original_filename']
+        file_extension = original_filename.split('.')[-1].lower() if '.' in original_filename else ''
+        
+        media_type_map = {
+            'pdf': 'application/pdf',
+            'txt': 'text/plain',
+            'csv': 'text/csv',
+            'json': 'application/json',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls': 'application/vnd.ms-excel',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'doc': 'application/msword'
+        }
+        
+        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+
         return FileResponse(
             path=file_path,
-            filename=file_record['original_filename'],
-            media_type='application/octet-stream'
+            filename=original_filename,
+            media_type=media_type
         )
     except Exception as e:
         raise HTTPException(

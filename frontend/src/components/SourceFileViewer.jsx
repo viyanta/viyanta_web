@@ -9,22 +9,77 @@ function SourceFileViewer({ file, title }) {
   const fileName = file?.original_filename || file?.filename || file?.name;
   const fileType = fileName ? fileName.split('.').pop()?.toLowerCase() : null;
   const fileId = file?.file_id || file?.id;
+  const s3PdfKey = file?.s3_pdf_key; // For S3-stored files
+  
+  // Fallback: try to construct S3 key from other available information
+  const constructS3Key = () => {
+    if (s3PdfKey) return s3PdfKey;
+    
+    // If we have user and folder info, try to construct the key
+    if (file?.user_id && file?.folder_name && fileName) {
+      return `users/${file.user_id}/${file.folder_name}/pdf/${fileName}`;
+    }
+    
+    // If we have just the filename, try a generic path
+    if (fileName) {
+      return `users/default_user/default_folder/pdf/${fileName}`;
+    }
+    
+    return null;
+  };
+  
+  const finalS3Key = constructS3Key();
+
+  // Debug logging
+  console.log('SourceFileViewer - File object:', file);
+  console.log('SourceFileViewer - fileName:', fileName);
+  console.log('SourceFileViewer - fileType:', fileType);
+  console.log('SourceFileViewer - fileId:', fileId);
+  console.log('SourceFileViewer - s3PdfKey:', s3PdfKey);
+  console.log('SourceFileViewer - finalS3Key:', finalS3Key);
 
   // Create blob URL for PDF files to ensure they display inline
   useEffect(() => {
-    if (fileType?.toLowerCase() === 'pdf' && fileId) {
+    if (fileType?.toLowerCase() === 'pdf') {
       const loadPdfAsBlob = async () => {
         try {
           setLoading(true);
-          const response = await fetch(`http://localhost:8000/api/files/original/${fileId}`);
+          console.log('Loading PDF...');
+          
+          let response;
+          let url;
+          
+          if (finalS3Key) {
+            // For S3 files, use the S3 view endpoint for inline display
+            url = `http://localhost:8000/api/extraction/s3/view/${encodeURIComponent(finalS3Key)}`;
+            console.log('Using S3 view endpoint:', url);
+            response = await fetch(url);
+          } else if (fileId) {
+            // For local files, use the view endpoint
+            url = `http://localhost:8000/view/original/${fileId}`;
+            console.log('Using local view endpoint:', url);
+            response = await fetch(url);
+          } else {
+            throw new Error('No file ID or S3 key available');
+          }
+          
+          console.log('Response status:', response.status);
+          console.log('Response headers:', response.headers);
+          
           if (response.ok) {
             const blob = await response.blob();
+            console.log('Blob created:', blob);
             const url = URL.createObjectURL(blob);
             setBlobUrl(url);
+            console.log('Blob URL created:', url);
+          } else {
+            const errorText = await response.text();
+            console.error('Response error text:', errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
           }
         } catch (err) {
           console.error('Error loading PDF:', err);
-          setError('Failed to load PDF file');
+          setError('Failed to load PDF file: ' + err.message);
         } finally {
           setLoading(false);
         }
@@ -38,7 +93,7 @@ function SourceFileViewer({ file, title }) {
         URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [fileId, fileType]);
+  }, [fileId, finalS3Key, fileType]);
 
   if (!file || !fileName) {
     return (
@@ -103,8 +158,8 @@ function SourceFileViewer({ file, title }) {
     const fileUrl = (fileType?.toLowerCase() === 'pdf' && blobUrl) 
       ? blobUrl
       : fileId 
-        ? `http://localhost:8000/api/files/original/${fileId}?view=inline&t=${Date.now()}`
-        : `http://localhost:8000/uploads/${encodeURIComponent(fileName)}?view=inline&t=${Date.now()}`;
+        ? `http://localhost:8000/view/original/${fileId}`
+        : `http://localhost:8000/uploads/${encodeURIComponent(fileName)}`;
     
     switch (fileType?.toLowerCase()) {
       case 'pdf':
@@ -117,16 +172,34 @@ function SourceFileViewer({ file, title }) {
             overflow: 'auto',
             position: 'relative'
           }}>
-            <iframe
-              src={fileUrl}
-              width="100%"
-              height="100%"
-              style={{
-                border: 'none',
-                borderRadius: 'var(--border-radius)'
-              }}
-              title="PDF Document"
-            />
+            {blobUrl ? (
+              // Use blob URL if available
+              <iframe
+                src={blobUrl}
+                width="100%"
+                height="100%"
+                style={{
+                  border: 'none',
+                  borderRadius: 'var(--border-radius)'
+                }}
+                title="PDF Document"
+              />
+            ) : (
+              // Fallback to direct URL
+              <iframe
+                src={finalS3Key 
+                  ? `http://localhost:8000/api/extraction/s3/view/${encodeURIComponent(finalS3Key)}`
+                  : `http://localhost:8000/view/original/${fileId}`
+                }
+                width="100%"
+                height="100%"
+                style={{
+                  border: 'none',
+                  borderRadius: 'var(--border-radius)'
+                }}
+                title="PDF Document"
+              />
+            )}
           </div>
         );
 

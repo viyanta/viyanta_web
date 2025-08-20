@@ -772,8 +772,8 @@ function DMML2Form({ onMenuClick }) {
                         </div>
                         <div style={{ lineHeight: '1.6' }}>
                             • Use the sample file: <code style={{ backgroundColor: '#e9ecef', padding: '2px 4px', borderRadius: '3px' }}>dmm-l2form-sample.json</code><br />
-                            • Import your own data<br />
-                            • Export modified data
+                        • Import your own data<br />
+                        • Export modified data
                         </div>
                     </div>
                 </div>
