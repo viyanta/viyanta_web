@@ -1812,3 +1812,39 @@ async def clear_user_extraction_history(user_id: str):
         logger.error(f"Error clearing user history for {user_id}: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Failed to clear user history")
+
+
+@router.get("/upload-history/{user_id}")
+async def get_user_upload_history(user_id: str):
+    """
+    Get upload history for a specific user (same as extraction history but formatted for uploads)
+    """
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    try:
+        # Get extraction history (which includes upload information)
+        extraction_history = await get_user_extraction_history(user_id)
+
+        # Format as upload history - extract upload-related information
+        upload_history = []
+        for extraction in extraction_history:
+            if isinstance(extraction, dict):
+                upload_entry = {
+                    "id": extraction.get("id", ""),
+                    "timestamp": extraction.get("timestamp", ""),
+                    "filename": extraction.get("filename", ""),
+                    "folder_name": extraction.get("folder_name", ""),
+                    "mode": extraction.get("mode", "single"),
+                    "status": extraction.get("status", "unknown"),
+                    "file_count": extraction.get("file_count", 1)
+                }
+                upload_history.append(upload_entry)
+
+        return upload_history
+
+    except Exception as e:
+        logger.error(
+            f"Error retrieving upload history for {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve upload history")

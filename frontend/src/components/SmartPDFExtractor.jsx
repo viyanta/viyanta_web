@@ -69,7 +69,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
   };
 
   const processUpload = async () => {
-    if (!user?.uid) {
+    if (!user?.id) {
       onError('Please log in to extract PDF files');
       return;
     }
