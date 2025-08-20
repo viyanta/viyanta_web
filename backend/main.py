@@ -42,14 +42,21 @@ app.include_router(folder_uploader_router, prefix="/api",
 
 # Serve static files (uploads and extracted files) from absolute paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app.mount("/uploads", StaticFiles(directory=os.path.join(BASE_DIR,
-          "uploads")), name="uploads")
-app.mount("/extracted", StaticFiles(directory=os.path.join(BASE_DIR,
-          "extracted")), name="extracted")
-app.mount("/pdf_folder_extracted",
-          StaticFiles(directory=os.path.join(BASE_DIR, "pdf_folder_extracted")), name="pdf_folder_extracted")
-app.mount("/vifiles", StaticFiles(directory=os.path.join(BASE_DIR,
-          "vifiles")), name="vifiles")
+
+# Function to safely mount static directories
+def mount_static_directory(app, path, name):
+    directory = os.path.join(BASE_DIR, path)
+    if os.path.exists(directory):
+        app.mount(f"/{name}", StaticFiles(directory=directory), name=name)
+        print(f"✅ Mounted /{name} -> {directory}")
+    else:
+        print(f"⚠️  Directory {directory} does not exist, skipping /{name} mount")
+
+# Mount static directories safely
+mount_static_directory(app, "uploads", "uploads")
+mount_static_directory(app, "extracted", "extracted")
+mount_static_directory(app, "pdf_folder_extracted", "pdf_folder_extracted")
+mount_static_directory(app, "vifiles", "vifiles")
 
 
 @app.get("/")

@@ -595,38 +595,42 @@ function DMML2Form({ onMenuClick }) {
 
                 {/* Right Panel - Action Buttons */}
                 <div style={{ 
-                    flex: window.innerWidth <= 768 ? 'none' : '0 0 250px',
-                    width: window.innerWidth <= 768 ? '100%' : '250px',
+                    flex: window.innerWidth <= 768 ? 'none' : '0 0 280px',
+                    width: window.innerWidth <= 768 ? '100%' : '280px',
                     backgroundColor: '#fff',
                     borderRadius: '8px',
                     padding: 'clamp(15px, 4vw, 20px)',
                     border: '1px solid #e0e0e0',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                     height: 'fit-content',
-                    order: window.innerWidth <= 768 ? -1 : 0 // Move actions to top on mobile
+                    order: window.innerWidth <= 768 ? -1 : 0, // Move actions to top on mobile
+                    alignSelf: 'flex-start' // Align to top of container
                 }}>
                     <h3 style={{ 
                         margin: '0 0 clamp(15px, 4vw, 20px) 0', 
                         color: '#333',
                         borderBottom: '2px solid #1976d2',
                         paddingBottom: 'clamp(8px, 2vw, 10px)',
-                        fontSize: 'clamp(16px, 4vw, 18px)'
+                        fontSize: 'clamp(16px, 4vw, 18px)',
+                        textAlign: 'center'
                     }}>
                         Actions
                     </h3>
                     
+                    {/* Action Buttons Container */}
                     <div style={{ 
-                        marginBottom: 'clamp(10px, 3vw, 15px)',
-                        display: 'grid',
-                        gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr',
-                        gap: 'clamp(8px, 2vw, 10px)'
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 'clamp(10px, 2.5vw, 12px)',
+                        marginBottom: 'clamp(15px, 4vw, 20px)'
                     }}>
                         <button
                             onClick={handleSaveData}
                             disabled={loading}
                             style={{
                                 width: '100%',
-                                padding: 'clamp(10px, 2.5vw, 12px)',
+                                height: 'clamp(44px, 5vw, 48px)',
+                                padding: '0 clamp(12px, 3vw, 16px)',
                                 backgroundColor: '#28a745',
                                 color: 'white',
                                 border: 'none',
@@ -634,26 +638,26 @@ function DMML2Form({ onMenuClick }) {
                                 cursor: 'pointer',
                                 fontSize: 'clamp(13px, 3vw, 14px)',
                                 fontWeight: '500',
-                                marginBottom: '0',
-                                opacity: loading ? 0.7 : 1
+                                transition: 'all 0.2s ease',
+                                opacity: loading ? 0.7 : 1,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
                             }}
                         >
-                            {loading ? 'Saving...' : '💾 Save Data'}
+                            <span style={{ fontSize: 'clamp(14px, 3.5vw, 16px)' }}>💾</span>
+                            <span>{loading ? 'Saving...' : 'Save Data'}</span>
                         </button>
-                    </div>
 
-                    <div style={{ 
-                        marginBottom: 'clamp(10px, 3vw, 15px)',
-                        display: 'grid',
-                        gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr',
-                        gap: 'clamp(8px, 2vw, 10px)'
-                    }}>
                         <button
                             onClick={handleMigrateData}
                             disabled={loading}
                             style={{
                                 width: '100%',
-                                padding: 'clamp(10px, 2.5vw, 12px)',
+                                height: 'clamp(44px, 5vw, 48px)',
+                                padding: '0 clamp(12px, 3vw, 16px)',
                                 backgroundColor: '#17a2b8',
                                 color: 'white',
                                 border: 'none',
@@ -661,19 +665,19 @@ function DMML2Form({ onMenuClick }) {
                                 cursor: 'pointer',
                                 fontSize: 'clamp(13px, 3vw, 14px)',
                                 fontWeight: '500',
-                                opacity: loading ? 0.7 : 1
+                                transition: 'all 0.2s ease',
+                                opacity: loading ? 0.7 : 1,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
                             }}
                         >
-                            {loading ? 'Migrating...' : '🚀 Migrate Data'}
+                            <span style={{ fontSize: 'clamp(14px, 3.5vw, 16px)' }}>🚀</span>
+                            <span>{loading ? 'Migrating...' : 'Migrate Data'}</span>
                         </button>
-                    </div>
 
-                    <div style={{ 
-                        marginBottom: 'clamp(10px, 3vw, 15px)',
-                        display: 'grid',
-                        gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr',
-                        gap: 'clamp(8px, 2vw, 10px)'
-                    }}>
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -685,7 +689,8 @@ function DMML2Form({ onMenuClick }) {
                             onClick={() => fileInputRef.current.click()}
                             style={{
                                 width: '100%',
-                                padding: 'clamp(10px, 2.5vw, 12px)',
+                                height: 'clamp(44px, 5vw, 48px)',
+                                padding: '0 clamp(12px, 3vw, 16px)',
                                 backgroundColor: '#6f42c1',
                                 color: 'white',
                                 border: 'none',
@@ -693,25 +698,25 @@ function DMML2Form({ onMenuClick }) {
                                 cursor: 'pointer',
                                 fontSize: 'clamp(13px, 3vw, 14px)',
                                 fontWeight: '500',
-                                marginBottom: '0'
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
                             }}
                         >
-                            📁 Import JSON
+                            <span style={{ fontSize: 'clamp(14px, 3.5vw, 16px)' }}>📁</span>
+                            <span>Import JSON</span>
                         </button>
-                    </div>
 
-                    <div style={{ 
-                        marginBottom: 'clamp(10px, 3vw, 15px)',
-                        display: 'grid',
-                        gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr',
-                        gap: 'clamp(8px, 2vw, 10px)'
-                    }}>
                         <button
                             onClick={handleExportData}
                             disabled={!formData}
                             style={{
                                 width: '100%',
-                                padding: 'clamp(10px, 2.5vw, 12px)',
+                                height: 'clamp(44px, 5vw, 48px)',
+                                padding: '0 clamp(12px, 3vw, 16px)',
                                 backgroundColor: '#fd7e14',
                                 color: 'white',
                                 border: 'none',
@@ -719,30 +724,57 @@ function DMML2Form({ onMenuClick }) {
                                 cursor: formData ? 'pointer' : 'not-allowed',
                                 fontSize: 'clamp(13px, 3vw, 14px)',
                                 fontWeight: '500',
-                                opacity: formData ? 1 : 0.7
+                                transition: 'all 0.2s ease',
+                                opacity: formData ? 1 : 0.7,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
                             }}
                         >
-                            📤 Export JSON
+                            <span style={{ fontSize: 'clamp(14px, 3.5vw, 16px)' }}>📤</span>
+                            <span>Export JSON</span>
                         </button>
                     </div>
 
+                    {/* Data Status Section */}
                     <div style={{
                         backgroundColor: '#f8f9fa',
-                        padding: 'clamp(12px, 3vw, 15px)',
+                        padding: 'clamp(15px, 3.5vw, 18px)',
+                        borderRadius: '6px',
+                        border: '1px solid #dee2e6',
+                        fontSize: 'clamp(11px, 2.5vw, 12px)',
+                        color: '#666',
+                        marginBottom: 'clamp(12px, 3vw, 15px)'
+                    }}>
+                        <div style={{ marginBottom: 'clamp(8px, 2vw, 10px)' }}>
+                            <strong style={{ color: '#495057' }}>Data Status:</strong>
+                        </div>
+                        <div style={{ lineHeight: '1.6' }}>
+                            • Last Modified: {new Date().toLocaleDateString()}<br />
+                            • Status: Active<br />
+                            • Version: 1.0
+                        </div>
+                    </div>
+
+                    {/* JSON Import/Export Section */}
+                    <div style={{
+                        backgroundColor: '#f8f9fa',
+                        padding: 'clamp(15px, 3.5vw, 18px)',
                         borderRadius: '6px',
                         border: '1px solid #dee2e6',
                         fontSize: 'clamp(11px, 2.5vw, 12px)',
                         color: '#666'
                     }}>
-                        <strong>Data Status:</strong><br />
-                        • Last Modified: {new Date().toLocaleDateString()}<br />
-                        • Status: Active<br />
-                        • Version: 1.0
-                        <br /><br />
-                        <strong>JSON Import/Export:</strong><br />
-                        • Use the sample file: <code>dmm-l2form-sample.json</code><br />
-                        • Import your own data<br />
-                        • Export modified data
+                        <div style={{ marginBottom: 'clamp(8px, 2vw, 10px)' }}>
+                            <strong style={{ color: '#495057' }}>JSON Import/Export:</strong>
+                        </div>
+                        <div style={{ lineHeight: '1.6' }}>
+                            • Use the sample file: <code style={{ backgroundColor: '#e9ecef', padding: '2px 4px', borderRadius: '3px' }}>dmm-l2form-sample.json</code><br />
+                            • Import your own data<br />
+                            • Export modified data
+                        </div>
                     </div>
                 </div>
             </div>
