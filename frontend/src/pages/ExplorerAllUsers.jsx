@@ -224,10 +224,21 @@ function ExplorerAllUsers({ onMenuClick }) {
         console.log('File has file_id:', file?.file_id); // Debug log
         
         // Add user and folder info to the file object for the PDF viewer
+        // Also ensure we have the correct PDF filename and S3 key
         const enhancedFile = {
             ...file,
             user_id: selectedUser,
-            folder_name: selectedFolder
+            folder_name: selectedFolder,
+            // If the filename is a JSON file, get the corresponding PDF filename
+            original_filename: file.filename?.endsWith('.json') 
+                ? file.filename.replace('.json', '.pdf') 
+                : file.filename,
+            // Use the PDF S3 key if available
+            s3_pdf_key: file.pdf_s3_key || file.s3_pdf_key || file.pdf_info?.s3_key,
+            // Ensure the type is set to PDF for proper rendering
+            type: 'pdf',
+            // Preserve the pdf_info for the SourceFileViewer
+            pdf_info: file.pdf_info
         };
         
         console.log('Enhanced file object:', enhancedFile); // Debug log
@@ -1261,7 +1272,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                     color: 'var(--main-color)',
                                     fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)'
                                 }}>
-                                    📄 Original PDF: {selectedFile.original_filename || selectedFile.filename}
+                                    📄 Original PDF: {selectedFile.original_filename || selectedFile.filename?.replace('.json', '.pdf') || selectedFile.filename}
                                 </h3>
                                 <button
                                     onClick={() => setSelectedFile(null)}
@@ -1288,6 +1299,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 overflow: 'hidden',
                                 backgroundColor: '#f8f9fa'
                             }}>
+                                {console.log('ExplorerAllUsers - selectedFile for SourceFileViewer:', selectedFile)}
                                 <SourceFileViewer file={selectedFile} title="Original PDF" />
                             </div>
                             

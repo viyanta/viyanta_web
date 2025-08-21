@@ -9,20 +9,42 @@ function SourceFileViewer({ file, title }) {
   const fileName = file?.original_filename || file?.filename || file?.name;
   const fileType = fileName ? fileName.split('.').pop()?.toLowerCase() : null;
   const fileId = file?.file_id || file?.id;
-  const s3PdfKey = file?.s3_pdf_key; // For S3-stored files
+  
+  // For S3-stored files, use the correct S3 key
+  const s3PdfKey = file?.s3_pdf_key || file?.pdf_s3_key || file?.pdf_info?.s3_key; // Check all possible field names
+  const s3JsonKey = file?.s3_json_key || file?.json_s3_key; // Check both possible field names
+  
+  // Determine if this is a PDF file (regardless of the filename extension)
+  const isPdfFile = file?.type === 'pdf' || file?.pdf_s3_key || file?.s3_pdf_key || file?.pdf_info?.s3_key;
   
   // Fallback: try to construct S3 key from other available information
   const constructS3Key = () => {
     if (s3PdfKey) return s3PdfKey;
     
+    // If we have pdf_info, use that S3 key
+    if (file?.pdf_info?.s3_key) {
+      return file.pdf_info.s3_key;
+    }
+    
     // If we have user and folder info, try to construct the key
     if (file?.user_id && file?.folder_name && fileName) {
-      return `users/${file.user_id}/${file.folder_name}/pdf/${fileName}`;
+      // If the filename ends with .json, we need to get the corresponding PDF
+      if (fileName.toLowerCase().endsWith('.json')) {
+        const pdfFilename = fileName.replace('.json', '.pdf');
+        return `users/${file.user_id}/${file.folder_name}/pdf/${pdfFilename}`;
+      } else {
+        return `users/${file.user_id}/${file.folder_name}/pdf/${fileName}`;
+      }
     }
     
     // If we have just the filename, try a generic path
     if (fileName) {
-      return `users/default_user/default_folder/pdf/${fileName}`;
+      if (fileName.toLowerCase().endsWith('.json')) {
+        const pdfFilename = fileName.replace('.json', '.pdf');
+        return `users/default_user/default_folder/pdf/${pdfFilename}`;
+      } else {
+        return `users/default_user/default_folder/pdf/${fileName}`;
+      }
     }
     
     return null;
@@ -36,11 +58,17 @@ function SourceFileViewer({ file, title }) {
   console.log('SourceFileViewer - fileType:', fileType);
   console.log('SourceFileViewer - fileId:', fileId);
   console.log('SourceFileViewer - s3PdfKey:', s3PdfKey);
+  console.log('SourceFileViewer - s3JsonKey:', s3JsonKey);
+  console.log('SourceFileViewer - isPdfFile:', isPdfFile);
   console.log('SourceFileViewer - finalS3Key:', finalS3Key);
+  console.log('SourceFileViewer - file.pdf_info:', file?.pdf_info);
+  console.log('SourceFileViewer - file.type:', file?.type);
+  console.log('SourceFileViewer - file.pdf_s3_key:', file?.pdf_s3_key);
+  console.log('SourceFileViewer - file.s3_pdf_key:', file?.s3_pdf_key);
 
   // Create blob URL for PDF files to ensure they display inline
   useEffect(() => {
-    if (fileType?.toLowerCase() === 'pdf') {
+    if (isPdfFile) {
       const loadPdfAsBlob = async () => {
         try {
           setLoading(true);
@@ -93,61 +121,64 @@ function SourceFileViewer({ file, title }) {
         URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [fileId, finalS3Key, fileType]);
+  }, [fileId, finalS3Key, isPdfFile]);
 
   if (!file || !fileName) {
     return (
-      <div style={{ 
-        padding: '2rem', 
-        textAlign: 'center', 
+      <div style={{
+        padding: '2rem',
+        textAlign: 'center',
         color: 'var(--text-color-light)',
         border: '2px dashed #e9ecef',
         borderRadius: 'var(--border-radius)'
       }}>
-        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📄</div>
-        <p>No file selected. Please select a file to view.</p>
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
+        <p>No file selected</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div style={{ 
-        padding: '2rem', 
-        textAlign: 'center', 
+      <div style={{
+        padding: '2rem',
+        textAlign: 'center',
         color: 'var(--text-color-light)',
         border: '2px dashed #e9ecef',
         borderRadius: 'var(--border-radius)'
       }}>
         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
-        <p>Loading file...</p>
+        <p>Loading PDF...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ 
-        padding: '2rem', 
-        textAlign: 'center', 
+      <div style={{
+        padding: '2rem',
+        textAlign: 'center',
         color: 'var(--error-color)',
-        border: '2px dashed #e9ecef',
+        border: '2px dashed var(--error-color)',
         borderRadius: 'var(--border-radius)'
       }}>
         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>❌</div>
-        <p>Error loading file: {error}</p>
+        <p>Error: {error}</p>
       </div>
     );
   }
 
-  const getFileTypeIcon = (fileType) => {
-    switch (fileType?.toLowerCase()) {
+  // Helper function to get file type icon
+  const getFileTypeIcon = (type) => {
+    switch (type?.toLowerCase()) {
       case 'pdf': return '📄';
-      case 'json': return '📋';
-      case 'csv': return '📊';
+      case 'json': return '📊';
       case 'txt': return '📝';
-      case 'xlsx': case 'xls': return '📈';
-      case 'docx': case 'doc': return '📄';
+      case 'csv': return '📊';
+      case 'xlsx': return '📊';
+      case 'xls': return '📊';
+      case 'docx': return '📄';
+      case 'doc': return '📄';
       case 'parquet': return '📦';
       default: return '📁';
     }
@@ -155,54 +186,56 @@ function SourceFileViewer({ file, title }) {
 
   const renderFileContent = () => {
     // Use blob URL for PDFs to ensure inline display, API endpoint for others
-    const fileUrl = (fileType?.toLowerCase() === 'pdf' && blobUrl) 
+    const fileUrl = (isPdfFile && blobUrl) 
       ? blobUrl
       : fileId 
         ? `http://localhost:8000/view/original/${fileId}`
         : `http://localhost:8000/uploads/${encodeURIComponent(fileName)}`;
     
-    switch (fileType?.toLowerCase()) {
-      case 'pdf':
-        return (
-          <div style={{
-            backgroundColor: '#fff',
-            border: '2px solid #e9ecef',
-            borderRadius: 'var(--border-radius)',
-            height: '600px',
-            overflow: 'auto',
-            position: 'relative'
-          }}>
-            {blobUrl ? (
-              // Use blob URL if available
-              <iframe
-                src={blobUrl}
-                width="100%"
-                height="100%"
-                style={{
-                  border: 'none',
-                  borderRadius: 'var(--border-radius)'
-                }}
-                title="PDF Document"
-              />
-            ) : (
-              // Fallback to direct URL
-              <iframe
-                src={finalS3Key 
-                  ? `http://localhost:8000/api/extraction/s3/view/${encodeURIComponent(finalS3Key)}`
-                  : `http://localhost:8000/view/original/${fileId}`
-                }
-                width="100%"
-                height="100%"
-                style={{
-                  border: 'none',
-                  borderRadius: 'var(--border-radius)'
-                }}
-                title="PDF Document"
-              />
-            )}
-          </div>
-        );
+    if (isPdfFile) {
+      return (
+        <div style={{
+          backgroundColor: '#fff',
+          border: '2px solid #e9ecef',
+          borderRadius: 'var(--border-radius)',
+          height: '600px',
+          overflow: 'auto',
+          position: 'relative'
+        }}>
+          {blobUrl ? (
+            // Use blob URL if available
+            <iframe
+              src={blobUrl}
+              width="100%"
+              height="100%"
+              style={{
+                border: 'none',
+                borderRadius: 'var(--border-radius)'
+              }}
+              title="PDF Document"
+            />
+          ) : (
+            // Fallback to direct URL
+            <iframe
+              src={finalS3Key 
+                ? `http://localhost:8000/api/extraction/s3/view/${encodeURIComponent(finalS3Key)}`
+                : `http://localhost:8000/view/original/${fileId}`
+              }
+              width="100%"
+              height="100%"
+              style={{
+                border: 'none',
+                borderRadius: 'var(--border-radius)'
+              }}
+              title="PDF Document"
+            />
+          )}
+        </div>
+      );
+    }
 
+    // For non-PDF files, use the original logic
+    switch (fileType?.toLowerCase()) {
       case 'json':
       case 'txt':
       case 'csv':
@@ -251,74 +284,47 @@ function SourceFileViewer({ file, title }) {
             backgroundColor: '#f8f9fa',
             border: '2px solid #e9ecef',
             borderRadius: 'var(--border-radius)',
-            padding: '2rem',
-            textAlign: 'center'
+            height: '500px',
+            overflow: 'auto',
+            position: 'relative'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-              {getFileTypeIcon(fileType)}
-            </div>
-            <h3 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
-              {fileName}
-            </h3>
-            <p style={{ color: 'var(--text-color-light)', marginBottom: '2rem' }}>
-              This file type requires downloading to view properly.
-            </p>
-            <a 
-              href={fileId ? `http://localhost:8000/api/files/download/original/${fileId}` : fileUrl} 
-              download={fileName}
+            <iframe
+              src={fileUrl}
+              width="100%"
+              height="100%"
               style={{
-                display: 'inline-block',
-                padding: '0.75rem 1.5rem',
-                backgroundColor: 'var(--main-color)',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: 'var(--border-radius)',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
+                border: 'none',
+                backgroundColor: 'white'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--main-color-dark)'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--main-color)'}
-            >
-              📥 Download File
-            </a>
+              title={`Original ${fileType?.toUpperCase()} File`}
+            />
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              color: 'white',
+              padding: '0.5rem',
+              borderRadius: '4px',
+              fontSize: '0.75rem',
+              zIndex: 10
+            }}>
+              {getFileTypeIcon(fileType)} Original {fileType?.toUpperCase()}
+            </div>
           </div>
         );
 
       case 'parquet':
         return (
           <div style={{
-            backgroundColor: '#f0f8ff',
-            border: '2px solid #4CAF50',
-            borderRadius: 'var(--border-radius)',
             padding: '2rem',
-            textAlign: 'center'
+            textAlign: 'center',
+            color: 'var(--text-color-light)',
+            border: '2px dashed #e9ecef',
+            borderRadius: 'var(--border-radius)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-              📦
-            </div>
-            <h3 style={{ color: 'var(--success-color)', marginBottom: '1rem' }}>
-              {fileName}
-            </h3>
-            <p style={{ color: 'var(--text-color-light)', marginBottom: '1rem' }}>
-              Parquet is a columnar storage format optimized for analytics.
-            </p>
-            <div style={{ 
-              backgroundColor: 'rgba(76, 175, 80, 0.1)', 
-              padding: '1rem', 
-              borderRadius: 'var(--border-radius)',
-              marginBottom: '2rem',
-              textAlign: 'left'
-            }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--success-color)' }}>
-                ✨ File Benefits:
-              </h4>
-              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-color)' }}>
-                <li>Compressed for efficient storage</li>
-                <li>Optimized for fast data queries</li>
-                <li>Column-oriented structure</li>
-                <li>Preserves data types and schema</li>
-              </ul>
-            </div>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
+            <p>Parquet files cannot be displayed directly</p>
             <a 
               href={fileId ? `http://localhost:8000/api/files/download/parquet/${fileId}` : fileUrl} 
               download={fileName}
@@ -397,7 +403,7 @@ function SourceFileViewer({ file, title }) {
             marginBottom: '0.5rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.5rem' }}>{getFileTypeIcon(fileType)}</span>
+              <span style={{ fontSize: '1.5rem' }}>{getFileTypeIcon(isPdfFile ? 'pdf' : fileType)}</span>
               <h4 style={{ margin: 0, color: 'var(--main-color)' }}>{title}</h4>
             </div>
             <div style={{
@@ -420,7 +426,7 @@ function SourceFileViewer({ file, title }) {
             flexWrap: 'wrap'
           }}>
             <span><strong>File Name:</strong> {fileName}</span>
-            <span><strong>File Type:</strong> {fileType?.toUpperCase() || 'Unknown'}</span>
+            <span><strong>File Type:</strong> {isPdfFile ? 'PDF' : (fileType?.toUpperCase() || 'Unknown')}</span>
             <span><strong>Format:</strong> Native/Original</span>
             {file.file_size && (
               <span><strong>Size:</strong> {(file.file_size / 1024 / 1024).toFixed(2)} MB</span>
