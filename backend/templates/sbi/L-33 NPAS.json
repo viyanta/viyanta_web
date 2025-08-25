@@ -1,0 +1,49 @@
+{
+  "Form No": "L-33-NPAS-7",
+  "Title": "DETAILS OF NON-PERFORMING ASSETS",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LTD.",
+  "Registration Number": "111 dated 29th March, 2001",
+  "Date": "",
+  "Fund Name": "LIFE FUND",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Sr_No": ["Sr. No."],
+    "PARTICULARS": ["PARTICULARS"],
+    "Bonds_Debentures": {
+      "Main": ["Bonds/Debentures"],
+      "Sub_Headers": {
+        "Current_Period": ["Current Period"],
+        "Previous_Period": ["Previous Period"]
+      }
+    },
+    "Loans": {
+      "Main": ["Loans"],
+      "Sub_Headers": {
+        "Current_Period": ["Current Period"],
+        "Previous_Period": ["Previous Period"]
+      }
+    },
+    "Other_Debt_instruments": {
+      "Main": ["Other Debt instruments"],
+      "Sub_Headers": {
+        "Current_Period": ["Current Period"],
+        "Previous_Period": ["Previous Period"]
+      }
+    },
+    "All_Other_Assets": {
+      "Main": ["All Other Assets"],
+      "Sub_Headers": {
+        "Current_Period": ["Current Period"],
+        "Previous_Period": ["Previous Period"]
+      }
+    },
+    "TOTAL": {
+      "Main": ["TOTAL"],
+      "Sub_Headers": {
+        "Current_Period": ["Current Period"],
+        "Previous_Period": ["Previous Period"]
+      }
+    }
+  },
+  "Rows": []
+} 

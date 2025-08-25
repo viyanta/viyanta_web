@@ -1,0 +1,30 @@
+{
+  "Form No": "L-9C",
+  "Title": "ANNEXURES: SHAREHOLDERS HOLDING 1% AND ABOVE OF TOTAL CAPITAL",
+  "Date": "AS ON {QUARTER_END_DATE}",
+  "Currency": "Shares",
+  
+  "Headers": {
+    "Annexure1": {
+      "Title": "Annexure 1: 1% and above Holding - HDFC LIFE INSURANCE COMPANY LIMITED",
+      "Description": "List of shareholders holding 1% and above of the total capital",
+      "Columns": {
+        "Sr_No": ["Sr. No."],
+        "Name_of_shareholder": ["Name of the shareholder"],
+        "No_of_Shares": ["No. of Shares"],
+        "Percentage_to_Capital": ["% to Capital"]
+      }
+    },
+    "Annexure2": {
+      "Title": "Annexure 2: 1% and above holding - Housing Development Finance Corporation Limited",
+      "Description": "List of shareholders holding 1% and above of the total capital",
+      "Columns": {
+        "Sr_No": ["Sr No."],
+        "Name_of_Shareholder": ["Name of the Shareholder"],
+        "No_of_shares": ["No. of shares"],
+        "Percentage_to_Capital": ["% to Capital"]
+      }
+    }
+  },
+  "Rows": []
+} 

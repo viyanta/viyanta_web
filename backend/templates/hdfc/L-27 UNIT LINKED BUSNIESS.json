@@ -1,0 +1,65 @@
+{
+  "Form No": "L-27",
+  "Title": "ULIP LINKED BUSINESS",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Summary_of_Investible_Funds": {
+    "Title": "PARTICULARS (Summary of Investible Funds)",
+    "Headers": {
+      "Particulars": ["PARTICULARS"],
+      "ULGF001": ["ULGF001", "11/08/03", "LiquidFund101"],
+      "ULGF006": ["ULGF006", "20/06/07", "StableMgFd101"],
+      "ULGF002": ["ULGF002", "11/08/03", "SecureMgtF101"],
+      "ULGF003": ["ULGF003", "11/08/03", "Defensive F101"],
+      "ULGF004": ["ULGF004", "11/08/03", "BalancedMF101"],
+      "ULIF001": ["ULIF001", "02/01/04", "LiquidFund101"],
+      "ULIF007": ["ULIF007", "20/06/07", "StableMgFd101"],
+      "ULGF016": ["ULGF016", "20/06/07", "SovereignF101"],
+      "ULIF002": ["ULIF002", "02/01/04", "SecureMgtF101"]
+    },
+    "Rows": []
+  },
+  "Investment_of_Unit_Fund": {
+    "Headers": {
+      "INVESTMENT_OF_UNIT_FUND": ["INVESTMENT OF UNIT FUND"],
+      "ULGF001": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULGF006": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULGF002": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULGF003": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULGF004": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULIF001": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULIF007": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULGF016": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULIF002": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      }
+    },
+    "Rows": []
+  }
+} 

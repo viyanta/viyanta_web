@@ -1,0 +1,18 @@
+{
+  "Form No": "L-43",
+  "Title": "Voting Activity Disclosure under Stewardship Code",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Headers": {
+    "Meeting_Date": ["Meeting Date"],
+    "Investee_Company_Name": ["Investee Company Name"],
+    "Type_of_Meeting": ["Type of Meeting", "(AGM / EGM)"],
+    "Proposal": ["Proposal"],
+    "Description_of_the_proposal": ["Description of the proposal"],
+    "Management_Recommendation": ["Management Recommendation", "(For / Against / Abstain)"],
+    "Vote": ["Vote", "(For / Against / Abstain)"],
+    "Reason_supporting_the_vote_decision": ["Reason supporting the vote decision"]
+  },
+  "Rows": []
+} 

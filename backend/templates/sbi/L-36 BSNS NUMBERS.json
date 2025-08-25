@@ -1,0 +1,48 @@
+{
+  "Form No": "L-36",
+  "Title": "Premium and number of lives covered by policy type",
+  "Insurer": "SBI LIFE INSURANCE CO. LTD.",
+  "Date": "",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "S_No": ["S. No."],
+    "Particulars": ["Particulars"],
+    "Current_Quarter": {
+      "Main": ["Current Quarter"],
+      "Sub_Headers": {
+        "Premium": ["Premium"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable": ["Sum Insured, Wherever applicable"]
+      }
+    },
+    "Previous_Quarter": {
+      "Main": ["Previous Quarter"],
+      "Sub_Headers": {
+        "Premium": ["Premium"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable": ["Sum Insured, Wherever applicable"]
+      }
+    },
+    "Current_Year_To_Date": {
+      "Main": ["Current Year To Date"],
+      "Sub_Headers": {
+        "Premium": ["Premium"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable": ["Sum Insured, Wherever applicable"]
+      }
+    },
+    "Previous_Year_To_Date": {
+      "Main": ["Previous Year To Date"],
+      "Sub_Headers": {
+        "Premium": ["Premium"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable": ["Sum Insured, Wherever applicable"]
+      }
+    }
+  },
+  "Rows": []
+} 

@@ -1,0 +1,18 @@
+{
+  "Form No": "L-43",
+  "Title": "VOTING ACTIVITY DISCLOSURE UNDER STEWARDSHIP CODE",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LTD.",
+  "Registration Number": "111",
+  "Quarter Ending": "{QUARTER_END_DATE}",
+  "Headers": {
+    "Meeting_Date": ["Meeting Date"],
+    "Investee_Company_Name": ["Investee Company Name"],
+    "Type_of_Meeting": ["Type of Meeting", "(AGM / EGM)"],
+    "Proposal_of_Management_Shareholders": ["Proposal of", "Management /", "Shareholders"],
+    "Description_of_the_proposal": ["Description of the proposal"],
+    "Management_Recommendation": ["Management", "Recommendation"],
+    "Vote": ["Vote", "(For /", "Against /", "Abstain)"],
+    "Reason_supporting_the_vote_decision": ["Reason supporting the vote decision"]
+  },
+  "Rows": []
+} 

@@ -276,6 +276,30 @@ class S3Service:
             logger.error(f"Failed to download file content from S3: {str(e)}")
             raise
 
+    def download_file_binary(self, s3_key: str) -> Optional[bytes]:
+        """
+        Download file content as binary data
+
+        Args:
+            s3_key: S3 object key (path in bucket)
+
+        Returns:
+            File content as bytes, or None if file doesn't exist
+        """
+        try:
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name, Key=s3_key)
+            content = response['Body'].read()
+            logger.info(
+                f"Successfully downloaded binary file from S3: {s3_key}")
+            return content
+        except self.s3_client.exceptions.NoSuchKey:
+            logger.info(f"File not found in S3: {s3_key}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to download binary file from S3: {str(e)}")
+            raise
+
     def get_file_url(self, s3_key: str, expiration: int = 3600) -> str:
         """
         Generate a presigned URL for accessing a file

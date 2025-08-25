@@ -1,0 +1,18 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENT ASSETS",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Section_I": {
+    "Title": "Section I: Application of Funds as per Balance Sheet (A)",
+    "Headers": {
+      "No": ["No"],
+      "Particulars": ["Particulars"],
+      "Schedule": ["Schedule"],
+      "Amount_1": ["Amount"],
+      "Amount_2": ["Amount"]
+    },
+    "Rows": []
+  }
+} 

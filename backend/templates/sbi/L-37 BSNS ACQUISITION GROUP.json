@@ -1,0 +1,45 @@
+{
+  "Form No": "L-37",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (GROUP)",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Quarter End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "S_No": ["S.No."],
+    "Channels": ["Channels"],
+    "Current_Quarter": {
+      "Main": ["Quarter ended {QUARTER_END_DATE}"],
+      "Sub_Headers": {
+        "No_of_Policies_No_of_Schemes": ["No. of Policies/", "No. of Schemes"],
+        "No_of_Lives_Covered": ["No. of Lives", "Covered"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Previous_Quarter": {
+      "Main": ["Quarter ended {PREVIOUS_QUARTER_END}"],
+      "Sub_Headers": {
+        "No_of_Policies_No_of_Schemes": ["No. of Policies/", "No. of Schemes"],
+        "No_of_Lives_Covered": ["No. of Lives", "Covered"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Current_Year_To_Date": {
+      "Main": ["Upto the period ended {QUARTER_END_DATE}"],
+      "Sub_Headers": {
+        "No_of_Policies_No_of_Schemes": ["No. of Policies/", "No. of Schemes"],
+        "No_of_Lives_Covered": ["No. of Lives", "Covered"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Previous_Year_To_Date": {
+      "Main": ["Upto the period ended {PREVIOUS_QUARTER_END}"],
+      "Sub_Headers": {
+        "No_of_Policies_No_of_Schemes": ["No. of Policies/", "No. of Schemes"],
+        "No_of_Lives_Covered": ["No. of Lives", "Covered"],
+        "Premium": ["Premium"]
+      }
+    }
+  },
+  "Rows": []
+} 

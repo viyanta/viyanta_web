@@ -1,0 +1,28 @@
+{
+  "Form No": "L-38",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (INDIVIDUAL)",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Channels": ["Channels"],
+    "Current_Quarter": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Previous_Quarter": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Current_Year_To_Date": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Previous_Year_To_Date": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    }
+  },
+  "Rows": []
+} 

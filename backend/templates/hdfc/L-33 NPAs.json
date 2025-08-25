@@ -1,0 +1,37 @@
+{
+  "Form No": "L-33",
+  "Title": "NPAS",
+  "Subtitle": "Non-Performing Assets",
+  "Form_7": "Read with Regulation 10",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Registration_Number": "101",
+  "Statement_as_on": "{QUARTER_END_DATE}",
+  "Details": "Details of Non-Performing Assets - Quarterly",
+  "Name_of_Fund": "Life Fund",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "NO": ["NO"],
+    "PARTICULARS": ["PARTICULARS"],
+    "Bonds_Debentures": {
+      "YTD": ["YTD", "(As on {QUARTER_END_DATE})"],
+      "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
+    },
+    "Loans": {
+      "YTD": ["YTD", "(As on {QUARTER_END_DATE})"],
+      "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
+    },
+    "Other_Debt_instruments": {
+      "YTD": ["YTD", "(As on {QUARTER_END_DATE})"],
+      "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
+    },
+    "All_Other_Assets": {
+      "YTD": ["YTD", "(As on {QUARTER_END_DATE})"],
+      "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
+    },
+    "TOTAL": {
+      "YTD": ["YTD", "(As on {QUARTER_END_DATE})"],
+      "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
+    }
+  },
+  "Rows": []
+} 

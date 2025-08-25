@@ -1,0 +1,51 @@
+{
+  "Form No": "L-1-A-RA",
+  "Title": "REVENUE ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Registration Number": "101 dated 23rd October 2000",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "Rs. Lakh",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Schedule"],
+    "LINKED_BUSINESS": {
+      "Main": ["LINKED BUSINESS"],
+      "Sub_Headers": {
+        "LIFE": ["LIFE"],
+        "PENSION": ["PENSION"],
+        "HEALTH": ["HEALTH"],
+        "VAR_INS": ["VAR. INS"],
+        "TOTAL_LINKED": ["TOTAL"]
+      }
+    },
+    "NON_LINKED_BUSINESS": {
+      "Main": ["NON-LINKED BUSINESS"],
+      "Sub_Headers": {
+        "PARTICIPATING": {
+          "Main": ["PARTICIPATING"],
+          "Sub_Headers": {
+            "LIFE_PARTICIPATING": ["LIFE"],
+            "ANNUITY_PARTICIPATING": ["ANNUITY"],
+            "PENSION_PARTICIPATING": ["PENSION"],
+            "HEALTH_PARTICIPATING": ["HEALTH"],
+            "VAR_INS_PARTICIPATING": ["VAR.INS"],
+            "TOTAL_PARTICIPATING": ["TOTAL"]
+          }
+        },
+        "NON_PARTICIPATING": {
+          "Main": ["NON-PARTICIPATING"],
+          "Sub_Headers": {
+            "LIFE_NON_PARTICIPATING": ["LIFE"],
+            "ANNUITY_NON_PARTICIPATING": ["ANNUITY"],
+            "PENSION_NON_PARTICIPATING": ["PENSION"],
+            "HEALTH_NON_PARTICIPATING": ["HEALTH"],
+            "VAR_INS_NON_PARTICIPATING": ["VAR.INS"],
+            "TOTAL_NON_PARTICIPATING": ["TOTAL"]
+          }
+        }
+      }
+    },
+    "GRAND_TOTAL": ["GRAND TOTAL"]
+  },
+  "Rows": []
+} 

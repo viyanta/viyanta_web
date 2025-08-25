@@ -1,0 +1,14 @@
+{
+  "Form No": "L-11",
+  "Title": "BORROWINGS SCHEDULE",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Sl_No": ["Sl.No."],
+    "Particulars": ["Particulars"],
+    "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+    "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+  },
+  "Rows": []
+} 

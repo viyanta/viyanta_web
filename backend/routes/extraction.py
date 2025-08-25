@@ -1509,6 +1509,72 @@ async def list_extracted_files_s3():
             status_code=500, detail=f"Failed to list S3 files: {str(e)}")
 
 
+@router.get("/s3/view/{s3_key:path}")
+async def view_s3_file(s3_key: str):
+    """View S3 file content directly for inline display (e.g., PDF viewer)"""
+    if not S3_AVAILABLE or not s3_service:
+        raise HTTPException(status_code=503, detail="S3 service not available")
+
+    try:
+        if not s3_service.file_exists(s3_key):
+            raise HTTPException(status_code=404, detail="File not found in S3")
+
+        # Determine content type based on file extension
+        file_extension = s3_key.split('.')[-1].lower() if '.' in s3_key else ''
+        content_type_map = {
+            'pdf': 'application/pdf',
+            'txt': 'text/plain',
+            'csv': 'text/csv',
+            'json': 'application/json',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls': 'application/vnd.ms-excel',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'doc': 'application/msword'
+        }
+        
+        content_type = content_type_map.get(file_extension, 'application/octet-stream')
+        
+        # For PDFs and other binary files, download as binary
+        if file_extension in ['pdf', 'xlsx', 'xls', 'docx', 'doc']:
+            # Download file as binary content
+            file_content = s3_service.download_file_binary(s3_key)
+            if file_content is None:
+                raise HTTPException(status_code=404, detail="Failed to download file from S3")
+            
+            # For PDFs, add headers to allow inline viewing
+            headers = {}
+            if file_extension == 'pdf':
+                headers['Content-Disposition'] = 'inline'
+                headers['X-Content-Type-Options'] = 'nosniff'
+
+            # Return binary file content with appropriate headers
+            from fastapi.responses import Response
+            return Response(
+                content=file_content,
+                media_type=content_type,
+                headers=headers
+            )
+        else:
+            # For text files, use text mode
+            file_content = s3_service.download_file_content(s3_key)
+            if file_content is None:
+                raise HTTPException(status_code=404, detail="Failed to download file from S3")
+
+            # Return text file content
+            from fastapi.responses import Response
+            return Response(
+                content=file_content,
+                media_type=content_type
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to view S3 file {s3_key}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to view file: {str(e)}")
+
+
 @router.get("/s3/download/{s3_key:path}")
 async def get_s3_file_url(s3_key: str):
     """Get a presigned URL to download a file from S3"""

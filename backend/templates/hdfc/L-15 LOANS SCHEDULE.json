@@ -1,0 +1,22 @@
+{
+  "Form No": "L-15",
+  "Title": "LOANS SCHEDULE",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+    "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+  },
+  "Rows": [],
+  "Provisions_Table": {
+    "Title": "Provisions against Non-performing Loans",
+    "Headers": {
+      "Non_Performing_Loans": ["Non-Performing Loans"],
+      "Loan_Amount": ["Loan Amount", "(₹ Lakh)"],
+      "Provision": ["Provision", "(₹ Lakh)"]
+    },
+    "Rows": []
+  }
+} 

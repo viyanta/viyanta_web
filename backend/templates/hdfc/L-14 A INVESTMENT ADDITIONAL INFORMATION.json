@@ -1,0 +1,28 @@
+{
+  "Form No": "L-14A",
+  "Title": "INVESTMENTS OTHER THAN LISTED EQUITY SECURITIES AND DERIVATIVE INSTRUMENTS",
+  "SubTitle": "Aggregate value of Investments other than Listed Equity Securities and Derivative Instruments",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Shareholders": {
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Policyholders": {
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Assets_held_to_cover_Linked_Liabilities": {
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Total": {
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    }
+  },
+  "Rows": []
+} 

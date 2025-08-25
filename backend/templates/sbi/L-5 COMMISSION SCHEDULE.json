@@ -1,0 +1,17 @@
+{
+  "Form No": "L-5",
+  "Title": "Commission Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Period": "For the quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Unit_Linked": ["Life", "Pension", "Total"],
+    "Non_Linked_Business": {
+      "Participating": ["Life", "Pension", "Variable Insurance", "Total"],
+      "Non_Participating": ["Life", "Annuity", "Pension", "Health", "Variable Insurance", "Total"]
+    },
+    "Grand_Total": ["Grand Total"]
+  },
+  "Rows": []
+} 
