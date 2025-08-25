@@ -1,0 +1,33 @@
+{
+  "Form No": "L-13",
+  "Title": "Investments Policyholders' Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULE FORMING PART OF FINANCIAL STATEMENTS",
+  "Currency": "Rs in Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "INVESTMENTS - POLICYHOLDERS",
+      "Period": "As at {CURRENT_DATE}",
+      "Previous_Period": "As at {PREVIOUS_DATE}",
+      "Headers": {
+        "Sr_No": ["Sr. No."],
+        "Particulars": ["Particulars"],
+        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
+        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+      },
+      "Rows": []
+    },
+    {
+      "Section_Name": "Notes",
+      "Period": "As at {CURRENT_DATE}",
+      "Previous_Period": "As at {PREVIOUS_DATE}",
+      "Headers": {
+        "Sr_No": ["Sr. No."],
+        "Particulars": ["Particulars"],
+        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
+        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+      },
+      "Rows": []
+    }
+  ]
+} 

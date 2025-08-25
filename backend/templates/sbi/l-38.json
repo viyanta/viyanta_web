@@ -1,0 +1,41 @@
+{
+  "Form No": "L-38",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (INDIVIDUALS)",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Date": "{QUARTER_END_DATE}",
+  "Quarter End": "{QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "S_No": ["S.No."],
+    "Channels": ["Channels"],
+    "Current_Quarter": {
+      "Main": ["Quarter ended {QUARTER_END_DATE}"],
+      "Sub_Headers": {
+        "No_of_Policies": ["No. of Policies"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Previous_Quarter": {
+      "Main": ["Quarter ended {PREVIOUS_QUARTER_END}"],
+      "Sub_Headers": {
+        "No_of_Policies": ["No. of Policies"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Current_Year_To_Date": {
+      "Main": ["Upto the period ended {QUARTER_END_DATE}"],
+      "Sub_Headers": {
+        "No_of_Policies": ["No. of Policies"],
+        "Premium": ["Premium"]
+      }
+    },
+    "Previous_Year_To_Date": {
+      "Main": ["Upto the period ended {PREVIOUS_QUARTER_END}"],
+      "Sub_Headers": {
+        "No_of_Policies": ["No. of Policies"],
+        "Premium": ["Premium"]
+      }
+    }
+  },
+  "Rows": []
+} 

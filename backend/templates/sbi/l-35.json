@@ -1,0 +1,25 @@
+{
+  "Form No": "L-35",
+  "Title": "DOWNGRADING OF INVESTMENTS",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LTD.",
+  "Registration Number": "111 dated 29th March, 2001 with the IRDA",
+  "Statement As On": "",
+  "Statement Of": "DOWN GRADED INVESTMENTS",
+  "Periodicity of Submission": "Quarterly",
+  "Name of the Fund": "LIFE FUND",
+  "Part": "Part A",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "No": ["NO."],
+    "Name_of_the_Security": ["NAME OF THE SECURITY"],
+    "COI": ["COI"],
+    "Amount": ["AMOUNT"],
+    "Date_of_Purchase": ["DATE OF PURCHASE"],
+    "Rating_Agency": ["RATING AGENCY"],
+    "Original_Grade": ["ORIGINAL GRADE"],
+    "Current_Grade": ["CURRENT GRADE"],
+    "Date_of_Last_Downgrade": ["DATE OF LAST DOWNGRADE"],
+    "Remarks": ["REMARKS"]
+  },
+  "Rows": []
+} 

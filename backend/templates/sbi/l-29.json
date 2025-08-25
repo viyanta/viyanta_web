@@ -1,0 +1,23 @@
+{
+  "Form No": "L-29",
+  "Title": "Detail regarding Debt securities",
+  "Insurer": "SBI LIFE INSURANCE CO. LTD.",
+  "Date": "{CURRENT_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "Description": ["Description"],
+    "MARKET_VALUE": {
+      "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE_FORMATTED}"],
+      "As_percent_of_total_for_this_class": ["As % of total", "for this class"],
+      "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE_FORMATTED}"],
+      "As_percent_of_total_for_this_class_previous": ["As % of total", "for this class"]
+    },
+    "BOOK_VALUE": {
+      "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE_FORMATTED}"],
+      "As_percent_of_total_for_this_class": ["As % of total", "for this class"],
+      "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE_FORMATTED}"],
+      "As_percent_of_total_for_this_class_previous": ["As % of total", "for this class"]
+    }
+  },
+  "Rows": []
+} 

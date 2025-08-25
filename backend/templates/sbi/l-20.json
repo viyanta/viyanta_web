@@ -1,0 +1,32 @@
+{
+  "Form No": "L-20",
+  "Title": "Provisions Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULE FORMING PART OF FINANCIAL STATEMENTS",
+  "Main_Title": "PROVISIONS",
+  "Currency": "Rs in Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "PROVISIONS",
+      "Period": "As at {CURRENT_DATE}",
+      "Previous_Period": "As at {PREVIOUS_DATE}",
+      "Headers": {
+        "Particulars": ["Particulars"],
+        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
+        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+      },
+      "Rows": []
+    },
+    {
+      "Section_Name": "Provision for taxation (Net of advance tax)",
+      "Period": "As at {CURRENT_DATE}",
+      "Previous_Period": "As at {PREVIOUS_DATE}",
+      "Headers": {
+        "Particulars": ["Particulars"],
+        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
+        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+      },
+      "Rows": []
+    }
+  ]
+} 
