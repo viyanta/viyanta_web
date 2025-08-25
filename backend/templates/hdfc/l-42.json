@@ -1,0 +1,46 @@
+{
+  "Form No": "L-42",
+  "Title": "Valuation Basis",
+  "Subtitle": "Frequency-Quarterly and Annual",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Business_Type": "INDIVIDUAL BUSINESS",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Interest_Rate": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Mortality_Rate": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Morbidity_Rate": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Fixed_Expenses": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Variable_Expenses": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Inflation_Rate": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Withdrawal_rates": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "Future_Bonus_Rates_Assumption": {
+      "Current_Period": ["As at {QUARTER_END_DATE}"],
+      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+    }
+  },
+  "Rows": []
+} 

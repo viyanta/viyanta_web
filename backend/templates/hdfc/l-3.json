@@ -1,0 +1,27 @@
+{
+  "Form No": "L-3-A-BS",
+  "Title": "BALANCE SHEET AS AT {QUARTER_END_DATE}",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Registration Number and Date": "101 dated 23rd October 2000",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Balance_Sheet_Table": {
+    "Title": "Main Balance Sheet",
+    "Headers": {
+      "Particulars": ["Particulars"],
+      "Schedule": ["Schedule"],
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Rows": []
+  },
+  "Contingent_Liabilities_Table": {
+    "Title": "Contingent Liabilities",
+    "Headers": {
+      "Particulars": ["Particulars"],
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Rows": []
+  }
+} 

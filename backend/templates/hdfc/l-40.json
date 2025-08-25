@@ -1,0 +1,43 @@
+{
+  "Form No": "L-40",
+  "Title": "Quarterly Claims Data for Life",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Death_Claims": {
+    "Title": "Death Claims",
+    "Headers": {
+      "Sl_No": ["Sl. No."],
+      "Claims_Experience_Categories": ["Claims Experience Categories"],
+      "Individual": ["Individual"],
+      "Group": ["Group"]
+    },
+    "Rows": []
+  },
+  "Individual_Claims": {
+    "Title": "Individual Claims",
+    "Headers": {
+      "Sl_No": ["Sl. No."],
+      "Claims_Experience_Categories": ["Claims Experience Categories"],
+      "Maturity": ["Maturity"],
+      "Survival_Benefit": ["Survival Benefit"],
+      "Annuities_Pension": ["Annuities/ Pension"],
+      "Surrender": ["Surrender"],
+      "Other_Benefits": ["Other Benefits"]
+    },
+    "Rows": []
+  },
+  "Group_Claims": {
+    "Title": "Group Claims",
+    "Headers": {
+      "Sl_No": ["Sl. No."],
+      "Claims_Experience_Categories": ["Claims Experience Categories"],
+      "Maturity": ["Maturity"],
+      "Survival_Benefit": ["Survival Benefit"],
+      "Annuities_Pension": ["Annuities/ Pension"],
+      "Surrender": ["Surrender"],
+      "Other_Benefits": ["Other Benefits"]
+    },
+    "Rows": []
+  }
+} 

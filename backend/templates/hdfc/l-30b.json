@@ -1,0 +1,21 @@
+{
+  "Form No": "L-30B",
+  "Title": "Related Party Transaction Balances",
+  "Subtitle": "PART-B Related Party Transaction Balances. As at the end of the Quarter: {QUARTER_END_DATE}",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Sl_No": ["Sl.No."],
+    "Name_of_Related_Party": ["Name of the Related Party"],
+    "Nature_of_Relationship": ["Nature of Relationship", "with the Company"],
+    "Amount_of_Outstanding_Balances": ["Amount of Outstanding Balances", "including Commitments", "(₹ Lakh)"],
+    "Nature_of_Balance": ["Nature of Balance"],
+    "Whether_Payable_Receivable": ["Whether Payable / Receivable"],
+    "Whether_Secured": ["Whether Secured? so, Nature of consideration", "to be provided at the time of settlement"],
+    "Details_of_Guarantees": ["Details of any Guarantees", "given or received"],
+    "Balance_under_Provision": ["Balance under Provision for doubtful debts", "relating to the outstanding balance receivable", "(₹ Lakh)"],
+    "Expenses_recognised": ["Expenses recognised up to the quarter end", "during the year in respect of bad or doubtful debts", "due from the related party", "(₹ Lakh)"]
+  },
+  "Rows": []
+} 

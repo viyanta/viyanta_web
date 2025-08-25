@@ -1,0 +1,36 @@
+{
+  "Form No": "L-36",
+  "Title": "PREMIUM AND NUMBER OF LIVES COVERED BY POLICY TYPE",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Sl_No": ["Sl No"],
+    "Particulars": ["Particulars"],
+    "Current_Quarter": {
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Wherever_applicable_Lakh": ["Sum Insured,", "Wherever applicable", "(₹ Lakh)"]
+    },
+    "Previous_Quarter": {
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Wherever_applicable_Lakh": ["Sum Insured,", "Wherever applicable", "(₹ Lakh)"]
+    },
+    "Current_Year_To_Date": {
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Wherever_applicable_Lakh": ["Sum Insured,", "Wherever applicable", "(₹ Lakh)"]
+    },
+    "Previous_Year_To_Date": {
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Wherever_applicable_Lakh": ["Sum Insured,", "Wherever applicable", "(₹ Lakh)"]
+    }
+  },
+  "Rows": []
+} 

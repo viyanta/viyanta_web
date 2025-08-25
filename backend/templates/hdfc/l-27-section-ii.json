@@ -1,0 +1,35 @@
+{
+  "Form No": "L-27_Section_II",
+  "Title": "ULIP LINKED BUSINESS",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Summary_of_Investible_Funds": {
+    "Title": "PARTICULARS (Calculation of TOTAL INVESTIBLE FUNDS (MKT VALUE))",
+    "Headers": {
+      "Particulars": ["PARTICULARS"],
+      "ULIF012": ["ULIF012", "16/12/09", "PNPRESERVR101"],
+      "ULIF004": ["ULIF004", "18/10/04", "SECURE101"],
+      "Total_of_All_Funds": ["Total of All Funds"]
+    },
+    "Rows": []
+  },
+  "Investment_of_Unit_Fund": {
+    "Headers": {
+      "INVESTMENT_OF_UNIT_FUND": ["INVESTMENT OF UNIT FUND"],
+      "ULIF012": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "ULIF004": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      },
+      "Total_of_All_Funds": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percent_Actual": ["% Actual"]
+      }
+    },
+    "Rows": []
+  }
+} 

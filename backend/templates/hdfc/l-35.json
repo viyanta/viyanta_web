@@ -1,0 +1,20 @@
+{
+  "Form No": "L-35",
+  "Title": "DOWNGRADING OF INVESTMENT",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "No": ["No"],
+    "Name_of_Security": ["Name of the Security"],
+    "COI": ["COI"],
+    "Amount": ["Amount"],
+    "Date_of_Purchase": ["Date of Purchase"],
+    "Rating_Agency": ["Rating Agency"],
+    "Original_Grade": ["Original Grade"],
+    "Current_Grade": ["Current Grade"],
+    "Date_of_last_Downgrade": ["Date of last Downgrade"],
+    "Remarks": ["Remarks"]
+  },
+  "Rows": []
+} 

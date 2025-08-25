@@ -1,0 +1,33 @@
+{
+  "Form No": "L-37",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (GROUP)",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Table_Title": "Business Acquisition through Different Channels (Group)",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Channels": ["Channels"],
+    "Current_Quarter": {
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives_Covered": ["No. of Lives Covered"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Previous_Quarter": {
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives_Covered": ["No. of Lives Covered"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Current_Year_To_Date": {
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives_Covered": ["No. of Lives Covered"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    },
+    "Previous_Year_To_Date": {
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives_Covered": ["No. of Lives Covered"],
+      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+    }
+  },
+  "Rows": []
+} 

@@ -1,0 +1,35 @@
+{
+  "Form No": "L-34",
+  "Title": "YIELD ON INVESTMENT",
+  "Regulation": "Read with Regulation 10",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Registration_Number": "101",
+  "Statement_as_on": "{QUARTER_END_DATE}",
+  "Statement_Type": "Statement of Investment and Income on Investment",
+  "Periodicity": "Quarterly",
+  "Name_of_Fund": "Life Fund",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Category_of_Investment": ["Category of Investment"],
+    "Category_Code": ["Category Code"],
+    "Current_Quarter": {
+      "Investment": ["Investment", "(Rs.)"],
+      "Income_on_Investment": ["Income on Investment", "(Rs.)"],
+      "Gross_Yield": ["Gross Yield", "(%)"],
+      "Net_Yield": ["Net Yield", "(%)"]
+    },
+    "Year_to_Date_Current_Year": {
+      "Investment": ["Investment", "(Rs.)"],
+      "Income_on_Investment": ["Income on Investment", "(Rs.)"],
+      "Gross_Yield": ["Gross Yield", "(%)"],
+      "Net_Yield": ["Net Yield", "(%)"]
+    },
+    "Year_to_Date_Previous_Year": {
+      "Investment": ["Investment", "(Rs.)"],
+      "Income_on_Investment": ["Income on Investment", "(Rs.)"],
+      "Gross_Yield": ["Gross Yield", "(%)"],
+      "Net_Yield": ["Net Yield", "(%)"]
+    }
+  },
+  "Rows": []
+} 

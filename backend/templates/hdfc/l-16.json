@@ -1,0 +1,27 @@
+{
+  "Form No": "L-16",
+  "Title": "FIXED ASSETS SCHEDULE",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Cost_Gross_Block": {
+      "As_at_April_01": ["As at", "April 01, {CURRENT_YEAR}"],
+      "Additions": ["Additions#"],
+      "Deductions": ["Deductions"],
+      "As_at_Quarter_End": ["As at", "{QUARTER_END_DATE}"]
+    },
+    "Depreciation": {
+      "As_at_April_01": ["As at", "April 01, {CURRENT_YEAR}"],
+      "For_the_year": ["For the year#"],
+      "On_Sales_Adjustments": ["On Sales /", "Adjustments"],
+      "As_at_Quarter_End": ["As at", "{QUARTER_END_DATE}"]
+    },
+    "Net_Block": {
+      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    }
+  },
+  "Rows": []
+} 

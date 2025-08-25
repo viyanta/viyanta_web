@@ -1,0 +1,16 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Insurer": "HDFC Life Insurance Company Limited",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ Lakh",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Mathematical_Reserves": {
+      "Current_Period": ["Mathematical Reserves as at", "{QUARTER_END_DATE}"],
+      "Previous_Period": ["Mathematical Reserves as at", "{PREVIOUS_QUARTER_END}"]
+    }
+  },
+  "Rows": []
+} 
