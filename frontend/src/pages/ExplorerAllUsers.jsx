@@ -220,8 +220,8 @@ function ExplorerAllUsers({ onMenuClick }) {
         }
 
         console.log('Selected file object:', file); // Debug log
-        console.log('File has s3_pdf_key:', file?.s3_pdf_key); // Debug log
-        console.log('File has file_id:', file?.file_id); // Debug log
+        console.log('File has pdf_info:', file?.pdf_info); // Debug log
+        console.log('File has s3_key:', file?.s3_key); // Debug log
         
         // Add user and folder info to the file object for the PDF viewer
         // Also ensure we have the correct PDF filename and S3 key
@@ -233,8 +233,8 @@ function ExplorerAllUsers({ onMenuClick }) {
             original_filename: file.filename?.endsWith('.json') 
                 ? file.filename.replace('.json', '.pdf') 
                 : file.filename,
-            // Use the PDF S3 key if available
-            s3_pdf_key: file.pdf_s3_key || file.s3_pdf_key || file.pdf_info?.s3_key,
+            // Use the PDF S3 key from pdf_info if available
+            s3_pdf_key: file.pdf_info?.s3_key || file.s3_pdf_key || file.pdf_s3_key,
             // Ensure the type is set to PDF for proper rendering
             type: 'pdf',
             // Preserve the pdf_info for the SourceFileViewer
@@ -242,6 +242,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         };
         
         console.log('Enhanced file object:', enhancedFile); // Debug log
+        console.log('PDF S3 key for SourceFileViewer:', enhancedFile.s3_pdf_key); // Debug log
         
         setSelectedFile(enhancedFile);
         setJsonData(null);
@@ -1300,6 +1301,10 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 backgroundColor: '#f8f9fa'
                             }}>
                                 {console.log('ExplorerAllUsers - selectedFile for SourceFileViewer:', selectedFile)}
+                                {console.log('ExplorerAllUsers - selectedFile.pdf_info:', selectedFile?.pdf_info)}
+                                {console.log('ExplorerAllUsers - selectedFile.s3_pdf_key:', selectedFile?.s3_pdf_key)}
+                                {console.log('ExplorerAllUsers - selectedFile.user_id:', selectedFile?.user_id)}
+                                {console.log('ExplorerAllUsers - selectedFile.folder_name:', selectedFile?.folder_name)}
                                 <SourceFileViewer file={selectedFile} title="Original PDF" />
                             </div>
                             
