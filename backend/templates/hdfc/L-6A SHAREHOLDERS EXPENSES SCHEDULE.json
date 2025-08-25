@@ -1,21 +1,10 @@
 {
-  "Form No": "L-6",
-  "Title": "OPERATING EXPENSES SCHEDULE",
+  "Form No": "L-6A",
+  "Title": "SHAREHOLDERS' EXPENSES SCHEDULE",
   "Insurer": "HDFC Life Insurance Company Limited",
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Sections": {
-    "Operating_Expenses": {
-      "Title": "FORM L-6-OPERATING EXPENSES SCHEDULE",
-      "Headers": {
-        "Particulars": ["Particulars"],
-        "Current_Quarter": ["For the quarter ended", "{QUARTER_END_DATE}"],
-        "Current_Year_To_Date": ["Up to the period ended", "{QUARTER_END_DATE}"],
-        "Previous_Quarter": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
-        "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
-      },
-      "Rows": []
-    },
     "Shareholders_Expenses": {
       "Title": "FORM L-6A-SHAREHOLDERS' EXPENSES SCHEDULE",
       "Headers": {

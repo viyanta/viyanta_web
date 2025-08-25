@@ -1,0 +1,26 @@
+{
+  "Form No": "L-9A",
+  "Title": "FORM L-9A-SHAREHOLDING PATTERN",
+  "SubTitle": "DETAILS OF EQUITY HOLDING OF INSURERS",
+  "Company": "HDFC LIFE INSURANCE COMPANY LIMITED",
+  "Date": "AS AT QUARTER ENDED {QUARTER_END_DATE}",
+  "Currency": "₹ In Lakh",
+  
+  "Headers": {
+    "Sl_No": ["Sl. No.", "(I)"],
+    "Category": ["Category", "(II)"],
+    "No_of_Investors": ["No. of Investors"],
+    "No_of_shares_held": ["No. of shares held", "(III)"],
+    "Percentage_of_shareholdings": ["% of share-holdings", "(IV)"],
+    "Paid_up_equity": ["Paid up equity (₹ In Lakh)", "(V)"],
+    "Shares_pledged_or_encumbered": {
+      "Number_of_shares": ["Number of shares", "(VI)"],
+      "As_percentage_of_shares": ["As a percentage of", "(VII) = (VI) / (III) × 100"]
+    },
+    "Shares_under_Lock_in_Period": {
+      "Number_of_shares": ["Number of shares", "(VIII)"],
+      "As_percentage_of_total_shares": ["As a percentage of total shares held", "(IX) = (VIII) / (III) × 100"]
+    }
+  },
+  "Rows": []
+} 
