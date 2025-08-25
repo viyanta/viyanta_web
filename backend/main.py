@@ -10,6 +10,8 @@ from routes.report import router as report_router
 from routes.company_lforms import router as company_lforms_router
 from routes.extraction import router as extract_router
 from routes.folder_uploader import router as folder_uploader_router
+from routes.master_template import router as template_router
+
 # from routes.pdf_upload import router as pdf_upload_router
 import os
 
@@ -37,6 +39,8 @@ app.include_router(extract_router, prefix="/api/extraction",
                    tags=["extraction"])
 app.include_router(folder_uploader_router, prefix="/api",
                    tags=["folder_uploader"])
+app.include_router(template_router, prefix="/templates", tags=["templates"])
+
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
 
@@ -44,13 +48,17 @@ app.include_router(folder_uploader_router, prefix="/api",
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Function to safely mount static directories
+
+
 def mount_static_directory(app, path, name):
     directory = os.path.join(BASE_DIR, path)
     if os.path.exists(directory):
         app.mount(f"/{name}", StaticFiles(directory=directory), name=name)
         print(f"✅ Mounted /{name} -> {directory}")
     else:
-        print(f"⚠️  Directory {directory} does not exist, skipping /{name} mount")
+        print(
+            f"⚠️  Directory {directory} does not exist, skipping /{name} mount")
+
 
 # Mount static directories safely
 mount_static_directory(app, "uploads", "uploads")

@@ -4,6 +4,7 @@ import SmartPDFExtractor from '../components/SmartPDFExtractor';
 import SmartTableViewer from '../components/SmartTableViewer';
 import BulkResultsViewer from '../components/BulkResultsViewer';
 import JobStatusTracker from '../components/JobStatusTracker';
+import TemplateBasedExtractor from '../components/TemplateBasedExtractor';
 import apiService from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -14,7 +15,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [jobResults, setJobResults] = useState(null);
   const [extractionHistory, setExtractionHistory] = useState([]);
   const [uploadHistory, setUploadHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('extract'); // 'upload', 'extract', 'results', 'history'
+  const [activeTab, setActiveTab] = useState('extract'); // 'upload', 'extract', 'template', 'results', 'history'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -447,6 +448,12 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
             📄 Legacy Extract
           </button>
           <button
+            style={{ ... (activeTab === 'template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            onClick={() => setActiveTab('template')}
+          >
+            🎯 Template Extract
+          </button>
+          <button
             style={{ ... (activeTab === 'results' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
             onClick={() => setActiveTab('results')}
           >
@@ -606,6 +613,11 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
               user={user}
             />
           </div>
+        )}
+
+        {/* Template-Based Extraction Tab */}
+        {activeTab === 'template' && (
+          <TemplateBasedExtractor />
         )}
 
         {/* Results Tab */}
