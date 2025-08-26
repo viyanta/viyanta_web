@@ -20,6 +20,9 @@ extraction-v1.py
 *.json
 *.xml
 
+# Exclude template JSON files from gitignore
+!backend/templates/**/*.json
+
 # Python cache
 __pycache__/
 *.pyc
