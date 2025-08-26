@@ -28,6 +28,8 @@ __pycache__/
 
 # Logs
 backend/extraction_debug.log
+backend/master working
+
 
 # OS / Editor junk
 .DS_Store

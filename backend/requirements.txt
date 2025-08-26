@@ -15,5 +15,5 @@ celery
 redis
 pytest
 boto3
-camelot-py[cv]
+camelot-py
 opencv-python-headless
