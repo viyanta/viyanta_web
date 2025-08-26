@@ -1,0 +1,26 @@
+{
+  "Form No": "L-29",
+  "Title": "DETAIL REGARDING DEBT SECURITIES",
+  "SubTitle": "Details regarding debt securities- Non-ULIP",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  
+  "Headers": {
+    "Debt_Securities": ["Debt Securities"],
+    "Market_Value": {
+      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
+      "As_percentage_of_total_for_this_class_Current": ["as % of total", "for this class"],
+      "As_at_Previous_Year_End": ["As at", "{PREVIOUS_YEAR_END_DATE}"],
+      "As_percentage_of_total_for_this_class_Previous": ["as % of total", "for this class"]
+    },
+    "Book_Value": {
+      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
+      "As_percentage_of_total_for_this_class_Current": ["as % of total", "for this class"],
+      "As_at_Previous_Year_End": ["As at", "{PREVIOUS_YEAR_END_DATE}"],
+      "As_percentage_of_total_for_this_class_Previous": ["as % of total", "for this class"]
+    }
+  },
+  
+  "Rows": []
+} 

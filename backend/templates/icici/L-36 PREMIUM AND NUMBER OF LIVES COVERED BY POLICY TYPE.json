@@ -1,0 +1,39 @@
+{
+  "Form No": "L-36",
+  "Title": "PREMIUM AND NUMBER OF LIVES COVERED BY POLICY TYPE",
+  "Company": "ICICI Prudential Life Insurance Co. Ltd.",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Quarter_End": "Quarter End {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Sl_No": ["Sl. No"],
+    "Particulars": ["Particulars"],
+    "For_the_Quarter_Current_Year": {
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Lakhs": ["Sum Insured, Wherever applicable", "(₹ Lakhs)"]
+    },
+    "For_the_Quarter_Previous_Year": {
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Lakhs": ["Sum Insured, Wherever applicable", "(₹ Lakhs)"]
+    },
+    "Up_to_the_Quarter_Current_Year": {
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Lakhs": ["Sum Insured, Wherever applicable", "(₹ Lakhs)"]
+    },
+    "Up_to_the_Quarter_Previous_Year": {
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"],
+      "No_of_Policies": ["No. of Policies"],
+      "No_of_Lives": ["No. of Lives"],
+      "Sum_Insured_Lakhs": ["Sum Insured, Wherever applicable", "(₹ Lakhs)"]
+    }
+  },
+  
+  "Rows": []
+} 
