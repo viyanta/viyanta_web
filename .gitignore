@@ -17,10 +17,10 @@ API_call(cloudrunr_viyanta) (2).ipynb
 extraction-v1.py
 *.pdf
 *.csv
-*.json
 *.xml
 
-# Exclude template JSON files from gitignore
+# JSON files (but exclude template JSON files)
+*.json
 !backend/templates/**/*.json
 
 # Python cache
