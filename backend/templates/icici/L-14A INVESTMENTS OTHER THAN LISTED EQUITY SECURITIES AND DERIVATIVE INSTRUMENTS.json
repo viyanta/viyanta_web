@@ -1,0 +1,33 @@
+{
+  "Form No": "L-14A",
+  "Title": "INVESTMENTS OTHER THAN LISTED EQUITY SECURITIES AND DERIVATIVE INSTRUMENTS",
+  "SubTitle": "Aggregate value of Investments other than Listed Equity Securities and Derivative Instruments",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Shareholders": {
+      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
+      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
+      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+    },
+    "Policyholders": {
+      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
+      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
+      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+    },
+    "Assets_held_to_cover_Linked_Liabilities": {
+      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
+      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
+      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+    },
+    "Total": {
+      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+    }
+  },
+  
+  "Rows": []
+} 
