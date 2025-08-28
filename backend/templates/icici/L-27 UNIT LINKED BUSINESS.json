@@ -1,0 +1,796 @@
+{
+  "NAME OF THE BUSINESS": "ICICI PRUDENTIAL LIFE INSURANCE COMPANY LIMITED",
+  "Registration_Number": "105",
+  "Statement_As_On": "{EXTRACTED_DATE_FROM_PDF}",
+  "Currency": "Lakhs",
+  "Fund_Sets": {
+    "Set_1_Balancer_Protector_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 002 22/10/01 LBalancer1 (Balancer Fund)": "ULIF002221001LBALANCER1",
+        "ULIF 014 17/05/04 LBalancer2 (Balancer Fund II)": "ULIF014170504LBALANCER2",
+        "ULIF 023 13/03/06 LBalancer3 (Balancer Fund III)": "ULIF023130306LBALANCER3",
+        "ULIF 039 27/08/07 LBalancer4 (Balancer Fund IV)": "ULIF039270807LBALANCER4",
+        "ULIF 003 22/10/01 LProtect1 (Protector Fund)": "ULIF003221001LPROTECT1",
+        "ULIF 016 17/05/04 LProtect2 (Protector Fund II)": "ULIF016170504LPROTECT2"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 002 22/10/01 LBalancer1 (Balancer Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 014 17/05/04 LBalancer2 (Balancer Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 023 13/03/06 LBalancer3 (Balancer Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 039 27/08/07 LBalancer4 (Balancer Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 003 22/10/01 LProtect1 (Protector Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 016 17/05/04 LProtect2 (Protector Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_2_Protector_Maximiser_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 024 13/03/06 LProtect3 105 (Protector Fund III)": "ULIF024130306LPROTECT3105",
+        "ULIF 041 27/08/07 LProtect4 105 (Protector Fund IV)": "ULIF041270807LPROTECT4105",
+        "ULIF 001 22/10/01 LMaximis1 105 (Maximiser Fund)": "ULIF001221001LMAXIMIS1105",
+        "ULIF 012 17/05/04 LMaximis2 105 (Maximiser Fund II)": "ULIF012170504LMAXIMIS2105",
+        "ULIF 022 13/03/06 LMaximis3 105 (Maximiser Fund III)": "ULIF022130306LMAXIMIS3105",
+        "ULIF 037 27/08/07 LMaximis4 105 (Maximiser Fund IV)": "ULIF037270807LMAXIMIS4105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 024 13/03/06 LProtect3 105 (Protector Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 041 27/08/07 LProtect4 105 (Protector Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 001 22/10/01 LMaximis1 105 (Maximiser Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 012 17/05/04 LMaximis2 105 (Maximiser Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 022 13/03/06 LMaximis3 105 (Maximiser Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 037 27/08/07 LMaximis4 105 (Maximiser Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_3_Maximiser_Preserver_Flexi": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 114 15/03/11 LMaximis5 (Maximiser Fund V)": "ULIF114150311LMAXIMIS5",
+        "ULIF 010 17/05/04 LPreserv1 (Preserver Fund)": "ULIF010170504LPRESERV1",
+        "ULIF 021 13/03/06 LPreserv3 (Preserver Fund III)": "ULIF021130306LPRESERV3",
+        "ULIF 036 27/08/07 LPreserv4 (Preserver Fund IV)": "ULIF036270807LPRESERV4",
+        "ULIF 031 20/03/07 LFlexiBal1 (Flexi Balanced Fund)": "ULIF031200307LFLEXIBAL1",
+        "ULIF 032 20/03/07 LFlexiBal2 (Flexi Balanced Fund II)": "ULIF032200307LFLEXIBAL2"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 114 15/03/11 LMaximis5 (Maximiser Fund V)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 010 17/05/04 LPreserv1 (Preserver Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 021 13/03/06 LPreserv3 (Preserver Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 036 27/08/07 LPreserv4 (Preserver Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 031 20/03/07 LFlexiBal1 (Flexi Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 032 20/03/07 LFlexiBal2 (Flexi Balanced Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_4_Flexi_Balanced_Growth": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 033 20/03/07 LFlexiBal3 (Flexi Balanced Fund III)": "ULIF033200307LFLEXIBAL3",
+        "ULIF 040 27/08/07 LFlexiBal4 (Flexi Balanced Fund IV)": "ULIF040270807LFLEXIBAL4",
+        "ULIF 026 20/03/07 LFlexiGro1 (Flexi Growth Fund)": "ULIF026200307LFLEXIGRO1",
+        "ULIF 027 20/03/07 LFlexiGro2 (Flexi Growth Fund II)": "ULIF027200307LFLEXIGRO2",
+        "ULIF 028 20/03/07 LFlexiGro3 (Flexi Growth Fund III)": "ULIF028200307LFLEXIGRO3",
+        "ULIF 038 27/08/07 LFlexiGro4 (Flexi Growth Fund IV)": "ULIF038270807LFLEXIGRO4"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 033 20/03/07 LFlexiBal3 (Flexi Balanced Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 040 27/08/07 LFlexiBal4 (Flexi Balanced Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 026 20/03/07 LFlexiGro1 (Flexi Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 027 20/03/07 LFlexiGro2 (Flexi Growth Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 028 20/03/07 LFlexiGro3 (Flexi Growth Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 038 27/08/07 LFlexiGro4 (Flexi Growth Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_5_Pension_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 005 03/05/02 PBalancer1 105 (Pension Balancer Fund)": "ULIF005030502PBALANCER1",
+        "ULIF 015 17/05/04 PBalancer2 105 (Pension Balancer Fund II)": "ULIF015170504PBALANCER2",
+        "ULIF 006 03/05/02 PProtect1 105 (Pension Protector Fund)": "ULIF006030502PPROTECT1",
+        "ULIF 017 17/05/04 PProtect2 105 (Pension Protector Fund II)": "ULIF017170504PPROTECT2",
+        "ULIF 004 03/05/02 PMaximis1 105 (Pension Maximiser Fund)": "ULIF004030502PMAXIMIS1",
+        "ULIF 013 17/05/04 PMaximis2 105 (Pension Maximiser Fund II)": "ULIF013170504PMAXIMIS2"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 005 03/05/02 PBalancer1 105 (Pension Balancer Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 015 17/05/04 PBalancer2 105 (Pension Balancer Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 006 03/05/02 PProtect1 105 (Pension Protector Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 017 17/05/04 PProtect2 105 (Pension Protector Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 004 03/05/02 PMaximis1 105 (Pension Maximiser Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 013 17/05/04 PMaximis2 105 (Pension Maximiser Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_6_Group_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 001 03/04/03 GBalancer 105 (Group Balanced Fund)": "ULGF001030403GBALANCER105",
+        "ULGF 002 03/04/03 GDebt 105 (Group Debt Fund)": "ULGF002030403GDEBT105",
+        "ULGF 040 30/04/13 GDebt2 105 (Group Debt Fund II)": "ULGF040300413GDEBT2105",
+        "ULGF 003 03/04/03 GSTDebt 105 (Group Short Term Debt fund)": "ULGF003030403GSTDEBT105",
+        "ULGF 006 03/10/05 GCGBal1 105 (Group Capital Guarantee Balanced Fund)": "ULGF006031005GCGBAL1105",
+        "ULGF 010 21/03/07 GCGBal2 105 (Group Capital Guarantee Balanced Fund II)": "ULGF010210307GCGBAL2105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 001 03/04/03 GBalancer 105 (Group Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 002 03/04/03 GDebt 105 (Group Debt Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 040 30/04/13 GDebt2 105 (Group Debt Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 003 03/04/03 GSTDebt 105 (Group Short Term Debt fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 006 03/10/05 GCGBal1 105 (Group Capital Guarantee Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 010 21/03/07 GCGBal2 105 (Group Capital Guarantee Balanced Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_7_Group_Capital_Guarantee_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 049 27/08/13 GCGBal3 105 (Group Capital Guarantee Balanced Fund III)": "ULGF049270813GCGBAL3105",
+        "ULGF 007 28/10/05 GCGDebt1 105 (Group Capital Guarantee Debt Fund)": "ULGF007281005GCGDEBT1105",
+        "ULGF 011 21/03/07 GCGDebt2 105 (Group Capital Guarantee Debt Fund II)": "ULGF011210307GCGDEBT2105",
+        "ULGF 048 27/08/13 GCGDebt3 105 (Group Capital Guarantee Debt Fund III)": "ULGF048270813GCGDEBT3105",
+        "ULGF 005 24/02/04 GCGSTDebt1 105 (Group Capital Guarantee Short Term Debt Fund)": "ULGF005240204GCGSTDEBT1105",
+        "ULGF 009 16/03/07 GCGSTDebt2 105 (Group Capital Guarantee Short Term Debt Fund II)": "ULGF009160307GCGSTDEBT2105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 049 27/08/13 GCGBal3 105 (Group Capital Guarantee Balanced Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 007 28/10/05 GCGDebt1 105 (Group Capital Guarantee Debt Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 011 21/03/07 GCGDebt2 105 (Group Capital Guarantee Debt Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 048 27/08/13 GCGDebt3 105 (Group Capital Guarantee Debt Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 005 24/02/04 GCGSTDebt1 105 (Group Capital Guarantee Short Term Debt Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 009 16/03/07 GCGSTDebt2 105 (Group Capital Guarantee Short Term Debt Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_8_Group_Capital_Guarantee_Growth_Invest_Shield": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 047 27/08/13 GCGSTDebt3 105 (Group Capital Guarantee Short Term Debt Fund III)": "ULGF047270813GCGSTDEBT3105",
+        "ULGF 008 11/12/06 GCGGrowth1 105 (Group Capital Guarantee Growth Fund)": "ULGF008111206GCGGROWTH1105",
+        "ULGF 012 05/07/07 GCGGrowth2 105 (Group Capital Guarantee Growth Fund II)": "ULGF012050707GCGGROWTH2105",
+        "ULGF 004 30/10/03 GGrowth 105 (Group Growth Fund)": "ULGF004301003GGROWTH105",
+        "ULIF 018 03/01/05 LinvShld 105 (Invest Shield Fund - Life)": "ULIF018030105LINVSHLD105",
+        "ULIF 025 21/08/06 LinvShldNw 105 (New Invest Shield Balanced Fund)": "ULIF025210806LINVSHLDNW105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 047 27/08/13 GCGSTDebt3 105 (Group Capital Guarantee Short Term Debt Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 008 11/12/06 GCGGrowth1 105 (Group Capital Guarantee Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 012 05/07/07 GCGGrowth2 105 (Group Capital Guarantee Growth Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 004 30/10/03 GGrowth 105 (Group Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 018 03/01/05 LinvShld 105 (Invest Shield Fund - Life)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 025 21/08/06 LinvShldNw 105 (New Invest Shield Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_9_Pension_Flexi_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 034 20/03/07 PFlexiBal1 105 (Pension Flexi Balanced Fund)": "ULIF034200307PFLEXIBAL1",
+        "ULIF 035 20/03/07 PFlexiBal2 105 (Pension Flexi Balanced Fund II)": "ULIF035200307PFLEXIBAL2",
+        "ULIF 029 20/03/07 PFlexiGro1 105 (Pension Flexi Growth Fund)": "ULIF029200307PFLEXIGRO1",
+        "ULIF 030 20/03/07 PFlexiGro2 105 (Pension Flexi Growth Fund II)": "ULIF030200307PFLEXIGRO2",
+        "ULIF 011 17/05/04 PPreserv 105 (Pension Preserver Fund)": "ULIF011170504PPRESERV105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 034 20/03/07 PFlexiBal1 105 (Pension Flexi Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 035 20/03/07 PFlexiBal2 105 (Pension Flexi Balanced Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 029 20/03/07 PFlexiGro1 105 (Pension Flexi Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 030 20/03/07 PFlexiGro2 105 (Pension Flexi Growth Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 011 17/05/04 PPreserv 105 (Pension Preserver Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_10_Cash_InvestShield_Secure_Multiplier_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 008 11/08/03 LCashPlus (Cash Plus Fund)": "ULIF008110803LCASHPLUS",
+        "ULIF 020 03/01/05 LinvCash (Invest Shield Cash Fund)": "ULIF020030105LINVCASH",
+        "ULIF 007 11/08/03 LSecPlus (Secure Plus Fund)": "ULIF007110803LSECPLUS",
+        "ULIF 042 22/11/07 LMultip1 (Multiplier Fund)": "ULIF042221107LMULTIP1",
+        "ULIF 044 25/02/08 LMultip2 (Multiplier Fund II)": "ULIF044250208LMULTIP2",
+        "ULIF 046 25/02/08 LMultip3 (Multiplier Fund III)": "ULIF046250208LMULTIP3"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 008 11/08/03 LCashPlus (Cash Plus Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 020 03/01/05 LinvCash (Invest Shield Cash Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 007 11/08/03 LSecPlus (Secure Plus Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 042 22/11/07 LMultip1 (Multiplier Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 044 25/02/08 LMultip2 (Multiplier Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 046 25/02/08 LMultip3 (Multiplier Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_11_Multiplier_Pension_Rich_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 047 25/02/08 LMultip4 (Multiplier Fund IV)": "ULIF047250208LMULTIP4",
+        "ULIF 043 25/02/08 PMultip1 (Pension Multiplier Fund)": "ULIF043250208PMULTIP1",
+        "ULIF 045 25/02/08 PMultip2 (Pension Multiplier Fund II)": "ULIF045250208PMULTIP2",
+        "ULIF 048 17/03/08 LRICH1 (RICH Fund)": "ULIF048170308LRICH1",
+        "ULIF 049 17/03/08 LRICH2 (RICH Fund II)": "ULIF049170308LRICH2",
+        "ULIF 050 17/03/08 LRICH3 (RICH Fund III)": "ULIF050170308LRICH3"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 047 25/02/08 LMultip4 (Multiplier Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 043 25/02/08 PMultip1 (Pension Multiplier Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 045 25/02/08 PMultip2 (Pension Multiplier Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 048 17/03/08 LRICH1 (RICH Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 049 17/03/08 LRICH2 (RICH Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 050 17/03/08 LRICH3 (RICH Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_12_Rich_Pension_Leave_Encashment_Secure": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 051 17/03/08 LRICH4 (RICH Fund IV)": "ULIF051170308LRICH4",
+        "ULIF 052 17/03/08 PRICH1 (Pension RICH Fund)": "ULIF052170308PRICH1",
+        "ULIF 053 17/03/08 PRICH2 (Pension RICH Fund II)": "ULIF053170308PRICH2",
+        "ULGF 013 02/04/08 GLEBal (Group Leave Encashment Balance Fund)": "ULGF013020408GLEBAL",
+        "ULGF 014 02/04/08 GLEIncome (Group Leave Encashment Income Fund)": "ULGF014020408GLEINCOME",
+        "ULIF 009 17/11/03 PSecPlus (Secure Plus Pension Fund)": "ULIF009171103PSECPLUS"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 051 17/03/08 LRICH4 (RICH Fund IV)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 052 17/03/08 PRICH1 (Pension RICH Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 053 17/03/08 PRICH2 (Pension RICH Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 013 02/04/08 GLEBal (Group Leave Encashment Balance Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 014 02/04/08 GLEIncome (Group Leave Encashment Income Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 009 17/11/03 PSecPlus (Secure Plus Pension Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_13_Health_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 059 15/01/09 HBalancer 105 (Health Balancer Fund)": "ULIF059150109HBALANCER105",
+        "ULIF 061 15/01/09 HProtect 105 (Health Protector Fund)": "ULIF061150109HPROTECT105",
+        "ULIF 057 15/01/09 HFlexiGro 105 (Health Flexi Growth Fund)": "ULIF057150109HFLEXIGRO105",
+        "ULIF 060 15/01/09 HFlexiBal 105 (Health Flexi Balanced Fund)": "ULIF060150109HFLEXIBAL105",
+        "ULIF 058 15/01/09 HMultip 105 (Health Multiplier Fund)": "ULIF058150109HMULTIP105",
+        "ULIF 056 15/01/09 HPreserv 105 (Health Preserver Fund)": "ULIF056150109HPRESERV105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 059 15/01/09 HBalancer 105 (Health Balancer Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 061 15/01/09 HProtect 105 (Health Protector Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 057 15/01/09 HFlexiGro 105 (Health Flexi Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 060 15/01/09 HFlexiBal 105 (Health Flexi Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 058 15/01/09 HMultip 105 (Health Multiplier Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 056 15/01/09 HPreserv 105 (Health Preserver Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_14_Secure_Pinnacle_MultiCap_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 077 29/05/09 LSSavBuil 105 (Secure Save Builder Fund)": "ULIF077290509LSSAVBUIL",
+        "ULIF 076 29/05/09 LSSavGtee 105 (Secure Save Guarantee Fund)": "ULIF076290509LSSAVGTEE",
+        "ULIF 081 26/10/09 LPinnacle 105 (Pinnacle Fund)": "ULIF081261009LPINNACLE",
+        "ULIF 116 15/03/11 LHighNavB 105 (Highest NAV Fund B)": "ULIF116150311LHIGHNAVB",
+        "ULIF 085 24/11/09 LMCapGro 105 (Multi Cap Growth Fund)": "ULIF085241109LMCAPGRO",
+        "ULIF 088 24/11/09 LMCapBal 105 (Multi Cap Balanced Fund)": "ULIF088241109LMCAPBAL"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 077 29/05/09 LSSavBuil 105 (Secure Save Builder Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 076 29/05/09 LSSavGtee 105 (Secure Save Guarantee Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 081 26/10/09 LPinnacle 105 (Pinnacle Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 116 15/03/11 LHighNavB 105 (Highest NAV Fund B)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 085 24/11/09 LMCapGro 105 (Multi Cap Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 088 24/11/09 LMCapBal 105 (Multi Cap Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_15_Income_MoneyMarket_Opportunities_Bluechip_Dynamic_Pension_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 089 24/11/09 LIncome 105 (Income Fund)": "ULIF089241109LINCOME105",
+        "ULIF 090 24/11/09 LMoneyMkt 105 (Money Market Fund)": "ULIF090241109LMONEYMKT105",
+        "ULIF 086 24/11/09 LOpport 105 (Opportunities Fund)": "ULIF086241109LOPPORT105",
+        "ULIF 087 24/11/09 LBluChip 105 (Bluechip Fund)": "ULIF087241109LBLUCHIP105",
+        "ULIF 097 11/01/10 LDynmicPE 105 (Dynamic P/E Fund)": "ULIF097110110LDYNMICPE105",
+        "ULIF 093 11/01/10 PBluChip 105 (Pension Bluechip Fund)": "ULIF093110110PBLUCHIP105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 089 24/11/09 LIncome 105 (Income Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 090 24/11/09 LMoneyMkt 105 (Money Market Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 086 24/11/09 LOpport 105 (Opportunities Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 087 24/11/09 LBluChip 105 (Bluechip Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 097 11/01/10 LDynmicPE 105 (Dynamic P/E Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 093 11/01/10 PBluChip 105 (Pension Bluechip Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_16_Pension_MultiCap_Income_MoneyMarket_Opportunities_Dynamic_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 091 11/01/10 PMCapGro 105 (Pension Multi Cap Growth Fund)": "ULIF091110110PMCAPGRO105",
+        "ULIF 095 11/01/10 PIncome 105 (Pension Income Fund)": "ULIF095110110PINCOME105",
+        "ULIF 094 11/01/10 PMCapBal 105 (Pension Multi Cap Balanced Fund)": "ULIF094110110PMCAPBAL105",
+        "ULIF 096 11/01/10 PMoneyMkt 105 (Pension Money Market Fund)": "ULIF096110110PMONEYMKT105",
+        "ULIF 092 11/01/10 POpport 105 (Pension Opportunities Fund)": "ULIF092110110POPPORT105",
+        "ULIF 098 11/01/10 PDynmicPE 105 (Pension Dynamic P/E Fund)": "ULIF098110110PDYNMICPE105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 091 11/01/10 PMCapGro 105 (Pension Multi Cap Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 095 11/01/10 PIncome 105 (Pension Income Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 094 11/01/10 PMCapBal 105 (Pension Multi Cap Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 096 11/01/10 PMoneyMkt 105 (Pension Money Market Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 092 11/01/10 POpport 105 (Pension Opportunities Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 098 11/01/10 PDynmicPE 105 (Pension Dynamic P/E Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_17_Pension_Growth_Secure_Easy_Retirement_Discontinued_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 127 01/12/11 PGROWTH 105 (Pension Growth Fund)": "ULIF127011211PGROWTH105",
+        "ULIF 128 01/12/11 PSECURE 105 (Pension Secure Fund)": "ULIF128011211PSECURE105",
+        "ULIF 132 02/11/12 ERBF 105 (Easy Retirement Balanced Fund)": "ULIF132021112ERBF105",
+        "ULIF 133 02/11/12 ERSF 105 (Easy Retirement Secure Fund)": "ULIF133021112ERSF105",
+        "ULIF 100 01/07/10 LDiscont 105 (Discontinued Fund - Life)": "ULIF100010710LDISCONT105",
+        "ULIF 101 01/07/10 PDiscont 105 (Discontinued Fund - Pension)": "ULIF101010710PDISCONT105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 127 01/12/11 PGROWTH 105 (Pension Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 128 01/12/11 PSECURE 105 (Pension Secure Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 132 02/11/12 ERBF 105 (Easy Retirement Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 133 02/11/12 ERSF 105 (Easy Retirement Secure Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 100 01/07/10 LDiscont 105 (Discontinued Fund - Life)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 101 01/07/10 PDiscont 105 (Discontinued Fund - Pension)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_18_Group_Life_EasyRetirement_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 041 30/04/13 GBalancer2 105 (Group Balanced Fund II)": "ULGF041300413GBALANCER2105",
+        "ULGF 042 30/04/13 GGrowth2 105 (Group Growth Fund II)": "ULGF042300413GGROWTH2105",
+        "ULIF 134 19/09/13 LGF 105 (Life Growth Fund)": "ULIF134190913LGF105",
+        "ULIF 135 19/09/13 LSF 105 (Life Secure Fund)": "ULIF135190913LSF105",
+        "ULIF 136 25/03/13 ERSPBF 105 (Easy Retirement SP Balanced Fund)": "ULIF136250313ERSPBF105",
+        "ULGF 039 30/04/13 GSTDebt3 105 (Group Short Term Debt Fund III)": "ULGF039300413GSTDEBT3105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 041 30/04/13 GBalancer2 105 (Group Balanced Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 042 30/04/13 GGrowth2 105 (Group Growth Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 134 19/09/13 LGF 105 (Life Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 135 19/09/13 LSF 105 (Life Secure Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 136 25/03/13 ERSPBF 105 (Easy Retirement SP Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 039 30/04/13 GSTDebt3 105 (Group Short Term Debt Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_19_Group_Capital_Guarantee_Growth_Equity_Active_Asset_Superannuation_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 050 27/08/13 GCGGrowth3 105 (Group Capital Guarantee Growth Fund III)": "ULGF050270813GCGGROWTH3105",
+        "ULGF 046 27/08/13 GSTDebt2 105 (Group Short Term Debt Fund II)": "ULGF046270813GSTDEBT2105",
+        "ULIF 136 11/20/14 MIF 105 (Maximise India Fund)": "ULIF136112014MIF105",
+        "ULGF 043 30/04/13 GEquity2 105 (Group Equity Fund II)": "ULGF043300413GEQUITY2105",
+        "ULIF 138 15/02/17 AAABF 105 (Active Asset Allocation Balanced Fund)": "ULIF138150217AAABF105",
+        "ULGF 051 03/04/03 GSBLN 105 (Group Balanced Fund-Superannuation)": "ULGF051030403GSBLN105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 050 27/08/13 GCGGrowth3 105 (Group Capital Guarantee Growth Fund III)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 046 27/08/13 GSTDebt2 105 (Group Short Term Debt Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 136 11/20/14 MIF 105 (Maximise India Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 043 30/04/13 GEquity2 105 (Group Equity Fund II)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 138 15/02/17 AAABF 105 (Active Asset Allocation Balanced Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 051 03/04/03 GSBLN 105 (Group Balanced Fund-Superannuation)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_20_Superannuation_ValueEnhancer_SecureOpportunities_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULGF 055 24/02/04 GSCGSTD 105 (Group Capital Guarantee Short Term Debt Fund-Superannuation)": "ULGF055240204GSCGSTD105",
+        "ULGF 052 03/04/03 GSDBT 105 (Group Debt Fund-Superannuation)": "ULGF052030403GSDBT105",
+        "ULGF 054 30/10/03 GSGF 105 (Group Growth Fund-Superannuation)": "ULGF054301003GSGF105",
+        "ULGF 053 03/04/03 GSSTD 105 (Group Short Term Debt Fund-Superannuation)": "ULGF053030403GSSTD105",
+        "ULIF 139 24/11/17 VEF 105 (Value Enhancer Fund)": "ULIF139241117VEF105",
+        "ULIF 140 24/11/17 SOF 105 (Secure Opportunities Fund)": "ULIF140241117SOF105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULGF 055 24/02/04 GSCGSTD 105 (Group Capital Guarantee Short Term Debt Fund-Superannuation)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 052 03/04/03 GSDBT 105 (Group Debt Fund-Superannuation)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 054 30/10/03 GSGF 105 (Group Growth Fund-Superannuation)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULGF 053 03/04/03 GSSTD 105 (Group Short Term Debt Fund-Superannuation)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 139 24/11/17 VEF 105 (Value Enhancer Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 140 24/11/17 SOF 105 (Secure Opportunities Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    },
+    "Set_21_Focus_IndiaGrowth_BalancedAdvantage_SustainableEquity_MidCap_Funds": {
+      "PARTICULARS (PORTFOLIO - SFIN)": {
+        "ULIF 142 04/02/19 FocusFifty 105 (Focus 50 Fund)": "ULIF142040219FOCUSFIFTY105",
+        "ULIF 141 04/02/19 IndiaGrwth 105 (India Growth Fund)": "ULIF141040219INDIAGRWTH105",
+        "ULIF 144 03/06/21 BalanceAdv 105 (Balanced Advantage Fund)": "ULIF144030621BALANCEADV105",
+        "ULIF 145 03/06/21 SustainEqu 105 (Sustainable Equity Fund)": "ULIF145030621SUSTAINQU105",
+        "ULIF 146 28/06/22 MidCapFund 105 (Mid Cap Fund)": "ULIF146280622MIDCAPFUND105"
+      },
+      "Rows": [],
+      "INVESTMENT OF UNIT FUND": {
+        "ULIF 142 04/02/19 FocusFifty 105 (Focus 50 Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 141 04/02/19 IndiaGrwth 105 (India Growth Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 144 03/06/21 BalanceAdv 105 (Balanced Advantage Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 145 03/06/21 SustainEqu 105 (Sustainable Equity Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        },
+        "ULIF 146 28/06/22 MidCapFund 105 (Mid Cap Fund)": {
+          "Actual Inv.": "",
+          "% Actual": ""
+        }
+      },
+      "Investment_Rows": []
+    }
+  }
+} 
