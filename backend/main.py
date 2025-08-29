@@ -15,16 +15,21 @@ from routes.master_template import router as template_router
 # from routes.pdf_upload import router as pdf_upload_router
 import os
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
+app = FastAPI(title="Viyanta File Processing API", version="1.0.0",docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    redoc_url="/api/redoc")
 
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow frontend origins
+    allow_origins=["https://app.viyantainsights.com","*"],  # Allow frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+import os
+print("DEBUG S3_BUCKET_NAME:***************************", os.getenv("S3_BUCKET_NAME"))
 
 # Include routers
 app.include_router(upload_router, prefix="/api/files", tags=["upload"])

@@ -233,7 +233,6 @@ const InsuranceDataTable = ({ data, onCompanyChange }) => {
             <div style={{ 
               display: 'flex', 
               gap: 'clamp(1rem, 3vw, 2rem)', 
-              // alignItems: 'center',
               flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
               alignItems: window.innerWidth <= 768 ? 'stretch' : 'center'
             }}>
