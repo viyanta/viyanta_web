@@ -15,7 +15,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [jobResults, setJobResults] = useState(null);
   const [extractionHistory, setExtractionHistory] = useState([]);
   const [uploadHistory, setUploadHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('extract'); // 'upload', 'extract', 'template', 'results', 'history'
+  const [activeTab, setActiveTab] = useState('template'); // 'upload', 'extract', 'template', 'results', 'history'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -440,13 +440,13 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
       {/* Tabs */}
       <div style={tabsWrapperStyle}>
         <div style={tabsStyle}>
-   
+{/*    
           <button
             style={{ ... (activeTab === 'extract' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
             onClick={() => setActiveTab('extract')}
           >
             📄 Legacy Extract
-          </button>
+          </button> */}
           <button
             style={{ ... (activeTab === 'template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
             onClick={() => setActiveTab('template')}

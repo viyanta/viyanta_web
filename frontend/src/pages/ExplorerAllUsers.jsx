@@ -767,7 +767,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         lineHeight: '1.2',
                         color: 'var(--main-color)'
                     }}>
-                        👥 Maker and Checker - All Users Data
+                        👥 Maker and Checker - Admin Only
                     </h1>
                 </div>
                 <p style={{ 

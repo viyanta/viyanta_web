@@ -14,7 +14,7 @@ export default function SideMenu({ isOpen = false, onClose = () => {} }) {
     { path: '/insurance-data-demo', label: 'Insurance Data Table', icon: '📊', description: 'Interactive Data Analytics' },
     { path: '/lform', label: 'Lform', icon: '📝', description: 'Form Management' },
     { path: '/dmm-l2form', label: 'DMM L2 Form', icon: '📊', description: 'Data Management Module' },
-    { path: '/dashboard', label: 'Legacy Dashboard', icon: '📈', description: 'Original Dashboard' },
+    // { path: '/dashboard', label: 'Legacy Dashboard', icon: '📈', description: 'Original Dashboard' },
     { path: '/profile', label: 'Profile', icon: '👤', description: 'User Settings' }
   ]
 

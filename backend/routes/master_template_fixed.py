@@ -8,8 +8,7 @@ from services.master_template import (
     process_pdf,
     list_forms,
     extract_form,
-    find_form_pages,
-    ai_extract_form  # New AI extractor
+    find_form_pages
 )
 import fitz  # PyMuPDF
 
@@ -166,8 +165,7 @@ async def extract_form_data(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            f"Error extracting form {form_no} for company {company}: {e}")
+        logger.error(f"Error extracting form {form_no} for company {company}: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to extract form: {str(e)}")
 
@@ -258,7 +256,7 @@ async def get_forms_with_templates(company: str):
         # Get available templates
         templates_path = os.path.join(TEMPLATES_DIR, company_clean)
         available_templates = set()
-
+        
         if os.path.exists(templates_path):
             for file in os.listdir(templates_path):
                 if file.lower().endswith('.json'):
@@ -269,11 +267,11 @@ async def get_forms_with_templates(company: str):
         enhanced_forms = []
         for form in forms:
             form_no = form["form_no"]
-
+            
             # Check if template exists (try different name variations)
             has_template = False
             template_file = ""
-
+            
             # Try exact match first
             if form_no in available_templates:
                 has_template = True
@@ -306,8 +304,7 @@ async def get_forms_with_templates(company: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            f"Error getting forms with templates for company {company}: {e}")
+        logger.error(f"Error getting forms with templates for company {company}: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to get forms with templates: {str(e)}")
 
@@ -388,7 +385,7 @@ async def debug_pdf_text(
                 status_code=404, detail=f"PDF not found for company: {company_clean}")
 
         doc = fitz.open(pdf_path)
-
+        
         if page < 1 or page > doc.page_count:
             raise HTTPException(
                 status_code=400, detail=f"Page {page} out of range. PDF has {doc.page_count} pages")
@@ -412,66 +409,3 @@ async def debug_pdf_text(
         logger.error(f"Error debugging PDF text: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to extract text: {str(e)}")
-
-
-@router.get("/ai-extract-form/{form_no}")
-async def ai_extract_form_data(
-    form_no: str,
-    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')")
-):
-    """
-    🤖 AI PDF Form Extractor - Complete Implementation
-    
-    Extract ALL periods/instances of a form from PDF using AI workflow:
-    1. Load template JSON from templates/{company}/{form_no}.json
-    2. Find all instances of the form (different periods/years)
-    3. Extract data using Camelot for tables + text for fields
-    4. Return structured JSON for ALL periods found
-    
-    Returns List of extracted form data, one per period/year found.
-    Example: L-4 Premium Schedule for Dec 2023, Dec 2022, Dec 2021, etc.
-    """
-    try:
-        if not company.strip():
-            raise HTTPException(
-                status_code=400, detail="Company name is required")
-
-        if not form_no.strip():
-            raise HTTPException(
-                status_code=400, detail="Form number is required")
-
-        company_clean = company.lower().strip()
-        form_no_clean = form_no.strip().upper()
-
-        # Check if PDF exists
-        pdf_path = os.path.join(PDFS_DIR, f"{company_clean}.pdf")
-        if not os.path.exists(pdf_path):
-            raise HTTPException(
-                status_code=404,
-                detail=f"PDF not found for company: {company_clean}. Please upload PDF first."
-            )
-
-        # AI Extract ALL periods of the form
-        periods_data = await ai_extract_form(company_clean, form_no_clean)
-
-        return {
-            "status": "success",
-            "company": company_clean.upper(),
-            "form_no": form_no_clean,
-            "total_periods": len(periods_data),
-            "extraction_method": "AI_Complete_Workflow",
-            "data": periods_data,  # List of periods, each with complete structure
-            "message": f"🤖 AI extracted {len(periods_data)} periods of {form_no_clean} for {company_clean.upper()}",
-            "example_usage": {
-                "description": "Each period contains: Form, Title, Period, Currency, Headers, Rows",
-                "structure": "data[0] = first period, data[1] = second period, etc."
-            }
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(
-            f"🤖 AI extraction failed for {form_no} ({company}): {e}")
-        raise HTTPException(
-            status_code=500, detail=f"AI extraction failed: {str(e)}")

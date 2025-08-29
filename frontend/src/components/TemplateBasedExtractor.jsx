@@ -1,4 +1,7 @@
+
+
 import React, { useState, useEffect } from 'react';
+import ApiService from '../services/api';
 
 const TemplateBasedExtractor = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -8,12 +11,11 @@ const TemplateBasedExtractor = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingForms, setIsLoadingForms] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isAiExtracting, setIsAiExtracting] = useState(false);
   const [extractionResult, setExtractionResult] = useState(null);
+  const [aiExtractionResult, setAiExtractionResult] = useState(null);
   const [availableCompanies, setAvailableCompanies] = useState(['sbi', 'hdfc', 'icici', 'bajaj']);
   const [error, setError] = useState(null);
-
-  // Template API base URL (main backend on port 8000)
-  const TEMPLATE_API_BASE = 'http://localhost:8000/templates';
 
   // Load available companies on mount
   useEffect(() => {
@@ -32,13 +34,10 @@ const TemplateBasedExtractor = () => {
 
   const loadAvailableCompanies = async () => {
     try {
-      const response = await fetch(`${TEMPLATE_API_BASE}/companies`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableCompanies(data.companies || ['sbi', 'hdfc', 'icici', 'bajaj']);
-      }
+      const data = await ApiService.getTemplateCompanies();
+      setAvailableCompanies(data.companies || ['sbi', 'hdfc', 'icici', 'bajaj']);
     } catch (error) {
-      console.log('Using default companies list');
+      console.log('Using default companies list:', error.message);
     }
   };
 
@@ -46,17 +45,10 @@ const TemplateBasedExtractor = () => {
     setIsLoadingForms(true);
     setError(null);
     try {
-      const response = await fetch(`${TEMPLATE_API_BASE}/list-forms?company=${company}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableForms(data.forms || []);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Failed to load forms. Please upload PDF first.');
-        setAvailableForms([]);
-      }
+      const data = await ApiService.listCompanyForms(company);
+      setAvailableForms(data.forms || []);
     } catch (error) {
-      setError('Failed to connect to template API. Make sure the template server is running.');
+      setError(error.message || 'Failed to load forms. Please upload PDF first.');
       setAvailableForms([]);
     } finally {
       setIsLoadingForms(false);
@@ -69,25 +61,12 @@ const TemplateBasedExtractor = () => {
     setIsUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const response = await fetch(`${TEMPLATE_API_BASE}/upload?company=${selectedCompany}`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Upload successful:', data);
-        // Reload forms after successful upload
-        await loadFormsForCompany(selectedCompany);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Upload failed');
-      }
+      const data = await ApiService.uploadTemplateCompanyPDF(selectedFile, selectedCompany);
+      console.log('Upload successful:', data);
+      // Reload forms after successful upload
+      await loadFormsForCompany(selectedCompany);
     } catch (error) {
-      setError('Upload failed: ' + error.message);
+      setError(error.message || 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -99,18 +78,28 @@ const TemplateBasedExtractor = () => {
     setIsExtracting(true);
     setError(null);
     try {
-      const response = await fetch(`${TEMPLATE_API_BASE}/extract-form/${selectedForm}?company=${selectedCompany}`);
-      if (response.ok) {
-        const data = await response.json();
-        setExtractionResult(data.extraction_result);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Extraction failed');
-      }
+      const data = await ApiService.extractTemplateForm(selectedCompany, selectedForm);
+      setExtractionResult(data.data);
     } catch (error) {
-      setError('Extraction failed: ' + error.message);
+      setError(error.message || 'Extraction failed');
     } finally {
       setIsExtracting(false);
+    }
+  };
+
+  // 🤖 NEW: AI Extraction for ALL periods
+  const handleAiFormExtraction = async () => {
+    if (!selectedForm || !selectedCompany) return;
+
+    setIsAiExtracting(true);
+    setError(null);
+    try {
+      const data = await ApiService.aiExtractTemplateForm(selectedCompany, selectedForm);
+      setAiExtractionResult(data);
+    } catch (error) {
+      setError(error.message || 'AI Extraction failed');
+    } finally {
+      setIsAiExtracting(false);
     }
   };
 
@@ -247,6 +236,161 @@ const TemplateBasedExtractor = () => {
     );
   };
 
+  // Helper function to render AI extraction results
+  const renderAiExtractionResult = () => {
+    if (!aiExtractionResult) return null;
+
+    return (
+      <div style={{
+        marginTop: '2rem',
+        padding: '1.5rem',
+        border: '1px solid var(--border-color)',
+        borderRadius: '8px',
+        backgroundColor: 'var(--bg-color-light)'
+      }}>
+        <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
+          🤖 AI Extraction Complete!
+        </h4>
+        
+        <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-color-light)' }}>
+          <span><strong>Company:</strong> {aiExtractionResult.company}</span>
+          <span style={{ marginLeft: '2rem' }}><strong>Form:</strong> {aiExtractionResult.form_no}</span>
+          <span style={{ marginLeft: '2rem' }}><strong>Total Periods:</strong> {aiExtractionResult.total_periods}</span>
+        </div>
+
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-color-light)', marginBottom: '1.5rem' }}>
+          {aiExtractionResult.message}
+        </p>
+
+        {aiExtractionResult.data && aiExtractionResult.data.length > 0 ? (
+          <div>
+            <h5 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
+              📊 All Extracted Periods ({aiExtractionResult.data.length}):
+            </h5>
+            
+            {aiExtractionResult.data.map((period, index) => (
+              <div key={index} style={{
+                border: '1px solid #ddd',
+                margin: '10px 0',
+                padding: '15px',
+                borderRadius: '8px',
+                backgroundColor: '#f9f9f9'
+              }}>
+                <h6 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>
+                  Period {index + 1}: {period.Form} - {period.Title}
+                </h6>
+                
+                <div style={{ marginBottom: '10px', fontSize: '0.9rem' }}>
+                  <span><strong>Period:</strong> {period.Period}</span>
+                  <span style={{ marginLeft: '2rem' }}><strong>Currency:</strong> {period.Currency}</span>
+                  <span style={{ marginLeft: '2rem' }}><strong>Page Used:</strong> {period.PagesUsed}</span>
+                  <span style={{ marginLeft: '2rem' }}><strong>Rows:</strong> {period.Rows ? period.Rows.length : 0}</span>
+                </div>
+
+                {period.Rows && period.Rows.length > 0 ? (
+                  <details style={{ marginTop: '10px' }}>
+                    <summary style={{ 
+                      cursor: 'pointer', 
+                      fontWeight: 'bold', 
+                      color: '#3498db',
+                      padding: '5px 0' 
+                    }}>
+                      📋 View Data Preview (Click to expand)
+                    </summary>
+                    <div style={{ 
+                      marginTop: '10px', 
+                      maxHeight: '300px', 
+                      overflow: 'auto',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}>
+                      <table style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        fontSize: '0.8rem'
+                      }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#3498db', color: 'white' }}>
+                            {period.Headers && period.Headers.map((header, hIndex) => (
+                              <th key={hIndex} style={{
+                                padding: '8px',
+                                border: '1px solid #ddd',
+                                textAlign: 'center',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold'
+                              }}>
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {period.Rows.slice(0, 3).map((row, rIndex) => (
+                            <tr key={rIndex} style={{
+                              backgroundColor: rIndex % 2 === 0 ? 'white' : '#f8f9fa'
+                            }}>
+                              {period.Headers && period.Headers.map((header, hIndex) => (
+                                <td key={hIndex} style={{
+                                  padding: '8px',
+                                  border: '1px solid #ddd',
+                                  fontSize: '0.75rem',
+                                  textAlign: hIndex === 0 ? 'left' : 'right'
+                                }}>
+                                  {row[header] || '-'}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                          {period.Rows.length > 3 && (
+                            <tr>
+                              <td colSpan={period.Headers ? period.Headers.length : 1} 
+                                  style={{ 
+                                    textAlign: 'center', 
+                                    fontStyle: 'italic', 
+                                    padding: '8px',
+                                    color: '#666'
+                                  }}>
+                                ... and {period.Rows.length - 3} more rows
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                ) : (
+                  <p style={{ color: '#888', fontStyle: 'italic' }}>No data rows found for this period</p>
+                )}
+              </div>
+            ))}
+            
+            <div style={{
+              marginTop: '20px',
+              padding: '15px',
+              backgroundColor: '#e8f5e8',
+              borderRadius: '8px',
+              borderLeft: '4px solid #27ae60'
+            }}>
+              <h6 style={{ margin: '0 0 10px 0', color: '#27ae60' }}>
+                ✅ Extraction Summary
+              </h6>
+              <p><strong>Total Periods:</strong> {aiExtractionResult.total_periods}</p>
+              <p><strong>Total Rows Across All Periods:</strong> {
+                aiExtractionResult.data.reduce((sum, period) => sum + (period.Rows ? period.Rows.length : 0), 0)
+              }</p>
+              <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '10px' }}>
+                💡 This AI extraction found multiple instances of the same form across different time periods in your PDF. 
+                Each period represents the same form structure but with data for different quarters/years.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p style={{ color: '#e74c3c' }}>❌ No periods found or extraction failed</p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div>
       <h3 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
@@ -374,21 +518,56 @@ const TemplateBasedExtractor = () => {
                   </option>
                 ))}
               </select>
-              <button
-                onClick={handleFormExtraction}
-                disabled={!selectedForm || isExtracting}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  cursor: (!selectedForm || isExtracting) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {isExtracting ? '⏳ Extracting...' : '🎯 Extract Form Data'}
-              </button>
+              
+              <div style={{
+                padding: '0.75rem',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                color: '#666',
+                border: '1px solid #e9ecef'
+              }}>
+                <strong>Choose Extraction Method:</strong>
+                <br />
+                • <strong>Single Period:</strong> Extract data from one specific period/year
+                <br />
+                • <strong>🤖 AI Extract ALL Periods:</strong> Find and extract ALL instances of this form across different time periods (recommended)
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button
+                  onClick={handleFormExtraction}
+                  disabled={!selectedForm || isExtracting}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    cursor: (!selectedForm || isExtracting) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isExtracting ? '⏳ Extracting...' : '🎯 Extract Single Period'}
+                </button>
+                <button
+                  onClick={handleAiFormExtraction}
+                  disabled={!selectedForm || isAiExtracting}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: (!selectedForm || isAiExtracting) ? 'var(--border-color)' : '#667eea',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    cursor: (!selectedForm || isAiExtracting) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isAiExtracting ? '🤖 AI Extracting...' : '🤖 AI Extract ALL Periods'}
+                </button>
+              </div>
             </div>
           ) : selectedCompany ? (
             <p style={{ color: 'var(--text-color-light)' }}>
@@ -404,6 +583,7 @@ const TemplateBasedExtractor = () => {
 
       {/* Extraction Results */}
       {renderExtractionResult()}
+      {renderAiExtractionResult()}
     </div>
   );
 };
