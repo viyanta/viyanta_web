@@ -1,0 +1,31 @@
+{
+  "Form No": "L-38",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (INDIVIDUAL)",
+  "Company": "ICICI PRUDENTIAL LIFE INSURANCE CO. LTD.",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Quarter_End": "Quarter End {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Sl_No": ["Sl.No."],
+    "Channels": ["Channels"],
+    "For_the_Quarter_Current_Year": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"]
+    },
+    "For_the_Quarter_Previous_Year": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"]
+    },
+    "Up_to_the_Quarter_Current_Year": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"]
+    },
+    "Up_to_the_Quarter_Previous_Year": {
+      "No_of_Policies": ["No. of Policies"],
+      "Premium_Lakhs": ["Premium", "(₹ Lakhs)"]
+    }
+  },
+  
+  "Rows": []
+} 

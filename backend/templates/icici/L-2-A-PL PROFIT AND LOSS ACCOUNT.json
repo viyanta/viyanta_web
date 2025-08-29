@@ -1,0 +1,19 @@
+{
+  "Form No": "L-2-A-PL",
+  "Title": "CONDENSED CONSOLIDATED PROFIT & LOSS ACCOUNT",
+  "SubTitle": "Shareholders' Account (Non-technical Account)",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "For the quarter ended {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule_Ref_Form_No": ["Schedule Ref.", "Form No."],
+    "Quarter_Ended_Current": ["Quarter ended", "{QUARTER_END_DATE}"],
+    "Nine_Months_Ended_Current": ["Nine months ended", "{QUARTER_END_DATE}"],
+    "Quarter_Ended_Previous": ["Quarter ended", "{PREVIOUS_QUARTER_END}"],
+    "Nine_Months_Ended_Previous": ["Nine months ended", "{PREVIOUS_QUARTER_END}"]
+  },
+  
+  "Rows": []
+} 

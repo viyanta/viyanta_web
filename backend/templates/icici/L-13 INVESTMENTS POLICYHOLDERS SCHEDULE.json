@@ -1,0 +1,32 @@
+{
+  "Form No": "L-13",
+  "Title": "INVESTMENTS POLICYHOLDERS SCHEDULE",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Non_Linked_Business": {
+      "Participating": {
+        "Life": ["Life"],
+        "Annuity": ["Annuity"],
+        "Pension": ["Pension"],
+        "Health": ["Health"],
+        "Variable_Insurance": ["Variable Insurance"],
+        "Total": ["Total"]
+      },
+      "Non_Participating": {
+        "Life": ["Life"],
+        "Annuity": ["Annuity"],
+        "Pension": ["Pension"],
+        "Health": ["Health"],
+        "Variable_Insurance": ["Variable Insurance"],
+        "Total": ["Total"]
+      }
+    },
+    "Grand_Total": ["Grand Total"]
+  },
+  
+  "Rows": []
+} 

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 function SourceFileViewer({ file, title }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [blobUrl, setBlobUrl] = useState(null);
   
   // Add unique identifier for debugging
   const componentId = React.useMemo(() => `SourceFileViewer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, []);
@@ -90,64 +89,26 @@ function SourceFileViewer({ file, title }) {
   console.log(`${componentId} - file.user_id:`, file?.user_id);
   console.log(`${componentId} - file.folder_name:`, file?.folder_name);
 
-  // Get S3 presigned URL for S3 files
+  // Handle S3 PDF files only
   useEffect(() => {
-    console.log(`${componentId} - useEffect triggered for S3 presigned URL`);
+    console.log(`${componentId} - useEffect triggered for S3 PDF handling`);
     console.log(`${componentId} - isPdfFile:`, isPdfFile);
     console.log(`${componentId} - finalS3Key:`, finalS3Key);
     
-    // For S3 files, use backend endpoint by default to avoid URL truncation issues
     if (isPdfFile && finalS3Key) {
-      console.log(`${componentId} - Using backend S3 endpoint for S3 file`);
+      console.log(`${componentId} - Using S3 endpoint for PDF file`);
       setLoading(false);
-    } else if (isPdfFile && !finalS3Key && fileId) {
-      // For local files, try to get blob URL
-      const loadPdfAsBlob = async () => {
-        try {
-          setLoading(true);
-          console.log(`${componentId} - Loading local PDF...`);
-          
-          const url = `http://localhost:8000/view/original/${fileId}`;
-          console.log(`${componentId} - Using local view endpoint:`, url);
-          const response = await fetch(url);
-          
-          console.log(`${componentId} - Response status:`, response.status);
-          console.log(`${componentId} - Response headers:`, response.headers);
-          
-          if (response.ok) {
-            const blob = await response.blob();
-            console.log(`${componentId} - Blob created:`, blob);
-            const url = URL.createObjectURL(blob);
-            setBlobUrl(url);
-            console.log(`${componentId} - Blob URL created:`, url);
-          } else {
-            const errorText = await response.text();
-            console.error(`${componentId} - Response error text:`, errorText);
-            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-          }
-        } catch (err) {
-          console.error(`${componentId} - Error loading PDF:`, err);
-          setError('Failed to load PDF file: ' + err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      loadPdfAsBlob();
+    } else if (isPdfFile && !finalS3Key) {
+      console.log(`${componentId} - No S3 key available for PDF file`);
+      setError('PDF file not available in S3 storage');
+      setLoading(false);
     } else {
-      console.log(`${componentId} - Skipping PDF loading:`, { isPdfFile, finalS3Key, fileId });
+      console.log(`${componentId} - Not a PDF file or no S3 key`);
       setLoading(false);
     }
-  }, [finalS3Key, isPdfFile, fileId, componentId]);
+  }, [finalS3Key, isPdfFile, componentId]);
 
-  // Cleanup blob URL on unmount
-  useEffect(() => {
-    return () => {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    };
-  }, [blobUrl]);
+
 
   if (!file || !fileName) {
     return (
@@ -231,7 +192,7 @@ function SourceFileViewer({ file, title }) {
           flexDirection: 'column'
         }}>
           {finalS3Key ? (
-            // Use backend S3 view endpoint for S3 files (more reliable than presigned URLs)
+            // Use backend S3 view endpoint for S3 files
             <div>
               <div style={{ flex: 1, minHeight: '600px', position: 'relative' }}>
                 <iframe
@@ -249,29 +210,8 @@ function SourceFileViewer({ file, title }) {
                   }}
                   title="PDF Document"
                   onLoad={() => {
-                    console.log(`${componentId} - Iframe loaded successfully from backend S3 endpoint`);
+                    console.log(`${componentId} - Iframe loaded successfully from S3 endpoint`);
                   }}
-                />
-              </div>
-            </div>
-          ) : blobUrl ? (
-            // Use blob URL for local files
-            <div>
-              <div style={{ flex: 1, minHeight: '600px', position: 'relative' }}>
-                <iframe
-                  src={`${blobUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
-                  width="100%"
-                  height="100%"
-                  style={{
-                    border: 'none',
-                    borderRadius: 'var(--border-radius)',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0
-                  }}
-                  title="PDF Document"
                 />
               </div>
             </div>
@@ -287,9 +227,9 @@ function SourceFileViewer({ file, title }) {
               <div style={{ fontSize: '12px', marginTop: '5px' }}>
                 {loading ? 'Loading PDF viewer...' : 'Preparing PDF viewer...'}
               </div>
-              <div style={{ fontSize: '10px', marginTop: '10px', color: '#999' }}>
-                Debug: isPdfFile={isPdfFile.toString()}, finalS3Key={finalS3Key || 'null'}
-              </div>
+                          <div style={{ fontSize: '10px', marginTop: '10px', color: '#999' }}>
+              Debug: isPdfFile={isPdfFile.toString()}, S3Key={finalS3Key || 'null'}
+            </div>
               {error && (
                 <div style={{ 
                   marginTop: '15px', 
