@@ -14,7 +14,6 @@ import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
-
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();

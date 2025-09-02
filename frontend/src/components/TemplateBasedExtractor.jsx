@@ -162,9 +162,9 @@ const TemplateBasedExtractor = () => {
       <div style={{
         marginTop: '2rem',
         padding: '1.5rem',
-        border: '1px solid var(--border-color)',
+        border: '1px solid #dee2e6',
         borderRadius: '8px',
-        backgroundColor: 'var(--bg-color-light)'
+        backgroundColor: '#f8f9fa'
       }}>
         <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
           📊 Extraction Result: {extractionResult['Form No']} - {extractionResult.Title}
@@ -186,19 +186,25 @@ const TemplateBasedExtractor = () => {
         </div>
 
         {extractionResult.Rows && extractionResult.Rows.length > 0 ? (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ 
+            overflowX: 'auto', 
+            overflowY: 'auto', 
+            maxHeight: '70vh',
+            border: '1px solid #dee2e6',
+            borderRadius: '8px'
+          }}>
             <table style={{
               width: '100%',
               borderCollapse: 'collapse',
               fontSize: '0.85rem'
             }}>
-              <thead>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                 {headerRows.map((row, rowIndex) => (
                   <tr key={rowIndex} style={{ backgroundColor: 'var(--main-color)', color: 'white' }}>
                     {row.map((header, colIndex) => (
                       <th key={colIndex} style={{
                         padding: '0.5rem',
-                        border: '1px solid var(--border-color)',
+                        border: '1px solid #dee2e6',
                         textAlign: 'center',
                         fontSize: '0.75rem',
                         fontWeight: 'bold'
@@ -212,12 +218,12 @@ const TemplateBasedExtractor = () => {
               <tbody>
                 {extractionResult.Rows.map((row, rowIndex) => (
                   <tr key={rowIndex} style={{
-                    backgroundColor: rowIndex % 2 === 0 ? 'white' : 'var(--bg-color-light)'
+                    backgroundColor: rowIndex % 2 === 0 ? 'white' : '#f8f9fa'
                   }}>
                     {flatHeaders.map((header, colIndex) => (
                       <td key={colIndex} style={{
                         padding: '0.5rem',
-                        border: '1px solid var(--border-color)',
+                        border: '1px solid #dee2e6',
                         fontSize: '0.75rem',
                         textAlign: colIndex === 0 ? 'left' : 'right'
                       }}>
@@ -244,9 +250,9 @@ const TemplateBasedExtractor = () => {
       <div style={{
         marginTop: '2rem',
         padding: '1.5rem',
-        border: '1px solid var(--border-color)',
+        border: '1px solid #dee2e6',
         borderRadius: '8px',
-        backgroundColor: 'var(--bg-color-light)'
+        backgroundColor: '#f8f9fa'
       }}>
         <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
           🤖 AI Extraction Complete!
@@ -442,7 +448,7 @@ const TemplateBasedExtractor = () => {
             style={{
               width: '100%',
               padding: '0.75rem',
-              border: '1px solid var(--border-color)',
+              border: '1px solid #dee2e6',
               borderRadius: '8px',
               fontSize: '1rem'
             }}
@@ -469,7 +475,7 @@ const TemplateBasedExtractor = () => {
               style={{
                 flex: 1,
                 padding: '0.75rem',
-                border: '1px solid var(--border-color)',
+                border: '1px solid #dee2e6',
                 borderRadius: '8px'
               }}
             />
@@ -478,7 +484,7 @@ const TemplateBasedExtractor = () => {
               disabled={!selectedFile || !selectedCompany || isUploading}
               style={{
                 padding: '0.75rem 1.5rem',
-                backgroundColor: (!selectedFile || !selectedCompany || isUploading) ? 'var(--border-color)' : 'var(--main-color)',
+                backgroundColor: (!selectedFile || !selectedCompany || isUploading) ? '#dee2e6' : 'var(--main-color)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -506,7 +512,7 @@ const TemplateBasedExtractor = () => {
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  border: '1px solid var(--border-color)',
+                  border: '1px solid #dee2e6',
                   borderRadius: '8px',
                   fontSize: '1rem'
                 }}
@@ -541,7 +547,7 @@ const TemplateBasedExtractor = () => {
                   style={{
                     flex: 1,
                     padding: '0.75rem 1.5rem',
-                    backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
+                    backgroundColor: (!selectedForm || isExtracting) ? '#dee2e6' : 'var(--success-color)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -557,7 +563,7 @@ const TemplateBasedExtractor = () => {
                   style={{
                     flex: 1,
                     padding: '0.75rem 1.5rem',
-                    backgroundColor: (!selectedForm || isAiExtracting) ? 'var(--border-color)' : '#667eea',
+                    backgroundColor: (!selectedForm || isAiExtracting) ? '#dee2e6' : '#667eea',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',

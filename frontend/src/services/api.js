@@ -1016,7 +1016,17 @@ class ApiService {
     return response.json();
   }
 
-  // === LEGACY METHODS (kept for compatibility) ===
+  // Extract Revenue Account data from pages 3-6
+  async extractRevenueAccountData(company) {
+    const response = await fetch(`${this.getTemplateApiBase()}/extract-revenue-account/${company}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
 }
 
 export default new ApiService();

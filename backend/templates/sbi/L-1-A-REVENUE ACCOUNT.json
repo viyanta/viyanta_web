@@ -1,19 +1,44 @@
 {
-  "Form No": "L-4-RA",
+  "Form No": "L-1-A-REVENUE",
   "Title": "REVENUE ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
-  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
-  "Account_Type": "Policyholders' Account (Technical Account)",
   "Period": "Quarter ended {QUARTER_END_DATE}",
   "Currency": "Rs in Lakhs",
+  "PagesUsed": "3-6",
   "Headers": {
     "Particulars": ["Particulars"],
     "Schedule": ["Schedule"],
-    "Unit_Linked_Business": ["Life", "Pension", "Total"],
-    "Non_Linked_Business": {
-      "Participating": ["Life", "Pension", "Var. Ins", "Total"],
-      "Non_Participating": ["Life", "Annuity", "Pension", "Health", "Var. Ins", "Total"]
-    },
-    "Grand_Total": ["Grand Total"]
+    "Unit_Linked_Life": ["Unit_Linked_Life"],
+    "Unit_Linked_Pension": ["Unit_Linked_Pension"],
+    "Unit_Linked_Total": ["Unit_Linked_Total"],
+    "Participating_Life": ["Participating_Life"],
+    "Participating_Pension": ["Participating_Pension"],
+    "Participating_Var_Ins": ["Participating_Var_Ins"],
+    "Participating_Total": ["Participating_Total"],
+    "Non_Participating_Life": ["Non_Participating_Life"],
+    "Non_Participating_Annuity": ["Non_Participating_Annuity"],
+    "Non_Participating_Pension": ["Non_Participating_Pension"],
+    "Non_Participating_Health": ["Non_Participating_Health"],
+    "Non_Participating_Var_Ins": ["Non_Participating_Var_Ins"],
+    "Non_Participating_Total": ["Non_Participating_Total"],
+    "Grand_Total": ["Grand_Total"]
   },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "Unit_Linked_Life",
+    "Unit_Linked_Pension",
+    "Unit_Linked_Total",
+    "Participating_Life",
+    "Participating_Pension",
+    "Participating_Var_Ins",
+    "Participating_Total",
+    "Non_Participating_Life",
+    "Non_Participating_Annuity",
+    "Non_Participating_Pension",
+    "Non_Participating_Health",
+    "Non_Participating_Var_Ins",
+    "Non_Participating_Total",
+    "Grand_Total"
+  ],
   "Rows": []
-} 
+}

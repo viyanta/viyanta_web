@@ -20,6 +20,14 @@ except ImportError:
     CAMELOT_AVAILABLE = False
     print("⚠️ Camelot not available - table extraction will be limited")
 
+# Try to import tabula as an alternative extractor
+try:
+    import tabula
+    TABULA_AVAILABLE = True
+except Exception:
+    tabula = None
+    TABULA_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # Base directories
@@ -356,7 +364,7 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        # Find page numbers for the specific form
+        # Find page numbers for the specific form - use the pages from forms list
         pages_used = await _find_pages_for_form(company, form_no, pdf_path)
 
         if not pages_used:
@@ -364,24 +372,9 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
             pages_used = await find_form_pages(pdf_path, form_no)
             if not pages_used:
                 # Default to a smaller range for testing
-                pages_used = "1-5"  # More reasonable default range
+                pages_used = "1-2"  # Use 1-2 instead of 1-5 for L-1-A
 
-        # If pages_used is too broad (like "2-102"), try to narrow it down
-        if pages_used and "-" in pages_used:
-            start_page, end_page = pages_used.split("-")
-            try:
-                start_num = int(start_page)
-                end_num = int(end_page)
-                if end_num - start_num > 10:  # If range is too large
-                    # Try to find a more specific range for this form
-                    specific_pages = await _find_specific_form_pages(pdf_path, form_no)
-                    if specific_pages:
-                        pages_used = specific_pages
-                    else:
-                        # Limit to first 5 pages of the range
-                        pages_used = f"{start_num}-{min(start_num + 4, end_num)}"
-            except ValueError:
-                pass
+        logger.info(f"Using pages: {pages_used} for form {form_no}")
 
         # Extract table data - always use FlatHeaders if available, otherwise flatten Headers from template
         if "FlatHeaders" in template:
@@ -392,6 +385,11 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
         # Extract table data using Camelot for all forms, with template-driven headers
         extracted_rows = await _extract_table_data(pdf_path, pages_used, flat_headers)
 
+        # Fallback to text-based extraction when no rows were found via tables
+        if not extracted_rows:
+            logger.info("No rows extracted via Camelot. Falling back to text-based extraction.")
+            extracted_rows = await _extract_text_based_data(pdf_path, pages_used, flat_headers)
+
         # Get table extraction info
         tables_info = {
             "found": 4 if extracted_rows else 0,
@@ -401,7 +399,7 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
 
         # Build result with both original and flat headers for frontend compatibility
         result = {
-            "Form No": template["Form No"],
+            "Form No": template.get("Form No", form_no),
             "Title": template["Title"],
             "Period": template.get("Period", ""),
             "Currency": template.get("Currency", ""),
@@ -428,6 +426,52 @@ async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Opt
     Find page numbers for a form from the forms index
     """
     try:
+        # Special handling for L-1-A-REVENUE - detect FY vs Q1 files
+        if form_no.upper() in ['L-1-A', 'L-1-A-REVENUE']:
+            # Always check the uploads directory for the original filename first
+            uploads_dir = "uploads"
+            original_filename = None
+            
+            if os.path.exists(uploads_dir):
+                # Try to find a file that matches the current pdf_path name pattern
+                current_basename = os.path.basename(pdf_path).upper()
+                
+                # First, try to find an exact match or similar pattern
+                for filename in os.listdir(uploads_dir):
+                    if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
+                        # If we have a specific pattern in the current file, try to match it
+                        if 'Q1' in current_basename and 'Q1' in filename.upper():
+                            original_filename = filename.upper()
+                            logger.info(f"Found matching Q1 file in uploads: {filename}")
+                            break
+                        elif 'FY' in current_basename and 'FY' in filename.upper() and 'Q1' not in filename.upper():
+                            original_filename = filename.upper()
+                            logger.info(f"Found matching FY file in uploads: {filename}")
+                            break
+                
+                # If no specific match found, use the first SBI file as fallback
+                if not original_filename:
+                    for filename in os.listdir(uploads_dir):
+                        if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
+                            original_filename = filename.upper()
+                            logger.info(f"Found fallback SBI file in uploads: {filename}")
+                            break
+            
+            # Use original filename if found, otherwise use the current pdf_path
+            pdf_filename = original_filename if original_filename else os.path.basename(pdf_path).upper()
+            
+            # Check for Q1 first (more specific), then FY
+            if 'Q1' in pdf_filename:
+                logger.info(f"Q1 file detected: {pdf_filename}. Using pages 3-4 for L-1-A-REVENUE")
+                return "3-4"
+            elif 'FY' in pdf_filename:
+                logger.info(f"FY file detected: {pdf_filename}. Using pages 3-6 for L-1-A-REVENUE")
+                return "3-6"
+            else:
+                # Default to Q1 behavior if neither Q1 nor FY is clearly detected
+                logger.info(f"Default file detected: {pdf_filename}. Using pages 3-4 for L-1-A-REVENUE")
+                return "3-4"
+            
         # Get forms list
         forms = await list_forms(company)
 
@@ -450,8 +494,13 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
     """
     try:
         if not CAMELOT_AVAILABLE:
-            logger.warning("Camelot not available, returning dummy data")
-            return _create_dummy_data(headers)
+            logger.warning("Camelot not available, trying Tabula fallback")
+            if TABULA_AVAILABLE:
+                rows = _extract_with_tabula(pdf_path, pages_str, headers)
+                if rows:
+                    return rows
+            logger.warning("Tabula fallback not available or returned no rows; returning empty rows")
+            return []
 
         # Parse pages string (e.g., "7-10" or "7")
         if '-' in pages_str:
@@ -508,15 +557,11 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         if all_tables:
             # Process tables in parallel using ThreadPoolExecutor
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                # Create partial function for processing
-                process_func = partial(
-                    _process_table_with_threading, headers=headers)
-
-                # Submit all table processing tasks
-                future_to_index = {
-                    executor.submit(process_func, table_data, idx): idx
-                    for idx, table_data in enumerate(all_tables)
-                }
+                # Submit all table processing tasks with correct parameters
+                future_to_index = {}
+                for idx, table_data in enumerate(all_tables):
+                    future = executor.submit(_process_table_with_threading, (table_data, idx), headers)
+                    future_to_index[future] = idx
 
                 # Collect results as they complete
                 for future in concurrent.futures.as_completed(future_to_index):
@@ -536,10 +581,14 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         logger.info(
             f"Multi-threaded summary: Found {tables_found} tables, processed {tables_processed} relevant tables, extracted {len(extracted_rows)} total rows")
 
+        if not extracted_rows and TABULA_AVAILABLE:
+            logger.info("Camelot returned no rows; attempting Tabula fallback")
+            extracted_rows = _extract_with_tabula(pdf_path, pages_range, headers)
+
         if not extracted_rows:
             logger.warning(
-                "No suitable L-4 Premium tables found, returning dummy data")
-            return _create_dummy_data(headers)
+                "No matching tables found for the provided template headers. Returning empty rows.")
+            return []
 
         logger.info(
             f"Final threaded extraction result: {len(extracted_rows)} rows from {tables_processed} tables")
@@ -549,8 +598,64 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         logger.error(f"Error in threaded table extraction: {e}")
         import traceback
         traceback.print_exc()
-        # Return dummy data on error
-        return _create_dummy_data(headers)
+        # Return empty data on error
+        return []
+
+
+# Tabula fallback
+
+def _extract_with_tabula(pdf_path: str, pages: str, headers: List[str]) -> List[Dict[str, Any]]:
+    try:
+        if not TABULA_AVAILABLE:
+            return []
+        # Tabula expects page ranges like '2-4' or a list
+        page_arg = pages
+        # Try both lattice and stream
+        dfs = []
+        try:
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg, lattice=True, multiple_tables=True)
+        except Exception as e:
+            logger.warning(f"Tabula lattice failed: {e}")
+        try:
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg, stream=True, multiple_tables=True)
+        except Exception as e:
+            logger.warning(f"Tabula stream failed: {e}")
+
+        rows: List[Dict[str, Any]] = []
+        for idx, df in enumerate(dfs or []):
+            if df is None or df.empty or df.shape[0] < 2:
+                continue
+            df = df.fillna('')
+            logger.info(f"Processing Tabula table {idx+1}: Shape {df.shape}")
+            
+            # More aggressive row extraction - start from row 0 and check all rows
+            for row_idx in range(len(df)):
+                series = df.iloc[row_idx]
+                values = [str(v).strip() for v in series.tolist()]
+                if not any(v for v in values):
+                    continue
+                    
+                row: Dict[str, Any] = {}
+                for i, h in enumerate(headers):
+                    row[h] = values[i] if i < len(values) else ''
+                
+                # More lenient filtering - accept any row with meaningful content
+                particulars = (row.get(headers[0]) or '').strip()
+                has_content = any((row.get(h) or '').strip() for h in headers)
+                
+                # Skip obvious header rows and empty rows
+                if (particulars and 
+                    not particulars.lower() in ['particulars', 'schedule', 'life', 'pension'] and
+                    has_content and
+                    len(particulars) > 2):
+                    rows.append(row)
+                    logger.info(f"Added Tabula row: {particulars[:50]}...")
+                    
+        logger.info(f"Tabula extracted {len(rows)} total rows from {len(dfs)} tables")
+        return rows
+    except Exception as e:
+        logger.error(f"Tabula extraction error: {e}")
+        return []
 
 
 def _create_dummy_data(headers: List[str]) -> List[Dict[str, Any]]:
@@ -573,6 +678,41 @@ def _convert_dataframe_to_rows(df, template_headers: List[str], table_num: int =
     return _convert_l4_dataframe_to_rows(df, template_headers, table_num, "fallback")
 
 
+# NEW: Generic table matcher that works for multiple forms using template headers
+
+def _is_table_matching_headers(df, headers: List[str]) -> bool:
+    """Return True if a table's top rows look compatible with the template headers.
+
+    Heuristics:
+    - Table must have at least as many columns as the template (or within 2 columns slack)
+    - The first 2-3 rows should contain header-like keywords (e.g., 'Particulars')
+    - Avoid obviously unrelated tables by checking absence of common noise-only patterns
+    """
+    try:
+        if df.empty or df.shape[0] < 2:
+            return False
+
+        num_cols = df.shape[1]
+        # allow some slack as Camelot may split/merge columns
+        if num_cols < max(2, min(len(headers), 6)):
+            return False
+
+        # Concatenate first three rows to inspect header text
+        head_rows = df.head(min(3, len(df))).astype(str).values.flatten()
+        head_text = ' '.join(head_rows).upper()
+
+        # Basic signals that this is a business schedule table
+        has_particulars = 'PARTICULARS' in head_text or 'PARTICULAR' in head_text
+        has_business_terms = any(term in head_text for term in [
+            'LINKED', 'NON-LINKED', 'PARTICIPATING', 'NON-PARTICIPATING', 'REVENUE', 'ACCOUNT', 'SCHEDULE', 'TOTAL'
+        ])
+
+        return has_particulars or has_business_terms
+    except Exception as e:
+        logger.error(f"Error matching table headers: {e}")
+        return False
+
+
 def _process_table_with_threading(table_data_and_index, headers: List[str]) -> List[Dict[str, Any]]:
     """
     Process a single table in a thread-safe manner (fixed parameter issue)
@@ -590,21 +730,22 @@ def _process_table_with_threading(table_data_and_index, headers: List[str]) -> L
             f"Thread: Skipping table {table_idx + 1} - empty or too small")
         return []
 
-    # Check if this is the L-4 Premium table we want
-    if _is_l4_premium_table(df, headers):
-        logger.info(
-            f"Thread: Processing table {table_idx + 1} ({flavor}) - identified as L-4 Premium table")
-        table_rows = _convert_l4_dataframe_to_rows(
-            df, headers, table_idx + 1, flavor)
-        if table_rows:
+    # Prefer tables that match headers, but still attempt conversion as fallback
+    rows: List[Dict[str, Any]] = []
+    try:
+        if _is_table_matching_headers(df, headers):
             logger.info(
-                f"Thread: Successfully extracted {len(table_rows)} rows from table {table_idx + 1}")
-            return table_rows
-    else:
-        logger.info(
-            f"Thread: Skipping table {table_idx + 1} - doesn't match L-4 Premium structure")
+                f"Thread: Processing table {table_idx + 1} ({flavor}) - matches template structure")
+            rows = _convert_l4_dataframe_to_rows(df, headers, table_idx + 1, flavor)
+        else:
+            logger.info(
+                f"Thread: Attempting conversion for table {table_idx + 1} despite header mismatch")
+            rows = _convert_l4_dataframe_to_rows(df, headers, table_idx + 1, flavor)
+    except Exception as e:
+        logger.error(f"Thread: Error converting table {table_idx + 1}: {e}")
+        rows = []
 
-    return []
+    return rows
 
 
 async def _extract_table_data_threaded(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:
@@ -917,6 +1058,11 @@ def _extract_l4_premium_clean(pdf_path: str, pages_str: str, template_headers: L
 
         logger.info(
             f"Total extracted: {len(all_rows)} rows from {len(tables)} tables")
+        
+        # Remove duplicate headers
+        all_rows = _remove_duplicate_headers(all_rows, template_headers)
+        logger.info(f"After removing duplicate headers: {len(all_rows)} rows")
+        
         return all_rows
 
     except Exception as e:
@@ -986,6 +1132,13 @@ def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[st
 
             # Clean particulars text
             clean_particulars = _clean_particulars_text(particulars)
+
+            # Skip header rows that contain column names
+            header_keywords = ["Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension", 
+                             "Participating_Life", "Non_Participating_Life", "Grand_Total"]
+            if any(keyword.lower() in clean_particulars.lower() for keyword in header_keywords):
+                logger.info(f"Skipping header row: {clean_particulars[:40]}...")
+                continue
 
             # Build row dictionary
             row_dict = {}
@@ -1549,3 +1702,95 @@ async def _enhance_with_text_fields(pdf_path: str, pages_str: str, result: Dict[
         logger.error(f"Error enhancing with text fields: {e}")
 
     return result
+
+def _remove_duplicate_headers(rows: List[Dict[str, Any]], headers: List[str]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicate header rows to fix the duplicate header issue
+    """
+    try:
+        if not rows:
+            return rows
+            
+        # Define header keywords to identify header rows
+        header_keywords = [
+            "Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension", 
+            "Unit_Linked_Total", "Participating_Life", "Participating_Pension", 
+            "Participating_Var_Ins", "Participating_Total", "Non_Participating_Life", 
+            "Non_Participating_Annuity", "Non_Participating_Pension", 
+            "Non_Participating_Health", "Non_Participating_Var_Ins", 
+            "Non_Participating_Total", "Grand_Total"
+        ]
+        
+        # Filter out header rows
+        filtered_rows = []
+        header_rows_removed = 0
+        
+        for row in rows:
+            particulars = str(row.get(headers[0] if headers else "Particulars", "")).strip()
+            
+            # Check if this row contains header keywords
+            is_header_row = False
+            for keyword in header_keywords:
+                if keyword.lower() in particulars.lower():
+                    is_header_row = True
+                    break
+            
+            # Also check if the row is too short (likely a header)
+            if len(particulars) < 3:
+                is_header_row = True
+            
+            # Skip header rows
+            if is_header_row:
+                header_rows_removed += 1
+                logger.info(f"Removing header row: {particulars[:50]}...")
+                continue
+            
+            # Keep data rows
+            filtered_rows.append(row)
+        
+        logger.info(f"Removed {header_rows_removed} header rows, kept {len(filtered_rows)} data rows")
+        return filtered_rows
+        
+    except Exception as e:
+        logger.error(f"Error removing duplicate headers: {e}")
+        return rows
+
+
+def _extract_period_from_text(text: str) -> Optional[str]:
+    """
+    Extract period information from text content.
+    Looks for patterns like "For the quarter ended...", "As at...", etc.
+    """
+    try:
+        if not text:
+            return None
+            
+        text_upper = text.upper()
+        
+        # Common period patterns
+        period_patterns = [
+            r'FOR THE QUARTER ENDED\s+([^,\n]+)',
+            r'FOR THE PERIOD ENDED\s+([^,\n]+)',
+            r'AS AT\s+([^,\n]+)',
+            r'FOR THE YEAR ENDED\s+([^,\n]+)',
+            r'FOR THE HALF YEAR ENDED\s+([^,\n]+)',
+            r'QUARTER ENDED\s+([^,\n]+)',
+            r'PERIOD ENDED\s+([^,\n]+)',
+            r'YEAR ENDED\s+([^,\n]+)',
+            r'HALF YEAR ENDED\s+([^,\n]+)',
+        ]
+        
+        for pattern in period_patterns:
+            match = re.search(pattern, text_upper)
+            if match:
+                period = match.group(1).strip()
+                # Clean up the period text
+                period = re.sub(r'\s+', ' ', period)
+                period = period.replace('\n', ' ')
+                return period
+                
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error extracting period from text: {e}")
+        return None

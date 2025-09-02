@@ -475,3 +475,109 @@ async def ai_extract_form_data(
             f"🤖 AI extraction failed for {form_no} ({company}): {e}")
         raise HTTPException(
             status_code=500, detail=f"AI extraction failed: {str(e)}")
+
+
+@router.get("/extract-revenue-account/{company}")
+async def extract_revenue_account_data(
+    company: str
+):
+    """
+    Extract Revenue Account data from pages 3-6 for the specified company.
+    Returns all 4 tables with their financial data.
+    """
+    try:
+        if not company.strip():
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
+
+        company_clean = company.lower().strip()
+
+        # Check if PDF exists
+        pdf_path = os.path.join(PDFS_DIR, f"{company_clean}.pdf")
+        if not os.path.exists(pdf_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"PDF not found for company: {company_clean}. Please upload PDF first."
+            )
+
+        # Import camelot for table extraction
+        try:
+            import camelot
+        except ImportError:
+            raise HTTPException(
+                status_code=503,
+                detail="Camelot not available for table extraction"
+            )
+
+        # Extract tables from pages 3-6
+        tables = camelot.read_pdf(pdf_path, pages='3-6', flavor='stream')
+        
+        if not tables:
+            raise HTTPException(
+                status_code=404,
+                detail="No tables found in pages 3-6"
+            )
+
+        # Process each table
+        extracted_tables = []
+        for i, table in enumerate(tables):
+            df = table.df
+            
+            # Determine period from the data
+            period = 'Unknown'
+            for row_idx in range(min(10, len(df))):
+                for col_idx in range(min(3, len(df.columns))):
+                    cell_text = str(df.iloc[row_idx, col_idx])
+                    if '2023' in cell_text and 'SEPTEMBER' in cell_text.upper():
+                        period = 'September 30, 2023 (FY2024 Q2)'
+                        break
+                    elif '2022' in cell_text and 'SEPTEMBER' in cell_text.upper():
+                        period = 'September 30, 2022 (FY2023 Q2)'
+                        break
+                if period != 'Unknown':
+                    break
+            
+            # Extract financial data
+            financial_data = []
+            for row_idx in range(len(df)):
+                row = df.iloc[row_idx]
+                first_col = str(row.iloc[0]) if len(row) > 0 else ''
+                
+                # Look for important financial terms
+                if any(term in first_col.upper() for term in ['PREMIUM', 'INCOME', 'EXPENSE', 'BENEFIT', 'TOTAL', 'SURPLUS', 'DEFICIT']):
+                    # Get values from this row
+                    values = []
+                    for col_idx in range(1, min(8, len(row))):
+                        val = str(row.iloc[col_idx]).strip()
+                        if val and val != 'nan' and len(val) > 0:
+                            values.append(val)
+                    
+                    if values:
+                        financial_data.append({
+                            'item': first_col[:100],
+                            'values': values
+                        })
+            
+            extracted_tables.append({
+                'table_id': i + 1,
+                'period': period,
+                'dimensions': f"{df.shape[0]} rows × {df.shape[1]} columns",
+                'financial_data': financial_data[:15]  # Limit to first 15 items
+            })
+
+        return {
+            "status": "success",
+            "company": company_clean.upper(),
+            "total_tables": len(extracted_tables),
+            "pages_extracted": "3-6",
+            "tables": extracted_tables,
+            "message": f"Successfully extracted Revenue Account data from {len(extracted_tables)} tables"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error extracting Revenue Account data for {company}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to extract Revenue Account data: {str(e)}")
+

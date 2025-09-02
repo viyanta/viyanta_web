@@ -990,3 +990,8 @@ li {
   .show-on-mobile { display: inline-flex; }
   .hide-on-mobile { display: none !important; }
 }
+/* Additional CSS variables for components */
+:root {
+    --border-color: #dee2e6;
+    --bg-color-light: #f8f9fa;
+}
