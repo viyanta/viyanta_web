@@ -1027,6 +1027,18 @@ class ApiService {
     
     return response.json();
   }
+
+  // Extract Revenue Account headings from pages
+  async extractRevenueAccountHeadings(company) {
+    const response = await fetch(`${this.getTemplateApiBase()}/extract-revenue-account-headings/${company}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
 }
 
 export default new ApiService();

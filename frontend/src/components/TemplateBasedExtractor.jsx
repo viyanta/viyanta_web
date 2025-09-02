@@ -147,8 +147,21 @@ const TemplateBasedExtractor = () => {
       }
     });
     
+    // Prevent duplicate rows - only return multi-level if topRow and bottomRow are different
+    if (topRow.length > 0 && bottomRow.length > 0) {
+      // Check if this is actually multi-level (topRow has meaningful grouping)
+      const hasMultiLevel = topRow.some(item => item.colspan > 1);
+      if (hasMultiLevel) {
+        return {
+          headerRows: [topRow, bottomRow],
+          flatHeaders
+        };
+      }
+    }
+    
+    // Fallback to single row if no meaningful multi-level structure
     return {
-      headerRows: [topRow, bottomRow],
+      headerRows: [bottomRow.length > 0 ? bottomRow : topRow],
       flatHeaders
     };
   };

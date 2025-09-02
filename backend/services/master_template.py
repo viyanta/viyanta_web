@@ -43,25 +43,35 @@ os.makedirs(TEMPLATES_DIR, exist_ok=True)
 async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
     """
     Save uploaded PDF file as backend/pdfs_selected_company/{company}.pdf
+    Also save original filename information for Q1/FY detection
     """
     try:
         # Create filename
         filename = f"{company}.pdf"
         file_path = os.path.join(PDFS_DIR, filename)
+        
+        # Save original filename information
+        original_filename = file.filename
+        original_filename_path = os.path.join(PDFS_DIR, f"{company}_original_filename.txt")
 
         # Save file
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+        
+        # Save original filename
+        with open(original_filename_path, "w") as f:
+            f.write(original_filename)
 
         # Get file size
         file_size = os.path.getsize(file_path)
 
-        logger.info(f"Saved PDF for company {company} at {file_path}")
+        logger.info(f"Saved PDF for company {company} at {file_path} with original filename: {original_filename}")
 
         return {
             "filename": filename,
             "file_path": file_path,
-            "file_size": file_size
+            "file_size": file_size,
+            "original_filename": original_filename
         }
 
     except Exception as e:
@@ -428,51 +438,71 @@ async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Opt
     try:
         # Special handling for L-1-A-REVENUE - detect FY vs Q1 files
         if form_no.upper() in ['L-1-A', 'L-1-A-REVENUE']:
-            # Always check the uploads directory for the original filename first
-            uploads_dir = "uploads"
+            # Try multiple methods to get the original filename
             original_filename = None
             
-            if os.path.exists(uploads_dir):
-                # Try to find a file that matches the current pdf_path name pattern
-                current_basename = os.path.basename(pdf_path).upper()
-                
-                # First, try to find an exact match or similar pattern
-                for filename in os.listdir(uploads_dir):
-                    if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
-                        # If we have a specific pattern in the current file, try to match it
-                        if 'Q1' in current_basename and 'Q1' in filename.upper():
-                            original_filename = filename.upper()
-                            logger.info(f"Found matching Q1 file in uploads: {filename}")
-                            break
-                        elif 'FY' in current_basename and 'FY' in filename.upper() and 'Q1' not in filename.upper():
-                            original_filename = filename.upper()
-                            logger.info(f"Found matching FY file in uploads: {filename}")
-                            break
-                
-                # If no specific match found, use the first SBI file as fallback
-                if not original_filename:
+            # Method 1: Read original filename from saved file (MOST IMPORTANT)
+            try:
+                original_filename_path = os.path.join(PDFS_DIR, f"{company}_original_filename.txt")
+                if os.path.exists(original_filename_path):
+                    with open(original_filename_path, 'r') as f:
+                        original_filename = f.read().strip().upper()
+                        logger.info(f"Found original filename from saved file: {original_filename}")
+            except Exception as e:
+                logger.warning(f"Could not read original filename file: {e}")
+            
+            # Method 2: Try to get original filename from database
+            if not original_filename:
+                try:
+                    import sqlite3
+                    db_path = os.path.join(BACKEND_DIR, "file_storage.db")
+                    if os.path.exists(db_path):
+                        conn = sqlite3.connect(db_path)
+                        conn.row_factory = sqlite3.Row
+                        cursor = conn.cursor()
+                        
+                        # Look for a file that matches our current pdf_path
+                        current_stored_filename = os.path.basename(pdf_path)
+                        cursor.execute('SELECT original_filename FROM files WHERE stored_filename = ?', (current_stored_filename,))
+                        row = cursor.fetchone()
+                        
+                        if row:
+                            original_filename = row['original_filename'].upper()
+                            logger.info(f"Found original filename from database: {original_filename}")
+                        
+                        conn.close()
+                        
+                except Exception as e:
+                    logger.warning(f"Could not access database for filename lookup: {e}")
+            
+            # Method 3: Use current path filename
+            if not original_filename:
+                original_filename = os.path.basename(pdf_path).upper()
+                logger.info(f"Using current path for detection: {original_filename}")
+            
+            # Method 4: Check uploads directory for SBI files (last resort)
+            if not original_filename or ('Q1' not in original_filename and 'FY' not in original_filename):
+                uploads_dir = "uploads"
+                if os.path.exists(uploads_dir):
                     for filename in os.listdir(uploads_dir):
                         if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
                             original_filename = filename.upper()
-                            logger.info(f"Found fallback SBI file in uploads: {filename}")
+                            logger.info(f"Found SBI file in uploads: {filename}")
                             break
             
-            # Use original filename if found, otherwise use the current pdf_path
-            pdf_filename = original_filename if original_filename else os.path.basename(pdf_path).upper()
-            
-            # Check for Q1 first (more specific), then FY
-            if 'Q1' in pdf_filename:
-                logger.info(f"Q1 file detected: {pdf_filename}. Using pages 3-4 for L-1-A-REVENUE")
+            # Determine page range based on filename
+            if 'Q1' in original_filename:
+                logger.info(f"Q1 file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE")
                 return "3-4"
-            elif 'FY' in pdf_filename:
-                logger.info(f"FY file detected: {pdf_filename}. Using pages 3-6 for L-1-A-REVENUE")
+            elif 'FY' in original_filename:
+                logger.info(f"FY file detected: {original_filename}. Using pages 3-6 for L-1-A-REVENUE")
                 return "3-6"
             else:
                 # Default to Q1 behavior if neither Q1 nor FY is clearly detected
-                logger.info(f"Default file detected: {pdf_filename}. Using pages 3-4 for L-1-A-REVENUE")
+                logger.info(f"Default file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE")
                 return "3-4"
             
-        # Get forms list
+        # Get forms list for other forms
         forms = await list_forms(company)
 
         # Find matching form
