@@ -13,6 +13,23 @@ from collections import defaultdict
 from fastapi.responses import FileResponse
 import zipfile
 import logging
+import re
+
+def normalize_hyphens(text):
+    """Normalize different types of hyphens to standard hyphen"""
+    if not text:
+        return text
+    
+    # Fix hyphen character issues - normalize different types of hyphens to standard hyphen
+    text = text.replace('–', '-')  # en-dash to hyphen
+    text = text.replace('—', '-')  # em-dash to hyphen
+    text = text.replace('‐', '-')  # hyphen-minus to hyphen
+    text = text.replace('‑', '-')  # non-breaking hyphen to hyphen
+    
+    # Ensure VAR. INS has proper hyphen formatting
+    text = re.sub(r'VAR\.\s*INS', 'VAR. INS', text)
+    
+    return text
 
 # Import S3 service - handle import gracefully in case S3 is not configured
 try:
@@ -274,7 +291,7 @@ def _convert_df_to_structured_table(df, accuracy: float = 0.0) -> Dict[str, Any]
             # Check if first row looks like headers (contains text, not just numbers)
             if any(header and not header.replace('.', '').replace(',', '').replace('-', '').isdigit()
                    for header in potential_headers if header):
-                headers = [str(h).strip() if str(h).strip() else f"Column_{i+1}"
+                headers = [normalize_hyphens(str(h).strip()) if str(h).strip() else f"Column_{i+1}"
                            for i, h in enumerate(potential_headers)]
                 data_rows = df.iloc[1:]
             else:

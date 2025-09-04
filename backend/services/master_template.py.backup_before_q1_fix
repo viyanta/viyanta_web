@@ -490,18 +490,15 @@ async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Opt
                             logger.info(f"Found SBI/HDFC file in uploads: {filename}")
                             break
             
-            # Determine page range based on filename and company
+            # Determine page range based on filename
             if 'Q1' in original_filename:
                 logger.info(f"Q1 file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE/RA")
                 return "3-4"
-            elif company.lower() == 'hdfc' and 'HY' in original_filename:
-                logger.info(f"HDFC HY file detected: {original_filename}. Using pages 3-6 for L-1-A-REVENUE/RA")
-                return "3-6"
             elif 'FY' in original_filename:
                 logger.info(f"FY file detected: {original_filename}. Using pages 3-6 for L-1-A-REVENUE/RA")
                 return "3-6"
             else:
-                # Default to Q1 behavior if neither Q1, HY, nor FY is clearly detected
+                # Default to Q1 behavior if neither Q1 nor FY is clearly detected
                 logger.info(f"Default file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE/RA")
                 return "3-4"
             
@@ -518,13 +515,6 @@ async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Opt
     except Exception as e:
         logger.error(f"Error finding pages for form {form_no}: {e}")
         return None
-
-
-async def find_pages_for_revenue_form(company: str, form_no: str, pdf_path: str) -> Optional[str]:
-    """
-    Public wrapper for _find_pages_for_form to enable dynamic page detection
-    """
-    return await _find_pages_for_form(company, form_no, pdf_path)
 
 
 async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:

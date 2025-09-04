@@ -9,7 +9,8 @@ from services.master_template import (
     list_forms,
     extract_form,
     find_form_pages,
-    ai_extract_form  # New AI extractor
+    ai_extract_form,  # New AI extractor
+    find_pages_for_revenue_form  # Dynamic page detection
 )
 import fitz  # PyMuPDF
 
@@ -509,13 +510,18 @@ async def extract_revenue_account_data(
                 detail="Camelot not available for table extraction"
             )
 
-        # Extract tables from pages 3-6
-        tables = camelot.read_pdf(pdf_path, pages='3-6', flavor='stream')
+        # Get dynamic page range based on file type (Q1/HY/FY)
+        pages_range = await find_pages_for_revenue_form(company_clean, "L-1-A-REVENUE", pdf_path)
+        if not pages_range:
+            pages_range = "3-6"  # fallback
+        
+        # Extract tables from dynamic pages
+        tables = camelot.read_pdf(pdf_path, pages=pages_range, flavor='stream')
         
         if not tables:
             raise HTTPException(
                 status_code=404,
-                detail="No tables found in pages 3-6"
+                detail=f"No tables found in pages {pages_range}"
             )
 
         # Process each table
@@ -569,7 +575,7 @@ async def extract_revenue_account_data(
             "status": "success",
             "company": company_clean.upper(),
             "total_tables": len(extracted_tables),
-            "pages_extracted": "3-6",
+            "pages_extracted": pages_range,
             "tables": extracted_tables,
             "message": f"Successfully extracted Revenue Account data from {len(extracted_tables)} tables"
         }
