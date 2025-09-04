@@ -1,0 +1,34 @@
+{
+  "Form No": "L-1-A-RA",
+  "Title": "REVENUE ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Subtitle": "POLICYHOLDERS' ACCOUNT (TECHNICAL ACCOUNT)",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "Period": "Quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs. Lakhs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Schedule"],
+    "Linked_Non_Par_Life": ["Linked - Non-Par", "Life"],
+    "Linked_Non_Par_Pension_Individual": ["Linked - Non-Par", "Pension Individual"],
+    "Participating_Life": ["Participating", "Life"],
+    "Non_Participating_Life": ["Non-Participating", "Life"],
+    "Non_Participating_Variable_Insurance": ["Non-Participating", "Variable Insurance"],
+    "Non_Participating_Health": ["Non-Participating", "Health"],
+    "Non_Participating_Annuity": ["Non-Participating", "Annuity"],
+    "Total": ["Total"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "Linked_Non_Par_Life",
+    "Linked_Non_Par_Pension_Individual",
+    "Participating_Life",
+    "Non_Participating_Life",
+    "Non_Participating_Variable_Insurance",
+    "Non_Participating_Health",
+    "Non_Participating_Annuity",
+    "Total"
+  ],
+  "Rows": []
+}
