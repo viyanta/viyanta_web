@@ -219,15 +219,36 @@ const TemplateBasedExtractor = () => {
         // Nested structure like Non-Linked Business
         let totalCols = 0;
         Object.entries(subHeaders).forEach(([subKey, subSubHeaders]) => {
-          totalCols += subSubHeaders.length;
+          if (Array.isArray(subSubHeaders)) {
+            totalCols += subSubHeaders.length;
+          } else if (typeof subSubHeaders === 'object') {
+            // Handle nested objects by counting their array values
+            Object.values(subSubHeaders).forEach(value => {
+              if (Array.isArray(value)) {
+                totalCols += value.length;
+              }
+            });
+          }
         });
         topRow.push({ text: mainKey, colspan: totalCols });
         
         Object.entries(subHeaders).forEach(([subKey, subSubHeaders]) => {
-          subSubHeaders.forEach(sub => {
-            bottomRow.push({ text: sub, colspan: 1 });
-            flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
-          });
+          if (Array.isArray(subSubHeaders)) {
+            subSubHeaders.forEach(sub => {
+              bottomRow.push({ text: sub, colspan: 1 });
+              flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
+            });
+          } else if (typeof subSubHeaders === 'object') {
+            // Handle nested objects
+            Object.entries(subSubHeaders).forEach(([nestedKey, nestedValue]) => {
+              if (Array.isArray(nestedValue)) {
+                nestedValue.forEach(sub => {
+                  bottomRow.push({ text: sub, colspan: 1 });
+                  flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
+                });
+              }
+            });
+          }
         });
       }
     });
@@ -241,7 +262,9 @@ const TemplateBasedExtractor = () => {
   const renderExtractionResult = () => {
     if (!extractionResult) return null;
 
-    const { headerRows, flatHeaders } = createMultiLevelHeaders(extractionResult.Headers);
+    const { headerRows, flatHeaders } = createMultiLevelHeaders(extractionResult.FlatHeaders || extractionResult.Headers);
+    console.log("Using headers:", extractionResult.FlatHeaders ? "FlatHeaders" : "Headers");
+    console.log("Headers data:", extractionResult.FlatHeaders || extractionResult.Headers);
 
     return (
       <div style={{

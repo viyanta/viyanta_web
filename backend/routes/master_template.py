@@ -9,7 +9,6 @@ from services.master_template import (
     list_forms,
     extract_form,
     find_form_pages,
-    ai_extract_form
 )
 import fitz  # PyMuPDF
 
@@ -376,3 +375,328 @@ async def ai_extract_form_data(
             f"Error in AI extraction for company {company}, form {form_no}: {e}")
         raise HTTPException(
             status_code=500, detail=f"AI extraction failed: {str(e)}")
+
+
+@router.get("/extract-revenue-account/{company}")
+async def extract_revenue_account_data(
+    company: str
+):
+    """
+    Extract Revenue Account data from pages 3-6 for the specified company.
+    Returns all 4 tables with their financial data.
+    """
+    try:
+        if not company.strip():
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
+
+        company_clean = company.lower().strip()
+
+        # Check if PDF exists
+        pdf_path = os.path.join(PDFS_DIR, f"{company_clean}.pdf")
+        if not os.path.exists(pdf_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"PDF not found for company: {company_clean}. Please upload PDF first."
+            )
+
+        # Import camelot for table extraction
+        try:
+            import camelot
+        except ImportError:
+            raise HTTPException(
+                status_code=503,
+                detail="Camelot not available for table extraction"
+            )
+
+        # Get dynamic page range based on file type (Q1/HY/FY)
+        pages_range = await find_pages_for_revenue_form(company_clean, "L-1-A-REVENUE", pdf_path)
+        if not pages_range:
+            pages_range = "3-6"  # fallback
+
+        # Extract tables from dynamic pages
+        tables = camelot.read_pdf(pdf_path, pages=pages_range, flavor='stream')
+
+        if not tables:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No tables found in pages {pages_range}"
+            )
+
+        # Process each table
+        extracted_tables = []
+        for i, table in enumerate(tables):
+            df = table.df
+
+            # Determine period from the data
+            period = 'Unknown'
+            for row_idx in range(min(10, len(df))):
+                for col_idx in range(min(3, len(df.columns))):
+                    cell_text = str(df.iloc[row_idx, col_idx])
+                    if '2023' in cell_text and 'SEPTEMBER' in cell_text.upper():
+                        period = 'September 30, 2023 (FY2024 Q2)'
+                        break
+                    elif '2022' in cell_text and 'SEPTEMBER' in cell_text.upper():
+                        period = 'September 30, 2022 (FY2023 Q2)'
+                        break
+                if period != 'Unknown':
+                    break
+
+            # Extract financial data
+            financial_data = []
+            for row_idx in range(len(df)):
+                row = df.iloc[row_idx]
+                first_col = str(row.iloc[0]) if len(row) > 0 else ''
+
+                # Look for important financial terms
+                if any(term in first_col.upper() for term in ['PREMIUM', 'INCOME', 'EXPENSE', 'BENEFIT', 'TOTAL', 'SURPLUS', 'DEFICIT']):
+                    # Get values from this row
+                    values = []
+                    for col_idx in range(1, min(8, len(row))):
+                        val = str(row.iloc[col_idx]).strip()
+                        if val and val != 'nan' and len(val) > 0:
+                            values.append(val)
+
+                    if values:
+                        financial_data.append({
+                            'item': first_col[:100],
+                            'values': values
+                        })
+
+            extracted_tables.append({
+                'table_id': i + 1,
+                'period': period,
+                'dimensions': f"{df.shape[0]} rows × {df.shape[1]} columns",
+                # Limit to first 15 items
+                'financial_data': financial_data[:15]
+            })
+
+        return {
+            "status": "success",
+            "company": company_clean.upper(),
+            "total_tables": len(extracted_tables),
+            "pages_extracted": pages_range,
+            "tables": extracted_tables,
+            "message": f"Successfully extracted Revenue Account data from {len(extracted_tables)} tables"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error extracting Revenue Account data for {company}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to extract Revenue Account data: {str(e)}")
+
+
+@router.get("/extract-revenue-account-headings/{company}")
+async def extract_revenue_account_headings(
+    company: str
+):
+    """
+    Extract all headings and sections from ALL pages for the specified company.
+    Enhanced to capture main headings like 'REVENUE ACCOUNT FOR THE PERIOD ENDED JUNE 30, 2024'
+    Returns structured headings data including main titles, sections, and subsections.
+    """
+    try:
+        if not company.strip():
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
+
+        company_clean = company.lower().strip()
+
+        # Check if PDF exists
+        pdf_path = os.path.join(PDFS_DIR, f"{company_clean}.pdf")
+        if not os.path.exists(pdf_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"PDF not found for company: {company_clean}. Please upload PDF first."
+            )
+
+        # Extract text from ALL pages (not just 3-6)
+        doc = fitz.open(pdf_path)
+
+        headings_data = {
+            "main_titles": [],  # Changed to array to capture multiple main titles
+            "periods": [],      # Changed to array to capture multiple periods
+            "page_headings": [],
+            "section_headings": [],
+            "table_headers": [],
+            "all_headings": []
+        }
+
+        # Extract from ALL pages
+        for page_num in range(doc.page_count):
+            page = doc.load_page(page_num)
+            text = page.get_text()
+
+            lines = text.split('\n')
+            page_headings = []
+
+            for i, line in enumerate(lines):
+                line = line.strip()
+                if not line:
+                    continue
+
+                # Enhanced main title detection - more flexible patterns
+                line_upper = line.upper()
+
+                # Detect main titles with various patterns
+                if any(pattern in line_upper for pattern in [
+                    'REVENUE ACCOUNT FOR THE PERIOD ENDED',
+                    'REVENUE ACCOUNT FOR THE QUARTER ENDED',
+                    'REVENUE ACCOUNT FOR THE YEAR ENDED',
+                    'REVENUE ACCOUNT FOR THE HALF YEAR ENDED'
+                ]):
+                    # Extract period information
+                    period_match = None
+                    import re
+
+                    # Try to extract date patterns
+                    date_patterns = [
+                        r'(\w+ \d{1,2}, \d{4})',  # June 30, 2024
+                        # 30-06-2024 or 30/06/2024
+                        r'(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})',
+                        r'(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})'   # 2024-06-30
+                    ]
+
+                    for pattern in date_patterns:
+                        match = re.search(pattern, line)
+                        if match:
+                            period_match = match.group(1)
+                            break
+
+                    main_title_info = {
+                        "text": line,
+                        "page": page_num + 1,
+                        "type": "main_title",
+                        "level": 0,
+                        "period": period_match or "Unknown",
+                        "full_text": line
+                    }
+
+                    headings_data["main_titles"].append(main_title_info)
+                    page_headings.append(main_title_info)
+
+                    # Also extract period separately
+                    if period_match:
+                        headings_data["periods"].append({
+                            "text": period_match,
+                            "page": page_num + 1,
+                            "type": "period",
+                            "level": 0
+                        })
+
+                # Detect other main headings (not just Revenue Account)
+                elif (line_upper.startswith(('L-1-A', 'L-1-B', 'L-1-C', 'L-2', 'L-3', 'L-4', 'L-5')) and
+                      len(line) > 10 and len(line) < 200):
+
+                    main_heading_info = {
+                        "text": line,
+                        "page": page_num + 1,
+                        "type": "form_heading",
+                        "level": 0
+                    }
+
+                    headings_data["main_titles"].append(main_heading_info)
+                    page_headings.append(main_heading_info)
+
+                # Detect section headings (all caps, standalone lines)
+                elif (line.isupper() and
+                      len(line) > 5 and
+                      len(line) < 100 and
+                      # No numbers at start
+                      not any(char.isdigit() for char in line[:10]) and
+                      not line.startswith('(') and
+                      not any(pattern in line_upper for pattern in [
+                          'REVENUE ACCOUNT', 'L-1-A', 'L-1-B', 'L-1-C', 'L-2', 'L-3', 'L-4', 'L-5'
+                      ])):
+
+                    heading_type = "section"
+                    if any(word in line for word in ['INCOME', 'EXPENSES', 'BENEFITS', 'PREMIUM']):
+                        heading_type = "financial_section"
+                    elif any(word in line for word in ['UNIT', 'PARTICIPATING', 'NON-PARTICIPATING']):
+                        heading_type = "category_section"
+
+                    heading_info = {
+                        "text": line,
+                        "page": page_num + 1,
+                        "type": heading_type,
+                        "level": 1
+                    }
+
+                    headings_data["section_headings"].append(heading_info)
+                    page_headings.append(heading_info)
+
+                # Detect table headers (contain keywords like Particulars, Schedule, etc.)
+                elif any(keyword in line for keyword in ['Particulars', 'Schedule', 'Unit Linked', 'Participating', 'Non-Participating']):
+                    if len(line) > 10 and not line.isupper():
+                        heading_info = {
+                            "text": line,
+                            "page": page_num + 1,
+                            "type": "table_header",
+                            "level": 2
+                        }
+                        headings_data["table_headers"].append(heading_info)
+                        page_headings.append(heading_info)
+
+                # Detect subsection headings (capitalized words, not all caps)
+                elif (line.istitle() and
+                      len(line) > 10 and
+                      len(line) < 80 and
+                      not any(char.isdigit() for char in line[:5])):
+
+                    heading_info = {
+                        "text": line,
+                        "page": page_num + 1,
+                        "type": "subsection",
+                        "level": 3
+                    }
+                    page_headings.append(heading_info)
+
+            if page_headings:
+                headings_data["page_headings"].append({
+                    "page": page_num + 1,
+                    "headings": page_headings
+                })
+
+        doc.close()
+
+        # Compile all headings in order
+        all_headings = []
+
+        # Add main titles first
+        for main_title in headings_data["main_titles"]:
+            all_headings.append(main_title)
+
+        # Add periods
+        for period in headings_data["periods"]:
+            all_headings.append(period)
+
+        # Add all other headings sorted by page and position
+        for page_data in headings_data["page_headings"]:
+            for heading in page_data["headings"]:
+                # Avoid duplicates (main titles already added)
+                if heading["type"] not in ["main_title", "period"]:
+                    all_headings.append(heading)
+
+        headings_data["all_headings"] = all_headings
+
+        return {
+            "status": "success",
+            "company": company_clean.upper(),
+            "total_headings": len(all_headings),
+            "total_pages_analyzed": doc.page_count,
+            "main_titles_found": len(headings_data["main_titles"]),
+            "periods_found": len(headings_data["periods"]),
+            "headings": headings_data,
+            "message": f"Successfully extracted {len(all_headings)} headings from all {doc.page_count} pages"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error extracting Revenue Account headings for {company}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to extract Revenue Account headings: {str(e)}")
