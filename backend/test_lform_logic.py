@@ -34,21 +34,22 @@ def test_lform_page_logic():
 
     print("\n" + "=" * 50)
     print("L-form logic test completed!")
-    
+
     # Test specific L-1-A-REVENUE case
     print("\nTesting L-1-A-REVENUE specific case:")
     print("=" * 50)
     import asyncio
     from services.master_template import _find_pages_for_form
-    
+
     try:
-        result = asyncio.run(_find_pages_for_form('sbi', 'L-1-A-REVENUE', 'sbi/SBI Life  S FY2023 9M.pdf'))
+        result = asyncio.run(_find_pages_for_form(
+            'sbi', 'L-1-A-REVENUE', 'sbi/SBI Life  S FY2023 9M.pdf'))
         expected = "3-6"
         status = "✅ PASS" if result == expected else "❌ FAIL"
         print(f"{status} | L-1-A-REVENUE for SBI: Expected {expected}, Got {result}")
     except Exception as e:
         print(f"❌ ERROR | L-1-A-REVENUE test failed: {e}")
-        
+
     print("=" * 50)
 
 

@@ -597,7 +597,7 @@ const TemplateBasedExtractor = () => {
                 style={{
                   padding: '0.75rem 1.5rem',
                   backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
-                  color: 'white',
+                  color:(!selectedForm || isExtracting) ? 'black' : 'white',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '1rem',
