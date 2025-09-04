@@ -91,7 +91,7 @@ function App() {
                     >
                       <Routes>
                         <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
+                        {/* <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} /> */}
                         <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
                         <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />

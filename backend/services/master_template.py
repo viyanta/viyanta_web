@@ -42,36 +42,45 @@ os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
 async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
     """
-    Save uploaded PDF file as backend/pdfs_selected_company/{company}.pdf
-    Also save original filename information for Q1/FY detection
+    Save uploaded PDF file as backend/pdfs_selected_company/{company}/{original_filename}.pdf
     """
     try:
-        # Create filename
-        filename = f"{company}.pdf"
-        file_path = os.path.join(PDFS_DIR, filename)
-        
-        # Save original filename information
+        # Create company directory
+        company_dir = os.path.join(PDFS_DIR, company)
+        os.makedirs(company_dir, exist_ok=True)
+
+        # Use original filename but sanitize it
         original_filename = file.filename
-        original_filename_path = os.path.join(PDFS_DIR, f"{company}_original_filename.txt")
+        if not original_filename.lower().endswith('.pdf'):
+            original_filename += '.pdf'
+
+        # Sanitize filename to remove path separators and other problematic characters
+        original_filename = os.path.basename(
+            original_filename)  # Remove any path components
+        original_filename = "".join(
+            c for c in original_filename if c.isalnum() or c in "._- ").strip()
+
+        # Ensure it still ends with .pdf after sanitization
+        if not original_filename.lower().endswith('.pdf'):
+            original_filename += '.pdf'
+
+        file_path = os.path.join(company_dir, original_filename)
 
         # Save file
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
-        # Save original filename
-        with open(original_filename_path, "w") as f:
-            f.write(original_filename)
 
         # Get file size
         file_size = os.path.getsize(file_path)
 
-        logger.info(f"Saved PDF for company {company} at {file_path} with original filename: {original_filename}")
+        logger.info(f"Saved PDF for company {company} at {file_path}")
 
         return {
-            "filename": filename,
+            "filename": original_filename,
             "file_path": file_path,
             "file_size": file_size,
-            "original_filename": original_filename
+            "original_filename": original_filename,
+            "company_dir": company_dir
         }
 
     except Exception as e:
@@ -79,13 +88,76 @@ async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
         raise
 
 
-async def list_forms(company: str) -> List[Dict[str, Any]]:
+def get_company_pdf_path(company: str, filename: str = None) -> str:
+    """
+    Get a specific PDF file for a company, or the first one if filename not specified.
+
+    Args:
+        company: Company name
+        filename: Specific PDF filename to use (optional)
+
+    Returns:
+        Full path to the PDF file
+    """
+    company_dir = os.path.join(PDFS_DIR, company)
+
+    if not os.path.exists(company_dir):
+        raise FileNotFoundError(f"Company directory not found: {company}")
+
+    # Find all PDF files in the company directory
+    pdf_files = [f for f in os.listdir(
+        company_dir) if f.lower().endswith('.pdf')]
+
+    if not pdf_files:
+        raise FileNotFoundError(f"No PDF files found for company: {company}")
+
+    # If specific filename requested, look for it
+    if filename:
+        # Clean the filename (same sanitization as in upload)
+        clean_filename = os.path.basename(filename)
+        clean_filename = "".join(
+            c for c in clean_filename if c.isalnum() or c in "._- ").strip()
+        if not clean_filename.lower().endswith('.pdf'):
+            clean_filename += '.pdf'
+
+        # Look for exact match first
+        if clean_filename in pdf_files:
+            pdf_path = os.path.join(company_dir, clean_filename)
+            logger.info(
+                f"Using specific PDF file: {pdf_path} for company: {company}")
+            return pdf_path
+
+        # Look for partial match (in case of slight name differences)
+        for pdf_file in pdf_files:
+            if clean_filename.lower() in pdf_file.lower() or pdf_file.lower() in clean_filename.lower():
+                pdf_path = os.path.join(company_dir, pdf_file)
+                logger.info(
+                    f"Using matched PDF file: {pdf_path} for company: {company} (requested: {filename})")
+                return pdf_path
+
+        # If specific file not found, log warning and fall back to first file
+        logger.warning(
+            f"Specific PDF file '{filename}' not found for company: {company}. Available files: {pdf_files}. Using first available.")
+
+    # Return the first PDF file as fallback
+    pdf_path = os.path.join(company_dir, pdf_files[0])
+    logger.info(
+        f"Using first available PDF file: {pdf_path} for company: {company}")
+
+    return pdf_path
+
+
+async def list_forms(company: str, filename: str = None) -> List[Dict[str, Any]]:
     """
     Parse "List of Website Disclosures" section from first 2-3 PDF pages.
     Returns list of {form_no, description, pages}
+
+    Args:
+        company: Company name
+        filename: Specific PDF filename to use (optional)
     """
     try:
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
 
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found for company: {company}")
@@ -325,10 +397,15 @@ async def find_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
         return None
 
 
-async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
+async def extract_form(company: str, form_no: str, filename: str = None) -> Dict[str, Any]:
     """
     Extract form data using template and PDF pages.
     Returns structured JSON with template headers and extracted data.
+
+    Args:
+        company: Company name
+        form_no: Form number to extract
+        filename: Specific PDF filename to use (optional)
     """
     try:
         # Load template - try different filename patterns
@@ -369,7 +446,7 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
             template = json.load(f)
 
         # Get PDF path
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
 
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
@@ -397,7 +474,8 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
 
         # Fallback to text-based extraction when no rows were found via tables
         if not extracted_rows:
-            logger.info("No rows extracted via Camelot. Falling back to text-based extraction.")
+            logger.info(
+                "No rows extracted via Camelot. Falling back to text-based extraction.")
             extracted_rows = await _extract_text_based_data(pdf_path, pages_used, flat_headers)
 
         # Get table extraction info
@@ -433,88 +511,173 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
 
 async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Optional[str]:
     """
-    Find page numbers for a form from the forms index
+    Find page numbers for a form from the forms index.
+    For L-forms, applies a 2-page gap to each page in the listed range.
     """
     try:
         # Special handling for L-1-A-REVENUE - detect FY vs Q1 files
         if form_no.upper() in ['L-1-A', 'L-1-A-REVENUE']:
-            # Try multiple methods to get the original filename
-            original_filename = None
+            # First get the actual pages from the forms list
+            forms = await list_forms(company)
+            original_pages = None
             
-            # Method 1: Read original filename from saved file (MOST IMPORTANT)
-            try:
-                original_filename_path = os.path.join(PDFS_DIR, f"{company}_original_filename.txt")
-                if os.path.exists(original_filename_path):
-                    with open(original_filename_path, 'r') as f:
-                        original_filename = f.read().strip().upper()
-                        logger.info(f"Found original filename from saved file: {original_filename}")
-            except Exception as e:
-                logger.warning(f"Could not read original filename file: {e}")
+            # Find the actual pages for L-1-A-REVENUE from forms list
+            for form in forms:
+                if form["form_no"].upper() in ['L-1-A', 'L-1-A-REVENUE']:
+                    original_pages = form["pages"]
+                    break
             
-            # Method 2: Try to get original filename from database
-            if not original_filename:
-                try:
-                    import sqlite3
-                    db_path = os.path.join(BACKEND_DIR, "file_storage.db")
-                    if os.path.exists(db_path):
-                        conn = sqlite3.connect(db_path)
-                        conn.row_factory = sqlite3.Row
-                        cursor = conn.cursor()
-                        
-                        # Look for a file that matches our current pdf_path
-                        current_stored_filename = os.path.basename(pdf_path)
-                        cursor.execute('SELECT original_filename FROM files WHERE stored_filename = ?', (current_stored_filename,))
-                        row = cursor.fetchone()
-                        
-                        if row:
-                            original_filename = row['original_filename'].upper()
-                            logger.info(f"Found original filename from database: {original_filename}")
-                        
-                        conn.close()
-                        
-                except Exception as e:
-                    logger.warning(f"Could not access database for filename lookup: {e}")
-            
-            # Method 3: Use current path filename
-            if not original_filename:
-                original_filename = os.path.basename(pdf_path).upper()
-                logger.info(f"Using current path for detection: {original_filename}")
-            
-            # Method 4: Check uploads directory for SBI files (last resort)
-            if not original_filename or ('Q1' not in original_filename and 'FY' not in original_filename):
-                uploads_dir = "uploads"
-                if os.path.exists(uploads_dir):
-                    for filename in os.listdir(uploads_dir):
-                        if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
-                            original_filename = filename.upper()
-                            logger.info(f"Found SBI file in uploads: {filename}")
-                            break
-            
-            # Determine page range based on filename
-            if 'Q1' in original_filename:
-                logger.info(f"Q1 file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE")
-                return "3-4"
-            elif 'FY' in original_filename:
-                logger.info(f"FY file detected: {original_filename}. Using pages 3-6 for L-1-A-REVENUE")
-                return "3-6"
+            if original_pages:
+                # Apply 2-page gap to the actual detected pages
+                enhanced_pages = _add_pages_to_range(original_pages, 2)
+                logger.info(
+                    f"L-1-A-REVENUE detected. Original pages: {original_pages}, Enhanced pages: {enhanced_pages} (2 gap applied)")
+                return enhanced_pages
             else:
-                # Default to Q1 behavior if neither Q1 nor FY is clearly detected
-                logger.info(f"Default file detected: {original_filename}. Using pages 3-4 for L-1-A-REVENUE")
-                return "3-4"
-            
+                # Fallback to filename-based detection if no pages found in forms list
+                # Try multiple methods to get the original filename
+                original_filename = None
+
+                # Method 1: Read original filename from saved file (MOST IMPORTANT)
+                try:
+                    original_filename_path = os.path.join(
+                        PDFS_DIR, f"{company}_original_filename.txt")
+                    if os.path.exists(original_filename_path):
+                        with open(original_filename_path, 'r') as f:
+                            original_filename = f.read().strip().upper()
+                            logger.info(
+                                f"Found original filename from saved file: {original_filename}")
+                except Exception as e:
+                    logger.warning(f"Could not read original filename file: {e}")
+
+                # Method 2: Try to get original filename from database
+                if not original_filename:
+                    try:
+                        import sqlite3
+                        db_path = os.path.join(BACKEND_DIR, "file_storage.db")
+                        if os.path.exists(db_path):
+                            conn = sqlite3.connect(db_path)
+                            conn.row_factory = sqlite3.Row
+                            cursor = conn.cursor()
+
+                            # Look for a file that matches our current pdf_path
+                            current_stored_filename = os.path.basename(pdf_path)
+                            cursor.execute(
+                                'SELECT original_filename FROM files WHERE stored_filename = ?', (current_stored_filename,))
+                            row = cursor.fetchone()
+
+                            if row:
+                                original_filename = row['original_filename'].upper(
+                                )
+                                logger.info(
+                                    f"Found original filename from database: {original_filename}")
+
+                            conn.close()
+
+                    except Exception as e:
+                        logger.warning(
+                            f"Could not access database for filename lookup: {e}")
+
+                # Method 3: Use current path filename
+                if not original_filename:
+                    original_filename = os.path.basename(pdf_path).upper()
+                    logger.info(
+                        f"Using current path for detection: {original_filename}")
+
+                # Method 4: Check uploads directory for SBI files (last resort)
+                if not original_filename or ('Q1' not in original_filename and 'FY' not in original_filename):
+                    uploads_dir = "uploads"
+                    if os.path.exists(uploads_dir):
+                        for filename in os.listdir(uploads_dir):
+                            if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
+                                original_filename = filename.upper()
+                                logger.info(
+                                    f"Found SBI file in uploads: {filename}")
+                                break
+
+                # Determine page range based on filename - apply 2-page gap to the original range for L-forms
+                if 'Q1' in original_filename:
+                    fallback_pages = _add_pages_to_range("3-4", 2)  # 3-4 -> 5-6
+                    logger.info(
+                        f"Q1 file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-4)")
+                    return fallback_pages
+                elif 'FY' in original_filename:
+                    fallback_pages = _add_pages_to_range("3-6", 2)  # 3-6 -> 5-8  
+                    logger.info(
+                        f"FY file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-6)")
+                    return fallback_pages
+                else:
+                    # Default to Q1 behavior if neither Q1 nor FY is clearly detected
+                    fallback_pages = _add_pages_to_range("3-4", 2)  # 3-4 -> 5-6
+                    logger.info(
+                        f"Default file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-4)")
+                    return fallback_pages
+
         # Get forms list for other forms
         forms = await list_forms(company)
 
         # Find matching form
         for form in forms:
             if form["form_no"].upper() == form_no.upper():
-                return form["pages"]
+                original_pages = form["pages"]
+
+                # For L-forms, apply 2-page gap to the listed range
+                if form_no.upper().startswith('L-'):
+                    enhanced_pages = _add_pages_to_range(original_pages, 2)
+                    logger.info(
+                        f"L-form detected: {form_no}. Extracting pages {enhanced_pages} (2 gap applied to {original_pages})")
+                    return enhanced_pages
+                else:
+                    return original_pages
 
         return None
 
     except Exception as e:
         logger.error(f"Error finding pages for form {form_no}: {e}")
         return None
+
+
+def _add_pages_to_range(pages_str: str, additional_pages: int) -> str:
+    """
+    Extract pages with a 2-page gap applied to each page in the original range for L-forms.
+
+    Examples:
+    - "1" -> "3" (2 gap from 1)
+    - "3-4" -> "5-6" (2 gap from 3 becomes 5, 2 gap from 4 becomes 6)
+    - "7" -> "9" (2 gap from 7)
+    - "6-9" -> "8-11" (2 gap from 6 becomes 8, 2 gap from 9 becomes 11)
+
+    Args:
+        pages_str: Original page range (e.g., "3-4" or "7")
+        additional_pages: Not used - gap is applied to original range
+
+    Returns:
+        Page range string with 2-page gap applied to each page in the original range
+    """
+    try:
+        if not pages_str:
+            return pages_str
+
+        gap_pages = 2  # Always apply a 2-page gap
+
+        if '-' in pages_str:
+            # Handle range like "3-4" or "6-9"
+            start_page, end_page = pages_str.split('-')
+            start_page = int(start_page.strip())
+            end_page = int(end_page.strip())
+            # Apply 2-page gap to both start and end
+            new_start_page = start_page + gap_pages
+            new_end_page = end_page + gap_pages
+            return f"{new_start_page}-{new_end_page}"
+        else:
+            # Handle single page like "1" or "7"
+            start_page = int(pages_str.strip())
+            # Apply 2-page gap to the single page
+            new_page = start_page + gap_pages
+            return str(new_page)
+    except (ValueError, AttributeError) as e:
+        logger.warning(f"Could not parse page range '{pages_str}': {e}")
+        return pages_str
 
 
 async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:
@@ -529,7 +692,8 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
                 rows = _extract_with_tabula(pdf_path, pages_str, headers)
                 if rows:
                     return rows
-            logger.warning("Tabula fallback not available or returned no rows; returning empty rows")
+            logger.warning(
+                "Tabula fallback not available or returned no rows; returning empty rows")
             return []
 
         # Parse pages string (e.g., "7-10" or "7")
@@ -590,7 +754,8 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
                 # Submit all table processing tasks with correct parameters
                 future_to_index = {}
                 for idx, table_data in enumerate(all_tables):
-                    future = executor.submit(_process_table_with_threading, (table_data, idx), headers)
+                    future = executor.submit(
+                        _process_table_with_threading, (table_data, idx), headers)
                     future_to_index[future] = idx
 
                 # Collect results as they complete
@@ -613,7 +778,8 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
 
         if not extracted_rows and TABULA_AVAILABLE:
             logger.info("Camelot returned no rows; attempting Tabula fallback")
-            extracted_rows = _extract_with_tabula(pdf_path, pages_range, headers)
+            extracted_rows = _extract_with_tabula(
+                pdf_path, pages_range, headers)
 
         if not extracted_rows:
             logger.warning(
@@ -643,11 +809,13 @@ def _extract_with_tabula(pdf_path: str, pages: str, headers: List[str]) -> List[
         # Try both lattice and stream
         dfs = []
         try:
-            dfs += tabula.read_pdf(pdf_path, pages=page_arg, lattice=True, multiple_tables=True)
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg,
+                                   lattice=True, multiple_tables=True)
         except Exception as e:
             logger.warning(f"Tabula lattice failed: {e}")
         try:
-            dfs += tabula.read_pdf(pdf_path, pages=page_arg, stream=True, multiple_tables=True)
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg,
+                                   stream=True, multiple_tables=True)
         except Exception as e:
             logger.warning(f"Tabula stream failed: {e}")
 
@@ -657,31 +825,32 @@ def _extract_with_tabula(pdf_path: str, pages: str, headers: List[str]) -> List[
                 continue
             df = df.fillna('')
             logger.info(f"Processing Tabula table {idx+1}: Shape {df.shape}")
-            
+
             # More aggressive row extraction - start from row 0 and check all rows
             for row_idx in range(len(df)):
                 series = df.iloc[row_idx]
                 values = [str(v).strip() for v in series.tolist()]
                 if not any(v for v in values):
                     continue
-                    
+
                 row: Dict[str, Any] = {}
                 for i, h in enumerate(headers):
                     row[h] = values[i] if i < len(values) else ''
-                
+
                 # More lenient filtering - accept any row with meaningful content
                 particulars = (row.get(headers[0]) or '').strip()
                 has_content = any((row.get(h) or '').strip() for h in headers)
-                
+
                 # Skip obvious header rows and empty rows
-                if (particulars and 
+                if (particulars and
                     not particulars.lower() in ['particulars', 'schedule', 'life', 'pension'] and
                     has_content and
-                    len(particulars) > 2):
+                        len(particulars) > 2):
                     rows.append(row)
                     logger.info(f"Added Tabula row: {particulars[:50]}...")
-                    
-        logger.info(f"Tabula extracted {len(rows)} total rows from {len(dfs)} tables")
+
+        logger.info(
+            f"Tabula extracted {len(rows)} total rows from {len(dfs)} tables")
         return rows
     except Exception as e:
         logger.error(f"Tabula extraction error: {e}")
@@ -766,11 +935,13 @@ def _process_table_with_threading(table_data_and_index, headers: List[str]) -> L
         if _is_table_matching_headers(df, headers):
             logger.info(
                 f"Thread: Processing table {table_idx + 1} ({flavor}) - matches template structure")
-            rows = _convert_l4_dataframe_to_rows(df, headers, table_idx + 1, flavor)
+            rows = _convert_l4_dataframe_to_rows(
+                df, headers, table_idx + 1, flavor)
         else:
             logger.info(
                 f"Thread: Attempting conversion for table {table_idx + 1} despite header mismatch")
-            rows = _convert_l4_dataframe_to_rows(df, headers, table_idx + 1, flavor)
+            rows = _convert_l4_dataframe_to_rows(
+                df, headers, table_idx + 1, flavor)
     except Exception as e:
         logger.error(f"Thread: Error converting table {table_idx + 1}: {e}")
         rows = []
@@ -1088,11 +1259,11 @@ def _extract_l4_premium_clean(pdf_path: str, pages_str: str, template_headers: L
 
         logger.info(
             f"Total extracted: {len(all_rows)} rows from {len(tables)} tables")
-        
+
         # Remove duplicate headers
         all_rows = _remove_duplicate_headers(all_rows, template_headers)
         logger.info(f"After removing duplicate headers: {len(all_rows)} rows")
-        
+
         return all_rows
 
     except Exception as e:
@@ -1164,10 +1335,11 @@ def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[st
             clean_particulars = _clean_particulars_text(particulars)
 
             # Skip header rows that contain column names
-            header_keywords = ["Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension", 
-                             "Participating_Life", "Non_Participating_Life", "Grand_Total"]
+            header_keywords = ["Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension",
+                               "Participating_Life", "Non_Participating_Life", "Grand_Total"]
             if any(keyword.lower() in clean_particulars.lower() for keyword in header_keywords):
-                logger.info(f"Skipping header row: {clean_particulars[:40]}...")
+                logger.info(
+                    f"Skipping header row: {clean_particulars[:40]}...")
                 continue
 
             # Build row dictionary
@@ -1430,7 +1602,7 @@ def _find_specific_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
         return None
 
 
-async def ai_extract_form(company: str, form_no: str) -> List[Dict[str, Any]]:
+async def ai_extract_form(company: str, form_no: str, filename: str = None) -> List[Dict[str, Any]]:
     """
     🤖 AI PDF Form Extractor - Complete Implementation
 
@@ -1440,10 +1612,15 @@ async def ai_extract_form(company: str, form_no: str) -> List[Dict[str, Any]]:
     3. Extract data using Camelot for tables + text extraction for fields
     4. Return structured JSON for ALL periods found
 
+    Args:
+        company: Company name
+        form_no: Form number to extract
+        filename: Specific PDF filename to use (optional)
+
     Returns List of extracted form data, one per period/year found.
     """
     try:
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found for company: {company}")
 
@@ -1733,6 +1910,7 @@ async def _enhance_with_text_fields(pdf_path: str, pages_str: str, result: Dict[
 
     return result
 
+
 def _remove_duplicate_headers(rows: List[Dict[str, Any]], headers: List[str]) -> List[Dict[str, Any]]:
     """
     Remove duplicate header rows to fix the duplicate header issue
@@ -1740,47 +1918,49 @@ def _remove_duplicate_headers(rows: List[Dict[str, Any]], headers: List[str]) ->
     try:
         if not rows:
             return rows
-            
+
         # Define header keywords to identify header rows
         header_keywords = [
-            "Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension", 
-            "Unit_Linked_Total", "Participating_Life", "Participating_Pension", 
-            "Participating_Var_Ins", "Participating_Total", "Non_Participating_Life", 
-            "Non_Participating_Annuity", "Non_Participating_Pension", 
-            "Non_Participating_Health", "Non_Participating_Var_Ins", 
+            "Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension",
+            "Unit_Linked_Total", "Participating_Life", "Participating_Pension",
+            "Participating_Var_Ins", "Participating_Total", "Non_Participating_Life",
+            "Non_Participating_Annuity", "Non_Participating_Pension",
+            "Non_Participating_Health", "Non_Participating_Var_Ins",
             "Non_Participating_Total", "Grand_Total"
         ]
-        
+
         # Filter out header rows
         filtered_rows = []
         header_rows_removed = 0
-        
+
         for row in rows:
-            particulars = str(row.get(headers[0] if headers else "Particulars", "")).strip()
-            
+            particulars = str(
+                row.get(headers[0] if headers else "Particulars", "")).strip()
+
             # Check if this row contains header keywords
             is_header_row = False
             for keyword in header_keywords:
                 if keyword.lower() in particulars.lower():
                     is_header_row = True
                     break
-            
+
             # Also check if the row is too short (likely a header)
             if len(particulars) < 3:
                 is_header_row = True
-            
+
             # Skip header rows
             if is_header_row:
                 header_rows_removed += 1
                 logger.info(f"Removing header row: {particulars[:50]}...")
                 continue
-            
+
             # Keep data rows
             filtered_rows.append(row)
-        
-        logger.info(f"Removed {header_rows_removed} header rows, kept {len(filtered_rows)} data rows")
+
+        logger.info(
+            f"Removed {header_rows_removed} header rows, kept {len(filtered_rows)} data rows")
         return filtered_rows
-        
+
     except Exception as e:
         logger.error(f"Error removing duplicate headers: {e}")
         return rows
@@ -1794,9 +1974,9 @@ def _extract_period_from_text(text: str) -> Optional[str]:
     try:
         if not text:
             return None
-            
+
         text_upper = text.upper()
-        
+
         # Common period patterns
         period_patterns = [
             r'FOR THE QUARTER ENDED\s+([^,\n]+)',
@@ -1809,7 +1989,7 @@ def _extract_period_from_text(text: str) -> Optional[str]:
             r'YEAR ENDED\s+([^,\n]+)',
             r'HALF YEAR ENDED\s+([^,\n]+)',
         ]
-        
+
         for pattern in period_patterns:
             match = re.search(pattern, text_upper)
             if match:
@@ -1818,9 +1998,9 @@ def _extract_period_from_text(text: str) -> Optional[str]:
                 period = re.sub(r'\s+', ' ', period)
                 period = period.replace('\n', ' ')
                 return period
-                
+
         return None
-        
+
     except Exception as e:
         logger.error(f"Error extracting period from text: {e}")
         return None

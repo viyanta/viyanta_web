@@ -1,18 +1,36 @@
 {
-  "Form No": "L-2-A-PL",
-  "Title": "PROFIT AND LOSS ACCOUNT FOR THE PERIOD ENDED {YEAR_END_DATE}",
-  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
-  "Registration_Number": "111 dated 29th March, 2001 with the IRDA",
-  "Account_Type": "Shareholders' Account (Non-technical Account)",
-  "Period": "Period ended {YEAR_END_DATE}",
+  "Form No": "L-2-A-PROFIT",
+  "Title": "PROFIT AND LOSS ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Period": "Quarter ended {QUARTER_END_DATE}",
   "Currency": "Rs in Lakhs",
+  "PagesUsed": "3",
   "Headers": {
-    "Particulars": ["Particulars"],
-    "Schedule": ["Schedule"],
-    "For_the_Quarter_{QUARTER_END_DATE}": ["For the Quarter {QUARTER_END_DATE}"],
-    "Upto_the_Quarter_{QUARTER_END_DATE}": ["Upto the Quarter {QUARTER_END_DATE}"],
-    "For_the_Quarter_{PREVIOUS_QUARTER_END}": ["For the Quarter {PREVIOUS_QUARTER_END}"],
-    "Upto_the_Quarter_{PREVIOUS_QUARTER_END}": ["Upto the Quarter {PREVIOUS_QUARTER_END}"]
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule": [
+      "Schedule"
+    ],
+    "For_the_Quarter_Current": [
+      "For_the_Quarter_Current"
+    ],
+    "Upto_the_Quarter_Current": [
+      "Upto_the_Quarter_Current"
+    ],
+    "For_the_Quarter_Previous": [
+      "For_the_Quarter_Previous"
+    ],
+    "Upto_the_Quarter_Previous": [
+      "Upto_the_Quarter_Previous"
+    ]
   },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "For_the_Quarter_Current",
+    "Upto_the_Quarter_Current",
+    "For_the_Quarter_Previous",
+    "Upto_the_Quarter_Previous"
+  ],
   "Rows": []
-} 
+}

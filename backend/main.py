@@ -11,6 +11,8 @@ from routes.company_lforms import router as company_lforms_router
 from routes.extraction import router as extract_router
 from routes.folder_uploader import router as folder_uploader_router
 from routes.master_template import router as template_router
+from databases.database import Base, engine
+from routes import company
 
 # from routes.pdf_upload import router as pdf_upload_router
 import os
@@ -26,6 +28,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# Initialize database with default companies
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on startup"""
+    try:
+        from init_db import init_database
+        init_database()
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
+
 # Include routers
 app.include_router(upload_router, prefix="/api/files", tags=["upload"])
 app.include_router(download_router, prefix="/api/files", tags=["download"])
@@ -40,6 +58,7 @@ app.include_router(extract_router, prefix="/api/extraction",
 app.include_router(folder_uploader_router, prefix="/api",
                    tags=["folder_uploader"])
 app.include_router(template_router, prefix="/templates", tags=["templates"])
+app.include_router(company.router, prefix="/api")
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])

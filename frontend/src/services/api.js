@@ -894,30 +894,60 @@ class ApiService {
     return response.json();
   }
 
-  // === TEMPLATE-BASED FORM EXTRACTION METHODS ===
-  
-  // Template API base URL (different from main API)
-  getTemplateApiBase() {
-    return 'http://localhost:8000/templates';
-  }
+  // === COMPANY MANAGEMENT METHODS ===
 
-  // Get available companies that have uploaded PDFs
-  async getTemplateCompanies() {
-    const response = await fetch(`${this.getTemplateApiBase()}/companies`);
-    
+  // Get all companies from database
+  async getCompanies() {
+    const response = await fetch(`${API_BASE_URL}/companies/`);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return response.json();
   }
 
-  // Upload PDF for a specific company
+  // Create a new company
+  async createCompany(companyName) {
+    const response = await fetch(`${API_BASE_URL}/companies/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: companyName.toLowerCase().trim() }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Delete a company
+  async deleteCompany(companyId) {
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // === LEGACY METHODS (kept for compatibility) ===
+
+  // Upload PDF for a specific company (template-based extraction)
   async uploadTemplateCompanyPDF(file, company) {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${this.getTemplateApiBase()}/upload?company=${company}`, {
+    const response = await fetch(`${this.getTemplateApiBase()}/upload?company=${encodeURIComponent(company)}`, {
       method: 'POST',
       body: formData,
     });
@@ -930,114 +960,9 @@ class ApiService {
     return response.json();
   }
 
-  // List all forms available in a company's PDF
-  async listCompanyForms(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/list-forms?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Get forms with template availability information
-  async getFormsWithTemplates(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/forms-with-templates/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Extract single period of a form (original method)
-  async extractTemplateForm(company, formNo) {
-    const response = await fetch(`${this.getTemplateApiBase()}/extract-form/${formNo}?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // 🤖 AI Extract ALL periods of a form (new comprehensive method)
-  async aiExtractTemplateForm(company, formNo) {
-    const response = await fetch(`${this.getTemplateApiBase()}/ai-extract-form/${formNo}?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Get available templates for a company
-  async getCompanyTemplates(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/templates/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Create a new template
-  async createTemplate(company, formNo, title, headers) {
-    const response = await fetch(`${this.getTemplateApiBase()}/create-template?company=${company}&form_no=${formNo}&title=${encodeURIComponent(title)}&headers=${encodeURIComponent(JSON.stringify(headers))}`, {
-      method: 'POST',
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
-  }
-
-  // Debug PDF text extraction
-  async debugPdfText(company, page = 1) {
-    const response = await fetch(`${this.getTemplateApiBase()}/debug-pdf-text?company=${company}&page=${page}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Extract Revenue Account data from pages 3-6
-  async extractRevenueAccountData(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/extract-revenue-account/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Extract Revenue Account headings from pages
-  async extractRevenueAccountHeadings(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/extract-revenue-account-headings/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
+  // Get template API base URL
+  getTemplateApiBase() {
+    return 'http://localhost:8000/templates';
   }
 }
 
