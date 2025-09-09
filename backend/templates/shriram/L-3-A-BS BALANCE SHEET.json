@@ -1,0 +1,41 @@
+{
+  "Form No": "L-3-A-BS",
+  "Title": "BALANCE SHEET",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Statement_Date": "As at {QUARTER_END_DATE}",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Main_Balance_Sheet": {
+    "Headers": {
+      "Particulars": ["Particulars"],
+      "Schedule": ["Schedule"],
+      "As_at_Current_Year": ["As at {QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "Schedule",
+      "As_at_Current_Year",
+      "As_at_Previous_Year"
+    ],
+    "Rows": []
+  },
+  "Contingent_Liabilities": {
+    "Title": "CONTINGENT LIABILITIES",
+    "Headers": {
+      "Particulars": ["Particulars"],
+      "Schedule": ["Schedule"],
+      "As_at_Current_Year": ["As at {QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["As at {PREVIOUS_QUARTER_END}"]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "Schedule",
+      "As_at_Current_Year",
+      "As_at_Previous_Year"
+    ],
+    "Rows": []
+  }
+}

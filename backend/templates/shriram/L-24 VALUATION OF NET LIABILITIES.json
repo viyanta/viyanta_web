@@ -1,0 +1,24 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Net Liabilities (Rs.lakhs) (Frequency -Quarterly)",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Rs.lakhs",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Mathematical_Reserves_Current_Year": ["Mathematical Reserves as at 31", "December for the year {QUARTER_END_DATE_YEAR}"],
+    "Mathematical_Reserves_Previous_Year": ["Mathematical Reserves as at 31", "December for the year {PREVIOUS_QUARTER_END_YEAR}"]
+  },
+  
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_Current_Year",
+    "Mathematical_Reserves_Previous_Year"
+  ],
+  
+  "Rows": []
+}

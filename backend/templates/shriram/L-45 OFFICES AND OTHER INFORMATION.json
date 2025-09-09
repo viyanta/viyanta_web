@@ -1,0 +1,21 @@
+{
+  "Form No": "L-45",
+  "Title": "OFFICES AND OTHER INFORMATION",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Offices, Directors, Employees, Agents and Intermediaries Data",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "As_at_Date": "31.12.2022",
+  "Currency": "Numbers",
+  "Headers": {
+    "Sl_No": ["Sl.", "No."],
+    "Information": ["Information"],
+    "Number": ["Number"]
+  },
+  "FlatHeaders": [
+    "Sl_No",
+    "Information",
+    "Number"
+  ],
+  "Rows": []
+}
