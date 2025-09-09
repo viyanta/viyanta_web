@@ -14,5 +14,17 @@
     "Shares_pledged_or_otherwise_encumbered": ["Number of shares", "As a percentage of Total Shares held"],
     "Shares_under_Lock_in_Period": ["Number of shares", "As a percentage of Total Shares held"]
   },
+  "FlatHeaders": [
+    "Sl_No",
+    "Category",
+    "No_of_Investors",
+    "No_of_shares_held",
+    "Percent_of_share_holding",
+    "Paid_up_equity",
+    "Shares_pledged_or_otherwise_encumbered_Number_of_shares",
+    "Shares_pledged_or_otherwise_encumbered_As_a_percentage_of_Total_Shares_held",
+    "Shares_under_Lock_in_Period_Number_of_shares",
+    "Shares_under_Lock_in_Period_As_a_percentage_of_Total_Shares_held"
+  ],
   "Rows": []
 } 

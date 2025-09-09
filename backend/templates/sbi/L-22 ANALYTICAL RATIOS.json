@@ -16,6 +16,14 @@
         "For_the_Quarter_{PREVIOUS_QUARTER_END}": ["For the Quarter {PREVIOUS_QUARTER_END}"],
         "Upto_the_Quarter_{PREVIOUS_QUARTER_END}": ["Upto the Quarter {PREVIOUS_QUARTER_END}"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Particulars",
+        "For_the_Quarter_QUARTER_END_DATE",
+        "Upto_the_Quarter_QUARTER_END_DATE",
+        "For_the_Quarter_PREVIOUS_QUARTER_END",
+        "Upto_the_Quarter_PREVIOUS_QUARTER_END"
+      ],
       "Rows": []
     },
     {
@@ -29,6 +37,14 @@
         "For_the_Quarter_{PREVIOUS_QUARTER_END}": ["For the Quarter {PREVIOUS_QUARTER_END}"],
         "Upto_the_Quarter_{PREVIOUS_QUARTER_END}": ["Upto the Quarter {PREVIOUS_QUARTER_END}"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Particulars",
+        "For_the_Quarter_QUARTER_END_DATE",
+        "Upto_the_Quarter_QUARTER_END_DATE",
+        "For_the_Quarter_PREVIOUS_QUARTER_END",
+        "Upto_the_Quarter_PREVIOUS_QUARTER_END"
+      ],
       "Rows": []
     }
   ]

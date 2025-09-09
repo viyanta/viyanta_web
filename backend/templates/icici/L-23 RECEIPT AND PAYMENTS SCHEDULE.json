@@ -13,5 +13,12 @@
     "Previous_Nine_Months": ["{FIRST_DATE} to {THIRD_DATE}"]
   },
   
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Nine_Months_FIRST_DATE_to_NINE_MONTHS_END_DATE",
+    "Previous_Financial_Year_FIRST_DATE_to_SECOND_DATE",
+    "Previous_Nine_Months_FIRST_DATE_to_THIRD_DATE"
+  ],
+  
   "Rows": []
 } 

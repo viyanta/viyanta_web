@@ -17,5 +17,15 @@
       "Upto_the_quarter_{PREVIOUS_DATE}": ["Upto the quarter", "{PREVIOUS_DATE}"]
     }
   },
+  "FlatHeaders": [
+    "Sl_No",
+    "Name_of_the_Related_Party",
+    "Nature_of_Relationship_with_the_Company",
+    "Description_of_Transactions_Categories",
+    "Consideration_paid_received_For_the_quarter_CURRENT_DATE",
+    "Consideration_paid_received_Upto_the_quarter_CURRENT_DATE",
+    "Consideration_paid_received_For_the_quarter_PREVIOUS_DATE",
+    "Consideration_paid_received_Upto_the_quarter_PREVIOUS_DATE"
+  ],
   "Rows": []
 } 

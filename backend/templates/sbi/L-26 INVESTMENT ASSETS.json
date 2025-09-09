@@ -16,6 +16,12 @@
         "SCH": ["SCH"],
         "AMOUNT": ["AMOUNT"]
       },
+      "FlatHeaders": [
+        "No",
+        "Particular",
+        "SCH",
+        "AMOUNT"
+      ],
       "Rows": []
     }
   },
@@ -40,6 +46,20 @@
         "TOTAL_FUND_i": ["TOTAL FUND (Balance Sheet Value)", "(i)=(f+h)"],
         "MARKET_VALUE_j": ["MARKET VALUE (j)"]
       },
+      "FlatHeaders": [
+        "LIFE_FUND",
+        "PERCENTAGE_AS_PER_REG",
+        "SH_BALANCE_a",
+        "SH_FRSM_b",
+        "PH_UL_NON_UNIT_RESERVE_c",
+        "PH_PAR_d",
+        "PH_NON_PAR_e",
+        "BOOK_VALUE_SH_PH_f",
+        "Actual_Percentage_g",
+        "FVC_AMOUNT_h",
+        "TOTAL_FUND_i",
+        "MARKET_VALUE_j"
+      ],
       "Rows": []
     },
     "Pension_General_Annuity_Group_Business": {
@@ -56,6 +76,17 @@
         "TOTAL_FUND_f": ["TOTAL FUND (Balance Sheet Value)", "(f)=(c+e)"],
         "MARKET_VALUE_g": ["MARKET VALUE (g)"]
       },
+      "FlatHeaders": [
+        "PENSION_GENERAL_ANNUITY_GROUP_BUSINESS",
+        "PERCENTAGE_AS_PER_REG",
+        "PH_PAR_a",
+        "PH_NON_PAR_b",
+        "TOTAL_BOOK_VALUE_c",
+        "Actual_Percentage_d",
+        "FVC_AMOUNT_e",
+        "TOTAL_FUND_f",
+        "MARKET_VALUE_g"
+      ],
       "Rows": []
     },
     "Linked_Fund": {
@@ -69,6 +100,14 @@
         "TOTAL_FUND": ["TOTAL FUND (Balance Sheet Value)"],
         "Actual_Percentage": ["Actual %"]
       },
+      "FlatHeaders": [
+        "LINKED_FUND",
+        "PERCENTAGE_AS_PER_REG",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "TOTAL_FUND",
+        "Actual_Percentage"
+      ],
       "Rows": []
     }
   }

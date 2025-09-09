@@ -15,5 +15,14 @@
       "Percentage_of_Holding": ["% of Holding"]
     }
   },
+  
+  "FlatHeaders": [
+    "PARTICULARS",
+    "As_at_CURRENT_DATE_Number_of_Shares",
+    "As_at_CURRENT_DATE_Percentage_of_Holding",
+    "As_at_PREVIOUS_DATE_Number_of_Shares",
+    "As_at_PREVIOUS_DATE_Percentage_of_Holding"
+  ],
+  
   "Rows": []
 } 

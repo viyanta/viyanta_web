@@ -35,5 +35,26 @@
     }
   },
   
+  "FlatHeaders": [
+    "Sl_No",
+    "Particulars",
+    "For_the_Quarter_Current_Year_Premium_Lakhs",
+    "For_the_Quarter_Current_Year_No_of_Policies",
+    "For_the_Quarter_Current_Year_No_of_Lives",
+    "For_the_Quarter_Current_Year_Sum_Insured_Lakhs",
+    "For_the_Quarter_Previous_Year_Premium_Lakhs",
+    "For_the_Quarter_Previous_Year_No_of_Policies",
+    "For_the_Quarter_Previous_Year_No_of_Lives",
+    "For_the_Quarter_Previous_Year_Sum_Insured_Lakhs",
+    "Up_to_the_Quarter_Current_Year_Premium_Lakhs",
+    "Up_to_the_Quarter_Current_Year_No_of_Policies",
+    "Up_to_the_Quarter_Current_Year_No_of_Lives",
+    "Up_to_the_Quarter_Current_Year_Sum_Insured_Lakhs",
+    "Up_to_the_Quarter_Previous_Year_Premium_Lakhs",
+    "Up_to_the_Quarter_Previous_Year_No_of_Policies",
+    "Up_to_the_Quarter_Previous_Year_No_of_Lives",
+    "Up_to_the_Quarter_Previous_Year_Sum_Insured_Lakhs"
+  ],
+  
   "Rows": []
 } 

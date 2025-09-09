@@ -30,6 +30,21 @@
       "Renewal_Premium_Lakh": ["Renewal Premium*", "(₹ Lakh)"],
       "Total_Premium_New_Business_and_Renewal_Lakh": ["Total Premium (New Business and Renewal*)", "(₹ Lakh)"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "State_Union_Territory",
+      "New_Business_Rural_Individual_No_of_Policies",
+      "New_Business_Rural_Individual_Premium_Lakh",
+      "New_Business_Rural_Individual_Sum_Assured_Lakh",
+      "New_Business_Urban_Individual_No_of_Policies",
+      "New_Business_Urban_Individual_Premium_Lakh",
+      "New_Business_Urban_Individual_Sum_Assured_Lakh",
+      "Total_New_Business_Individual_No_of_Policies",
+      "Total_New_Business_Individual_Premium_Lakh",
+      "Total_New_Business_Individual_Sum_Assured_Lakh",
+      "Renewal_Premium_Lakh",
+      "Total_Premium_New_Business_and_Renewal_Lakh"
+    ],
     "Rows": []
   },
   
@@ -60,6 +75,24 @@
       "Renewal_Premium_Lakh": ["Renewal Premium*", "(₹ Lakh)"],
       "Total_Premium_New_Business_and_Renewal_Lakh": ["Total Premium (New Business and Renewal)", "(₹ Lakh)"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "State_Union_Territory",
+      "New_Business_Rural_Group_No_of_Schemes",
+      "New_Business_Rural_Group_No_of_Lives",
+      "New_Business_Rural_Group_Premium_Lakh",
+      "New_Business_Rural_Group_Sum_Assured_Lakh",
+      "New_Business_Urban_Group_No_of_Schemes",
+      "New_Business_Urban_Group_No_of_Lives",
+      "New_Business_Urban_Group_Premium_Lakh",
+      "New_Business_Urban_Group_Sum_Assured_Lakh",
+      "Total_New_Business_Group_No_of_Schemes",
+      "Total_New_Business_Group_No_of_Lives",
+      "Total_New_Business_Group_Premium_Lakh",
+      "Total_New_Business_Group_Sum_Assured_Lakh",
+      "Renewal_Premium_Lakh",
+      "Total_Premium_New_Business_and_Renewal_Lakh"
+    ],
     "Rows": []
   }
 } 

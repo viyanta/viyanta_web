@@ -21,6 +21,16 @@
         "Up_to_the_Quarter_of_the_Previous_Year": ["Up to the Quarter", "of the Previous Year"]
       }
     },
+    "FlatHeaders": [
+      "Sr_No",
+      "Name_of_the_Related_Party",
+      "Nature_of_Relationship_with_the_Company",
+      "Description_of_Transactions_Categories",
+      "Consideration_paid_received_For_the_Quarter",
+      "Consideration_paid_received_Upto_the_Quarter",
+      "Consideration_paid_received_For_the_Corresponding_Quarter_of_the_Previous_Year",
+      "Consideration_paid_received_Up_to_the_Quarter_of_the_Previous_Year"
+    ],
     "Rows": []
   },
   
@@ -39,6 +49,18 @@
       "Balance_under_Provision_for_doubtful_debts": ["Balance under Provision for", "doubtful debts relating to the", "outstanding balance receivable", "(Rs. in Lakhs)"],
       "Expenses_recognised_up_to_the_quarter_end": ["Expenses recognised up to the", "quarter end during the year in", "respect of bad or doubtful debts", "due from the related party", "(Rs. in Lakhs)"]
     },
+    "FlatHeaders": [
+      "Sr_No",
+      "Name_of_the_Related_Party",
+      "Nature_of_Relationship_with_the_Company",
+      "Nature_of_Outstanding_Balances",
+      "Whether_Payable_Receivable",
+      "Amount_of_Outstanding_Balances_including_Commitments",
+      "Whether_Secured_Nature_of_consideration",
+      "Details_of_any_Guarantees_given_or_received",
+      "Balance_under_Provision_for_doubtful_debts",
+      "Expenses_recognised_up_to_the_quarter_end"
+    ],
     "Rows": []
   }
 } 

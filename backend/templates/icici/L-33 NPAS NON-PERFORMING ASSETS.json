@@ -34,5 +34,20 @@
     }
   },
   
+  "FlatHeaders": [
+    "No",
+    "Particulars",
+    "Bonds_Debentures_YTD_Current_QUARTER_END_DATE",
+    "Bonds_Debentures_Prev_FY_PREVIOUS_FINANCIAL_YEAR_END_DATE",
+    "Loans_YTD_Current_QUARTER_END_DATE",
+    "Loans_Prev_FY_PREVIOUS_FINANCIAL_YEAR_END_DATE",
+    "Other_Debt_Instruments_YTD_Current_QUARTER_END_DATE",
+    "Other_Debt_Instruments_Prev_FY_PREVIOUS_FINANCIAL_YEAR_END_DATE",
+    "All_Other_Assets_YTD_Current_QUARTER_END_DATE",
+    "All_Other_Assets_Prev_FY_PREVIOUS_FINANCIAL_YEAR_END_DATE",
+    "Total_YTD_Current_QUARTER_END_DATE",
+    "Total_Prev_FY_PREVIOUS_FINANCIAL_YEAR_END_DATE"
+  ],
+  
   "Rows": []
 } 

@@ -33,5 +33,21 @@
       "Prev_FY": ["Prev. FY", "(As on {PREVIOUS_QUARTER_END})"]
     }
   },
+  
+  "FlatHeaders": [
+    "NO",
+    "PARTICULARS",
+    "Bonds_Debentures_YTD_As_on_QUARTER_END_DATE",
+    "Bonds_Debentures_Prev_FY_As_on_PREVIOUS_QUARTER_END",
+    "Loans_YTD_As_on_QUARTER_END_DATE",
+    "Loans_Prev_FY_As_on_PREVIOUS_QUARTER_END",
+    "Other_Debt_instruments_YTD_As_on_QUARTER_END_DATE",
+    "Other_Debt_instruments_Prev_FY_As_on_PREVIOUS_QUARTER_END",
+    "All_Other_Assets_YTD_As_on_QUARTER_END_DATE",
+    "All_Other_Assets_Prev_FY_As_on_PREVIOUS_QUARTER_END",
+    "TOTAL_YTD_As_on_QUARTER_END_DATE",
+    "TOTAL_Prev_FY_As_on_PREVIOUS_QUARTER_END"
+  ],
+  
   "Rows": []
 } 

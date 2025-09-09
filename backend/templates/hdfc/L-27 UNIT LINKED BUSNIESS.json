@@ -18,6 +18,18 @@
       "ULGF016": ["ULGF016", "20/06/07", "SovereignF101"],
       "ULIF002": ["ULIF002", "02/01/04", "SecureMgtF101"]
     },
+    "FlatHeaders": [
+      "Particulars",
+      "ULGF001",
+      "ULGF006",
+      "ULGF002",
+      "ULGF003",
+      "ULGF004",
+      "ULIF001",
+      "ULIF007",
+      "ULGF016",
+      "ULIF002"
+    ],
     "Rows": []
   },
   "Investment_of_Unit_Fund": {
@@ -60,6 +72,27 @@
         "Percent_Actual": ["% Actual"]
       }
     },
+    "FlatHeaders": [
+      "INVESTMENT_OF_UNIT_FUND",
+      "ULGF001_Actual_Inv",
+      "ULGF001_Percent_Actual",
+      "ULGF006_Actual_Inv",
+      "ULGF006_Percent_Actual",
+      "ULGF002_Actual_Inv",
+      "ULGF002_Percent_Actual",
+      "ULGF003_Actual_Inv",
+      "ULGF003_Percent_Actual",
+      "ULGF004_Actual_Inv",
+      "ULGF004_Percent_Actual",
+      "ULIF001_Actual_Inv",
+      "ULIF001_Percent_Actual",
+      "ULIF007_Actual_Inv",
+      "ULIF007_Percent_Actual",
+      "ULGF016_Actual_Inv",
+      "ULGF016_Percent_Actual",
+      "ULIF002_Actual_Inv",
+      "ULIF002_Percent_Actual"
+    ],
     "Rows": []
   }
 } 

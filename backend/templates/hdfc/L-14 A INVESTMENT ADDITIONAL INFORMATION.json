@@ -24,5 +24,18 @@
       "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
     }
   },
+  
+  "FlatHeaders": [
+    "Particulars",
+    "Shareholders_Current_Period_QUARTER_END_DATE",
+    "Shareholders_Previous_Period_PREVIOUS_QUARTER_END",
+    "Policyholders_Current_Period_QUARTER_END_DATE",
+    "Policyholders_Previous_Period_PREVIOUS_QUARTER_END",
+    "Assets_held_to_cover_Linked_Liabilities_Current_Period_QUARTER_END_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_Previous_Period_PREVIOUS_QUARTER_END",
+    "Total_Current_Period_QUARTER_END_DATE",
+    "Total_Previous_Period_PREVIOUS_QUARTER_END"
+  ],
+  
   "Rows": []
 } 

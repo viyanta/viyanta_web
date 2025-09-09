@@ -17,5 +17,16 @@
     "Reason_supporting_the_vote_decision": ["Reason supporting the vote decision"]
   },
   
+  "FlatHeaders": [
+    "Meeting_Date",
+    "Investee_Company_Name",
+    "Type_of_Meeting",
+    "Proposal_of_Management_or_Shareholder",
+    "Description_of_the_proposal",
+    "Management_Recommendation",
+    "Vote_For_Against_Abstain",
+    "Reason_supporting_the_vote_decision"
+  ],
+  
   "Rows": []
 } 

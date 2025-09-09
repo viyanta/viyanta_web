@@ -16,5 +16,19 @@
     "Date_of_last_Downgrade": ["Date of last Downgrade"],
     "Remarks": ["Remarks"]
   },
+  
+  "FlatHeaders": [
+    "No",
+    "Name_of_Security",
+    "COI",
+    "Amount",
+    "Date_of_Purchase",
+    "Rating_Agency",
+    "Original_Grade",
+    "Current_Grade",
+    "Date_of_last_Downgrade",
+    "Remarks"
+  ],
+  
   "Rows": []
 } 

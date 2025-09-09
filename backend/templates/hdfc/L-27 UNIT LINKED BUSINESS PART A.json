@@ -12,6 +12,12 @@
       "ULIF004": ["ULIF004", "18/10/04", "SECURE101"],
       "Total_of_All_Funds": ["Total of All Funds"]
     },
+    "FlatHeaders": [
+      "Particulars",
+      "ULIF012",
+      "ULIF004",
+      "Total_of_All_Funds"
+    ],
     "Rows": []
   },
   "Investment_of_Unit_Fund": {
@@ -30,6 +36,15 @@
         "Percent_Actual": ["% Actual"]
       }
     },
+    "FlatHeaders": [
+      "INVESTMENT_OF_UNIT_FUND",
+      "ULIF012_Actual_Inv",
+      "ULIF012_Percent_Actual",
+      "ULIF004_Actual_Inv",
+      "ULIF004_Percent_Actual",
+      "Total_of_All_Funds_Actual_Inv",
+      "Total_of_All_Funds_Percent_Actual"
+    ],
     "Rows": []
   }
 } 

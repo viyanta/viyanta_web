@@ -11,6 +11,11 @@
         "Information": ["Information"],
         "Number": ["Number"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "Information",
+        "Number"
+      ],
       "Rows": []
     },
     "Employees_and_Insurance_Agents_and_Intermediaries_Movement": {
@@ -20,6 +25,11 @@
         "Employees": ["Employees"],
         "Insurance_Agents_and_Intermediaries": ["Insurance Agents and Intermediaries"]
       },
+      "FlatHeaders": [
+        "Particulars",
+        "Employees",
+        "Insurance_Agents_and_Intermediaries"
+      ],
       "Rows": []
     }
   }

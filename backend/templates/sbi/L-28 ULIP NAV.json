@@ -25,5 +25,22 @@
     "3_Year_Rolling_CAGR": ["3 Year Rolling CAGR"],
     "Highest_NAV_since_Inception": ["Highest NAV since Inception"]
   },
+  "FlatHeaders": [
+    "No",
+    "Fund_Name",
+    "SFIN",
+    "Date_of_Launch",
+    "Par_Non_Par",
+    "Assets_Under_Management_Rs_in_Lakhs",
+    "NAV_as_per_LB2",
+    "NAV_as_on_Above_date_CURRENT_DATE",
+    "Previous_Qtr_NAV_PREVIOUS_QUARTER_END",
+    "2nd_Previous_Qtr_NAV_SECOND_PREVIOUS_QUARTER_END",
+    "3rd_Previous_Qtr_NAV_THIRD_PREVIOUS_QUARTER_END",
+    "4th_Previous_Qtr_NAV_FOURTH_PREVIOUS_QUARTER_END",
+    "Return_Yield",
+    "3_Year_Rolling_CAGR",
+    "Highest_NAV_since_Inception"
+  ],
   "Rows": []
 } 

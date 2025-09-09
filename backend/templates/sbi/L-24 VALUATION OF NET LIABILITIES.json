@@ -11,5 +11,11 @@
     "Mathematical_Reserves_as_at_{CURRENT_DATE}": ["Mathematical Reserves as at {CURRENT_DATE}"],
     "Mathematical_Reserves_as_at_{PREVIOUS_DATE}": ["Mathematical Reserves as at {PREVIOUS_DATE}"]
   },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_as_at_CURRENT_DATE",
+    "Mathematical_Reserves_as_at_PREVIOUS_DATE"
+  ],
   "Rows": []
 } 

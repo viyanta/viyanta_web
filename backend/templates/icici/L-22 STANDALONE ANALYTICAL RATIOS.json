@@ -14,5 +14,14 @@
     "Previous_Year_To_Date": ["Upto the quarter ended", "{SECOND_DATE}"]
   },
   
+  "FlatHeaders": [
+    "Sr_No",
+    "Particulars",
+    "Current_Quarter_For_the_quarter_ended_QUARTER_END_DATE",
+    "Current_Year_To_Date_Upto_the_quarter_ended_QUARTER_END_DATE",
+    "Previous_Quarter_For_the_quarter_ended_SECOND_DATE",
+    "Previous_Year_To_Date_Upto_the_quarter_ended_SECOND_DATE"
+  ],
+  
   "Rows": []
 } 
