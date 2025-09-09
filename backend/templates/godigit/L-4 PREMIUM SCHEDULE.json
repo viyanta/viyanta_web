@@ -1,0 +1,25 @@
+{
+  "Form No": "L-4",
+  "Title": "PREMIUM SCHEDULE",
+  "Company": "Go Digit Life Insurance Limited",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "Particulars": ["PARTICULARS"],
+    "For_the_quarter_ended": ["For the quarter ended", "{QUARTER_END_DATE}"],
+    "Upto_the_quarter_ended": ["Upto the quarter ended", "{QUARTER_END_DATE}"],
+    "For_the_quarter_ended_previous": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
+    "Upto_the_quarter_ended_previous": ["Upto the quarter ended", "{PREVIOUS_QUARTER_END}"]
+  },
+  
+  "FlatHeaders": [
+    "Particulars",
+    "For_the_quarter_ended_QUARTER_END_DATE",
+    "Upto_the_quarter_ended_QUARTER_END_DATE",
+    "For_the_quarter_ended_previous_PREVIOUS_QUARTER_END",
+    "Upto_the_quarter_ended_previous_PREVIOUS_QUARTER_END"
+  ],
+  
+  "Rows": []
+}

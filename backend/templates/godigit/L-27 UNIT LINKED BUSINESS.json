@@ -1,0 +1,63 @@
+{
+  "Form No": "L-27",
+  "Title": "UNIT LINKED BUSINESS",
+  "SubTitle": "FORM 3A (Read with Regulation 10)",
+  "Company": "Go Digit Life Insurance Limited",
+  "Registration_Number": "165",
+  "Link_to_Item_C_of_FORM_3A_Part_A": "Link to Item 'C' of FORM 3A (Part A)",
+  "Periodicity_of_Submission": "Quarterly",
+  "Statement_as_on": "{QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Particulars_MKT_Value_Table": {
+    "Title": "PARTICULARS (MKT VALUE)",
+    "Headers": {
+      "Particulars": ["PARTICULARS"],
+      "SFIN_1": ["SFIN 1"],
+      "SFIN_2": ["SFIN 2"],
+      "SFIN_n": ["SFIN 'n'"],
+      "Total_of_All_Funds": ["Total of All Funds"]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "SFIN_1",
+      "SFIN_2",
+      "SFIN_n",
+      "Total_of_All_Funds"
+    ],
+    "Rows": []
+  },
+  "Investment_of_Unit_Fund_Table": {
+    "Title": "INVESTMENT OF UNIT FUND",
+    "Headers": {
+      "Investment_of_Unit_Fund_Particulars": ["INVESTMENT OF UNIT FUND"],
+      "SFIN_1": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percentage_Actual": ["% Actual"]
+      },
+      "SFIN_2": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percentage_Actual": ["% Actual"]
+      },
+      "SFIN_n": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percentage_Actual": ["% Actual"]
+      },
+      "Total_of_All_Funds": {
+        "Actual_Inv": ["Actual Inv."],
+        "Percentage_Actual": ["% Actual"]
+      }
+    },
+    "FlatHeaders": [
+      "Investment_of_Unit_Fund_Particulars",
+      "SFIN_1_Actual_Inv",
+      "SFIN_1_Percentage_Actual",
+      "SFIN_2_Actual_Inv",
+      "SFIN_2_Percentage_Actual",
+      "SFIN_n_Actual_Inv",
+      "SFIN_n_Percentage_Actual",
+      "Total_of_All_Funds_Actual_Inv",
+      "Total_of_All_Funds_Percentage_Actual"
+    ],
+    "Rows": []
+  }
+}

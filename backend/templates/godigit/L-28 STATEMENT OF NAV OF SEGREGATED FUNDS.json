@@ -1,0 +1,48 @@
+{
+  "Form No": "L-28",
+  "Title": "STATEMENT OF NAV OF SEGREGATED FUNDS",
+  "SubTitle": "FORM 3A (Read with Regulation 10)",
+  "Company": "Go Digit Life Insurance Limited",
+  "Registration_Number": "165",
+  "Link_to_Item_C_of_FORM_3A_Part_B": "Link to Item 'C' of FORM 3A (Part B)",
+  "Periodicity_of_Submission": "Quarterly",
+  "Statement_for_the_period": "{QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "No": ["No"],
+    "Fund_Name": ["Fund Name"],
+    "SFIN": ["SFIN"],
+    "Date_of_launch": ["Date of", "launch"],
+    "Par_Non_Par": ["Par/", "Non Par"],
+    "Assets_Under_Management_on_the_above_date": ["Assets Under", "Management on", "the above date"],
+    "NAV_as_per_LB2": ["NAV as per", "LB2"],
+    "NAV_as_on_the_above_date": ["NAV as on the", "above date¹"],
+    "Previous_Qtr_NAV": ["Previous", "Qtr NAV"],
+    "2nd_Previous_Qtr_NAV": ["2nd", "Previous", "Qtr NAV"],
+    "3rd_Previous_Qtr_NAV": ["3rd", "Previous", "Qtr NAV"],
+    "4th_Previous_Qtr_NAV": ["4th", "Previous", "Qtr NAV"],
+    "Return_Yield": ["Return/Yield"],
+    "3_Year_Rolling_CAGR": ["3 Year", "Rolling", "CAGR"],
+    "Highest_NAV_since_inception": ["Highest", "NAV since", "inception"]
+  },
+  
+  "FlatHeaders": [
+    "No",
+    "Fund_Name",
+    "SFIN",
+    "Date_of_launch",
+    "Par_Non_Par",
+    "Assets_Under_Management_on_the_above_date",
+    "NAV_as_per_LB2",
+    "NAV_as_on_the_above_date_QUARTER_END_DATE",
+    "Previous_Qtr_NAV",
+    "2nd_Previous_Qtr_NAV",
+    "3rd_Previous_Qtr_NAV",
+    "4th_Previous_Qtr_NAV",
+    "Return_Yield",
+    "3_Year_Rolling_CAGR",
+    "Highest_NAV_since_inception"
+  ],
+  
+  "Rows": []
+}
