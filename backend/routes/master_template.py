@@ -4,12 +4,14 @@ from typing import Optional, List, Dict, Any
 import os
 import json
 import logging
+import time
 from services.master_template import (
     process_pdf,
     list_forms,
     extract_form,
     find_form_pages,
 )
+from services.gemini_pdf_verifier import extract_verify_and_save as gemini_extract_verify_and_save
 import fitz  # PyMuPDF
 
 router = APIRouter()
@@ -118,7 +120,10 @@ async def extract_form_data(
     company: str = Query(...,
                          description="Company name (e.g., 'sbi', 'hdfc')"),
     filename: Optional[str] = Query(
-        None, description="Specific PDF filename to use")
+        None, description="Specific PDF filename to use"),
+    use_image_mode: bool = Query(
+        True, description="Use PDF image mode for Gemini verification")
+
 ):
     """
     Extract table using template and PDF pages.
@@ -146,7 +151,8 @@ async def extract_form_data(
             )
 
         # Extract form data
-        result = await extract_form(company_clean, form_no_clean, filename)
+        # result = await extract_form(company_clean, form_no_clean, filename)
+        result = await gemini_extract_verify_and_save(company_clean, form_no_clean, filename, use_image_mode)
 
         return {
             "status": "success",
@@ -700,3 +706,213 @@ async def extract_revenue_account_headings(
             f"Error extracting Revenue Account headings for {company}: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to extract Revenue Account headings: {str(e)}")
+
+
+@router.get("/extract-and-verify/{form_no}")
+async def extract_and_verify_form(
+    form_no: str,
+    company: str = Query(...,
+                         description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(
+        None, description="Specific PDF filename to use"),
+    use_image_mode: bool = Query(
+        True, description="Use PDF image mode for Gemini verification")
+):
+    """
+    Extract data for the selected L-form and verify it with Gemini.
+    Saves the final JSON at backend/gemini_verified_json/{company}/{original_filename}_{FORM}.json
+    Returns the verified JSON and output path.
+    """
+    try:
+        if not company.strip():
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
+        if not form_no.strip():
+            raise HTTPException(
+                status_code=400, detail="Form number is required")
+
+        company_clean = company.lower().strip()
+        form_no_clean = form_no.upper().strip()
+
+        # Ensure template exists for the selected form
+        templates_dir = os.path.join(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))), "templates")
+        template_path = os.path.join(
+            templates_dir, company_clean, f"{form_no_clean.lower()}.json")
+        if not os.path.exists(template_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Template not found for company: {company_clean}, form: {form_no_clean}"
+            )
+
+        # Run end-to-end: extract by L-form + verify with Gemini + save
+        result = await gemini_extract_verify_and_save(company_clean, form_no_clean, filename, use_image_mode)
+
+        return {
+            "status": "success",
+            "company": company_clean,
+            "form_no": form_no_clean,
+            "output_path": result.get("output_path"),
+            "verified": result.get("verified"),
+            "message": f"Extracted and Gemini-verified {form_no_clean} for {company_clean.upper()}"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error in extract-and-verify for company {company}, form {form_no}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Extract and verify failed: {str(e)}")
+
+
+@router.get("/extract-and-store/{form_no}")
+async def extract_and_store_to_database(
+    form_no: str,
+    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(None, description="Specific PDF filename to use"),
+    use_image_mode: bool = Query(True, description="Use PDF image mode for Gemini verification")
+):
+    """
+    Complete workflow: Extract form data, verify with Gemini, and store in MySQL database.
+    This endpoint provides the full integration: Frontend API → Template Extraction → Gemini Verification → MySQL Storage
+    """
+    try:
+        from services.database_service import store_raw_extracted_data, store_refined_extracted_data
+        
+        if not company.strip():
+            raise HTTPException(status_code=400, detail="Company name is required")
+        if not form_no.strip():
+            raise HTTPException(status_code=400, detail="Form number is required")
+
+        company_clean = company.lower().strip()
+        form_no_clean = form_no.upper().strip()
+
+        # Step 1: Extract raw data using master template
+        logger.info(f"Step 1: Extracting {form_no_clean} for {company_clean}")
+        raw_extraction = await extract_form(company_clean, form_no_clean, filename)
+        
+        if not raw_extraction:
+            raise HTTPException(status_code=500, detail="Raw extraction failed")
+        
+        # Prepare raw data for storage
+        raw_instances_structure = {
+            "instances": [raw_extraction] if not isinstance(raw_extraction, list) else raw_extraction
+        }
+        
+        # Step 2: Store raw extracted data in MySQL
+        logger.info("Step 2: Storing raw data in MySQL")
+        raw_id = store_raw_extracted_data(
+            company=company_clean,
+            form_no=form_no_clean,
+            filename=filename or "default_document.pdf",
+            extracted_data=raw_instances_structure
+        )
+        
+        if not raw_id:
+            raise HTTPException(status_code=500, detail="Failed to store raw data")
+        
+        # Step 3: Verify with Gemini
+        logger.info("Step 3: Verifying with Gemini")
+        verified_result = await gemini_extract_verify_and_save(
+            company_clean, form_no_clean, filename, use_image_mode
+        )
+        
+        # Step 4: Store refined data in MySQL
+        logger.info("Step 4: Storing refined data in MySQL")
+        refined_data = {
+            "instances": [verified_result.get("verified", raw_extraction)],
+            "verification_metadata": {
+                "raw_data_id": raw_id,
+                "verification_status": "completed",
+                "verification_timestamp": time.time(),
+                "gemini_verified": True,
+                "api_endpoint": "/templates/extract-and-store/",
+                "output_file_path": verified_result.get("output_path")
+            }
+        }
+        
+        refined_id = store_refined_extracted_data(
+            company=company_clean,
+            form_no=form_no_clean,
+            filename=filename or "default_document.pdf",
+            verified_data=refined_data
+        )
+        
+        if not refined_id:
+            raise HTTPException(status_code=500, detail="Failed to store refined data")
+        
+        return {
+            "status": "success",
+            "company": company_clean,
+            "form_no": form_no_clean,
+            "database_storage": {
+                "raw_data_id": raw_id,
+                "refined_data_id": refined_id
+            },
+            "extraction_result": raw_extraction,
+            "verification_result": verified_result,
+            "message": f"Successfully extracted, verified, and stored {form_no_clean} for {company_clean.upper()}"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in extract-and-store for {company}, {form_no}: {e}")
+        raise HTTPException(status_code=500, detail=f"Extract and store failed: {str(e)}")
+
+
+@router.get("/database-status")
+async def get_database_status():
+    """
+    Check the current status of the MySQL database tables for extracted data.
+    Useful for verifying database connectivity and data counts.
+    """
+    try:
+        from services.database_service import check_gemini_api_health
+        from databases.database import get_db
+        from databases.models import ExtractedRawData, ExtractedRefinedData
+        
+        # Get database session
+        db = next(get_db())
+        
+        try:
+            # Count records
+            raw_count = db.query(ExtractedRawData).count()
+            refined_count = db.query(ExtractedRefinedData).count()
+            
+            # Get latest records
+            latest_raw = db.query(ExtractedRawData).order_by(ExtractedRawData.id.desc()).first()
+            latest_refined = db.query(ExtractedRefinedData).order_by(ExtractedRefinedData.id.desc()).first()
+            
+            # Check Gemini API status
+            gemini_status = check_gemini_api_health()
+            
+            return {
+                "status": "success",
+                "database": {
+                    "connection": "active",
+                    "raw_data_count": raw_count,
+                    "refined_data_count": refined_count,
+                    "latest_raw": {
+                        "id": latest_raw.id if latest_raw else None,
+                        "company": latest_raw.company if latest_raw else None,
+                        "form_no": latest_raw.form_no if latest_raw else None,
+                        "uploaded_at": latest_raw.uploaded_at.isoformat() if latest_raw else None
+                    } if latest_raw else None,
+                    "latest_refined": {
+                        "id": latest_refined.id if latest_refined else None,
+                        "company": latest_refined.company if latest_refined else None,
+                        "form_no": latest_refined.form_no if latest_refined else None,
+                        "uploaded_at": latest_refined.uploaded_at.isoformat() if latest_refined else None
+                    } if latest_refined else None
+                },
+                "gemini_api": gemini_status,
+                "message": "Database status retrieved successfully"
+            }
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Error checking database status: {e}")
+        raise HTTPException(status_code=500, detail=f"Database status check failed: {str(e)}")
