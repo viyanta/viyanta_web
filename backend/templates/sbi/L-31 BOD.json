@@ -13,6 +13,13 @@
         "Role_Function": ["Role/Function"],
         "Details_of_change_in_the_period_if_any": ["Details of change in the period if any"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "Name_of_person",
+        "Designation",
+        "Role_Function",
+        "Details_of_change_in_the_period_if_any"
+      ],
       "Rows": []
     },
     "Key_Management_Persons": {
@@ -24,6 +31,13 @@
         "Role_Function": ["Role/Function"],
         "Details_of_change_in_the_period": ["Details of change in the period"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "Name_of_person",
+        "Role_Designation",
+        "Role_Function",
+        "Details_of_change_in_the_period"
+      ],
       "Rows": []
     }
   }

@@ -65,5 +65,25 @@
       }
     }
   },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Interest_Rate_Current_Year",
+    "Interest_Rate_Previous_Year",
+    "Mortality_Rate_Current_Year",
+    "Mortality_Rate_Previous_Year",
+    "Morbidity_Rate_Current_Year",
+    "Morbidity_Rate_Previous_Year",
+    "Fixed_Expenses_Current_Year",
+    "Fixed_Expenses_Previous_Year",
+    "Variable_Expenses_Current_Year",
+    "Variable_Expenses_Previous_Year",
+    "Inflation_Rate_Current_Year",
+    "Inflation_Rate_Previous_Year",
+    "Withdrawal_rates_Current_Year",
+    "Withdrawal_rates_Previous_Year",
+    "Future_Bonus_Rates_Assumption_Current_Year",
+    "Future_Bonus_Rates_Assumption_Previous_Year"
+  ],
   "Rows": []
 } 

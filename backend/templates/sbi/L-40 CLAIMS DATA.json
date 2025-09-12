@@ -14,6 +14,12 @@
         "Individual": ["Individual"],
         "Group": ["Group"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Claims_Experience",
+        "Individual",
+        "Group"
+      ],
       "Rows": []
     },
     "Individual_Claims": {
@@ -27,6 +33,15 @@
         "Surrender": ["Surrender"],
         "Other_Benefits": ["Other Benefits"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Claims_Experience",
+        "Maturity",
+        "Survival_Benefit",
+        "Annuities_Pension",
+        "Surrender",
+        "Other_Benefits"
+      ],
       "Rows": []
     }
   }

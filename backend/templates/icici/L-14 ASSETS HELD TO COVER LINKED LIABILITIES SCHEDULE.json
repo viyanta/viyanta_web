@@ -16,5 +16,14 @@
     "Total": ["Total"]
   },
   
+  "FlatHeaders": [
+    "Particulars",
+    "Linked_Business_Life",
+    "Linked_Business_Pension",
+    "Linked_Business_Health",
+    "Linked_Business_Variable_Insurance",
+    "Total"
+  ],
+  
   "Rows": []
 } 

@@ -12,5 +12,13 @@
       "Previous_Period": ["Mathematical Reserves as at", "{PREVIOUS_QUARTER_END}"]
     }
   },
+  
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_Current_Period_QUARTER_END_DATE",
+    "Mathematical_Reserves_Previous_Period_PREVIOUS_QUARTER_END"
+  ],
+  
   "Rows": []
 } 

@@ -25,5 +25,20 @@
     }
   },
   
+  "FlatHeaders": [
+    "Particulars",
+    "Gross_Block_As_at_First_Date_FIRST_DATE",
+    "Gross_Block_Additions",
+    "Gross_Block_Deductions",
+    "Gross_Block_As_at_Current_Quarter_End_QUARTER_END_DATE",
+    "Depreciation_As_at_First_Date_FIRST_DATE",
+    "Depreciation_For_the_period",
+    "Depreciation_On_Sales_Adjustment",
+    "Depreciation_As_at_Current_Quarter_End_QUARTER_END_DATE",
+    "Net_Block_As_at_Current_Quarter_End_QUARTER_END_DATE",
+    "Net_Block_As_at_Second_Date_SECOND_DATE",
+    "Net_Block_As_at_Third_Date_THIRD_DATE"
+  ],
+  
   "Rows": []
 } 

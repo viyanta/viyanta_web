@@ -1,0 +1,85 @@
+{
+  "Form No": "L-30",
+  "Title": "RELATED PARTY TRANSACTIONS",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Related Party Transactions",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Rs. in Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "PART-A CONSIDERATION PAID",
+      "Headers": {
+        "Sl_No": ["Sl.", "No."],
+        "Name_of_the_Related_Party": ["Name of the Related Party"],
+        "Nature_of_Relationship_with_the_Company": ["Nature of Relationship with", "the Company"],
+        "Description_of_Transactions_Categories": ["Description of Transactions /", "Categories"],
+        "Consideration_paid_For_the_quarter_ended_Current_Year": ["Consideration paid (Rs. in Lakhs)", "For the quarter", "ended", "31.12.{QUARTER_END_DATE_YEAR}"],
+        "Consideration_paid_For_the_Period_ended_Current_Year": ["Consideration paid (Rs. in Lakhs)", "For the Period", "ended", "31.12.{QUARTER_END_DATE_YEAR}"],
+        "Consideration_paid_For_the_quarter_ended_Previous_Year": ["Consideration paid (Rs. in Lakhs)", "For the quarter", "ended", "31.12.{PREVIOUS_QUARTER_END_YEAR}"],
+        "Consideration_paid_For_the_Period_ended_Previous_Year": ["Consideration paid (Rs. in Lakhs)", "For the Period", "ended", "31.12.{PREVIOUS_QUARTER_END_YEAR}"]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Name_of_the_Related_Party",
+        "Nature_of_Relationship_with_the_Company",
+        "Description_of_Transactions_Categories",
+        "Consideration_paid_For_the_quarter_ended_Current_Year",
+        "Consideration_paid_For_the_Period_ended_Current_Year",
+        "Consideration_paid_For_the_quarter_ended_Previous_Year",
+        "Consideration_paid_For_the_Period_ended_Previous_Year"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "PART-A CONSIDERATION RECEIVED",
+      "Headers": {
+        "S_No": ["S.", "No."],
+        "Name_of_the_related_party": ["Name of the related party"],
+        "Nature_of_Relationship_with_the_Company": ["Nature of Relationship with", "the Company"],
+        "Nature_of_transaction": ["Nature of transaction"],
+        "Consideration_received_For_the_quarter_ended_Current_Year": ["Consideration received (Rs. in Lakhs)", "For the quarter", "ended", "31.12.{QUARTER_END_DATE_YEAR}"],
+        "Consideration_received_For_the_Period_ended_Current_Year": ["Consideration received (Rs. in Lakhs)", "For the Period", "ended", "31.12.{QUARTER_END_DATE_YEAR}"],
+        "Consideration_received_For_the_quarter_ended_Previous_Year": ["Consideration received (Rs. in Lakhs)", "For the quarter", "ended", "31.12.{PREVIOUS_QUARTER_END_YEAR}"],
+        "Consideration_received_For_the_Period_ended_Previous_Year": ["Consideration received (Rs. in Lakhs)", "For the Period", "ended", "31.12.{PREVIOUS_QUARTER_END_YEAR}"]
+      },
+      "FlatHeaders": [
+        "S_No",
+        "Name_of_the_related_party",
+        "Nature_of_Relationship_with_the_Company",
+        "Nature_of_transaction",
+        "Consideration_received_For_the_quarter_ended_Current_Year",
+        "Consideration_received_For_the_Period_ended_Current_Year",
+        "Consideration_received_For_the_quarter_ended_Previous_Year",
+        "Consideration_received_For_the_Period_ended_Previous_Year"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "PART-B RELATED PARTY TRANSACTION BALANCES",
+      "Headers": {
+        "S_No": ["S.", "No."],
+        "Name_of_the_related_party": ["Name of the related party"],
+        "Nature_of_Relationship_with_the_Company": ["Nature of Relationship with", "the Company"],
+        "Amount_of_Outstanding_Balances_including_Commitments_Rs_in_Lakhs": ["Amount of Outstanding Balances", "including Commitments (Rs. in", "Lakhs)"],
+        "Whether_Payable_Receivable": ["Whether", "Payable /", "Receivable"],
+        "Whether_Secured_If_so_Nature_of_consideration_to_be_provided_at_the_time_of_settlement": ["Whether", "Secured? If so,", "Nature of", "consideration", "to be provided", "at the time of", "settlement"],
+        "Details_of_any_Guarantees_given_or_received": ["Details of any", "Guarantees", "given or", "received"],
+        "Balance_under_Provision_for_doubtful_debts_relating_to_the_outstanding_balance_receivable_Rs_in_Lakhs": ["Balance under", "Provision for", "doubtful debts", "relating to the", "outstanding", "balance", "receivable", "(Rs. in Lakhs)"],
+        "Expenses_recognised_up_to_the_quarter_end_during_the_year_in_respect_of_bad_or_doubtful_debts_due_from_the_related_party_Rs_in_Lakhs": ["Expenses", "recognised up to", "the quarter end", "during the year", "in respect of bad", "or doubtful debts", "due from the", "related party (Rs.", "in Lakhs)"]
+      },
+      "FlatHeaders": [
+        "S_No",
+        "Name_of_the_related_party",
+        "Nature_of_Relationship_with_the_Company",
+        "Amount_of_Outstanding_Balances_including_Commitments_Rs_in_Lakhs",
+        "Whether_Payable_Receivable",
+        "Whether_Secured_If_so_Nature_of_consideration_to_be_provided_at_the_time_of_settlement",
+        "Details_of_any_Guarantees_given_or_received",
+        "Balance_under_Provision_for_doubtful_debts_relating_to_the_outstanding_balance_receivable_Rs_in_Lakhs",
+        "Expenses_recognised_up_to_the_quarter_end_during_the_year_in_respect_of_bad_or_doubtful_debts_due_from_the_related_party_Rs_in_Lakhs"
+      ],
+      "Rows": []
+    }
+  ]
+}

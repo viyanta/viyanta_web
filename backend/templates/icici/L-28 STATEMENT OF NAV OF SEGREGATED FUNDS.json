@@ -27,5 +27,23 @@
     "Highest_NAV_since_inception_Rupees": ["Highest NAV", "since inception", "(₹)"]
   },
   
+  "FlatHeaders": [
+    "No",
+    "Fund_Name",
+    "SFIN",
+    "Date_of_Launch",
+    "Par_Non_Par",
+    "Assets_Under_Management_on_the_above_date_Lakhs",
+    "NAV_as_per_LB_2_Rupees",
+    "NAV_as_on_the_above_date",
+    "Previous_Qtr_NAV",
+    "Second_Previous_Qtr_NAV",
+    "Third_Previous_Qtr_NAV",
+    "Fourth_Previous_Qtr_NAV",
+    "Return_Yield",
+    "Three_Year_Rolling_CAGR",
+    "Highest_NAV_since_inception_Rupees"
+  ],
+  
   "Rows": []
 } 

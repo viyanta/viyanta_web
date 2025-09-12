@@ -14,6 +14,13 @@
         "Previous_Quarter": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
         "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
       },
+      "FlatHeaders": [
+        "Particulars",
+        "Current_Quarter_QUARTER_END_DATE",
+        "Current_Year_To_Date_QUARTER_END_DATE",
+        "Previous_Quarter_PREVIOUS_QUARTER_END",
+        "Previous_Year_To_Date_PREVIOUS_QUARTER_END"
+      ],
       "Rows": []
     }
   }

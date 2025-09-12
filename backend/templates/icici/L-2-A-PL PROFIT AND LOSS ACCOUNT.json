@@ -15,5 +15,14 @@
     "Nine_Months_Ended_Previous": ["Nine months ended", "{PREVIOUS_QUARTER_END}"]
   },
   
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule_Ref_Form_No",
+    "Quarter_Ended_Current_QUARTER_END_DATE",
+    "Nine_Months_Ended_Current_QUARTER_END_DATE",
+    "Quarter_Ended_Previous_PREVIOUS_QUARTER_END",
+    "Nine_Months_Ended_Previous_PREVIOUS_QUARTER_END"
+  ],
+  
   "Rows": []
 } 

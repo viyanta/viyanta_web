@@ -1,0 +1,51 @@
+{
+  "Form No": "L-33-NPAs-7",
+  "Title": "DETAILS OF NON-PERFORMING ASSETS",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Name_of_Fund": "Life Fund",
+  "Currency": "₹ in Lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "NO": ["NO"],
+    "PARTICULARS": ["PARTICULARS"],
+    "Bonds_Debentures": {
+      "YTD_As_on_date": ["Bonds / Debentures", "YTD (As on date)"],
+      "Prev_FY_As_on_31_Mar": ["Bonds / Debentures", "Prev. FY (As on 31 Mar 2022)"]
+    },
+    "Loans": {
+      "YTD_As_on_date": ["Loans", "YTD (As on date)"],
+      "Prev_FY_As_on_31_Mar": ["Loans", "Prev. FY (As on 31 Mar 2022)"]
+    },
+    "Other_Debt_instruments": {
+      "YTD_As_on_date": ["Other Debt instruments", "YTD (As on date)"],
+      "Prev_FY_As_on_31_Mar": ["Other Debt instruments", "Prev. FY (As on 31 Mar 2022)"]
+    },
+    "All_Other_Assets": {
+      "YTD_As_on_date": ["All other Assets", "YTD (As on date)"],
+      "Prev_FY_As_on_31_Mar": ["All other Assets", "Prev. FY (As on 31 Mar 2022)"]
+    },
+    "TOTAL": {
+      "YTD_As_on_date": ["TOTAL", "YTD (As on date)"],
+      "Prev_FY_As_on_31_Mar": ["TOTAL", "Prev. FY (As on 31 Mar 2022)"]
+    }
+  },
+  "FlatHeaders": [
+    "NO",
+    "PARTICULARS",
+    "Bonds_Debentures_YTD_As_on_date",
+    "Bonds_Debentures_Prev_FY",
+    "Loans_YTD_As_on_date",
+    "Loans_Prev_FY",
+    "Other_Debt_instruments_YTD_As_on_date",
+    "Other_Debt_instruments_Prev_FY",
+    "All_Other_Assets_YTD_As_on_date",
+    "All_Other_Assets_Prev_FY",
+    "TOTAL_YTD_As_on_date",
+    "TOTAL_Prev_FY"
+  ],
+  "Rows": []
+}

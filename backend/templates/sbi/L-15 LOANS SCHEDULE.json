@@ -11,6 +11,11 @@
       "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
       "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
     },
+    "FlatHeaders": [
+      "Particulars",
+      "As_at_CURRENT_DATE",
+      "As_at_PREVIOUS_DATE"
+    ],
     "Rows": []
   },
   "Notes": {
@@ -21,6 +26,12 @@
       "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
       "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
     },
+    "FlatHeaders": [
+      "Sr_No",
+      "Particulars",
+      "As_at_CURRENT_DATE",
+      "As_at_PREVIOUS_DATE"
+    ],
     "Rows": []
   },
   "Provisions_against_Non_performing_Loans": {
@@ -30,6 +41,11 @@
       "Loan_Amount_Rs_in_Lakhs": ["Loan Amount", "(Rs in Lakhs)"],
       "Provision_Rs_in_Lakhs": ["Provision", "(Rs in Lakhs)"]
     },
+    "FlatHeaders": [
+      "Particulars",
+      "Loan_Amount_Rs_in_Lakhs",
+      "Provision_Rs_in_Lakhs"
+    ],
     "Rows": []
   }
 } 

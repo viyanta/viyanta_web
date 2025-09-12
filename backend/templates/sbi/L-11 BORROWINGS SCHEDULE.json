@@ -14,6 +14,11 @@
         "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
         "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
       },
+      "FlatHeaders": [
+        "Particulars",
+        "As_at_CURRENT_DATE",
+        "As_at_PREVIOUS_DATE"
+      ],
       "Rows": []
     },
     {
@@ -25,6 +30,13 @@
         "Amount_of_Security": ["Amount of Security"],
         "Nature_of_Security": ["Nature of Security"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "Source_Instrument",
+        "Amount_Borrowed",
+        "Amount_of_Security",
+        "Nature_of_Security"
+      ],
       "Rows": []
     }
   ]

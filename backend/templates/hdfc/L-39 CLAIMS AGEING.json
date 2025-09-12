@@ -23,6 +23,18 @@
       "Total_No_of_claims_paid": ["Total No. of claims paid"],
       "Total_amount_of_claims_paid_Lakh": ["Total amount of claims paid", "(₹ In Lakh)"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Types_of_Claims",
+      "Ageing_of_Claims_No_of_claims_paid_On_or_before_maturity",
+      "Ageing_of_Claims_No_of_claims_paid_1_month",
+      "Ageing_of_Claims_No_of_claims_paid_1_to_3_months",
+      "Ageing_of_Claims_No_of_claims_paid_3_to_6_months",
+      "Ageing_of_Claims_No_of_claims_paid_6_months_to_1_year",
+      "Ageing_of_Claims_No_of_claims_paid_Above_1_year",
+      "Total_No_of_claims_paid",
+      "Total_amount_of_claims_paid_Lakh"
+    ],
     "Rows": []
   },
   "Group_Claims": {
@@ -43,6 +55,18 @@
       "Total_No_of_claims_paid": ["Total No. of claims paid"],
       "Total_amount_of_claims_paid_Lakh": ["Total amount of claims paid", "(₹ In Lakh)"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Types_of_Claims",
+      "Ageing_of_Claims_No_of_claims_paid_On_or_before_maturity",
+      "Ageing_of_Claims_No_of_claims_paid_1_month",
+      "Ageing_of_Claims_No_of_claims_paid_1_to_3_months",
+      "Ageing_of_Claims_No_of_claims_paid_3_to_6_months",
+      "Ageing_of_Claims_No_of_claims_paid_6_months_to_1_year",
+      "Ageing_of_Claims_No_of_claims_paid_Above_1_year",
+      "Total_No_of_claims_paid",
+      "Total_amount_of_claims_paid_Lakh"
+    ],
     "Rows": []
   }
 } 

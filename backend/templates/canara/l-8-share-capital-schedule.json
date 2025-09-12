@@ -1,0 +1,22 @@
+{
+  "Form No": "L-8",
+  "Title": "SHARE CAPITAL SCHEDULE",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "As_at_Current_Year": ["As at", "{QUARTER_END_DATE}", "(₹ in lacs)"],
+    "As_at_Previous_Year": ["As at", "{PREVIOUS_QUARTER_END}", "(₹ in lacs)"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "As_at_Current_Year",
+    "As_at_Previous_Year"
+  ],
+  "Rows": []
+}

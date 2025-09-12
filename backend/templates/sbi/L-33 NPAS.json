@@ -45,5 +45,19 @@
       }
     }
   },
+  "FlatHeaders": [
+    "Sr_No",
+    "PARTICULARS",
+    "Bonds_Debentures_Current_Period",
+    "Bonds_Debentures_Previous_Period",
+    "Loans_Current_Period",
+    "Loans_Previous_Period",
+    "Other_Debt_instruments_Current_Period",
+    "Other_Debt_instruments_Previous_Period",
+    "All_Other_Assets_Current_Period",
+    "All_Other_Assets_Previous_Period",
+    "TOTAL_Current_Period",
+    "TOTAL_Previous_Period"
+  ],
   "Rows": []
 } 

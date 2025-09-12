@@ -18,6 +18,16 @@
         "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
       }
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Name_of_Related_Party",
+      "Nature_of_Relationship",
+      "Description_of_Transactions",
+      "Consideration_paid_received_Current_Quarter_QUARTER_END_DATE",
+      "Consideration_paid_received_Current_Year_To_Date_QUARTER_END_DATE",
+      "Consideration_paid_received_Previous_Quarter_PREVIOUS_QUARTER_END",
+      "Consideration_paid_received_Previous_Year_To_Date_PREVIOUS_QUARTER_END"
+    ],
     "Rows": []
   },
   "Other_Group_Companies": {
@@ -34,6 +44,16 @@
         "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
       }
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Name_of_Related_Party",
+      "Nature_of_Relationship",
+      "Description_of_Transactions",
+      "Consideration_paid_received_Current_Quarter_QUARTER_END_DATE",
+      "Consideration_paid_received_Current_Year_To_Date_QUARTER_END_DATE",
+      "Consideration_paid_received_Previous_Quarter_PREVIOUS_QUARTER_END",
+      "Consideration_paid_received_Previous_Year_To_Date_PREVIOUS_QUARTER_END"
+    ],
     "Rows": []
   }
 } 

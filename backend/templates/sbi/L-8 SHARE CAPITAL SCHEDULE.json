@@ -11,5 +11,10 @@
     "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
     "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
   },
+  "FlatHeaders": [
+    "Particulars",
+    "As_at_CURRENT_DATE",
+    "As_at_PREVIOUS_DATE"
+  ],
   "Rows": []
 } 

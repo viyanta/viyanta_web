@@ -11,5 +11,12 @@
     "As_at_{CURRENT_DATE}": ["Number of Shares", "% of Holding"],
     "As_at_{PREVIOUS_DATE}": ["Number of Shares", "% of Holding"]
   },
+  "FlatHeaders": [
+    "Shareholders",
+    "As_at_CURRENT_DATE_Number_of_Shares",
+    "As_at_CURRENT_DATE_Percent_of_Holding",
+    "As_at_PREVIOUS_DATE_Number_of_Shares",
+    "As_at_PREVIOUS_DATE_Percent_of_Holding"
+  ],
   "Rows": []
 } 

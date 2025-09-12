@@ -25,6 +25,18 @@
         "Total_No_of_claims_paid": ["Total No. of claims paid"],
         "Total_amount_of_claims_paid": ["Total amount of claims paid", "(Rs In Lakhs)"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Types_of_Claims",
+        "No_of_claims_paid_On_or_before_maturity",
+        "No_of_claims_paid_1_month",
+        "No_of_claims_paid_1_3_months",
+        "No_of_claims_paid_3_6_months",
+        "No_of_claims_paid_6_months_1_year",
+        "No_of_claims_paid_Greater_than_1_year",
+        "Total_No_of_claims_paid",
+        "Total_amount_of_claims_paid_Rs_In_Lakhs"
+      ],
       "Rows": []
     },
     "Group": {
@@ -46,6 +58,18 @@
         "Total_No_of_claims_paid": ["Total No. of claims paid"],
         "Total_amount_of_claims_paid": ["Total amount of claims paid", "(Rs In Lakhs)"]
       },
+      "FlatHeaders": [
+        "S_No",
+        "Types_of_Claims",
+        "No_of_claims_paid_On_or_before_maturity",
+        "No_of_claims_paid_1_month",
+        "No_of_claims_paid_1_3_months",
+        "No_of_claims_paid_3_6_months",
+        "No_of_claims_paid_6_months_1_year",
+        "No_of_claims_paid_Greater_than_1_year",
+        "Total_No_of_claims_paid",
+        "Total_amount_of_claims_paid_Rs_In_Lakhs"
+      ],
       "Rows": []
     }
   }

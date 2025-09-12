@@ -12,6 +12,12 @@
       "Individual": ["Individual"],
       "Group": ["Group"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience_Categories",
+      "Individual",
+      "Group"
+    ],
     "Rows": []
   },
   "Individual_Claims": {
@@ -25,6 +31,15 @@
       "Surrender": ["Surrender"],
       "Other_Benefits": ["Other Benefits"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience_Categories",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Other_Benefits"
+    ],
     "Rows": []
   },
   "Group_Claims": {
@@ -38,6 +53,15 @@
       "Surrender": ["Surrender"],
       "Other_Benefits": ["Other Benefits"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience_Categories",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Other_Benefits"
+    ],
     "Rows": []
   }
 } 

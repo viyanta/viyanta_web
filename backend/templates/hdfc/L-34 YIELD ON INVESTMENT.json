@@ -31,5 +31,23 @@
       "Net_Yield": ["Net Yield", "(%)"]
     }
   },
+  
+  "FlatHeaders": [
+    "Category_of_Investment",
+    "Category_Code",
+    "Current_Quarter_Investment_Rs",
+    "Current_Quarter_Income_on_Investment_Rs",
+    "Current_Quarter_Gross_Yield_Percent",
+    "Current_Quarter_Net_Yield_Percent",
+    "Year_to_Date_Current_Year_Investment_Rs",
+    "Year_to_Date_Current_Year_Income_on_Investment_Rs",
+    "Year_to_Date_Current_Year_Gross_Yield_Percent",
+    "Year_to_Date_Current_Year_Net_Yield_Percent",
+    "Year_to_Date_Previous_Year_Investment_Rs",
+    "Year_to_Date_Previous_Year_Income_on_Investment_Rs",
+    "Year_to_Date_Previous_Year_Gross_Yield_Percent",
+    "Year_to_Date_Previous_Year_Net_Yield_Percent"
+  ],
+  
   "Rows": []
 } 

@@ -16,5 +16,15 @@
       "Up_to_Period_Ended": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
     }
   },
+  
+  "FlatHeaders": [
+    "Sr_No",
+    "Particulars",
+    "Current_Period_Quarter_Ended_QUARTER_END_DATE",
+    "Current_Period_Up_to_Period_Ended_QUARTER_END_DATE",
+    "Previous_Period_Quarter_Ended_PREVIOUS_QUARTER_END",
+    "Previous_Period_Up_to_Period_Ended_PREVIOUS_QUARTER_END"
+  ],
+  
   "Rows": []
 } 

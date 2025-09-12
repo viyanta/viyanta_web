@@ -28,6 +28,14 @@ except Exception:
     tabula = None
     TABULA_AVAILABLE = False
 
+
+# Import Gemini AI for final result processing
+try:
+    from services.gemini_pdf_verifier_improved import ImprovedGeminiPDFVerifier
+    GEMINI_AVAILABLE = True
+except ImportError:
+    ImprovedGeminiPDFVerifier = None
+    GEMINI_AVAILABLE = False
 logger = logging.getLogger(__name__)
 
 # Base directories
@@ -1017,7 +1025,6 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
 
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
-
         # Find page numbers for the specific form - use the pages from forms list
         pages_used = await _find_pages_for_form(company, form_no, pdf_path)
 
@@ -1025,9 +1032,11 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
             # Fallback search within PDF content
             pages_used = await find_form_pages(pdf_path, form_no)
             if not pages_used:
-                # Default to a smaller range for testing
-                pages_used = "1-2"  # Use 1-2 instead of 1-5 for L-1-A
+                # Use template PagesUsed as fallback
+                pages_used = template.get("PagesUsed", "1-2")
+                logger.info(f"Using template PagesUsed: {pages_used} for form {form_no}")
 
+        logger.info(f"Using pages: {pages_used} for form {form_no}")
         logger.info(f"Using pages: {pages_used} for form {form_no}")
 
         # Extract table data - always use FlatHeaders if available, otherwise flatten Headers from template
@@ -1068,6 +1077,58 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
 
         logger.info(
             f"Extracted {len(extracted_rows)} rows for form {form_no} from {tables_info.get('processed', 0)} tables")
+
+        # Process with Improved Gemini AI for final result
+        if GEMINI_AVAILABLE and ImprovedGeminiPDFVerifier:
+            try:
+                gemini_verifier = ImprovedGeminiPDFVerifier()
+                
+                # Prepare extracted data for verification (remove row limit for better verification)
+                extracted_data = {
+                    "Form No": result.get("Form No"),
+                    "Title": result.get("Title"),
+                    "Period": result.get("Period", ""),
+                    "Currency": result.get("Currency", ""),
+                    "Headers": result.get("Headers"),
+                    "Rows": result.get("Rows", []),  # Send all rows for comprehensive verification
+                    "TotalRows": result.get("TotalRows")
+                }
+                
+                # Use the improved verification method with PDF + Template + Extracted Data
+                gemini_result = gemini_verifier.verify_extraction_with_pdf(pdf_path, template, extracted_data)
+                
+                if gemini_result and "verification_summary" in gemini_result:
+                    # Add Gemini verification info
+                    result["gemini_verification"] = gemini_result.get("verification_summary", {})
+                    result["gemini_processing_status"] = "completed"
+                    
+                    # If corrected data is available, use it to enhance the result
+                    if "corrected_data" in gemini_result and gemini_result["corrected_data"]:
+                        corrected_data = gemini_result["corrected_data"]
+                        # Update result with corrected data while preserving structure
+                        if "Rows" in corrected_data:
+                            result["Rows"] = corrected_data["Rows"]
+                            result["TotalRows"] = len(corrected_data["Rows"])
+                        if "Headers" in corrected_data:
+                            result["Headers"] = corrected_data["Headers"]
+                    
+                    # Add analysis notes if available
+                    if "analysis_notes" in gemini_result:
+                        result["gemini_analysis"] = gemini_result["analysis_notes"]
+                    
+                    logger.info("Improved Gemini AI processing completed successfully")
+                else:
+                    result["gemini_verification"] = {"status": "no_response", "accuracy_score": 0}
+                    result["gemini_processing_status"] = "no_response"
+                    logger.warning("Improved Gemini AI returned no response")
+                    
+            except Exception as e:
+                logger.error(f"Improved Gemini AI processing failed: {e}")
+                result["gemini_verification"] = {"status": "error", "error": str(e), "accuracy_score": 0}
+                result["gemini_processing_status"] = "error"
+        else:
+            logger.info("Improved Gemini AI not available, using original extraction")
+            result["gemini_processing_status"] = "not_available"
         return result
 
     except Exception as e:

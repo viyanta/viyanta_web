@@ -33,6 +33,23 @@
         "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
       }
     },
+    "FlatHeaders": [
+      "No",
+      "Category_of_Investment",
+      "Category_Code",
+      "Current_Quarter_Investment_Rupees",
+      "Current_Quarter_Income_on_Investment_Rupees",
+      "Current_Quarter_Gross_Yield_Percentage",
+      "Current_Quarter_Net_Yield_Percentage",
+      "Year_to_Date_Current_Year_Investment_Rupees",
+      "Year_to_Date_Current_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Current_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Current_Year_Net_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Net_Yield_Percentage"
+    ],
     "Rows": []
   },
   
@@ -61,6 +78,23 @@
         "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
       }
     },
+    "FlatHeaders": [
+      "No",
+      "Category_of_Investment",
+      "Category_Code",
+      "Current_Quarter_Investment_Rupees",
+      "Current_Quarter_Income_on_Investment_Rupees",
+      "Current_Quarter_Gross_Yield_Percentage",
+      "Current_Quarter_Net_Yield_Percentage",
+      "Year_to_Date_Current_Year_Investment_Rupees",
+      "Year_to_Date_Current_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Current_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Current_Year_Net_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Net_Yield_Percentage"
+    ],
     "Rows": []
   },
   
@@ -89,6 +123,23 @@
         "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
       }
     },
+    "FlatHeaders": [
+      "No",
+      "Category_of_Investment",
+      "Category_Code",
+      "Current_Quarter_Investment_Rupees",
+      "Current_Quarter_Income_on_Investment_Rupees",
+      "Current_Quarter_Gross_Yield_Percentage",
+      "Current_Quarter_Net_Yield_Percentage",
+      "Year_to_Date_Current_Year_Investment_Rupees",
+      "Year_to_Date_Current_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Current_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Current_Year_Net_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Income_on_Investment_Rupees",
+      "Year_to_Date_Previous_Year_Gross_Yield_Percentage",
+      "Year_to_Date_Previous_Year_Net_Yield_Percentage"
+    ],
     "Rows": []
   }
 } 

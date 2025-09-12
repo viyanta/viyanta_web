@@ -29,5 +29,20 @@
     }
   },
   
+  "FlatHeaders": [
+    "Particulars",
+    "Shareholders_As_at_Current_QUARTER_END_DATE",
+    "Shareholders_As_at_March_31_MARCH_31_DATE",
+    "Shareholders_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
+    "Policyholders_As_at_Current_QUARTER_END_DATE",
+    "Policyholders_As_at_March_31_MARCH_31_DATE",
+    "Policyholders_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Current_QUARTER_END_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_March_31_MARCH_31_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
+    "Total_As_at_Current_QUARTER_END_DATE",
+    "Total_As_at_Previous_Year_PREVIOUS_YEAR_DATE"
+  ],
+  
   "Rows": []
 } 

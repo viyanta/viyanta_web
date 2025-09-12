@@ -14,5 +14,12 @@
     }
   },
   
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Current_Date_QUARTER_END_DATE",
+    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Previous_Year_End_PREVIOUS_YEAR_END_DATE"
+  ],
+  
   "Rows": []
 } 

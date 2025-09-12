@@ -15,6 +15,12 @@
       "Individual": ["Individual"],
       "Group": ["Group"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Individual",
+      "Group"
+    ],
     "Rows": []
   },
   
@@ -31,6 +37,16 @@
       "Health": ["Health"],
       "Other_Benefits": ["Other Benefits"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Health",
+      "Other_Benefits"
+    ],
     "Rows": []
   },
   
@@ -44,6 +60,12 @@
       "Individual": ["Individual"],
       "Group": ["Group"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Individual",
+      "Group"
+    ],
     "Rows": []
   },
   
@@ -61,6 +83,16 @@
       "Health": ["Health"],
       "Other_Benefits": ["Other Benefits"]
     },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Health",
+      "Other_Benefits"
+    ],
     "Rows": []
   }
 } 

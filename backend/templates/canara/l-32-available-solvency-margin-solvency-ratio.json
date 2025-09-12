@@ -1,0 +1,26 @@
+{
+  "Form No": "L-32",
+  "Title": "AVAILABLE SOLVENCY MARGIN AND SOLVENCY RATIO",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Form_Code": "KT-3",
+  "Classification": "Total Business",
+  "Currency": "₹ in Lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Item": ["Item"],
+    "Description": ["Description"],
+    "Notes_No": ["Notes No."],
+    "Adjusted_Value": ["Adjusted Value", "As at {QUARTER_END_DATE}", "(₹ in Lacs)"]
+  },
+  "FlatHeaders": [
+    "Item",
+    "Description",
+    "Notes_No",
+    "Adjusted_Value_As_at_QUARTER_END_DATE"
+  ],
+  "Rows": []
+}

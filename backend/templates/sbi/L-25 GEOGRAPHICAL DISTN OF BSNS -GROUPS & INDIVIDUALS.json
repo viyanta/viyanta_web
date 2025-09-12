@@ -17,6 +17,21 @@
         "Renewal_Premium": ["Premium² (Rs. Lakhs)"],
         "Total_Premium_New_Business_and_Renewal": ["Total Premium² (New Business and Renewal²) (Rs. Lakhs)"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Individual_No_of_Policies",
+        "New_Business_Rural_Individual_Premium_Rs_Lakhs",
+        "New_Business_Rural_Individual_Sum_Assured_Rs_Lakhs",
+        "New_Business_Urban_Individual_No_of_Policies",
+        "New_Business_Urban_Individual_Premium_Rs_Lakhs",
+        "New_Business_Urban_Individual_Sum_Assured_Rs_Lakhs",
+        "Total_New_Business_Individual_No_of_Policies",
+        "Total_New_Business_Individual_Premium_Rs_Lakhs",
+        "Total_New_Business_Individual_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Total_Premium_Rs_Lakhs"
+      ],
       "Rows": []
     },
     "L_25_ii": {
@@ -30,6 +45,24 @@
         "Renewal_Premium": ["Renewal Premium¹ (Rs. Lakhs)"],
         "Total_Premium_New_Business_and_Renewal": ["Total Premium (New Business and Renewal²) (Rs. Lakhs)"]
       },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Group_No_of_Schemes",
+        "New_Business_Rural_Group_No_of_Lives",
+        "New_Business_Rural_Group_Premium_Rs_Lakhs",
+        "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs",
+        "New_Business_Urban_Group_No_of_Schemes",
+        "New_Business_Urban_Group_No_of_Lives",
+        "New_Business_Urban_Group_Premium_Rs_Lakhs",
+        "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs",
+        "Total_New_Business_Group_No_of_Schemes",
+        "Total_New_Business_Group_No_of_Lives",
+        "Total_New_Business_Group_Premium_Rs_Lakhs",
+        "Total_New_Business_Group_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Renewal_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Total_Premium_Rs_Lakhs"
+      ],
       "Rows": []
     }
   }

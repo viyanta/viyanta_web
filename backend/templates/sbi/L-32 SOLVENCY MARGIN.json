@@ -13,5 +13,11 @@
     "Notes_No": ["Notes No..."],
     "Adjusted_Value": ["Adjusted Value"]
   },
+  "FlatHeaders": [
+    "Item",
+    "Description",
+    "Notes_No",
+    "Adjusted_Value"
+  ],
   "Rows": []
 } 

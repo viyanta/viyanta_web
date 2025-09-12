@@ -19,5 +19,16 @@
       "As_percent_of_total_for_this_class_previous": ["As % of total", "for this class"]
     }
   },
+  "FlatHeaders": [
+    "Description",
+    "MARKET_VALUE_As_at_CURRENT_DATE_FORMATTED",
+    "MARKET_VALUE_As_percent_of_total_for_this_class",
+    "MARKET_VALUE_As_at_PREVIOUS_DATE_FORMATTED",
+    "MARKET_VALUE_As_percent_of_total_for_this_class_previous",
+    "BOOK_VALUE_As_at_CURRENT_DATE_FORMATTED",
+    "BOOK_VALUE_As_percent_of_total_for_this_class",
+    "BOOK_VALUE_As_at_PREVIOUS_DATE_FORMATTED",
+    "BOOK_VALUE_As_percent_of_total_for_this_class_previous"
+  ],
   "Rows": []
 } 

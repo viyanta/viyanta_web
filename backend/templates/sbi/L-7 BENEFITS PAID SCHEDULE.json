@@ -14,5 +14,22 @@
     },
     "Grand_Total": ["Grand Total"]
   },
+  "FlatHeaders": [
+    "Particulars",
+    "Unit_Linked_Life",
+    "Unit_Linked_Pension",
+    "Unit_Linked_Total",
+    "Non_Linked_Business_Participating_Life",
+    "Non_Linked_Business_Participating_Pension",
+    "Non_Linked_Business_Participating_Variable_Insurance",
+    "Non_Linked_Business_Participating_Total",
+    "Non_Linked_Business_Non_Participating_Life",
+    "Non_Linked_Business_Non_Participating_Annuity",
+    "Non_Linked_Business_Non_Participating_Pension",
+    "Non_Linked_Business_Non_Participating_Health",
+    "Non_Linked_Business_Non_Participating_Variable_Insurance",
+    "Non_Linked_Business_Non_Participating_Total",
+    "Grand_Total"
+  ],
   "Rows": []
 } 

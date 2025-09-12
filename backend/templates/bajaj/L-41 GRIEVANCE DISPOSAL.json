@@ -1,0 +1,39 @@
+{
+  "Form No": "L-41",
+  "Title": "GRIEVANCE DISPOSAL",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Sections": [
+    {
+      "Section_Name": "GRIEVANCE DISPOSAL FOR THE QUARTER ENDING DECEMBER 2022",
+      "Headers": {
+        "Sl_No": ["Sl No."],
+        "Particulars": ["Particulars"],
+        "Opening_Balance": ["Opening Balance As on beginning of the quarter"],
+        "Additions_during_quarter": ["Additions during the quarter"],
+        "Fully_Accepted": ["Complaints Resolved/ settled during the quarter", "Fully Accepted"],
+        "Partial_Accepted": ["Complaints Resolved/ settled during the quarter", "Partial Accepted"],
+        "Rejected": ["Complaints Resolved/ settled during the quarter", "Rejected"],
+        "Complaints_Pending": ["Complaints Pending at the end of the quarter"],
+        "Total_Complaints_Registered": ["Total complaints registered upto the quarter during the financial year"]
+      },
+      "FlatHeaders": [
+        "Sl No.",
+        "Particulars",
+        "Opening Balance As on beginning of the quarter",
+        "Additions during the quarter",
+        "Complaints Resolved/ settled during the quarter - Fully Accepted",
+        "Complaints Resolved/ settled during the quarter - Partial Accepted",
+        "Complaints Resolved/ settled during the quarter - Rejected",
+        "Complaints Pending at the end of the quarter",
+        "Total complaints registered upto the quarter during the financial year"
+      ],
+      "Rows": []
+    }
+  ]
+}

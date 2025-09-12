@@ -15,6 +15,12 @@
       "Schedule_Ref": ["SCH"],
       "Amount": ["Amount"]
     },
+    "FlatHeaders": [
+      "No",
+      "Particulars",
+      "Schedule_Ref",
+      "Amount"
+    ],
     "Rows": []
   },
   
@@ -24,6 +30,11 @@
       "Schedule_Ref": ["SCH"],
       "Amount": ["Amount"]
     },
+    "FlatHeaders": [
+      "Less_Other_Assets",
+      "Schedule_Ref",
+      "Amount"
+    ],
     "Rows": []
   },
   
@@ -48,6 +59,20 @@
         "Total_Fund": ["Total Fund", "(i)=(f+h)"],
         "Market_Value": ["Market Value", "(j)"]
       },
+      "FlatHeaders": [
+        "Life_Fund",
+        "Percentage_as_per_Regulation",
+        "SH_Balance",
+        "SH_FRSM_Plus",
+        "PH_UL_Non_Unit_Res",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Book_Value_SH_PH",
+        "Actual_Percentage",
+        "FVC_Amount",
+        "Total_Fund",
+        "Market_Value"
+      ],
       "Rows": []
     },
     
@@ -65,6 +90,17 @@
         "Total_Fund": ["Total Fund", "(f)=(c+e)"],
         "Market_Value": ["Market Value", "(g)"]
       },
+      "FlatHeaders": [
+        "Pension_General_Annuity_Group_Business",
+        "Percentage_as_per_Regulation",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Book_Value",
+        "Actual_Percentage",
+        "FVC_Amount",
+        "Total_Fund",
+        "Market_Value"
+      ],
       "Rows": []
     },
     
@@ -79,6 +115,14 @@
         "Total_Fund": ["Total Fund", "(c)= (a+b)"],
         "Actual_Percentage": ["Actual %", "(d)"]
       },
+      "FlatHeaders": [
+        "Linked_Funds",
+        "Percentage_as_per_Regulation",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Total_Fund",
+        "Actual_Percentage"
+      ],
       "Rows": []
     }
   }

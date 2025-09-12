@@ -22,5 +22,17 @@
     }
   },
   
+  "FlatHeaders": [
+    "Debt_Securities",
+    "Market_Value_As_at_Current_Date_QUARTER_END_DATE",
+    "Market_Value_As_percentage_of_total_for_this_class_Current",
+    "Market_Value_As_at_Previous_Year_End_PREVIOUS_YEAR_END_DATE",
+    "Market_Value_As_percentage_of_total_for_this_class_Previous",
+    "Book_Value_As_at_Current_Date_QUARTER_END_DATE",
+    "Book_Value_As_percentage_of_total_for_this_class_Current",
+    "Book_Value_As_at_Previous_Year_End_PREVIOUS_YEAR_END_DATE",
+    "Book_Value_As_percentage_of_total_for_this_class_Previous"
+  ],
+  
   "Rows": []
 } 

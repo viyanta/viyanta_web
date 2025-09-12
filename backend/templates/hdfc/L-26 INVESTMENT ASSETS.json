@@ -13,6 +13,13 @@
       "Amount_1": ["Amount"],
       "Amount_2": ["Amount"]
     },
+    "FlatHeaders": [
+      "No",
+      "Particulars",
+      "Schedule",
+      "Amount_1",
+      "Amount_2"
+    ],
     "Rows": []
   }
 } 
