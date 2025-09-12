@@ -1,0 +1,22 @@
+{
+  "Form No": "L-3-A-BS",
+  "Title": "BALANCE SHEET",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Balance Sheet",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Schedule"],
+    "As_at_31_December_Current_Year": ["As at 31", "December", "{QUARTER_END_DATE_YEAR}"],
+    "As_at_31_December_Previous_Year": ["As at 31", "December", "{PREVIOUS_QUARTER_END_YEAR}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "As_at_31_December_Current_Year",
+    "As_at_31_December_Previous_Year"
+  ],
+  "Rows": []
+}

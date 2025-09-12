@@ -1,0 +1,33 @@
+{
+  "Form No": "L-43",
+  "Title": "VOTING ACTIVITY DISCLOSURE UNDER STEWARDSHIP CODE",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Period": "For Quarter ended {QUARTER_END_DATE}",
+  "Currency": "Text",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Meeting_Date": ["Meeting Date"],
+    "Company_Name": ["Company Name"],
+    "Type_of_Meeting": ["Type of Meeting"],
+    "Proposal_by_Management_or_Shareholder": ["Proposal by Management", "or Shareholder"],
+    "Proposal_Description": ["Proposal's Description"],
+    "Investee_company_Management_Recommendation": ["Investee company's", "Management Recommendation"],
+    "Vote_For_Against_Abstain": ["Vote For/Against/Abstain"],
+    "Reason_supporting_vote_decision": ["Reason supporting the", "vote decision"]
+  },
+  "FlatHeaders": [
+    "Meeting_Date",
+    "Company_Name",
+    "Type_of_Meeting",
+    "Proposal_by_Management_or_Shareholder",
+    "Proposal_Description",
+    "Investee_company_Management_Recommendation",
+    "Vote_For_Against_Abstain",
+    "Reason_supporting_vote_decision"
+  ],
+  "Rows": []
+}

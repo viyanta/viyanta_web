@@ -1,0 +1,93 @@
+{
+  "Form No": "L-25-(i)",
+  "Title": "GEOGRAPHICAL DISTRIBUTION OF TOTAL BUSINESS: INDIVIDUAL",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in lacs",
+  "PagesUsed": "3-6",
+  "Sections": [
+    {
+      "Section_Name": "UPTO QUARTER ENDED {QUARTER_END_DATE}",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "State_Union_Territory": ["State / Union Territory"],
+        "New_Business_Rural_Individual": {
+          "No_of_Policies": ["New Business - Rural (Individual)", "No. of Policies"],
+          "Premium": ["New Business - Rural (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["New Business - Rural (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "New_Business_Urban_Individual": {
+          "No_of_Policies": ["New Business - Urban (Individual)", "No. of Policies"],
+          "Premium": ["New Business - Urban (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["New Business - Urban (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "Total_New_Business_Individual": {
+          "No_of_Policies": ["Total New Business (Individual)", "No. of Policies"],
+          "Premium": ["Total New Business (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["Total New Business (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "Renewal_Premium": ["Renewal Premium", "(₹ in lacs)"],
+        "Total_Premium_New_Business_and_Renewal": ["Total Premium (New Business and Renewal)", "(₹ in lacs)"]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Individual_No_of_Policies",
+        "New_Business_Rural_Individual_Premium",
+        "New_Business_Rural_Individual_Sum_Assured",
+        "New_Business_Urban_Individual_No_of_Policies",
+        "New_Business_Urban_Individual_Premium",
+        "New_Business_Urban_Individual_Sum_Assured",
+        "Total_New_Business_Individual_No_of_Policies",
+        "Total_New_Business_Individual_Premium",
+        "Total_New_Business_Individual_Sum_Assured",
+        "Renewal_Premium",
+        "Total_Premium_New_Business_and_Renewal"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "FOR QUARTER ENDED {QUARTER_END_DATE}",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "State_Union_Territory": ["State / Union Territory"],
+        "New_Business_Rural_Individual": {
+          "No_of_Policies": ["New Business - Rural (Individual)", "No. of Policies"],
+          "Premium": ["New Business - Rural (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["New Business - Rural (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "New_Business_Urban_Individual": {
+          "No_of_Policies": ["New Business - Urban (Individual)", "No. of Policies"],
+          "Premium": ["New Business - Urban (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["New Business - Urban (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "Total_New_Business_Individual": {
+          "No_of_Policies": ["Total New Business (Individual)", "No. of Policies"],
+          "Premium": ["Total New Business (Individual)", "Premium", "(₹ in lacs)"],
+          "Sum_Assured": ["Total New Business (Individual)", "Sum Assured", "(₹ in lacs)"]
+        },
+        "Renewal_Premium": ["Renewal Premium", "(₹ in lacs)"],
+        "Total_Premium_New_Business_and_Renewal": ["Total Premium (New Business and Renewal)", "(₹ in lacs)"]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Individual_No_of_Policies",
+        "New_Business_Rural_Individual_Premium",
+        "New_Business_Rural_Individual_Sum_Assured",
+        "New_Business_Urban_Individual_No_of_Policies",
+        "New_Business_Urban_Individual_Premium",
+        "New_Business_Urban_Individual_Sum_Assured",
+        "Total_New_Business_Individual_No_of_Policies",
+        "Total_New_Business_Individual_Premium",
+        "Total_New_Business_Individual_Sum_Assured",
+        "Renewal_Premium",
+        "Total_Premium_New_Business_and_Renewal"
+      ],
+      "Rows": []
+    }
+  ]
+}
