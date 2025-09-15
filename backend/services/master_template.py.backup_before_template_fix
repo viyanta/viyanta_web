@@ -9,7 +9,6 @@ import shutil
 from fastapi import UploadFile
 import concurrent.futures
 import threading
-from datetime import datetime
 from functools import partial
 
 # Try to import camelot for table extraction
@@ -32,10 +31,10 @@ except Exception:
 
 # Import Gemini AI for final result processing
 try:
-    from services.gemini_pdf_verifier_improved import ImprovedGeminiPDFVerifier
+    from services.gemini_pdf_verifier import GeminiPDFVerifier
     GEMINI_AVAILABLE = True
 except ImportError:
-    ImprovedGeminiPDFVerifier = None
+    GeminiPDFVerifier = None
     GEMINI_AVAILABLE = False
 logger = logging.getLogger(__name__)
 
@@ -47,78 +46,6 @@ TEMPLATES_DIR = os.path.join(BACKEND_DIR, "templates")
 # Ensure directories exist
 os.makedirs(PDFS_DIR, exist_ok=True)
 os.makedirs(TEMPLATES_DIR, exist_ok=True)
-
-def save_gemini_response(company, form_no, filename, gemini_verification, gemini_analysis, corrected_data, gemini_status):
-    """Automatically save Gemini AI response to file"""
-    try:
-        # Create gemini_responses directory
-        gemini_dir = os.path.join(BACKEND_DIR, 'gemini_responses')
-        os.makedirs(gemini_dir, exist_ok=True)
-        
-        # Create response data
-        gemini_response = {
-            'timestamp': datetime.now().isoformat(),
-            'api_endpoint': f'/templates/extract-form/{form_no}',
-            'company': company,
-            'filename': filename,
-            'gemini_verification': gemini_verification,
-            'gemini_analysis': gemini_analysis,
-            'gemini_processing_status': gemini_status,
-            'corrected_data': corrected_data
-        }
-        
-        # Generate filename
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        safe_form_no = form_no.replace('-', '_').replace(' ', '_')
-        filename = f'gemini_response_{company}_{safe_form_no}_{timestamp}.json'
-        filepath = os.path.join(gemini_dir, filename)
-        
-        # Save to file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(gemini_response, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"✅ Gemini response automatically saved to: {filepath}")
-        return filepath
-        
-    except Exception as e:
-        logger.error(f"❌ Error saving Gemini response: {e}")
-        return None
-
-def save_extraction_response(company, form_no, filename, extraction_result):
-    """Automatically save extraction response to file"""
-    try:
-        # Create extraction_responses directory
-        extraction_dir = os.path.join(BACKEND_DIR, 'extraction_responses')
-        os.makedirs(extraction_dir, exist_ok=True)
-        
-        # Create response data
-        extraction_response = {
-            'timestamp': datetime.now().isoformat(),
-            'api_endpoint': f'/templates/extract-form/{form_no}',
-            'company': company,
-            'form_no': form_no,
-            'filename': filename,
-            'extraction_result': extraction_result
-        }
-        
-        # Generate filename
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        safe_form_no = form_no.replace('-', '_').replace(' ', '_')
-        response_filename = f'extraction_response_{company}_{safe_form_no}_{timestamp}.json'
-        filepath = os.path.join(extraction_dir, response_filename)
-        
-        # Save to file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(extraction_response, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"✅ Extraction response automatically saved to: {filepath}")
-        return filepath
-        
-    except Exception as e:
-        logger.error(f"❌ Error saving extraction response: {e}")
-        return None
-
-
 
 async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
     """
@@ -1112,27 +1039,20 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
         logger.info(f"Using pages: {pages_used} for form {form_no}")
         logger.info(f"Using pages: {pages_used} for form {form_no}")
 
-        # Extract headers from template (handles both old and new formats)
-        template_headers, flat_headers = _extract_headers_from_template(template)
-        
-        # Use flat headers if available, otherwise use extracted flat headers
-        if not flat_headers:
-            flat_headers = _flatten_headers(template_headers)
-
-        # Special handling for L-27-UNIT fund-based templates
-        if "Fund_Sets" in template and "NAME OF THE BUSINESS" in template:
-            # Use specialized L-27-UNIT extraction
-            extracted_rows = _extract_l27_unit_data(template)
-            logger.info(f"L-27-UNIT: Extracted {len(extracted_rows)} fund entries from template")
+        # Extract table data - always use FlatHeaders if available, otherwise flatten Headers from template
+        if "FlatHeaders" in template:
+            flat_headers = template["FlatHeaders"]
         else:
-            # Extract table data using Camelot for all forms, with template-driven headers
-            extracted_rows = await _extract_table_data(pdf_path, pages_used, flat_headers)
+            flat_headers = _flatten_headers(template["Headers"])
 
-            # Fallback to text-based extraction when no rows were found via tables
-            if not extracted_rows:
-                logger.info(
-                    "No rows extracted via Camelot. Falling back to text-based extraction.")
-                extracted_rows = await _extract_text_based_data(pdf_path, pages_used, flat_headers)
+        # Extract table data using Camelot for all forms, with template-driven headers
+        extracted_rows = await _extract_table_data(pdf_path, pages_used, flat_headers)
+
+        # Fallback to text-based extraction when no rows were found via tables
+        if not extracted_rows:
+            logger.info(
+                "No rows extracted via Camelot. Falling back to text-based extraction.")
+            extracted_rows = await _extract_text_based_data(pdf_path, pages_used, flat_headers)
 
         # Get table extraction info
         tables_info = {
@@ -1144,12 +1064,12 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
         # Build result with both original and flat headers for frontend compatibility
         result = {
             "Form No": template.get("Form No", form_no),
-            "Title": template.get("Title", "N/A"),
+            "Title": template["Title"],
             "Period": template.get("Period", ""),
             "Currency": template.get("Currency", ""),
             "PagesUsed": pages_used,
             "TablesInfo": tables_info,  # Information about tables found and processed
-            "Headers": template_headers,
+            "Headers": template["Headers"],
             "FlatHeaders": flat_headers,     # Keep flat headers for compatibility
             "Rows": extracted_rows,
             "TotalRows": len(extracted_rows)
@@ -1158,76 +1078,39 @@ async def extract_form(company: str, form_no: str, filename: str = None) -> Dict
         logger.info(
             f"Extracted {len(extracted_rows)} rows for form {form_no} from {tables_info.get('processed', 0)} tables")
 
-        # Process with Improved Gemini AI for final result
-        if GEMINI_AVAILABLE and ImprovedGeminiPDFVerifier:
+        # Process with Gemini AI for final result
+        if GEMINI_AVAILABLE and GeminiPDFVerifier:
             try:
-                gemini_verifier = ImprovedGeminiPDFVerifier()
+                gemini_verifier = GeminiPDFVerifier()
+                logger.info("Processing with Gemini AI for final result...")
                 
-                # Prepare extracted data for verification (remove row limit for better verification)
-                extracted_data = {
+                # Create clean data structure for Gemini AI (avoid circular reference)
+                clean_data = {
                     "Form No": result.get("Form No"),
                     "Title": result.get("Title"),
-                    "Period": result.get("Period", ""),
-                    "Currency": result.get("Currency", ""),
+                    "TotalRows": result.get("TotalRows"),
                     "Headers": result.get("Headers"),
-                    "Rows": result.get("Rows", []),  # Send all rows for comprehensive verification
-                    "TotalRows": result.get("TotalRows")
+                    "Rows": result.get("Rows", [])[:5]  # Limit to first 5 rows to avoid timeout
                 }
                 
-                # Use the improved verification method with PDF + Template + Extracted Data
-                gemini_result = gemini_verifier.verify_extraction_with_pdf(pdf_path, template, extracted_data)
+                gemini_result = gemini_verifier.verify_pdf_json(pdf_path, clean_data)
                 
                 if gemini_result and "verification_summary" in gemini_result:
-                    # Add Gemini verification info
+                    # Add Gemini verification info without circular reference
                     result["gemini_verification"] = gemini_result.get("verification_summary", {})
                     result["gemini_processing_status"] = "completed"
-                    
-                    # If corrected data is available, use it to enhance the result
-                    if "corrected_data" in gemini_result and gemini_result["corrected_data"]:
-                        corrected_data = gemini_result["corrected_data"]
-                        # Update result with corrected data while preserving structure
-                        if "Rows" in corrected_data:
-                            result["Rows"] = corrected_data["Rows"]
-                            result["TotalRows"] = len(corrected_data["Rows"])
-                        if "Headers" in corrected_data:
-                            result["Headers"] = corrected_data["Headers"]
-                    
-                    # Add analysis notes if available
-                    if "analysis_notes" in gemini_result:
-                        result["gemini_analysis"] = gemini_result["analysis_notes"]
-                    
-                    logger.info("Improved Gemini AI processing completed successfully")
-
-                    # Automatically save Gemini response to file
-                    try:
-                        corrected_data = {
-                            "form_no": result.get("Form No", ""),
-                            "title": result.get("Title", ""),
-                            "period": result.get("Period", ""),
-                            "currency": result.get("Currency", ""),
-                            "pages_used": result.get("PagesUsed", ""),
-                            "total_rows": result.get("TotalRows", 0),
-                            "headers": result.get("Headers", []),
-                            "rows": result.get("Rows", [])
-                        }
-                        save_gemini_response(company, form_no, filename, 
-                                           result.get("gemini_verification", {}),
-                                           result.get("gemini_analysis", {}),
-                                           corrected_data,
-                                           result.get("gemini_processing_status", ""))
-                    except Exception as e:
-                        logger.error(f"Error auto-saving Gemini response: {e}")
+                    logger.info("Gemini AI processing completed successfully")
                 else:
                     result["gemini_verification"] = {"status": "no_response", "accuracy_score": 0}
                     result["gemini_processing_status"] = "no_response"
-                    logger.warning("Improved Gemini AI returned no response")
+                    logger.warning("Gemini AI returned no response")
                     
             except Exception as e:
-                logger.error(f"Improved Gemini AI processing failed: {e}")
+                logger.error(f"Gemini AI processing failed: {e}")
                 result["gemini_verification"] = {"status": "error", "error": str(e), "accuracy_score": 0}
                 result["gemini_processing_status"] = "error"
         else:
-            logger.info("Improved Gemini AI not available, using original extraction")
+            logger.info("Gemini AI not available, using original extraction")
             result["gemini_processing_status"] = "not_available"
         return result
 
@@ -1803,145 +1686,6 @@ async def _extract_table_data_threaded(pdf_path: str, pages_str: str, headers: L
         traceback.print_exc()
         # Return dummy data on error
         return _create_dummy_data(headers)
-
-
-
-def _extract_l27_unit_headers(template: Dict[str, Any]) -> tuple:
-    """
-    Extract headers for L-27-UNIT type templates that have fund-based structure.
-    
-    Returns:
-        tuple: (headers, flat_headers)
-    """
-    headers = {
-        "Fund_Name": ["Fund Name"],
-        "Fund_Code": ["Fund Code"],
-        "Actual_Investment": ["Actual Investment"],
-        "Percentage_Actual": ["% Actual"]
-    }
-    
-    flat_headers = [
-        "Fund_Name",
-        "Fund_Code", 
-        "Actual_Investment",
-        "Percentage_Actual"
-    ]
-    
-    return headers, flat_headers
-
-def _extract_l27_unit_data(template: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """
-    Extract fund data from L-27-UNIT type templates.
-    
-    Returns:
-        List of fund data rows
-    """
-    rows = []
-    
-    if "Fund_Sets" in template:
-        for set_name, set_data in template["Fund_Sets"].items():
-            if "PARTICULARS (PORTFOLIO - SFIN)" in set_data:
-                particulars = set_data["PARTICULARS (PORTFOLIO - SFIN)"]
-                for fund_name, fund_code in particulars.items():
-                    if isinstance(fund_code, str) and fund_code:  # Valid fund code
-                        row = {
-                            "Fund_Name": fund_name,
-                            "Fund_Code": fund_code,
-                            "Actual_Investment": "",
-                            "Percentage_Actual": ""
-                        }
-                        rows.append(row)
-    
-    return rows
-
-def _extract_headers_from_template(template: Dict[str, Any]) -> tuple:
-    """
-    Extract headers and flat headers from template, handling multiple formats:
-    - Sections array (new format)
-    - Forms object (L-25-GEOGRAPHICAL format)
-    - Direct Headers property (old format)
-    - Deeply nested structures (L-26-INVESTMENT format)
-    - L-27-UNIT fund-based structure
-    
-    Returns:
-        tuple: (headers, flat_headers)
-    """
-    # L-27-UNIT fund-based structure
-    if "Fund_Sets" in template and "NAME OF THE BUSINESS" in template:
-        return _extract_l27_unit_headers(template)
-    # New format with Sections array
-    if "Sections" in template and isinstance(template["Sections"], list) and len(template["Sections"]) > 0:
-        first_section = template["Sections"][0]
-        headers = first_section.get("Headers", {})
-        flat_headers = first_section.get("FlatHeaders", [])
-        
-        # If no flat headers in first section, generate them from headers
-        if not flat_headers and headers:
-            flat_headers = _flatten_headers(headers)
-            
-        return headers, flat_headers
-    
-    # Forms format (L-25-GEOGRAPHICAL style)
-    elif "Forms" in template and isinstance(template["Forms"], dict):
-        # Get the first form from the Forms object
-        first_form_key = list(template["Forms"].keys())[0]
-        first_form = template["Forms"][first_form_key]
-        
-        headers = first_form.get("Headers", {})
-        flat_headers = first_form.get("FlatHeaders", [])
-        
-        # If no flat headers in first form, generate them from headers
-        if not flat_headers and headers:
-            flat_headers = _flatten_headers(headers)
-            
-        return headers, flat_headers
-    
-    # Old format with direct Headers property
-    elif "Headers" in template:
-        headers = template["Headers"]
-        flat_headers = template.get("FlatHeaders", [])
-        
-        # If no flat headers, generate them from headers
-        if not flat_headers and headers:
-            flat_headers = _flatten_headers(headers)
-            
-        return headers, flat_headers
-    
-    # Deeply nested structures - search recursively for Headers
-    else:
-        headers, flat_headers = _find_headers_recursively(template)
-        return headers, flat_headers
-
-def _find_headers_recursively(obj: Dict[str, Any]) -> tuple:
-    """
-    Recursively search for Headers and FlatHeaders in deeply nested structures.
-    
-    Returns:
-        tuple: (headers, flat_headers)
-    """
-    if not isinstance(obj, dict):
-        return {}, []
-    
-    # Check if this object has Headers
-    if "Headers" in obj and isinstance(obj["Headers"], dict):
-        headers = obj["Headers"]
-        flat_headers = obj.get("FlatHeaders", [])
-        
-        # If no flat headers, generate them from headers
-        if not flat_headers and headers:
-            flat_headers = _flatten_headers(headers)
-            
-        return headers, flat_headers
-    
-    # Recursively search in nested objects
-    for key, value in obj.items():
-        if isinstance(value, dict):
-            headers, flat_headers = _find_headers_recursively(value)
-            if headers:  # Found headers, return them
-                return headers, flat_headers
-    
-    # No headers found
-    return {}, []
 
 def _flatten_headers(headers) -> List[str]:
     """

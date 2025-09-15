@@ -17,3 +17,5 @@ pytest
 boto3
 camelot-py
 opencv-python-headless
+mysql-connector-python
+sqlalchemy

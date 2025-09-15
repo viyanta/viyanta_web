@@ -27,7 +27,7 @@ class S3Service:
         self.bucket_name = os.getenv("S3_BUCKET_NAME")
         self.region = os.getenv("S3_REGION")
 
-        if not all([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]):
+        if not all([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]) and any([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]):
             raise ValueError("Missing required AWS S3 environment variables")
 
         # Initialize S3 client

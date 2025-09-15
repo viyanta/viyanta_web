@@ -147,6 +147,13 @@ async def extract_form_data(
 
         # Extract form data
         result = await extract_form(company_clean, form_no_clean, filename)
+        # Automatically save extraction response to file
+        try:
+            from services.master_template import save_extraction_response
+            save_extraction_response(company_clean, form_no_clean, filename, result)
+        except Exception as e:
+            logger.error(f"Error auto-saving extraction response: {e}")
+
 
         return {
             "status": "success",

@@ -357,9 +357,9 @@ Please provide the complete corrected JSON:
             return verified_data
             
         except json.JSONDecodeError as e:
-            logger.warning(f"JSON parsing failed after cleaning: {e}")
-            logger.info("Attempting partial data extraction...")
-            return self._extract_partial_data(response_text)
+            logger.error(f"Error parsing JSON from Gemini response: {e}")
+            logger.error(f"Response text: {response_text[:500]}...")
+            return self._create_fallback_response()
         except Exception as e:
             logger.error(f"Unexpected error cleaning JSON response: {e}")
             return self._create_fallback_response()
@@ -383,50 +383,6 @@ Please provide the complete corrected JSON:
         except Exception as e:
             logger.warning(f"Error fixing JSON issues: {e}")
             return json_text
-
-    def _extract_partial_data(self, response_text: str) -> Dict[str, Any]:
-        """Extract partial data from malformed JSON using regex"""
-        try:
-            # Extract accuracy score
-            accuracy_match = re.search(r'"accuracy_score":\s*(\d+)', response_text)
-            accuracy_score = 85
-            if accuracy_match:
-                accuracy_score = int(accuracy_match.group(1))
-            
-            # Extract corrections made
-            corrections_match = re.search(r'"corrections_made":\s*\[(.*?)\]', response_text, re.DOTALL)
-            corrections = []
-            if corrections_match:
-                corrections_text = corrections_match.group(1)
-                # Extract individual corrections
-                correction_items = re.findall(r'"([^"]+)"', corrections_text)
-                corrections = [item for item in correction_items if not item.endswith('...') and len(item) > 10]
-            
-            # Extract status and message
-            status_match = re.search(r'"status":\s*"([^"]+)"', response_text)
-            message_match = re.search(r'"message":\s*"([^"]+)"', response_text)
-            
-            status = status_match.group(1) if status_match else "success"
-            message = message_match.group(1) if message_match else "Verification completed with partial data extraction"
-            
-            return {
-                "verification_summary": {
-                    "status": status,
-                    "message": message,
-                    "accuracy_score": accuracy_score,
-                    "corrections_made": corrections
-                },
-                "corrected_data": {},
-                "analysis_notes": {
-                    "pdf_analysis_completed": True,
-                    "data_quality": "good",
-                    "completeness_score": accuracy_score
-                }
-            }
-            
-        except Exception as e:
-            logger.error(f"Error extracting partial data: {e}")
-            return self._create_fallback_response()
 
     def _create_fallback_response(self) -> Dict[str, Any]:
         """Create a fallback response when JSON parsing fails"""
