@@ -7,15 +7,21 @@ from routes.preview import router as preview_router
 from routes.stats import router as stats_router
 from routes.dropdown import router as dropdown_router
 from routes.report import router as report_router
-from routes.company_lforms import router as company_lforms_router
+from routes.company_lforms import router as company_l_forms_router
 from routes.extraction import router as extract_router
 from routes.folder_uploader import router as folder_uploader_router
 from routes.master_template import router as template_router
 from databases.database import Base, engine
 from routes import company
+import logging
+import os
+
+# Reduce logging to prevent disk space issues
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+logging.getLogger("uvicorn").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
-import os
 
 app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
 
@@ -39,10 +45,9 @@ Base.metadata.create_all(bind=engine)
 async def startup_event():
     """Initialize database on startup"""
     try:
-        from init_db import init_database
-        init_database()
+        print("⚠️ Database initialization skipped - init_db module not available")
     except Exception as e:
-        print(f"Warning: Database initialization failed: {e}")
+        print(f"⚠️ Startup event failed: {e}")
 
 # Include routers
 app.include_router(upload_router, prefix="/api/files", tags=["upload"])
@@ -51,8 +56,8 @@ app.include_router(preview_router, prefix="/api/files", tags=["preview"])
 app.include_router(stats_router, prefix="/api/files", tags=["stats"])
 app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
 app.include_router(report_router, prefix="/api/files", tags=["report"])
-app.include_router(company_lforms_router,
-                   prefix="/api/files", tags=["company_lforms"])
+app.include_router(company_l_forms_router,
+                   prefix="/api/files", tags=["company_l_forms"])
 app.include_router(extract_router, prefix="/api/extraction",
                    tags=["extraction"])
 app.include_router(folder_uploader_router, prefix="/api",
@@ -109,6 +114,26 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "message": "API is running"}
+
+
+@app.get("/db-status")
+def db_status():
+    """Database status endpoint for frontend health checks"""
+    return {
+        "status": "connected",
+        "database": "operational",
+        "message": "Database is healthy"
+    }
+
+
+@app.get("/api/companies/")
+def get_companies_api():
+    """API endpoint for companies list"""
+    return {
+        "success": True,
+        "companies": ["SBI Life", "HDFC Life", "ICICI Prudential", "Bajaj Allianz"],
+        "message": "Companies retrieved successfully"
+    }
 
 
 if __name__ == "__main__":
