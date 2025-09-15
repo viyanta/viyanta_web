@@ -17,10 +17,12 @@ TEMPLATES_DIR = os.path.join(BACKEND_DIR, "templates")
 os.makedirs(PDFS_DIR, exist_ok=True)
 os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
+
 @router.get("/health")
 async def health_check():
     """Simple health check endpoint"""
     return {"status": "healthy", "message": "Template router is running"}
+
 
 @router.get("/companies")
 async def get_companies():
@@ -32,7 +34,7 @@ async def get_companies():
                 d for d in os.listdir(PDFS_DIR)
                 if os.path.isdir(os.path.join(PDFS_DIR, d)) and not d.startswith('.')
             ]
-        
+
         return {
             "status": "success",
             "companies": companies,
@@ -46,19 +48,22 @@ async def get_companies():
             detail=f"Failed to get companies: {str(e)}"
         )
 
+
 @router.get("/list-forms")
 async def list_available_forms(
-    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')"),
-    filename: Optional[str] = Query(None, description="Specific PDF filename to check")
+    company: str = Query(...,
+                         description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(
+        None, description="Specific PDF filename to check")
 ):
     """List all available forms for a company"""
     try:
         company = company.lower().strip()
-        
+
         # Get templates for the company
         templates_path = os.path.join(TEMPLATES_DIR, company)
         forms = []
-        
+
         if os.path.exists(templates_path):
             for file in os.listdir(templates_path):
                 if file.endswith('.json'):
@@ -68,7 +73,7 @@ async def list_available_forms(
                         "template_file": file,
                         "company": company
                     })
-        
+
         return {
             "status": "success",
             "company": company,
@@ -83,11 +88,14 @@ async def list_available_forms(
             detail=f"Failed to list forms: {str(e)}"
         )
 
+
 @router.get("/test-extraction/{form_no}")
 async def test_extraction_endpoint(
     form_no: str,
-    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')"),
-    filename: Optional[str] = Query(None, description="Specific PDF filename to use")
+    company: str = Query(...,
+                         description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(
+        None, description="Specific PDF filename to use")
 ):
     """
     Test endpoint that returns properly formatted extraction data for frontend testing
@@ -101,14 +109,14 @@ async def test_extraction_endpoint(
                 {
                     "Form": form_no.upper().strip(),
                     "Title": "REVENUE ACCOUNT FOR THE QUARTER ENDED Q1 FY2023",
-                    "Period": "Q1 FY2023", 
+                    "Period": "Q1 FY2023",
                     "PagesUsed": 2,
                     "Headers": [
                         "Particulars",
                         "Schedule",
                         "Unit_Linked_Life",
                         "Unit_Linked_Pension",
-                        "Unit_Linked_Total", 
+                        "Unit_Linked_Total",
                         "Participating_Life",
                         "Grand_Total"
                     ],
@@ -124,7 +132,7 @@ async def test_extraction_endpoint(
                         },
                         {
                             "Particulars": "Investment Income",
-                            "Schedule": "2", 
+                            "Schedule": "2",
                             "Unit_Linked_Life": "5,432",
                             "Unit_Linked_Pension": "2,876",
                             "Unit_Linked_Total": "8,308",
@@ -132,7 +140,7 @@ async def test_extraction_endpoint(
                             "Grand_Total": "12,431"
                         },
                         {
-                            "Particulars": "Other Income", 
+                            "Particulars": "Other Income",
                             "Schedule": "3",
                             "Unit_Linked_Life": "987",
                             "Unit_Linked_Pension": "654",
@@ -157,19 +165,25 @@ async def test_extraction_endpoint(
         "output_path": f"/test/path/extraction_{form_no}_{company}.json"
     }
 
+
 @router.get("/extract-form/{form_no}")
 async def extract_form_data(
     form_no: str,
-    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')"),
-    filename: Optional[str] = Query(None, description="Specific PDF filename to use"),
-    use_image_mode: bool = Query(True, description="Use PDF image mode for Gemini verification")
+    company: str = Query(...,
+                         description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(
+        None, description="Specific PDF filename to use"),
+    use_image_mode: bool = Query(
+        True, description="Use PDF image mode for Gemini verification")
 ):
     """Extract specific form data using master template"""
     try:
         if not company.strip():
-            raise HTTPException(status_code=400, detail="Company name is required")
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
         if not form_no.strip():
-            raise HTTPException(status_code=400, detail="Form number is required")
+            raise HTTPException(
+                status_code=400, detail="Form number is required")
 
         company_clean = company.lower().strip()
         form_no_clean = form_no.upper().strip()
@@ -187,7 +201,7 @@ async def extract_form_data(
         try:
             from services.master_template import extract_form
             extraction_result = await extract_form(company_clean, form_no_clean, filename)
-            
+
             return {
                 "status": "success",
                 "company": company_clean,
@@ -197,7 +211,8 @@ async def extract_form_data(
                 "message": f"Form extraction completed for {form_no_clean}"
             }
         except Exception as e:
-            logger.warning(f"Master template extraction failed: {e}, falling back to test data")
+            logger.warning(
+                f"Master template extraction failed: {e}, falling back to test data")
             # Fallback to test data if extraction fails
             return await test_extraction_endpoint(form_no, company, filename)
 
@@ -210,22 +225,25 @@ async def extract_form_data(
             detail=f"Form extraction failed: {str(e)}"
         )
 
+
 @router.get("/database-status")
 async def get_database_status():
     """Get database status"""
     try:
         from databases.database import get_db
         from databases.models import ExtractedRawData, ExtractedRefinedData
-        
+
         db = next(get_db())
-        
+
         raw_count = db.query(ExtractedRawData).count()
         refined_count = db.query(ExtractedRefinedData).count()
-        
+
         # Get latest records
-        latest_raw = db.query(ExtractedRawData).order_by(ExtractedRawData.id.desc()).first()
-        latest_refined = db.query(ExtractedRefinedData).order_by(ExtractedRefinedData.id.desc()).first()
-        
+        latest_raw = db.query(ExtractedRawData).order_by(
+            ExtractedRawData.id.desc()).first()
+        latest_refined = db.query(ExtractedRefinedData).order_by(
+            ExtractedRefinedData.id.desc()).first()
+
         # Test Gemini API availability
         gemini_status = {"status": "unknown", "available": False}
         try:
@@ -239,13 +257,13 @@ async def get_database_status():
             }
         except Exception as e:
             gemini_status = {
-                "status": "unavailable", 
+                "status": "unavailable",
                 "reason": str(e),
                 "available": False
             }
-        
+
         db.close()
-        
+
         return {
             "status": "success",
             "database": {
@@ -268,47 +286,56 @@ async def get_database_status():
             "gemini_api": gemini_status,
             "message": "Database status retrieved successfully"
         }
-        
+
     except Exception as e:
         logger.error(f"Error checking database status: {e}")
-        raise HTTPException(status_code=500, detail=f"Database status check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Database status check failed: {str(e)}")
+
 
 @router.get("/extract-and-store/{form_no}")
 async def extract_and_store_to_database(
     form_no: str,
-    company: str = Query(..., description="Company name (e.g., 'sbi', 'hdfc')"),
-    filename: Optional[str] = Query(None, description="Specific PDF filename to use"),
-    use_image_mode: bool = Query(True, description="Use PDF image mode for Gemini verification")
+    company: str = Query(...,
+                         description="Company name (e.g., 'sbi', 'hdfc')"),
+    filename: Optional[str] = Query(
+        None, description="Specific PDF filename to use"),
+    use_image_mode: bool = Query(
+        True, description="Use PDF image mode for Gemini verification")
 ):
     """
     Complete workflow: Extract form data, verify with Gemini, and store in MySQL database.
     """
     try:
         from services.database_service import store_raw_extracted_data, store_refined_extracted_data
-        
+
         if not company.strip():
-            raise HTTPException(status_code=400, detail="Company name is required")
+            raise HTTPException(
+                status_code=400, detail="Company name is required")
         if not form_no.strip():
-            raise HTTPException(status_code=400, detail="Form number is required")
+            raise HTTPException(
+                status_code=400, detail="Form number is required")
 
         company_clean = company.lower().strip()
         form_no_clean = form_no.upper().strip()
 
         # Step 1: Extract raw data using master template
         logger.info(f"Step 1: Extracting {form_no_clean} for {company_clean}")
-        
+
         try:
             from services.master_template import extract_form
             raw_extraction = await extract_form(company_clean, form_no_clean, filename)
         except Exception as e:
-            logger.warning(f"Master template extraction failed: {e}, using test data")
+            logger.warning(
+                f"Master template extraction failed: {e}, using test data")
             # Use test data if extraction fails
             test_result = await test_extraction_endpoint(form_no, company, filename)
             raw_extraction = test_result["extraction_result"]
-        
+
         if not raw_extraction:
-            raise HTTPException(status_code=500, detail="Raw extraction failed")
-        
+            raise HTTPException(
+                status_code=500, detail="Raw extraction failed")
+
         # Prepare raw data for storage
         if isinstance(raw_extraction, dict) and "instances" in raw_extraction:
             raw_instances_structure = raw_extraction
@@ -316,7 +343,7 @@ async def extract_and_store_to_database(
             raw_instances_structure = {
                 "instances": [raw_extraction] if not isinstance(raw_extraction, list) else raw_extraction
             }
-        
+
         # Step 2: Store raw extracted data in MySQL
         logger.info("Step 2: Storing raw data in MySQL")
         raw_id = store_raw_extracted_data(
@@ -325,10 +352,11 @@ async def extract_and_store_to_database(
             filename=filename or "default_document.pdf",
             extracted_data=raw_instances_structure
         )
-        
+
         if not raw_id:
-            raise HTTPException(status_code=500, detail="Failed to store raw data")
-        
+            raise HTTPException(
+                status_code=500, detail="Failed to store raw data")
+
         # Step 3: Try Gemini verification (optional, fallback if fails)
         logger.info("Step 3: Attempting Gemini verification")
         verified_result = None
@@ -339,8 +367,9 @@ async def extract_and_store_to_database(
             )
         except Exception as e:
             logger.warning(f"Gemini verification failed: {e}, using raw data")
-            verified_result = {"verified": raw_extraction, "status": "fallback"}
-        
+            verified_result = {
+                "verified": raw_extraction, "status": "fallback"}
+
         # Step 4: Store refined data in MySQL
         logger.info("Step 4: Storing refined data in MySQL")
         refined_data = {
@@ -354,17 +383,18 @@ async def extract_and_store_to_database(
                 "output_file_path": verified_result.get("output_path") if verified_result else None
             }
         }
-        
+
         refined_id = store_refined_extracted_data(
             company=company_clean,
             form_no=form_no_clean,
             filename=filename or "default_document.pdf",
             verified_data=refined_data
         )
-        
+
         if not refined_id:
-            raise HTTPException(status_code=500, detail="Failed to store refined data")
-        
+            raise HTTPException(
+                status_code=500, detail="Failed to store refined data")
+
         return {
             "status": "success",
             "company": company_clean,
@@ -385,5 +415,7 @@ async def extract_and_store_to_database(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in extract-and-store for {company}, {form_no}: {e}")
-        raise HTTPException(status_code=500, detail=f"Extract and store failed: {str(e)}")
+        logger.error(
+            f"Error in extract-and-store for {company}, {form_no}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Extract and store failed: {str(e)}")
