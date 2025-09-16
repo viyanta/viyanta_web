@@ -7,7 +7,7 @@ import glob
 from pathlib import Path
 from PyPDF2 import PdfReader, PdfWriter
 
-INPUT_PDF = r"../pdfs_selected_company/icici/ICICI Prudential Life  C FY2023 9M.pdf"
+INPUT_PDF = r"../pdfs_selected_company/aditya birla sun life/Aditya Birla Life S FY2023 9M.pdf"
 OUTPUT_DIR = "pdf_splits_auto"
 
 

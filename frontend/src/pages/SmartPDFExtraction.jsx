@@ -5,6 +5,7 @@ import SmartTableViewer from '../components/SmartTableViewer';
 import BulkResultsViewer from '../components/BulkResultsViewer';
 import JobStatusTracker from '../components/JobStatusTracker';
 import TemplateBasedExtractor from '../components/TemplateBasedExtractor';
+import PDFSplitterWorkflow from '../components/PDFSplitterWorkflow';
 import apiService from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -15,7 +16,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [jobResults, setJobResults] = useState(null);
   const [extractionHistory, setExtractionHistory] = useState([]);
   const [uploadHistory, setUploadHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('template'); // 'upload', 'extract', 'template', 'results', 'history'
+  const [activeTab, setActiveTab] = useState('new_template'); // 'new_template', 'template', 'results', 'history', 'upload'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -440,18 +441,23 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
       {/* Tabs */}
       <div style={tabsWrapperStyle}>
         <div style={tabsStyle}>
-{/*    
           <button
-            style={{ ... (activeTab === 'extract' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
-            onClick={() => setActiveTab('extract')}
+            style={{ ... (activeTab === 'new_template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            onClick={() => setActiveTab('new_template')}
           >
-            📄 Legacy Extract
-          </button> */}
+            � PDF Split & Extract
+          </button>
           <button
             style={{ ... (activeTab === 'template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
             onClick={() => setActiveTab('template')}
           >
             🎯 Template Extract
+          </button>
+          <button
+            style={{ ... (activeTab === 'upload' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
+            onClick={() => setActiveTab('upload')}
+          >
+            📤 Legacy Upload
           </button>
           <button
             style={{ ... (activeTab === 'results' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
@@ -490,6 +496,11 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
               ×
             </button>
           </div>
+        )}
+
+        {/* New PDF Split & Extract Tab */}
+        {activeTab === 'new_template' && (
+          <PDFSplitterWorkflow user={user} />
         )}
 
         {/* Upload Tab */}

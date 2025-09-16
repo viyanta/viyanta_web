@@ -964,6 +964,72 @@ class ApiService {
   getTemplateApiBase() {
     return 'http://localhost:8000/templates';
   }
+
+  // PDF Splitter API methods
+  async uploadAndSplitPDF(file, companyName, userId) {
+    const formData = new FormData();
+    formData.append('pdf_file', file);
+    formData.append('company_name', companyName);
+    formData.append('user_id', userId);
+
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/upload-and-split`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload and split failed');
+    }
+
+    return response.json();
+  }
+
+  async getCompanyPDFs(companyName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to load company PDFs');
+    }
+
+    return response.json();
+  }
+
+  async getPDFSplits(companyName, pdfName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to load PDF splits');
+    }
+
+    return response.json();
+  }
+
+  async downloadSplitFile(companyName, pdfName, splitFileName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFileName)}/download`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to download split file');
+    }
+
+    return response.blob();
+  }
+
+  async deletePDF(companyName, pdfName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete PDF');
+    }
+
+    return response.json();
+  }
 }
 
 export default new ApiService();

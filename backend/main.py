@@ -11,6 +11,7 @@ from routes.company_lforms import router as company_l_forms_router
 from routes.extraction import router as extract_router
 from routes.folder_uploader import router as folder_uploader_router
 from routes.master_template import router as template_router
+from routes.pdf_splitter import router as pdf_splitter_router
 from databases.database import Base, engine
 from routes import company
 import logging
@@ -63,6 +64,7 @@ app.include_router(extract_router, prefix="/api/extraction",
 app.include_router(folder_uploader_router, prefix="/api",
                    tags=["folder_uploader"])
 app.include_router(template_router, prefix="/templates", tags=["templates"])
+app.include_router(pdf_splitter_router, tags=["pdf_splitter"])
 app.include_router(company.router, prefix="/api")
 
 
@@ -105,8 +107,7 @@ def read_root():
             "preview": "/api/files/preview/{file_id}",
             "pdf_extraction": "/api/extraction/extract/single",
             "bulk_extraction": "/api/extraction/extract/bulk",
-            "user_history": "/api/extraction/user-history/{user_id}",
-            "docs": "/docs"
+            "user_history": "/api/extraction/history/{user_id}"
         }
     }
 
