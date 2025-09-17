@@ -41,8 +41,12 @@ class PDFSplitterService:
             # Split the PDF using index extraction
             split_files, ranges = split_pdf(str(pdf_path), str(splits_folder))
 
-            # Clean and process the ranges
+            # Clean and process the ranges (apply deduplication logic)
             processed_ranges = self._process_ranges(ranges)
+
+            # Additional validation: Check if the page ranges make sense
+            validated_ranges = self._validate_final_ranges(
+                processed_ranges, str(pdf_path))
 
             # Create metadata
             metadata = {
@@ -64,9 +68,9 @@ class PDFSplitterService:
                         "end_page": r.get("end_page"),
                         "original_form_no": r.get("form_no", "Unknown")
                     }
-                    for f, r in zip(split_files, processed_ranges)
+                    for f, r in zip(split_files, validated_ranges)
                 ],
-                "ranges": processed_ranges,
+                "ranges": validated_ranges,
                 "method": "index" if ranges else "content_scan"
             }
 
@@ -246,3 +250,52 @@ class PDFSplitterService:
         except Exception as e:
             print(f"Error getting split file path: {e}")
             return None
+
+    def _validate_final_ranges(self, ranges: List[Dict], pdf_path: str) -> List[Dict]:
+        """
+        Final validation to ensure page ranges are reasonable and don't overlap
+        """
+        if not ranges:
+            return ranges
+
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(pdf_path)
+            total_pages = len(reader.pages)
+        except Exception:
+            # If we can't read the PDF, return ranges as-is
+            return ranges
+
+        validated = []
+        used_pages = set()
+
+        # Sort ranges by start page
+        sorted_ranges = sorted(ranges, key=lambda x: x.get("start_page", 0))
+
+        for r in sorted_ranges:
+            start_page = r.get("start_page")
+            end_page = r.get("end_page")
+
+            if start_page is None or end_page is None:
+                continue
+
+            # Check if pages are within PDF bounds
+            if start_page < 1 or end_page > total_pages or start_page > end_page:
+                print(
+                    f"⚠️  Skipping invalid range for {r.get('form_no', 'Unknown')}: {start_page}-{end_page}")
+                continue
+
+            # Check for overlaps with already used pages
+            range_pages = set(range(start_page, end_page + 1))
+            if range_pages & used_pages:
+                print(
+                    f"⚠️  Skipping overlapping range for {r.get('form_no', 'Unknown')}: {start_page}-{end_page}")
+                continue
+
+            # This range is valid
+            used_pages.update(range_pages)
+            validated.append(r)
+
+        print(
+            f"📋 Final validation: {len(validated)}/{len(ranges)} ranges are valid")
+        return validated

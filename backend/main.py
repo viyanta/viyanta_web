@@ -64,7 +64,8 @@ app.include_router(extract_router, prefix="/api/extraction",
 app.include_router(folder_uploader_router, prefix="/api",
                    tags=["folder_uploader"])
 app.include_router(template_router, prefix="/templates", tags=["templates"])
-app.include_router(pdf_splitter_router, tags=["pdf_splitter"])
+app.include_router(pdf_splitter_router,
+                   prefix="/api/pdf-splitter", tags=["pdf_splitter"])
 app.include_router(company.router, prefix="/api")
 
 
@@ -107,7 +108,10 @@ def read_root():
             "preview": "/api/files/preview/{file_id}",
             "pdf_extraction": "/api/extraction/extract/single",
             "bulk_extraction": "/api/extraction/extract/bulk",
-            "user_history": "/api/extraction/history/{user_id}"
+            "user_history": "/api/extraction/history/{user_id}",
+            "pdf_splitter_upload": "/api/pdf-splitter/upload",
+            "pdf_splitter_companies": "/api/pdf-splitter/companies",
+            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits"
         }
     }
 

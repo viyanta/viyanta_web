@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from services.pdf_splitter import PDFSplitterService
 
-router = APIRouter(prefix="/api/pdf-splitter", tags=["PDF Splitter"])
+router = APIRouter(tags=["PDF Splitter"])
 
 # Initialize the PDF splitter service
 pdf_splitter = PDFSplitterService()
