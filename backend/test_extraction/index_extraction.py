@@ -7,8 +7,8 @@ import glob
 from pathlib import Path
 from PyPDF2 import PdfReader, PdfWriter
 
-INPUT_PDF = r"../pdfs_selected_company/aditya birla sun life/Aditya Birla Life S FY2023 9M.pdf"
-OUTPUT_DIR = "pdf_splits_auto"
+INPUT_PDF = r"../pdfs_selected_company/sbi/SBI Life  S FY2023 9M.pdf"
+OUTPUT_DIR = "sbi_pdf_splits_auto"
 
 
 # --- Step 1: Extract index entries ---
@@ -105,111 +105,11 @@ def extract_index_entries(pdf_path):
     return entries
 
 
-# --- Step 1.5: Validate page ranges against actual content ---
-def validate_page_ranges(pdf_path, ranges):
-    """
-    Validate page ranges by checking if forms actually start at the specified pages.
-    If not, use content scanning to find the correct ranges.
-    Returns ranges with 'validated' flag indicating success.
-    """
-    reader = PdfReader(str(pdf_path))
-    validated_ranges = []
-
-    # Regex to detect any L-* variant
-    form_re = re.compile(
-        r"(L[-_\*]?\d+[A-Za-z0-9\-\_\*\s]*)", flags=re.IGNORECASE)
-
-    for entry in ranges:
-        expected_form = entry["form_no"].upper()
-        start_page = entry.get("start_page", 1)
-
-        # Extract form code from the expected form
-        form_code_match = re.search(r'(L[-_]?\d+[A-Z]*)', expected_form)
-        if not form_code_match:
-            # If we can't extract form code, keep original range but mark as unvalidated
-            entry_copy = entry.copy()
-            entry_copy["validated"] = False
-            validated_ranges.append(entry_copy)
-            continue
-
-        expected_code = form_code_match.group(1)
-
-        # Check if the form actually starts at the specified page
-        found_at_expected = False
-        if start_page <= len(reader.pages):
-            page_text = reader.pages[start_page - 1].extract_text() or ""
-            first_lines = "\n".join(page_text.splitlines()[
-                                    :10])  # Check more lines
-
-            # Look for the expected form code in the first lines
-            form_matches = form_re.findall(first_lines)
-            for match in form_matches:
-                clean_match = re.sub(r"\s+", " ", match).strip().upper()
-                # More lenient matching - check if form codes start the same way
-                if clean_match.startswith(expected_code) or expected_code.startswith(clean_match[:4]):
-                    found_at_expected = True
-                    break
-
-        entry_copy = entry.copy()
-
-        if found_at_expected:
-            # Page range is correct, keep it
-            entry_copy["validated"] = True
-            validated_ranges.append(entry_copy)
-            print(f"✅ Validated {expected_code} at page {start_page}")
-        else:
-            # Page range might be wrong, try to find the correct location
-            correct_start = None
-
-            # Search in a wider range around the expected page
-            # Don't go before page 3 (skip index pages)
-            search_start = max(3, start_page - 5)
-            search_end = min(len(reader.pages), start_page + 15)
-
-            for page_num in range(search_start, search_end + 1):
-                page_text = reader.pages[page_num - 1].extract_text() or ""
-                first_lines = "\n".join(page_text.splitlines()[:10])
-
-                form_matches = form_re.findall(first_lines)
-                for match in form_matches:
-                    clean_match = re.sub(r"\s+", " ", match).strip().upper()
-                    if clean_match.startswith(expected_code) or expected_code.startswith(clean_match[:4]):
-                        correct_start = page_num
-                        break
-
-                if correct_start:
-                    break
-
-            if correct_start and correct_start != start_page:
-                # Found the form at a different page, update the range
-                original_length = entry["end_page"] - entry["start_page"]
-                entry_copy["start_page"] = correct_start
-                entry_copy["end_page"] = correct_start + original_length
-                entry_copy["validated"] = True
-                validated_ranges.append(entry_copy)
-                print(
-                    f"🔧 Corrected {expected_code}: {start_page}-{entry['end_page']} → {correct_start}-{entry_copy['end_page']}")
-            else:
-                # Couldn't find the form or it's at the same page (validation failed)
-                entry_copy["validated"] = False
-                validated_ranges.append(entry_copy)
-                if correct_start:
-                    print(
-                        f"✅ Confirmed {expected_code} at page {start_page} (found in search)")
-                    entry_copy["validated"] = True
-                else:
-                    print(
-                        f"⚠️  Could not validate {expected_code} at page {start_page}")
-
-    return validated_ranges
-
-
 # --- Step 2: Content-based detection ---
 def detect_form_starts(pdf_path, form_list):
     """
     Scan the PDF for actual L-* form markers.
     Match against forms listed in the index (order matters).
-    Start from page 3 to skip index pages.
     """
     reader = PdfReader(str(pdf_path))
     form_ranges = []
@@ -221,12 +121,10 @@ def detect_form_starts(pdf_path, form_list):
     form_re = re.compile(
         r"(L[-_\*]?\d+[A-Za-z0-9\-\_\*\s]*)", flags=re.IGNORECASE)
 
-    # Start from page 3 to skip index pages (pages 1-2 are typically index/TOC)
-    for page_num in range(3, len(reader.pages) + 1):
+    for page_num, page in enumerate(reader.pages, 1):
         if form_idx >= len(form_list):
             break
 
-        page = reader.pages[page_num - 1]  # Convert to 0-based index
         text = page.extract_text() or ""
         first_lines = "\n".join(text.splitlines()[:8])  # scan first 8 lines
         match = form_re.search(first_lines)
@@ -274,64 +172,20 @@ def split_pdf(pdf_path, output_dir=OUTPUT_DIR):
     if page_coverage >= 0.7:  # Use index if 70%+ of entries have page numbers
         ranges = entries_with_pages  # Only use entries that have page numbers
 
-        # Step 1: First try to validate page ranges as-is (without any offset)
-        print(
-            f"🔍 Validating index page numbers as-is for {len(entries_with_pages)} entries...")
-        validated_ranges = validate_page_ranges(pdf_path, ranges)
+        # Check offset rule (only if L-1 starts at 1)
+        offset = 0
+        for e in ranges:
+            if e["form_no"].upper().startswith("L-1") and e["start_page"] == 1:
+                offset = 2
+                break
 
-        # Check how many ranges were successfully validated
-        valid_count = sum(
-            1 for v in validated_ranges if v.get("validated", False))
-        validation_rate = valid_count / \
-            len(validated_ranges) if validated_ranges else 0
-
-        # Step 2: If validation rate is low, try with L-1 offset rule
-        if validation_rate < 0.5:  # Less than 50% validation success
-            print(
-                f"⚠️  Low validation rate ({validation_rate:.1%}), trying with L-1 offset rule...")
-
-            # Check offset rule (only if L-1 starts at 1)
-            offset = 0
+        if offset:
             for e in ranges:
-                if e["form_no"].upper().startswith("L-1") and e["start_page"] == 1:
-                    offset = 2
-                    break
-
-            if offset:
-                # Apply offset to original ranges
-                offset_ranges = []
-                for e in ranges:
-                    offset_entry = e.copy()
-                    offset_entry["start_page"] += offset
-                    offset_entry["end_page"] += offset
-                    offset_ranges.append(offset_entry)
-
-                # Validate with offset
-                offset_validated = validate_page_ranges(
-                    pdf_path, offset_ranges)
-                offset_valid_count = sum(
-                    1 for v in offset_validated if v.get("validated", False))
-                offset_validation_rate = offset_valid_count / \
-                    len(offset_validated) if offset_validated else 0
-
-                # Use whichever gives better validation rate
-                if offset_validation_rate > validation_rate:
-                    validated_ranges = offset_validated
-                    print(
-                        f"✅ Using offset {offset}: validation improved to {offset_validation_rate:.1%}")
-                else:
-                    print(
-                        f"📌 Keeping original ranges: offset didn't improve validation ({offset_validation_rate:.1%} vs {validation_rate:.1%})")
-            else:
-                print("📌 No L-1 offset rule applicable")
-        else:
-            print(
-                f"✅ Good validation rate ({validation_rate:.1%}), using ranges as-is")
-
-        ranges = validated_ranges
+                e["start_page"] += offset
+                e["end_page"] += offset
 
         print(
-            f"✅ Using index page numbers ({len(entries_with_pages)}/{len(index_entries)} entries, {page_coverage:.1%} coverage) with content validation")
+            f"✅ Using index page numbers ({len(entries_with_pages)}/{len(index_entries)} entries, {page_coverage:.1%} coverage) with offset = {offset}")
 
     # Case B: Low page coverage → scan PDF content
     else:
