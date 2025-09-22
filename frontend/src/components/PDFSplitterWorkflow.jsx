@@ -12,6 +12,9 @@ const PDFSplitterWorkflow = ({ user }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState(null);
+  const [extractionError, setExtractionError] = useState(null);
 
   const companies = [
     'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
@@ -87,10 +90,16 @@ const PDFSplitterWorkflow = ({ user }) => {
   };
 
   const handleExtractForm = async () => {
-    if (!selectedForm) {
-      setError('Please select a form to extract');
+    if (!selectedForm || !user?.id) {
+      setError('Please select a form to extract and ensure you are logged in');
       return;
     }
+
+    setIsExtracting(true);
+    setExtractionError(null);
+    setExtractedData(null);
+    setError('');
+    setSuccess('');
 
     try {
       // Find the selected split
@@ -100,22 +109,55 @@ const PDFSplitterWorkflow = ({ user }) => {
         return;
       }
 
-      // Download the split file for extraction
-      const blob = await apiService.downloadSplitFile(selectedCompany, selectedPDF, selectedForm);
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = selectedForm;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      setSuccess(`Form ${selectedSplit.form_name} downloaded successfully!`);
+      console.log('Starting form extraction:', {
+        company: selectedCompany,
+        pdf: selectedPDF,
+        split: selectedForm,
+        user: user.id
+      });
+
+      // First check if extraction already exists
+      try {
+        const existingData = await apiService.getExtractedData(selectedCompany, selectedPDF, selectedForm);
+        if (existingData.success) {
+          console.log('Found existing extraction data');
+          setExtractedData(existingData);
+          setSuccess(`Form ${selectedSplit.form_name} data loaded successfully!`);
+          return;
+        }
+      } catch (existingError) {
+        console.log('No existing extraction found, proceeding with new extraction');
+      }
+
+      // Perform new extraction
+      const extractionResult = await apiService.extractFormData(
+        selectedCompany, 
+        selectedPDF, 
+        selectedForm, 
+        user.id
+      );
+
+      if (extractionResult.success) {
+        console.log('Extraction completed successfully');
+        setExtractedData(extractionResult);
+        setSuccess(`Form ${selectedSplit.form_name} extracted and corrected successfully!`);
+      } else {
+        setExtractionError(extractionResult.detail || 'Extraction failed');
+      }
+
     } catch (error) {
-      setError(`Extraction failed: ${error.message}`);
+      console.error('Extraction error:', error);
+      setExtractionError(`Extraction failed: ${error.message}`);
+    } finally {
+      setIsExtracting(false);
     }
+  };
+
+  // Clear extraction data when form changes
+  const clearExtractionData = () => {
+    setExtractedData(null);
+    setExtractionError(null);
+    setIsExtracting(false);
   };
 
   const cardStyle = {
@@ -217,6 +259,8 @@ const PDFSplitterWorkflow = ({ user }) => {
             setSelectedForm('');
             setError('');
             setSuccess('');
+            // Clear extraction data when company changes
+            clearExtractionData();
           }}
         >
           <option value="">Choose a company...</option>
@@ -277,6 +321,8 @@ const PDFSplitterWorkflow = ({ user }) => {
             setSelectedForm('');
             setError('');
             setSuccess('');
+            // Clear extraction data when PDF changes
+            clearExtractionData();
           }}
           disabled={!selectedCompany || companyPDFs.length === 0}
         >
@@ -311,6 +357,8 @@ const PDFSplitterWorkflow = ({ user }) => {
             setSelectedForm(e.target.value);
             setError('');
             setSuccess('');
+            // Clear extraction data when form changes
+            clearExtractionData();
           }}
           disabled={!selectedPDF || pdfSplits.length === 0}
         >
@@ -330,12 +378,12 @@ const PDFSplitterWorkflow = ({ user }) => {
           style={{
             ...buttonStyle,
             marginTop: '0.75rem',
-            opacity: !selectedForm ? 0.6 : 1
+            opacity: (!selectedForm || isExtracting) ? 0.6 : 1
           }}
           onClick={handleExtractForm}
-          disabled={!selectedForm}
+          disabled={!selectedForm || isExtracting}
         >
-          🎯 Extract Form Data
+          {isExtracting ? '⏳ Extracting...' : '🎯 Extract Form Data'}
         </button>
         {pdfSplits.length === 0 && selectedPDF && (
           <div style={{ marginTop: '0.5rem', fontSize: '12px', color: 'var(--text-color-light)' }}>
@@ -343,6 +391,261 @@ const PDFSplitterWorkflow = ({ user }) => {
           </div>
         )}
       </div>
+
+      {/* Step 5: Extraction Results */}
+      {(extractedData || extractionError || isExtracting) && (
+        <div style={stepStyle}>
+          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
+            5️⃣ Extraction Results:
+          </h3>
+          
+          {isExtracting && (
+            <div style={{ 
+              padding: '1rem', 
+              background: '#fff8e1', 
+              borderRadius: '8px',
+              border: '1px solid #ffd54f',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⏳</div>
+              <p style={{ margin: 0, color: '#f57f17' }}>
+                Extracting form data and applying Gemini corrections...
+              </p>
+            </div>
+          )}
+
+          {extractionError && (
+            <div style={{ 
+              padding: '1rem', 
+              background: '#ffebee', 
+              borderRadius: '8px',
+              border: '1px solid #f44336',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>❌</div>
+              <p style={{ margin: 0, color: '#d32f2f' }}>
+                {extractionError}
+              </p>
+            </div>
+          )}
+
+          {extractedData && extractedData.success && (
+            <div style={{ 
+              padding: '1rem', 
+              background: '#e8f5e8', 
+              borderRadius: '8px',
+              border: '1px solid #4caf50',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                marginBottom: '1rem',
+                gap: '0.5rem'
+              }}>
+                <div style={{ fontSize: '1.5rem' }}>✅</div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#2e7d32' }}>
+                    Extraction Completed Successfully
+                  </h4>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: '#388e3c' }}>
+                    Data extracted and corrected with Gemini AI
+                  </p>
+                </div>
+              </div>
+
+              {/* Metadata Display */}
+              {extractedData.metadata && (
+                <div style={{ 
+                  background: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem'
+                }}>
+                  <h5 style={{ margin: '0 0 0.5rem 0', color: '#2e7d32' }}>Extraction Details:</h5>
+                  <div style={{ display: 'grid', gap: '0.25rem' }}>
+                    <div><strong>Form Code:</strong> {extractedData.metadata.form_code}</div>
+                    <div><strong>Extraction ID:</strong> {extractedData.metadata.extraction_id}</div>
+                    <div><strong>Template Used:</strong> {extractedData.metadata.template_used?.split('/').pop()}</div>
+                    <div><strong>Gemini Corrected:</strong> {extractedData.metadata.gemini_corrected ? 'Yes' : 'No'}</div>
+                    <div><strong>Extracted At:</strong> {new Date(extractedData.metadata.extracted_at).toLocaleString()}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Data Table Display */}
+              {extractedData.data && Array.isArray(extractedData.data) && extractedData.data.length > 0 && (
+                <div style={{ 
+                  background: 'white',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  <div style={{ 
+                    background: '#f5f5f5',
+                    padding: '0.75rem',
+                    borderBottom: '1px solid #e0e0e0',
+                    fontWeight: '600'
+                  }}>
+                    📊 Extracted Data ({extractedData.data.length} record{extractedData.data.length !== 1 ? 's' : ''})
+                  </div>
+                  <div style={{ 
+                    maxHeight: '400px',
+                    overflow: 'auto',
+                    padding: '1rem'
+                  }}>
+                    {extractedData.data.map((record, index) => (
+                      <div key={index} style={{ 
+                        marginBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
+                        paddingBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
+                        borderBottom: index < extractedData.data.length - 1 ? '1px solid #f0f0f0' : 'none'
+                      }}>
+                        <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
+                          Record {index + 1} {record.FormName && `- ${record.FormName}`}
+                        </h6>
+                        
+                        {/* Metadata */}
+                        {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
+                          <div style={{ 
+                            background: '#f8f9fa',
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            marginBottom: '0.75rem',
+                            fontSize: '0.85rem'
+                          }}>
+                            {record.FormName && <div><strong>Form:</strong> {record.FormName}</div>}
+                            {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
+                            {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
+                            {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                          </div>
+                        )}
+
+                        {/* Table Data */}
+                        {record.Rows && Array.isArray(record.Rows) && record.Rows.length > 0 && (
+                          <div style={{ 
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            overflow: 'hidden'
+                          }}>
+                            <div style={{ 
+                              overflow: 'auto',
+                              maxHeight: '300px'
+                            }}>
+                              <table style={{ 
+                                width: '100%',
+                                borderCollapse: 'collapse',
+                                fontSize: '0.8rem'
+                              }}>
+                                <thead>
+                                  <tr style={{ background: '#f5f5f5' }}>
+                                    {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => (
+                                      <th key={headerIndex} style={{ 
+                                        padding: '0.5rem',
+                                        textAlign: 'left',
+                                        borderRight: '1px solid #e0e0e0',
+                                        borderBottom: '1px solid #e0e0e0',
+                                        fontWeight: '600'
+                                      }}>
+                                        {header}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {record.Rows.map((row, rowIndex) => (
+                                    <tr key={rowIndex} style={{ 
+                                      background: rowIndex % 2 === 0 ? 'white' : '#fafafa'
+                                    }}>
+                                      {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => (
+                                        <td key={headerIndex} style={{ 
+                                          padding: '0.5rem',
+                                          borderRight: '1px solid #e0e0e0',
+                                          borderBottom: '1px solid #e0e0e0'
+                                        }}>
+                                          {row[header] || '-'}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Download Actions */}
+              <div style={{ 
+                marginTop: '1rem',
+                display: 'flex',
+                gap: '0.5rem',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  style={{
+                    ...buttonStyle,
+                    background: '#1976d2',
+                    fontSize: '0.9rem',
+                    padding: '0.5rem 1rem'
+                  }}
+                  onClick={() => {
+                    const dataStr = JSON.stringify(extractedData.data, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${selectedForm.replace('.pdf', '')}_extracted.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  📥 Download JSON
+                </button>
+                
+                <button
+                  style={{
+                    ...buttonStyle,
+                    background: '#388e3c',
+                    fontSize: '0.9rem',
+                    padding: '0.5rem 1rem'
+                  }}
+                  onClick={() => {
+                    // Convert to CSV
+                    if (extractedData.data && extractedData.data.length > 0 && extractedData.data[0].Rows) {
+                      const headers = extractedData.data[0].FlatHeaders || [];
+                      const rows = extractedData.data.flatMap(record => record.Rows || []);
+                      
+                      let csv = headers.join(',') + '\n';
+                      rows.forEach(row => {
+                        const values = headers.map(header => {
+                          const value = row[header] || '';
+                          return `"${value.toString().replace(/"/g, '""')}"`;
+                        });
+                        csv += values.join(',') + '\n';
+                      });
+                      
+                      const blob = new Blob([csv], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${selectedForm.replace('.pdf', '')}_extracted.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }
+                  }}
+                >
+                  📊 Download CSV
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -251,5 +251,19 @@ def extract_form(pdf_path, template_json, output_json):
 
 
 if __name__ == "__main__":
-    out = extract_form(INPUT_PDF, TEMPLATE_JSON, OUTPUT_JSON)
-    print(f"✅ Extracted and saved to {out}")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Extract form data from PDF")
+    parser.add_argument("--template", required=True, help="Template JSON path")
+    parser.add_argument("--pdf", required=True, help="PDF file path")
+    parser.add_argument("--output", required=True, help="Output JSON path")
+
+    args = parser.parse_args()
+
+    # Use the provided arguments instead of hardcoded paths
+    template_json = args.template
+    input_pdf = args.pdf
+    output_json = args.output
+
+    out = extract_form(input_pdf, template_json, output_json)
+    print(f"Extracted and saved to {out}")

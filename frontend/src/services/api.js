@@ -1030,6 +1030,40 @@ class ApiService {
 
     return response.json();
   }
+
+  // PDF Form Extraction
+  async extractFormData(companyName, pdfName, splitFilename, userId) {
+    const formData = new FormData();
+    formData.append('company_name', companyName);
+    formData.append('pdf_name', pdfName);
+    formData.append('split_filename', splitFilename);
+    formData.append('user_id', userId);
+    
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/extract-form`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Form extraction failed');
+    }
+
+    return response.json();
+  }
+
+  async getExtractedData(companyName, pdfName, splitFilename) {
+    const response = await fetch(
+      `${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFilename)}/extraction`
+    );
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get extracted data');
+    }
+
+    return response.json();
+  }
 }
 
 export default new ApiService();

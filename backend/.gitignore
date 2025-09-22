@@ -7,3 +7,6 @@ venv
 *.csv
 __pycache__
 *.pyc
+*.txt
+*.log
+test_*.py
