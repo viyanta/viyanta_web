@@ -4,6 +4,7 @@ import ApiService from '../services/api.js'
 import { useStats } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
+import SmartTableViewer from '../components/SmartTableViewer.jsx'
 import { subscribeToAuthChanges } from '../firebase/auth.js'
 
 function ExplorerAllUsers({ onMenuClick }) {
@@ -30,10 +31,109 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [splitPdfUrl, setSplitPdfUrl] = React.useState(null);
     const [isLoadingSplitPdf, setIsLoadingSplitPdf] = React.useState(false);
     
-    // Extraction state
-    const [isExtracting, setIsExtracting] = React.useState(false);
+
+    // Extracted data state
     const [extractedData, setExtractedData] = React.useState(null);
-    const [extractionError, setExtractionError] = React.useState(null);
+    const [isLoadingExtractedData, setIsLoadingExtractedData] = React.useState(false);
+    const [extractedDataError, setExtractedDataError] = React.useState(null);
+    
+    // Pagination state for extracted data
+    const [currentRecordPage, setCurrentRecordPage] = React.useState(1);
+    const [recordsPerPage, setRecordsPerPage] = React.useState(10);
+    const [searchTerm, setSearchTerm] = React.useState('');
+    
+    // Process extracted data for pagination
+    const processedExtractedData = React.useMemo(() => {
+        if (!extractedData) return { headers: [], allRowsData: [], records: [], hasData: false };
+        
+        console.log('Raw extracted data:', extractedData);
+        
+        // Handle multiple records (array of data)
+        let records = [];
+        if (Array.isArray(extractedData)) {
+            records = extractedData;
+        } else {
+            records = [extractedData];
+        }
+        
+        console.log('Processing records:', records.length, 'records');
+        
+        // Get headers from first record
+        let headers = [];
+        let allRowsData = [];
+        
+        records.forEach((record, recordIndex) => {
+            // Try different data structures for each record
+            let recordHeaders = [];
+            let recordRows = [];
+            
+            // Check for SmartTableViewer format
+            if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
+                const table = record.tables[0];
+                recordHeaders = table.headers || [];
+                recordRows = table.data || [];
+            }
+            // Check for FlatHeaders and Rows format
+            else if (record?.FlatHeaders && Array.isArray(record.FlatHeaders)) {
+                recordHeaders = record.FlatHeaders;
+                recordRows = record.Rows || record.TableData || [];
+            }
+            // Check for direct headers and data format
+            else if (record?.headers && record?.data) {
+                recordHeaders = record.headers;
+                recordRows = record.data;
+            }
+            
+            // Use headers from first record
+            if (recordIndex === 0) {
+                headers = recordHeaders;
+            }
+            
+            // Add rows with record info - convert objects to arrays for SmartTableViewer
+            if (recordRows.length > 0) {
+                const convertedRows = recordRows.map(row => {
+                    // If row is already an array, use it as is
+                    if (Array.isArray(row)) {
+                        return row;
+                    }
+                    // If row is an object, convert it to array based on headers
+                    if (typeof row === 'object' && row !== null) {
+                        return recordHeaders.map(header => row[header] || '');
+                    }
+                    // If row is a primitive, wrap it in an array
+                    return [row];
+                });
+                allRowsData = allRowsData.concat(convertedRows);
+            }
+        });
+        
+        const hasData = headers.length > 0 && allRowsData.length > 0;
+        console.log('Final rendering data:', { headers, allRowsData, hasData, totalRecords: records.length });
+        console.log('Sample row structure:', allRowsData[0]);
+        console.log('Is first row an array?', Array.isArray(allRowsData[0]));
+        console.log('Number of columns:', headers.length);
+        console.log('Calculated table width:', `${headers.length * 400}px`);
+        console.log('Container max width: 1200px');
+        console.log('Should show horizontal scroll:', headers.length * 400 > 1200);
+        
+        return { headers, allRowsData, records, hasData };
+    }, [extractedData]);
+    
+    // Filter rows based on search term
+    const filteredRows = React.useMemo(() => {
+        if (!searchTerm) return processedExtractedData.allRowsData;
+        return processedExtractedData.allRowsData.filter(row => 
+            Array.isArray(row) 
+                ? row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+                : Object.values(row).some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }, [processedExtractedData.allRowsData, searchTerm]);
+    
+    // Pagination
+    const totalPages = Math.ceil(filteredRows.length / recordsPerPage);
+    const startIndex = (currentRecordPage - 1) * recordsPerPage;
+    const endIndex = startIndex + recordsPerPage;
+    const currentPageRows = filteredRows.slice(startIndex, endIndex);
     
     // S3 data state
     const [s3Data, setS3Data] = React.useState({});
@@ -60,6 +160,42 @@ function ExplorerAllUsers({ onMenuClick }) {
         return () => unsubscribe();
     }, []);
 
+    // Function to fetch extracted data for a split
+    const fetchExtractedData = async (companyName, pdfName, splitFilename) => {
+        if (!companyName || !pdfName || !splitFilename) return;
+        
+        console.log('🔍 fetchExtractedData called with:', { companyName, pdfName, splitFilename });
+        
+        setIsLoadingExtractedData(true);
+        setExtractedDataError(null);
+        setExtractedData(null); // Clear previous data
+        
+        try {
+            const result = await ApiService.getExtractedData(companyName, pdfName, splitFilename);
+            console.log('📊 API response:', result);
+            
+                if (result.success) {
+                    setExtractedData(result.data);
+                    console.log('✅ Extracted data loaded successfully:', result.data);
+                    console.log('📊 Data source:', result.source);
+                    
+                    // Reset pagination when new data is loaded
+                    setCurrentRecordPage(1);
+                    setSearchTerm('');
+                } else {
+                    console.log('❌ API returned success: false, message:', result.message);
+                    setExtractedDataError(result.message || 'No extracted data found');
+                    setExtractedData(null);
+                }
+        } catch (error) {
+            console.error('❌ Failed to fetch extracted data:', error);
+            setExtractedDataError(error.message || 'Failed to load extracted data');
+            setExtractedData(null);
+        } finally {
+            setIsLoadingExtractedData(false);
+        }
+    };
+
     // Load companies data on component mount
     React.useEffect(() => {
         loadCompaniesData();
@@ -73,7 +209,258 @@ function ExplorerAllUsers({ onMenuClick }) {
             }
         };
     }, [splitPdfUrl]);
+
+    // Fetch extracted data when a split is selected
+    React.useEffect(() => {
+        console.log('🔄 Split selection changed:', { selectedSplit, selectedFile, selectedCompany });
+        
+        if (selectedSplit && selectedFile && selectedCompany) {
+            // Company ID to name mapping (including both string and number IDs)
+            const companyIdMapping = {
+                'sbi': 'Sbi Life',  // Match API response format
+                'hdfc': 'Hdfc Life', 
+                'icici': 'Icici Prudential',
+                'bajaj': 'Bajaj Allianz',
+                1: 'Sbi Life',  // Add numeric mapping
+                2: 'Hdfc Life',
+                3: 'Icici Prudential',
+                4: 'Bajaj Allianz'
+            };
+            
+            // Try to find company name from companiesData first
+            const company = companiesData.find(c => (c.id || c.name) === selectedCompany);
+            let companyName = company?.name;
+            
+            console.log('🏢 Company lookup:', { selectedCompany, foundCompany: company, companyName });
+            
+            // If not found in companiesData, use fallback mapping
+            if (!companyName) {
+                companyName = companyIdMapping[selectedCompany];
+                console.log('🔄 Using fallback mapping:', { selectedCompany, mappedName: companyName });
+            }
+            
+            // Additional check: if company name is 'sbi', 'hdfc', etc., map to full name
+            if (companyName && ['sbi', 'hdfc', 'icici', 'bajaj'].includes(companyName.toLowerCase())) {
+                companyName = companyIdMapping[companyName.toLowerCase()] || companyName;
+                console.log('🔄 Using lowercase mapping:', { originalName: companyName, mappedName: companyIdMapping[companyName.toLowerCase()] });
+            }
+            
+            if (companyName) {
+                console.log('✅ Company name resolved, fetching extraction data:', { 
+                    selectedCompany, 
+                    companyName, 
+                    pdfName: selectedFile.name, 
+                    splitFilename: selectedSplit.filename 
+                });
+                fetchExtractedData(companyName, selectedFile.name, selectedSplit.filename);
+            } else {
+                console.log('❌ Company not found in companiesData:', selectedCompany, companiesData);
+                setExtractedDataError(`Company name not found for ID: ${selectedCompany}`);
+            }
+        } else {
+            console.log('⚠️ Missing required data for extraction:', { 
+                hasSelectedSplit: !!selectedSplit, 
+                hasSelectedFile: !!selectedFile, 
+                hasSelectedCompany: !!selectedCompany 
+            });
+            // Clear extracted data when no split is selected
+            setExtractedData(null);
+            setExtractedDataError(null);
+        }
+    }, [selectedSplit, selectedFile, selectedCompany, companiesData]);
     
+    // Function to render extracted data in table format (matching Smart Extraction UI)
+    const renderExtractedDataTable = () => {
+        const { headers, allRowsData, records, hasData } = processedExtractedData;
+        
+        // If we have table data, render it with custom scrolling
+        if (hasData) {
+            return (
+                <div style={{ 
+                    background: '#ef1313',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    width: '100%',
+                    maxWidth: '100%',
+                    height: '100%',
+                }}>
+                    {/* Header Section */}
+                    <div style={{
+                        background: '#f9fafb',
+                        borderBottom: '1px solid #e5e7eb',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}>
+                        <div style={{
+                            width: '24px',
+                            height: '24px',
+                            background: '#3b82f6',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>
+                            📊
+                        </div>
+                        <div>
+                            <h3 style={{ 
+                                margin: 0, 
+                                fontSize: '16px', 
+                                fontWeight: '600',
+                                color: '#111827'
+                            }}>
+                                📊 Extracted Data ({allRowsData.length} records)
+                            </h3>
+                            <p style={{ 
+                                margin: '4px 0 0 0', 
+                                fontSize: '14px', 
+                                color: '#6b7280' 
+                            }}>
+                                {selectedSplit?.form_name || 'Extracted Data'} • Pages: {selectedSplit?.start_page || 1}-{selectedSplit?.end_page || 1}
+                                {extractedData && extractedData.length > 0 && extractedData[0].metadata && (
+                                    <span style={{ 
+                                        marginLeft: '8px',
+                                        padding: '2px 6px',
+                                        background: extractedData[0].metadata.gemini_corrected ? '#28a745' : '#ffc107',
+                                        color: 'white',
+                                        borderRadius: '10px',
+                                        fontSize: '12px',
+                                        fontWeight: '600'
+                                    }}>
+                                        {extractedData[0].metadata.gemini_corrected ? '🤖 AI Verified' : '🔄 Extracted'}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Scrollable Table Container */}
+                    <div style={{ 
+                        overflowX: 'scroll', 
+                        overflowY: 'auto',
+                        maxHeight: '50vh',
+                        height: '50vh',
+                        width: '100%',
+                        maxWidth: '1200px',
+                        border: '1px solid #e5e7eb',
+                        position: 'relative',
+                        backgroundColor: '#f8f9fa'
+                    }}>
+                        <table style={{ 
+                            width: '100%',
+                            height: '100%',
+                            minWidth: '800px',
+                            borderCollapse: 'separate',
+                            borderSpacing: '0',
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, -apple-system, sans-serif',
+                            // tableLayout: 'fixed'
+                        }}>
+                            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                                <tr style={{ backgroundColor: '#667eea' }}>
+                                    {headers.map((header, index) => (
+                                        <th key={index} style={{ 
+                                            padding: '12px 16px',
+                                            textAlign: 'left',
+                                            fontWeight: '600',
+                                            color: 'white',
+                                            borderBottom: '2px solid #667eea',
+                                            width: '40px',
+                                            minWidth: '400px',
+                                            // wordWrap: 'break-word'
+                                        }}>
+                                            {header}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {allRowsData.map((row, rowIndex) => (
+                                    <tr key={rowIndex} style={{ 
+                                        backgroundColor: rowIndex % 2 === 0 ? 'white' : '#e2e3e4'
+                                    }}>
+                                        {Array.isArray(row) ? (
+                                            row.map((cell, cellIndex) => (
+                                                <td key={cellIndex} style={{ 
+                                                    padding: '12px 16px',
+                                                    borderBottom: '1px solid #e9ecef',
+                                                    width: '400px',
+                                                    minWidth: '400px',
+                                                    maxWidth: '400px',
+                                                    wordWrap: 'break-word'
+                                                }}>
+                                                    {cell || '-'}
+                                                </td>
+                                            ))
+                                        ) : (
+                                            headers.map((header, cellIndex) => (
+                                                <td key={cellIndex} style={{ 
+                                                    padding: '12px 16px',
+                                                    borderBottom: '1px solid #e9ecef',
+                                                    width: '40px',
+                                                    minWidth: '400px',
+                                                    maxWidth: '400px',
+                                                    wordWrap: 'break-word'
+                                                }}>
+                                                    {row[header] || '-'}
+                                                </td>
+                                            ))
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Footer with data info */}
+                    <div style={{
+                        background: '#f9fafb',
+                        borderTop: '1px solid #e5e7eb',
+                        padding: '12px 20px',
+                        fontSize: '14px',
+                        color: '#6b7280',
+                        textAlign: 'center',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <span>Showing {allRowsData.length} records • {headers.length} columns</span>
+                        <span style={{ 
+                            fontSize: '12px', 
+                            color: '#9ca3af',
+                            fontStyle: 'italic'
+                        }}>
+                            ← Scroll horizontally to see all columns →
+                        </span>
+                    </div>
+                </div>
+            );
+        } else {
+        return (
+            <div style={{
+                    textAlign: 'center', 
+                    padding: '2rem', 
+                    color: '#6b7280',
+                    background: '#f9fafb',
+                borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                        No extracted data found for this split
+                    </p>
+            </div>
+        );
+        }
+    };
+
     // Load companies data using API
     const loadCompaniesData = async () => {
         setLoading(true);
@@ -1805,96 +2192,71 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             ← Back to Files
                                         </button>
                                     </div>
-                                    
-                                    {/* Extract Form Data Button */}
-                                    <div style={{ 
-                                        marginTop: '1rem',
+
+                                </div>
+                                
+                                {/* Extracted data display */}
+                                {!extractedData ? (
+                                    <div style={{
                                         padding: '1rem',
                                         background: 'rgba(63, 114, 175, 0.1)',
                                         border: '1px solid rgba(63, 114, 175, 0.3)',
-                                        borderRadius: '6px'
+                                        borderRadius: '6px',
+                                        textAlign: 'center',
+                                        color: '#155724'
                                     }}>
-                                        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                                            <p style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)', fontWeight: '600' }}>
-                                                🤖 Extract and analyze data for this split
-                                            </p>
-                                            <p style={{ margin: '0', fontSize: '0.85rem', opacity: 0.8 }}>
-                                                Uses AI to extract and correct table data from the PDF
-                                            </p>
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                            <button
-                                                onClick={handleExtractFormData}
-                                                disabled={isExtracting}
-                                                style={{
-                                                    padding: '0.75rem 1.5rem',
-                                                    background: isExtracting ? '#cccccc' : 'var(--main-color)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    cursor: isExtracting ? 'not-allowed' : 'pointer',
-                                                    fontSize: '0.9rem',
-                                                    fontWeight: '600',
-                                                    minWidth: '150px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '0.5rem'
-                                                }}
-                                            >
-                                                {isExtracting ? (
-                                                    <>
-                                                        <div style={{
-                                                            width: '16px',
-                                                            height: '16px',
-                                                            border: '2px solid transparent',
-                                                            borderTop: '2px solid white',
-                                                            borderRadius: '50%',
-                                                            animation: 'spin 1s linear infinite'
-                                                        }}></div>
-                                                        Extracting...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        🚀 Extract Form Data
-                                                    </>
-                                                )}
-                                            </button>
-                                            
-                                            {extractedData && (
-                                                <button
-                                                    onClick={() => setExtractedData(null)}
-                                                    style={{
-                                                        padding: '0.75rem 1.5rem',
-                                                        background: '#6c757d',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.9rem'
-                                                    }}
-                                                >
-                                                    🗑️ Clear Data
-                                                </button>
-                                            )}
-                                        </div>
-                                        
-                                        {extractionError && (
-                                            <div style={{
-                                                marginTop: '1rem',
-                                                padding: '0.75rem',
-                                                background: '#fee',
-                                                border: '1px solid #fcc',
-                                                borderRadius: '4px',
-                                                color: '#c33',
-                                                fontSize: '0.85rem'
-                                            }}>
-                                                ❌ Error: {extractionError}
+                                        {isLoadingExtractedData ? (
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                                    🔄 Loading extracted data...
+                                                </p>
+                                            </div>
+                                        ) : extractedDataError ? (
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.9rem', color: '#dc3545' }}>
+                                                    ❌ {extractedDataError}
+                                                </p>
+                                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                                                    You can try extracting new data using the Smart Extraction feature
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                                    📊 No extracted data available for this split
+                                                </p>
+                                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                                                    Extract data using the Smart Extraction feature first
+                                                </p>
                                             </div>
                                         )}
                                     </div>
-                                </div>
+        ) : (
+            <div style={{ padding: '1rem' }}>
+                {/* Success Header for Existing Data */}
+                <div style={{
+                    background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                    color: 'white',
+                    padding: '1rem',
+                    borderRadius: '8px 8px 0 0',
+                    marginBottom: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                }}>
+                    <span style={{ fontSize: '1.2rem' }}>🤖</span>
+                    <div>
+                        <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>
+                            Extracted Data Available
+                        </h4>
+                        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', opacity: 0.9 }}>
+                            AI-extracted and verified table data for {selectedSplit?.form_name}
+                        </p>
+                    </div>
+                </div>
+                {renderExtractedDataTable()}
+            </div>
+        )}
                             </div>
                         ) : (
                             <JsonViewer />

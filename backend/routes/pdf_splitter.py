@@ -212,30 +212,38 @@ async def extract_form_data(
                 status_code=404, detail="Split metadata not found")
 
         # Determine template based on form code - IMPROVED DYNAMIC DETECTION
-        form_code = split_info.get("form_code", "").upper()
+        # FORCE FILENAME EXTRACTION: Always extract from filename to avoid incorrect stored metadata
+        # The stored form_code in metadata is often wrong (e.g., L-1 instead of L-1-A)
+        # form_code = split_info.get("form_code", "").upper()
+        form_code = ""  # Force filename extraction
 
-        # Fallback: extract form code from filename if not in metadata
+        # Extract form code from filename (this is more reliable than stored metadata)
         if not form_code:
-            # Extract comprehensive form codes from filenames - ENHANCED PATTERNS
-            # Handle patterns like "L-6A-SHAREHOLDERS", "L-5-COMMISSION", "L-1-A-REVENUE", etc.
+            # FIXED: Improved form code extraction prioritizing L-X-Y pattern over L-X-Y-Z
+            # Order matters - but we prioritize L-X-Y pattern to avoid L-X-Y-Z extraction for RA cases
             patterns = [
-                # L-6A, L-9A, L-14A (number + single letter, followed by non-letter or end)
-                r'(L-\d+[A-Z]+)(?:[^A-Z]|$)',
-                # L-1-A-REVENUE, L-2-A-PROFIT (number-dash-letter, followed by non-letter or end)
-                r'(L-\d+-[A-Z]+)(?:[^A-Z]|$)',
-                # L-10, L-11, L-28 (just numbers, followed by non-alphanumeric or end)
-                r'(L-\d+)(?:[^A-Z0-9]|$)',
-                # L-2 Revuenue
-
+                # L-1-A, L-2-A (captures L-X-Y, ignores -RA suffixes)
+                r'(L-\d+-[A-Z]+)(?:-[A-Z]+)*',
+                # L-6A, L-9A, L-14A (letter suffix without hyphen)
+                r'(L-\d+[A-Z]+)',
+                # L-10, L-11, L-28 (just numbers) - LAST
+                r'(L-\d+)',
             ]
 
-            for pattern in patterns:
+            print(
+                f"🔍 DEBUG: Testing patterns for filename: {split_filename.upper()}")
+            for i, pattern in enumerate(patterns):
                 filename_match = re.search(pattern, split_filename.upper())
+                print(f"🔍 Pattern {i+1}: {pattern}")
                 if filename_match:
                     form_code = filename_match.group(1)
+                    print(f"  ✅ MATCH: {form_code}")
                     # Normalize underscores to hyphens for consistency
                     form_code = form_code.replace('_', '-')
                     break
+                else:
+                    print(f"  ❌ No match")
+            print(f"🔍 Final form_code: {form_code}")
 
         print(
             f"🎯 Form code detected: '{form_code}' from filename: '{split_filename}'")
@@ -667,10 +675,21 @@ async def extract_form_data(
         }
 
     except Exception as e:
-        print(f"Form extraction error: {e}")
+        error_msg = str(e)
+        print(f"Form extraction error: {error_msg}")
         import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+        traceback_str = traceback.format_exc()
+        print(f"Full traceback: {traceback_str}")
+
+        # Enhanced error reporting
+        if not error_msg:
+            error_msg = "Unknown extraction error occurred"
+
+        # Include more context in the error
+        context_info = f"Company: {company_name}, PDF: {pdf_name}, Split: {split_filename}"
+        detailed_error = f"{error_msg} | Context: {context_info}"
+
+        raise HTTPException(status_code=500, detail=detailed_error)
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")
@@ -679,17 +698,39 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
     Get previously extracted data for a split - checks both extractions and gemini_verified_json directories
     """
     try:
-        company_slug = company_name.lower().replace(" ", "_")
+        # Helper function to find company directory with flexible naming
+        def find_company_dir(base_path: Path, company_name: str):
+            company_slug = company_name.lower().replace(" ", "_")
+            company_spaced = company_name.lower()
+
+            # Try underscore version first
+            underscore_path = base_path / company_slug
+            if underscore_path.exists():
+                return underscore_path
+
+            # Try spaced version
+            spaced_path = base_path / company_spaced
+            if spaced_path.exists():
+                return spaced_path
+
+            # If neither exists, return the underscore version for consistency
+            return underscore_path
+
+        # Find company directories with flexible naming
+        gemini_company_dir = find_company_dir(
+            Path("gemini_verified_json"), company_name)
+        extractions_company_dir = find_company_dir(
+            Path("extractions"), company_name)
 
         # Check Gemini-verified directory first (highest priority)
-        gemini_dir = Path("gemini_verified_json") / company_slug / pdf_name
+        gemini_dir = gemini_company_dir / pdf_name
         gemini_corrected_json = gemini_dir / \
             f"{Path(split_filename).stem}_corrected.json"
         gemini_metadata_path = gemini_dir / \
             f"{Path(split_filename).stem}_metadata.json"
 
         # Check original extractions directory
-        extractions_dir = Path("extractions") / company_slug / pdf_name
+        extractions_dir = extractions_company_dir / pdf_name
         corrected_json = extractions_dir / \
             f"{Path(split_filename).stem}_corrected.json"
         extracted_json = extractions_dir / \
