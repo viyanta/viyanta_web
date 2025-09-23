@@ -700,8 +700,9 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
     try:
         # Helper function to find company directory with flexible naming
         def find_company_dir(base_path: Path, company_name: str):
+            # Create both underscore and spaced versions
             company_slug = company_name.lower().replace(" ", "_")
-            company_spaced = company_name.lower()
+            company_spaced = company_name.lower().replace("_", " ")
 
             # Try underscore version first
             underscore_path = base_path / company_slug
@@ -713,7 +714,12 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
             if spaced_path.exists():
                 return spaced_path
 
-            # If neither exists, return the underscore version for consistency
+            # Try original input as-is
+            original_path = base_path / company_name.lower()
+            if original_path.exists():
+                return original_path
+
+            # If none exist, return the underscore version for consistency
             return underscore_path
 
         # Find company directories with flexible naming

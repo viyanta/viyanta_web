@@ -171,25 +171,44 @@ function ExplorerAllUsers({ onMenuClick }) {
         setExtractedData(null); // Clear previous data
         
         try {
+            console.log('🔍 Fetching extraction data:', { 
+                companyName, 
+                pdfName, 
+                splitFilename,
+                url: `companies/${companyName}/pdfs/${pdfName}/splits/${splitFilename}/extraction`
+            });
+            
             const result = await ApiService.getExtractedData(companyName, pdfName, splitFilename);
             console.log('📊 API response:', result);
             
                 if (result.success) {
                     setExtractedData(result.data);
                     console.log('✅ Extracted data loaded successfully:', result.data);
-                    console.log('📊 Data source:', result.source);
+                    console.log('📊 Data source:', result.source || 'unknown');
                     
                     // Reset pagination when new data is loaded
                     setCurrentRecordPage(1);
                     setSearchTerm('');
                 } else {
                     console.log('❌ API returned success: false, message:', result.message);
-                    setExtractedDataError(result.message || 'No extracted data found');
+                    setExtractedDataError(
+                        result.message || 
+                        'No extraction data found. Try running Smart Extraction first to generate data for this form.'
+                    );
                     setExtractedData(null);
                 }
         } catch (error) {
             console.error('❌ Failed to fetch extracted data:', error);
-            setExtractedDataError(error.message || 'Failed to load extracted data');
+            const errorMessage = error.message || 'Failed to load extracted data';
+            
+            // Provide helpful error message about fallback behavior
+            if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
+                setExtractedDataError(
+                    'No extraction data found for this form. The system checks for: 1) Gemini-verified JSON, 2) Corrected JSON, 3) Extracted JSON. Try running Smart Extraction to generate data.'
+                );
+            } else {
+                setExtractedDataError(errorMessage);
+            }
             setExtractedData(null);
         } finally {
             setIsLoadingExtractedData(false);
@@ -215,16 +234,27 @@ function ExplorerAllUsers({ onMenuClick }) {
         console.log('🔄 Split selection changed:', { selectedSplit, selectedFile, selectedCompany });
         
         if (selectedSplit && selectedFile && selectedCompany) {
-            // Company ID to name mapping (including both string and number IDs)
+            // Company ID to directory name mapping (for backend API calls)
             const companyIdMapping = {
-                'sbi': 'Sbi Life',  // Match API response format
-                'hdfc': 'Hdfc Life', 
-                'icici': 'Icici Prudential',
-                'bajaj': 'Bajaj Allianz',
-                1: 'Sbi Life',  // Add numeric mapping
-                2: 'Hdfc Life',
-                3: 'Icici Prudential',
-                4: 'Bajaj Allianz'
+                'sbi': 'sbi_life',  // Use underscore format for API
+                'hdfc': 'hdfc_life', 
+                'icici': 'icici_prudential',
+                'bajaj': 'bajaj_allianz',
+                1: 'sbi_life',  // Add numeric mapping
+                2: 'hdfc_life',
+                3: 'icici_prudential',
+                4: 'bajaj_allianz'
+            };
+            
+            // Directory name mapping for company names with spaces
+            const companyNameToDir = {
+                'Sbi Life': 'sbi_life',
+                'Hdfc Life': 'hdfc_life',
+                'Icici Prudential': 'icici_prudential',
+                'Bajaj Allianz': 'bajaj_allianz',
+                'SBI Life': 'sbi_life',
+                'HDFC Life': 'hdfc_life',
+                'ICICI Prudential': 'icici_prudential'
             };
             
             // Try to find company name from companiesData first
@@ -237,9 +267,16 @@ function ExplorerAllUsers({ onMenuClick }) {
             if (!companyName) {
                 companyName = companyIdMapping[selectedCompany];
                 console.log('🔄 Using fallback mapping:', { selectedCompany, mappedName: companyName });
+            } else {
+                // Convert company name to directory format for API
+                const dirName = companyNameToDir[companyName];
+                if (dirName) {
+                    console.log('🔄 Converting company name to directory format:', { originalName: companyName, dirName });
+                    companyName = dirName;
+                }
             }
             
-            // Additional check: if company name is 'sbi', 'hdfc', etc., map to full name
+            // Additional check: if company name is 'sbi', 'hdfc', etc., map to directory format
             if (companyName && ['sbi', 'hdfc', 'icici', 'bajaj'].includes(companyName.toLowerCase())) {
                 companyName = companyIdMapping[companyName.toLowerCase()] || companyName;
                 console.log('🔄 Using lowercase mapping:', { originalName: companyName, mappedName: companyIdMapping[companyName.toLowerCase()] });
