@@ -7,30 +7,63 @@
   "Table_Title": "Business Acquisition through Different Channels (Group)",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Channels": ["Channels"],
+    "NO": [
+      "NO"
+    ],
+    "Channels": [
+      "Channels"
+    ],
     "Current_Quarter": {
-      "No_of_Policies": ["No. of Policies"],
-      "No_of_Lives_Covered": ["No. of Lives Covered"],
-      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+      "No_of_Policies": [
+        "No. of Policies"
+      ],
+      "No_of_Lives_Covered": [
+        "No. of Lives Covered"
+      ],
+      "Premium_Lakh": [
+        "Premium",
+        "(₹ Lakh)"
+      ]
     },
     "Previous_Quarter": {
-      "No_of_Policies": ["No. of Policies"],
-      "No_of_Lives_Covered": ["No. of Lives Covered"],
-      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+      "No_of_Policies": [
+        "No. of Policies"
+      ],
+      "No_of_Lives_Covered": [
+        "No. of Lives Covered"
+      ],
+      "Premium_Lakh": [
+        "Premium",
+        "(₹ Lakh)"
+      ]
     },
     "Current_Year_To_Date": {
-      "No_of_Policies": ["No. of Policies"],
-      "No_of_Lives_Covered": ["No. of Lives Covered"],
-      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+      "No_of_Policies": [
+        "No. of Policies"
+      ],
+      "No_of_Lives_Covered": [
+        "No. of Lives Covered"
+      ],
+      "Premium_Lakh": [
+        "Premium",
+        "(₹ Lakh)"
+      ]
     },
     "Previous_Year_To_Date": {
-      "No_of_Policies": ["No. of Policies"],
-      "No_of_Lives_Covered": ["No. of Lives Covered"],
-      "Premium_Lakh": ["Premium", "(₹ Lakh)"]
+      "No_of_Policies": [
+        "No. of Policies"
+      ],
+      "No_of_Lives_Covered": [
+        "No. of Lives Covered"
+      ],
+      "Premium_Lakh": [
+        "Premium",
+        "(₹ Lakh)"
+      ]
     }
   },
-  
   "FlatHeaders": [
+    "NO",
     "Channels",
     "Current_Quarter_No_of_Policies",
     "Current_Quarter_No_of_Lives_Covered",
@@ -45,6 +78,5 @@
     "Previous_Year_To_Date_No_of_Lives_Covered",
     "Previous_Year_To_Date_Premium_Lakh"
   ],
-  
   "Rows": []
-} 
+}

@@ -211,19 +211,24 @@ async def extract_form_data(
             raise HTTPException(
                 status_code=404, detail="Split metadata not found")
 
-        # Determine template based on form code
+        # Determine template based on form code - IMPROVED DYNAMIC DETECTION
         form_code = split_info.get("form_code", "").upper()
 
         # Fallback: extract form code from filename if not in metadata
         if not form_code:
-            # Extract comprehensive form codes from filenames
-            # Handle patterns like "L-4-PREMIUM", "L-1-A-REVENUE", "L-3_A-BALANCE", etc.
+            # Extract comprehensive form codes from filenames - ENHANCED PATTERNS
+            # Handle patterns like "L-6A-SHAREHOLDERS", "L-5-COMMISSION", "L-1-A-REVENUE", etc.
             patterns = [
-                r'(L-\d+(?:-[A-Z]+)*(?:_[A-Z]+)*(?:-[A-Z]+)*)',  # L-4-PREMIUM, L-1-A-REVENUE, L-3_A-BALANCE
-                r'(L-\d+[A-Z]*)',  # L-9A, L-14A, L-28
-                r'(L-\d+)',  # L-10, L-11, etc.
+                # L-6A, L-9A, L-14A (number + single letter, followed by non-letter or end)
+                r'(L-\d+[A-Z]+)(?:[^A-Z]|$)',
+                # L-1-A-REVENUE, L-2-A-PROFIT (number-dash-letter, followed by non-letter or end)
+                r'(L-\d+-[A-Z]+)(?:[^A-Z]|$)',
+                # L-10, L-11, L-28 (just numbers, followed by non-alphanumeric or end)
+                r'(L-\d+)(?:[^A-Z0-9]|$)',
+                # L-2 Revuenue
+
             ]
-            
+
             for pattern in patterns:
                 filename_match = re.search(pattern, split_filename.upper())
                 if filename_match:
@@ -232,104 +237,220 @@ async def extract_form_data(
                     form_code = form_code.replace('_', '-')
                     break
 
-        print(f"🎯 Form code detected: '{form_code}' from filename: '{split_filename}'")
-        print(f"🔍 Original split info form_code: '{split_info.get('form_code', 'NOT_FOUND')}'")
+        print(
+            f"🎯 Form code detected: '{form_code}' from filename: '{split_filename}'")
+        print(
+            f"🔍 Original split info form_code: '{split_info.get('form_code', 'NOT_FOUND')}'")
 
-        # Build path to company templates directory
-        company_templates_dir = Path("templates") / company_name.lower().replace(" ", "_")
-        template_path = None
-        template_name = None
+        # ENHANCED DYNAMIC TEMPLATE SELECTION LOGIC (fully dynamic, no hardcoded company fallbacks)
+        templates_root = Path("templates")
+
+        def resolve_company_template_dir(raw_company: str) -> Path:
+            """Resolve company dir by tolerant matching (no hardcoded specific fallback)."""
+            lower_name = raw_company.lower().strip()
+            # try exact
+            direct = templates_root / lower_name
+            if direct.exists():
+                return direct
+            # normalize and fuzzy match
+            target_norm = re.sub(r"[^a-z0-9]", "", lower_name)
+            candidates = []
+            for d in templates_root.iterdir():
+                if d.is_dir():
+                    d_norm = re.sub(r"[^a-z0-9]", "", d.name.lower())
+                    if target_norm == d_norm or target_norm.startswith(d_norm) or d_norm.startswith(target_norm):
+                        candidates.append(d)
+            if candidates:
+                return sorted(candidates, key=lambda p: len(p.name))[0]
+            return direct  # non-existing path
+
+        def build_template_index() -> Dict[str, List[Dict[str, str]]]:
+            """Scan ALL company template folders and build index by base form code.
+            Returns: { 'L-6A': [ { 'company': 'hdfc', 'file': 'L-6A SHAREHOLDERS EXPENSES SCHEDULE.json', 'path': '/abs/path' }, ... ] }
+            """
+            idx: Dict[str, List[Dict[str, str]]] = {}
+            if not templates_root.exists():
+                return idx
+            for company_dir in templates_root.iterdir():
+                if not company_dir.is_dir():
+                    continue
+                for tf in company_dir.glob("*.json"):
+                    stem = tf.stem.upper().replace('_', '-')
+                    # Enhanced regex to capture L-6A, L-6, L-1-A etc. correctly
+                    # Priority: L-6A over L-6, L-1-A over L-1
+                    patterns = [
+                        # L-6A, L-9A, L-14A (letters after numbers)
+                        r'(L-\d+[A-Z]+)',
+                        r'(L-\d+-[A-Z]+)',  # L-1-A, L-2-A (dash then letters)
+                        r'(L-\d+)',  # L-6, L-7, L-28 (just numbers)
+                    ]
+
+                    base = None
+                    for pattern in patterns:
+                        m = re.search(pattern, stem)
+                        if m:
+                            base = m.group(1)
+                            break
+
+                    if not base:
+                        continue
+
+                    # Don't trim for exact matching - keep full form code
+                    entry = {"company": company_dir.name,
+                             "file": tf.name, "path": str(tf)}
+                    idx.setdefault(base, []).append(entry)
+                    print(
+                        f"Template indexed: {base} -> {tf.name} ({company_dir.name})")
+            return idx
+
+        def find_best_template(form_code: str, preferred_company: str, index_map: Dict[str, List[Dict[str, str]]]
+                               ):
+            if not form_code:
+                return None
+            form_code_u = form_code.upper().replace('_', '-')
+
+            # Build candidates with priority: exact -> progressive shortening
+            candidates_order = []
+
+            # First try exact form code
+            candidates_order.append(form_code_u)
+
+            # Then try progressive shortening but be smarter about L-6A vs L-6
+            tokens = form_code_u.split('-')
+
+            # For forms like L-6A-SHAREHOLDERS, try L-6A before L-6
+            if len(tokens) >= 2 and re.match(r'L-\d+[A-Z]', '-'.join(tokens[:2])):
+                # This is like L-6A-SHAREHOLDERS -> try L-6A
+                base_with_letter = '-'.join(tokens[:2])  # L-6A
+                if base_with_letter not in candidates_order:
+                    candidates_order.append(base_with_letter)
+
+            # Then try just the number part L-6
+            if len(tokens) >= 2:
+                base_number = '-'.join(tokens[:2])  # L-6 from L-6A
+                if re.match(r'L-\d+[A-Z]', base_number):
+                    # Extract just the number part: L-6A -> L-6
+                    # Remove trailing letters
+                    number_part = re.sub(r'([A-Z]+)$', '', base_number)
+                    if number_part and number_part not in candidates_order:
+                        candidates_order.append(number_part)
+                elif base_number not in candidates_order:
+                    candidates_order.append(base_number)
+
+            # Continue with other progressive shortening
+            remaining_tokens = tokens[:]
+            while len(remaining_tokens) >= 2:
+                remaining_tokens = remaining_tokens[:-1]  # Remove last token
+                cand = '-'.join(remaining_tokens)
+                if cand not in candidates_order:
+                    candidates_order.append(cand)
+
+            # ENHANCED: Try expanded form patterns for common abbreviations
+            # This helps match L-5-C with L-5-COMMISSION, L-6-OP with L-6-OPERATING, etc.
+            if len(tokens) >= 3:  # Forms like L-5-C, L-6-OP
+                base_part = '-'.join(tokens[:2])  # L-5
+                abbrev = tokens[2]  # C, OP, etc.
+
+                # Try common expansions
+                common_expansions = {
+                    'C': ['COMMISSION', 'CLAIMS', 'CURRENT', 'CASH'],
+                    'OP': ['OPERATING', 'OPERATIONS'],
+                    'EX': ['EXPENSES', 'EXPENDITURE'],
+                    'INV': ['INVESTMENT', 'INVESTMENTS'],
+                    'SH': ['SHAREHOLDERS', 'SHARE'],
+                    'POL': ['POLICYHOLDERS', 'POLICY'],
+                    'BEN': ['BENEFITS', 'BENEFICIARY'],
+                    'RES': ['RESERVES', 'REVENUE'],
+                    'SUP': ['SURPLUS', 'SUPPLEMENTARY'],
+                    'LIA': ['LIABILITIES', 'LIABILITY'],
+                    'ASS': ['ASSETS', 'ASSESSMENT']
+                }
+
+                if abbrev in common_expansions:
+                    for expansion in common_expansions[abbrev]:
+                        expanded_form = f"{base_part}-{expansion}"
+                        if expanded_form not in candidates_order:
+                            candidates_order.append(expanded_form)
+
+            print(
+                f"Template search candidates for '{form_code}': {candidates_order}")
+            preferred_company_l = preferred_company.lower()
+
+            # STRICT COMPANY MATCHING: Only look for templates in the preferred company
+            for cand in candidates_order:
+                if cand in index_map:
+                    for e in index_map[cand]:
+                        if e['company'].lower() == preferred_company_l:
+                            print(
+                                f"EXACT MATCH in preferred company {preferred_company}: {cand} -> {e['file']}")
+                            return e
+
+            # NO FALLBACK TO OTHER COMPANIES - force company-specific templates only
+            print(
+                f"ERROR: No template match found for '{form_code}' in {preferred_company} templates")
+            return None
+
+        company_templates_dir = resolve_company_template_dir(company_name)
+        template_index = build_template_index()
+        template_entry = None
+
+        print(f"Available templates for {company_name} in index:")
+        for form_code_key, entries in template_index.items():
+            company_entries = [e for e in entries if e['company'].lower(
+            ) == company_templates_dir.name.lower()]
+            if company_entries:
+                print(
+                    f"  {form_code_key}: {[e['file'] for e in company_entries]}")
 
         if form_code:
-            # Extract base form code (e.g., "L-4" from "L-4-PREMIUM-SCHEDULE")
-            base_form_match = re.search(r'(L-\d+[A-Z]*)', form_code)
-            base_form = base_form_match.group(1) if base_form_match else form_code
-            
-            print(f"🎯 Base form extracted: '{base_form}' from form code: '{form_code}'")
-            
-            # Define exact template mappings based on available files in templates/sbi/
-            exact_template_map = {
-                "L-1": "L-1-A-REVENUE.json",
-                "L-2": "L-2-A-PROFIT.json",
-                "L-3": "L-3.json", 
-                "L-4": "L-4-PREMIUM.json",
-                "L-5": "L-5-COMMISSION.json",
-                "L-6": "L-6.json",
-                "L-7": "L-7.json",
-                "L-8": "L-8-SHARE.json",
-                "L-9A": "L-9A.json",
-                "L-10": "L-10.json",
-                "L-11": "L-11.json",
-                "L-12": "L-12.json",
-                "L-13": "L-13.json",
-                "L-14": "L-14.json",
-                "L-15": "L-15.json",
-                "L-16": "L-16.json",
-                "L-17": "L-17.json",
-                "L-18": "L-18.json",
-                "L-20": "L-20 PROVISIONS SCHEDULE.json",
-                "L-21": "L-21 MISC EXPENDITURE SCHEDULE.json",
-                "L-22": "L-22.json",
-                "L-25": "L-25.json",
-                "L-26": "L-26.json",
-                "L-27": "L-27.json",
-                "L-28": "L-28.json",
-                "L-30": "L-30 RELATED PARTY TRANSACTION PART B.json",
-                "L-32": "L-32 SOLVENCY MARGIN.json",
-                "L-33": "L-33 NPAS.json",
-                "L-34": "L-34 YIELD ON INVESTMENT.json",
-                "L-35": "L-35 DOWNGRADING ON INVESTMENT.json",
-                "L-36": "L-36 BSNS NUMBERS.json",
-                "L-37": "L-37 BSNS ACQUISITION GROUP.json",
-                "L-38": "L-38 BSNS ACQUISITION INDIVIDUAL.json",
-                "L-39": "L-39 CLAIMS AGEING.json",
-                "L-40": "L-40 CLAIMS DATA.json",
-                "L-41": "L-41 GREIVANCES.json",
-                "L-42": "L-42 VALUATION BASIS.json",
-                "L-43": "L-43-VOTING.json",
-                "L-45": "L-45 OFFICES AND OTHER INFORMATION.json",
-            }
-            
-            # Get exact template name for the base form
-            template_name = exact_template_map.get(base_form)
-            
-            if template_name:
-                template_path = company_templates_dir / template_name
-                print(f"🎯 Template selected: '{template_name}' for base form: '{base_form}'")
-                print(f"🎯 Looking for template at: '{template_path}'")
-                
-                # If company-specific template doesn't exist, try sbi templates
-                if not template_path.exists():
-                    print(f"⚠️ Company template not found, trying sbi template")
-                    template_path = Path("templates") / "sbi" / template_name
-                    print(f"🎯 Trying sbi template at: '{template_path}'")
+            template_entry = find_best_template(
+                form_code, company_templates_dir.name, template_index)
+
+        if not template_entry:
+            # If no template found, list what's available for debugging
+            available_forms = []
+            print(
+                f"No template found for '{form_code}'. Available in {company_templates_dir.name}:")
+            for form_code_key, entries in template_index.items():
+                company_entries = [e for e in entries if e['company'].lower(
+                ) == company_templates_dir.name.lower()]
+                if company_entries:
+                    available_forms.append(form_code_key)
+                    print(f"  {form_code_key}: {company_entries[0]['file']}")
+
+            error_message = f"No template found for form_code '{form_code}' in {company_name} templates."
+            if available_forms:
+                error_message += f" Available form codes for {company_name}: {', '.join(available_forms)}"
             else:
-                print(f"❌ No template found for base form: '{base_form}' in mapping")
-                # Only use fallback if no mapping exists for this form
-                print(f"❌ Available mappings: {list(exact_template_map.keys())}")
+                error_message += f" No templates found for {company_name}."
 
-        # Only use fallback if no form code was detected at all
-        if not form_code or not template_name:
-            print(f"⚠️ Using fallback template due to missing form code or template mapping")
-            template_name = "L-1-A-REVENUE.json"
-            template_path = Path("templates") / "sbi" / template_name
-        
-        print(f"🎯 Final template path: '{template_path}' for form code: '{form_code}'")
+            raise HTTPException(status_code=404, detail=error_message)
 
-        # Final verification - if the selected template doesn't exist, use fallback
-        if not template_path or not template_path.exists():
-            print(f"⚠️ Selected template not found, using fallback")
-            template_path = Path("templates") / "sbi" / "L-1-A-REVENUE.json"
-            print(f"🎯 Fallback template path: '{template_path}'")
+        template_path = Path(template_entry['path'])
+        template_name = template_entry['file']
+        print(
+            f"Selected template: {template_name} (company={template_entry['company']}) for form_code={form_code}")
 
-        # Create output paths
-        output_dir = Path("extractions") / \
-            company_name.lower().replace(" ", "_") / pdf_name
-        output_dir.mkdir(parents=True, exist_ok=True)
+        if not template_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Resolved template path not found: {template_path}")
 
-        extracted_json = output_dir / \
+        print(f"Final template being used: {template_name} at {template_path}")
+
+        # Create output paths - UPDATED STRUCTURE
+        # Store extracted JSONs in extractions/
+        extractions_dir = Path("extractions") / \
+            company_name.lower() / pdf_name
+        extractions_dir.mkdir(parents=True, exist_ok=True)
+
+        # Store Gemini corrected JSONs in gemini_verified_json/
+        gemini_dir = Path("gemini_verified_json") / \
+            company_name.lower() / pdf_name
+        gemini_dir.mkdir(parents=True, exist_ok=True)
+
+        extracted_json = extractions_dir / \
             f"{Path(split_filename).stem}_extracted.json"
-        corrected_json = output_dir / \
+        corrected_json = gemini_dir / \
             f"{Path(split_filename).stem}_corrected.json"
 
         # Step 1: Run PDF extraction
@@ -344,53 +465,171 @@ async def extract_form_data(
         print(f"🔧 Extraction command: {' '.join(extraction_cmd)}")
         print(f"📁 Template path exists: {template_path.exists()}")
         print(f"📄 Split path exists: {Path(split_path).exists()}")
-        print(f"📂 Output dir exists: {output_dir.exists()}")
+        print(f"📂 Extractions dir exists: {extractions_dir.exists()}")
+        print(f"📂 Gemini dir exists: {gemini_dir.exists()}")
 
+        # Add extraction timeout and better error handling
         extraction_result = subprocess.run(
-            extraction_cmd, capture_output=True, text=True)
+            # 2 min timeout for basic extraction
+            extraction_cmd, capture_output=True, text=True, timeout=120)
 
         print(f"💯 Extraction return code: {extraction_result.returncode}")
         print(f"📤 Extraction stdout: {extraction_result.stdout}")
-        print(f"❌ Extraction stderr: {extraction_result.stderr}")
+        if extraction_result.stderr:
+            print(f"❌ Extraction stderr: {extraction_result.stderr}")
 
         if extraction_result.returncode != 0:
+            error_msg = extraction_result.stderr or "Unknown extraction error"
+            print(
+                f"❌ Extraction failed with code {extraction_result.returncode}")
             raise HTTPException(
                 status_code=500,
-                detail=f"Extraction failed: {extraction_result.stderr}"
+                detail=f"Extraction failed: {error_msg}"
             )
 
-        # Step 2: Run Gemini correction
+        # Check if extracted JSON is empty or has minimal data
+        extracted_is_empty = False
+        extracted_row_count = 0
+
+        if extracted_json.exists():
+            try:
+                with open(extracted_json, "r", encoding="utf-8") as ef:
+                    extracted_data = json.load(ef)
+                    if isinstance(extracted_data, list):
+                        extracted_row_count = sum(
+                            len(page.get("Rows", [])) for page in extracted_data)
+                    else:
+                        extracted_row_count = len(
+                            extracted_data.get("Rows", []))
+
+                    if extracted_row_count < 5:  # Consider less than 5 rows as "empty"
+                        extracted_is_empty = True
+                        print(
+                            f"⚠️ Extracted JSON has minimal data ({extracted_row_count} rows) - will force Gemini correction")
+                    else:
+                        print(
+                            f"✅ Extracted JSON has {extracted_row_count} rows")
+            except Exception as e:
+                extracted_is_empty = True
+                print(
+                    f"⚠️ Error reading extracted JSON: {e} - will force Gemini correction")
+        else:
+            extracted_is_empty = True
+            print(f"⚠️ Extracted JSON not found - will force Gemini correction")
+
+        # Step 2: ALWAYS run Gemini correction (even for empty extractions)
+        print(
+            f"🤖 Starting Gemini correction (empty extraction: {extracted_is_empty})")
+
         correction_cmd = [
             sys.executable,
             "services/pdf_splitted_gemini_very.py",
             "--template", str(template_path),
             "--extracted", str(extracted_json),
             "--pdf", split_path,
-            "--output", str(corrected_json)
+            "--output", str(corrected_json),
+            "--batch-size", "10"  # Use smaller batch size for better JSON parsing
         ]
 
-        correction_result = subprocess.run(
-            correction_cmd, capture_output=True, text=True)
+        print(f"🔧 Gemini correction command: {' '.join(correction_cmd)}")
 
-        if correction_result.returncode != 0:
-            print(f"Gemini correction failed: {correction_result.stderr}")
-            # Use extracted JSON if correction fails
-            corrected_json = extracted_json
+        try:
+            correction_result = subprocess.run(
+                # 1 min timeout (much shorter)
+                correction_cmd, capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            print(
+                "⏰ Gemini correction timed out after 1 minute - using extracted data only")
+            correction_result = subprocess.CompletedProcess(
+                correction_cmd, 1, "", "Timeout - using extracted data")
+
+        print(
+            f"💯 Gemini correction return code: {correction_result.returncode}")
+        if correction_result.stdout:
+            print(f"📤 Gemini correction stdout: {correction_result.stdout}")
+        if correction_result.stderr and "Timeout" not in correction_result.stderr:
+            print(f"❌ Gemini correction stderr: {correction_result.stderr}")
+        elif "Timeout" in str(correction_result.stderr):
+            print(f"⏰ Gemini correction timed out - proceeding with extracted data")
+
+        gemini_corrected = False
+        final_json_path = extracted_json  # Default fallback
+
+        if correction_result.returncode == 0:
+            # Check if the corrected file was actually created
+            if corrected_json.exists():
+                try:
+                    # Validate the corrected JSON
+                    with open(corrected_json, "r", encoding="utf-8") as cf:
+                        corrected_content = cf.read()
+                        corrected_data = json.loads(corrected_content)
+
+                    # Count rows in corrected data
+                    if isinstance(corrected_data, list):
+                        corrected_row_count = sum(
+                            len(page.get("Rows", [])) for page in corrected_data)
+                    else:
+                        corrected_row_count = len(
+                            corrected_data.get("Rows", []))
+
+                    if corrected_row_count > 0:
+                        gemini_corrected = True
+                        final_json_path = corrected_json
+                        print(
+                            f"✅ Gemini correction successful: {corrected_row_count} rows corrected")
+
+                        # If original was empty but corrected has data, this is a major improvement
+                        if extracted_is_empty:
+                            print(
+                                f"🎉 MAJOR SUCCESS: Gemini recovered data from nearly empty extraction!")
+                    else:
+                        print(f"⚠️ Gemini correction produced empty result")
+
+                except Exception as e:
+                    print(f"⚠️ Error validating corrected JSON: {e}")
+            else:
+                print(f"⚠️ Corrected file not created despite success return code")
+        else:
+            print(
+                f"❌ Gemini correction failed with return code {correction_result.returncode}")
+            print(f"❌ Error details: {correction_result.stderr}")
+
+        # Final file selection logic with enhanced data preservation preference
+        enhanced_corrected_json = Path(str(corrected_json).replace(
+            "_corrected.json", "_corrected_enhanced.json"))
+
+        if enhanced_corrected_json.exists():
+            final_json_path = enhanced_corrected_json
+            print(f"🎯 Using Enhanced Gemini-corrected JSON: {final_json_path}")
+            gemini_corrected = True
+        elif gemini_corrected and corrected_json.exists():
+            final_json_path = corrected_json
+            print(f"🎯 Using Gemini-corrected JSON: {final_json_path}")
+        else:
+            final_json_path = extracted_json
+            print(
+                f"🎯 Using extracted JSON (Gemini correction failed): {final_json_path}")
+            # Still mark as corrected if we attempted correction
+            if extracted_is_empty and correction_result.returncode == 0:
+                gemini_corrected = True  # We tried our best
 
         # Load the final JSON
-        with open(corrected_json, "r", encoding="utf-8") as f:
+        with open(final_json_path, "r", encoding="utf-8") as f:
             final_data = json.load(f)
 
         # Perform final validation check
         try:
-            validation_file = output_dir / f"{Path(split_filename).stem}_validation.json"
+            validation_file = gemini_dir / \
+                f"{Path(split_filename).stem}_validation.json"
             if validation_file.exists():
                 with open(validation_file, "r", encoding="utf-8") as vf:
                     validation_report = json.load(vf)
                     if not validation_report.get("is_valid", True):
-                        print(f"⚠️ Validation issues detected: {validation_report.get('issues', [])}")
+                        print(
+                            f"⚠️ Validation issues detected: {validation_report.get('issues', [])}")
                     else:
-                        print(f"✅ Data validation passed with {validation_report['stats']['total_rows']} rows")
+                        print(
+                            f"✅ Data validation passed with {validation_report['stats']['total_rows']} rows")
             else:
                 print("⚠️ No validation report found")
         except Exception as ve:
@@ -403,16 +642,19 @@ async def extract_form_data(
             "company_name": company_name,
             "pdf_name": pdf_name,
             "split_filename": split_filename,
+            "split_pdf_path": split_path,  # Add the actual split PDF path used
             "form_code": form_code,
             "template_used": str(template_path),
             "extracted_at": datetime.now().isoformat(),
             "extraction_status": "completed",
-            "gemini_corrected": str(corrected_json) != str(extracted_json),
-            "output_path": str(corrected_json)
+            # Use the actual flag from correction process
+            "gemini_corrected": gemini_corrected,
+            # Use the actual final file path
+            "output_path": str(final_json_path)
         }
 
         # Save metadata
-        metadata_path = output_dir / \
+        metadata_path = extractions_dir / \
             f"{Path(split_filename).stem}_metadata.json"
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(extraction_metadata, f, indent=2, ensure_ascii=False)
@@ -434,24 +676,47 @@ async def extract_form_data(
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")
 async def get_extracted_data(company_name: str, pdf_name: str, split_filename: str):
     """
-    Get previously extracted data for a split
+    Get previously extracted data for a split - checks both extractions and gemini_verified_json directories
     """
     try:
-        output_dir = Path("extractions") / \
-            company_name.lower().replace(" ", "_") / pdf_name
-        corrected_json = output_dir / \
+        company_slug = company_name.lower().replace(" ", "_")
+
+        # Check Gemini-verified directory first (highest priority)
+        gemini_dir = Path("gemini_verified_json") / company_slug / pdf_name
+        gemini_corrected_json = gemini_dir / \
             f"{Path(split_filename).stem}_corrected.json"
-        extracted_json = output_dir / \
-            f"{Path(split_filename).stem}_extracted.json"
-        metadata_path = output_dir / \
+        gemini_metadata_path = gemini_dir / \
             f"{Path(split_filename).stem}_metadata.json"
 
-        # Try corrected first, then extracted, then none
+        # Check original extractions directory
+        extractions_dir = Path("extractions") / company_slug / pdf_name
+        corrected_json = extractions_dir / \
+            f"{Path(split_filename).stem}_corrected.json"
+        extracted_json = extractions_dir / \
+            f"{Path(split_filename).stem}_extracted.json"
+        metadata_path = extractions_dir / \
+            f"{Path(split_filename).stem}_metadata.json"
+
+        # Priority order: Gemini-verified > corrected > extracted
         json_path = None
-        if corrected_json.exists():
+        metadata_source = None
+        source_type = None
+
+        if gemini_corrected_json.exists():
+            json_path = gemini_corrected_json
+            metadata_source = gemini_metadata_path if gemini_metadata_path.exists() else metadata_path
+            source_type = "gemini_verified"
+            print(f"📋 Using Gemini-verified JSON: {json_path}")
+        elif corrected_json.exists():
             json_path = corrected_json
+            metadata_source = metadata_path
+            source_type = "corrected"
+            print(f"📋 Using corrected JSON: {json_path}")
         elif extracted_json.exists():
             json_path = extracted_json
+            metadata_source = metadata_path
+            source_type = "extracted"
+            print(f"📋 Using extracted JSON: {json_path}")
 
         if not json_path:
             return {"success": False, "message": "No extraction data found"}
@@ -460,15 +725,16 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
             data = json.load(f)
 
         metadata = {}
-        if metadata_path.exists():
-            with open(metadata_path, "r", encoding="utf-8") as f:
+        if metadata_source and metadata_source.exists():
+            with open(metadata_source, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
 
         return {
             "success": True,
             "data": data,
             "metadata": metadata,
-            "source": "corrected" if json_path == corrected_json else "extracted"
+            "source": source_type,
+            "file_path": str(json_path)
         }
 
     except Exception as e:

@@ -1,6 +1,39 @@
 #!/usr/bin/env python3
 """
-gemini_test_fixed.py -- chunked correction mode with proper multi-page support
+ge# Logging - Simple configuration to avoid stream issues
+import sys
+import os
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+
+# Basic file logging only to avoid console stream issues
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.FileHandler("logs/gemini_debug.log", encoding="utf-8")]
+)
+
+# Also print to console manually to avoid stream descriptor issues
+def safe_print(message):
+    try:
+        print(message)
+    except:
+        pass
+
+# Override logging info to also print safely
+original_info = logging.info
+def safe_info(msg, *args, **kwargs):
+    original_info(msg, *args, **kwargs)
+    try:
+        if args:
+            safe_print(f"[INFO] {msg % args}")
+        else:
+            safe_print(f"[INFO] {msg}")
+    except:
+        safe_print(f"[INFO] {msg}")
+
+logging.info = safe_infod.py -- chunked correction mode with proper multi-page support
 
 This version preserves the original page structure instead of combining all pages.
 """
@@ -33,9 +66,17 @@ except Exception:
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.FileHandler(
-        "gemini_debug.log", encoding="utf-8"), logging.StreamHandler(sys.stdout)]
+    handlers=[
+        logging.FileHandler("gemini_debug.log", encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
+
+# Configure the stream handler to handle unicode properly
+for handler in logging.getLogger().handlers:
+    if isinstance(handler, logging.StreamHandler):
+        handler.stream = open(handler.stream.fileno(), 'w',
+                              encoding='utf-8', closefd=False)
 
 # Load API key
 load_dotenv()
@@ -88,20 +129,51 @@ def strip_code_fence(text: str) -> str:
 
 
 def heuristically_fix_json(s: str) -> str:
-    # common fixes
+    # Enhanced JSON repair with better handling of common Gemini formatting issues
     s = s.replace("\u201c", '"').replace("\u201d", '"').replace(
         "\u2018", "'").replace("\u2019", "'")
     s = s.strip()
-    s = re.sub(r",\s*([}\]])", r"\1", s)  # trailing commas
-    # try to fix repeated double-quotes
+
+    # Fix common Gemini formatting issues
+    # 1. Fix pattern: "},\n        {" -> "},\n    {"
+    s = re.sub(r'},\s*\n\s*{', '},\n    {', s)
+
+    # 2. Fix trailing commas before closing braces/brackets
+    s = re.sub(r",\s*([}\]])", r"\1", s)
+
+    # 3. Fix repeated double-quotes
     s = s.replace('""', '"')
-    # add missing closing braces/brackets naive
+
+    # 4. Fix missing commas between objects in arrays
+    s = re.sub(r'}\s*{', '},{', s)
+
+    # 5. Fix null values without quotes
+    s = re.sub(r':\s*null\s*([,}])', r': null\1', s)
+
+    # 6. Ensure proper array closure for Rows
+    if '"Rows"' in s and not s.strip().endswith(']}'):
+        # Find the last complete object in Rows array
+        last_brace_idx = s.rfind('}')
+        if last_brace_idx != -1:
+            # Add proper closing for Rows array and main object
+            remaining = s[last_brace_idx + 1:].strip()
+            if not remaining or remaining == ']' or remaining == ']}':
+                if not remaining:
+                    s = s[:last_brace_idx + 1] + '\n  ]\n}'
+                elif remaining == ']':
+                    s = s[:last_brace_idx + 1] + '\n  ]\n}'
+                elif remaining == ']}':
+                    # Already properly formatted
+                    pass
+
+    # 7. Add missing closing braces/brackets (naive approach)
     open_braces = s.count("{") - s.count("}")
     if open_braces > 0:
         s += "}" * open_braces
     open_brackets = s.count("[") - s.count("]")
     if open_brackets > 0:
         s += "]" * open_brackets
+
     return s
 
 
@@ -161,98 +233,133 @@ def chunkify(lst, n):
 def make_chunk_prompt(template_json, flat_headers, chunk_rows, pdf_excerpt):
     """
     Ultra-comprehensive prompt that ensures perfect PDF-to-JSON matching with header correction and metadata extraction.
+    Special handling for empty/minimal extractions where Gemini must extract everything from scratch.
     """
+
+    # Determine if this is a poor/empty extraction
+    has_meaningful_data = False
+    for row in chunk_rows:
+        if isinstance(row, dict):
+            for value in row.values():
+                if value and str(value).strip() and str(value).strip() != "":
+                    has_meaningful_data = True
+                    break
+        if has_meaningful_data:
+            break
+
+    if not has_meaningful_data:
+        extraction_quality = "EMPTY/POOR EXTRACTION - Gemini must extract EVERYTHING from PDF"
+        data_recovery_instructions = """
+**CRITICAL: COMPLETE DATA EXTRACTION FROM SCRATCH**
+The extracted data is empty or nearly empty. You must:
+1. Completely IGNORE the provided extracted rows (they are useless)
+2. Extract ALL table data directly from the PDF content
+3. Create the complete table structure from scratch using PDF as the only source
+4. Do NOT leave any cells empty unless they are truly empty in the PDF
+5. This is a RECOVERY operation - extract EVERY piece of data visible in the PDF
+"""
+    else:
+        extraction_quality = "PARTIAL EXTRACTION - Gemini must correct and complete"
+        data_recovery_instructions = """
+**DATA CORRECTION AND COMPLETION**
+The extracted data has some content but needs correction. You must:
+1. Use extracted data as a starting point but verify against PDF
+2. Correct all errors and misalignments
+3. Add any missing rows or values from PDF
+4. Ensure complete accuracy against PDF content
+"""
+
     prompt = f"""
 You are an expert financial data extraction and correction specialist. Your mission is to create a PERFECT match between the PDF content and the extracted JSON data.
 
+**EXTRACTION QUALITY STATUS: {extraction_quality}**
+
+{data_recovery_instructions}
+
 **GIVEN DATA:**
 
-1. **TEMPLATE STRUCTURE** (reference only - may be incorrect):
+1. **OUTPUT JSON TEMPLATE STRUCTURE**: Ensure STRICT Adherence to this format for the output. 
 {json.dumps(template_json, ensure_ascii=False, indent=2)}
 
-2. **CURRENT FLAT HEADERS** (may need correction):
+2. **EXTRACTED JSON COLUMN HEADERS** (may need complete correction):
 {json.dumps(flat_headers, ensure_ascii=False)}
 
-3. **EXTRACTED ROWS** (incomplete/incorrect data to be fixed):
+3. **EXTRACTED ROWS** (may be empty/wrong - use PDF as truth):
 {json.dumps(chunk_rows, ensure_ascii=False, indent=2)}
 
-4. **ORIGINAL PDF CONTENT** (ABSOLUTE TRUTH - use this to correct everything):
+4. **ORIGINAL PDF CONTENT** (ABSOLUTE TRUTH - PRIMARY DATA SOURCE):
 {pdf_excerpt}
 
-**🎯 ULTIMATE MISSION: PERFECT PDF-JSON SYNCHRONIZATION**
+**ULTIMATE MISSION: PERFECT PDF-TO-JSON SYNCHRONIZATION**
 
-**📋 STEP 1: PDF CONTENT FORENSIC ANALYSIS**
+**STEP 1: PDF CONTENT FORENSIC ANALYSIS**
 - Scan EVERY character, number, symbol, table, and text in the PDF
 - Identify the EXACT table structure: number of columns, header names, data rows
 - Extract ALL form metadata: Form Number, Company Title, Registration Number, Period, Currency
 - Map every piece of data to its precise location and context
 - Note ALL formatting: commas, parentheses, dashes, decimals, percentages
 
-**🔧 STEP 2: HEADER CORRECTION & VALIDATION**
-- Compare PDF table headers with current flat_headers
+**STEP 2: HEADER CORRECTION & VALIDATION**
+- Compare PDF table headers with current EXTRACTED JSON COLUMN headers
 - If PDF headers differ from template headers, CORRECT them to match PDF exactly
 - If PDF has more/fewer columns than template, ADJUST the structure accordingly
 - Ensure header names match PDF exactly (case, spacing, special characters)
 - Create corrected header list that perfectly matches the PDF table structure
 
-**📊 STEP 3: FORM METADATA EXTRACTION**
+**STEP 3: FORM METADATA EXTRACTION**
 - Extract Form Number (e.g., "L-3", "L-28", etc.) from PDF text
 - Extract Company Title/Name from PDF content
 - Extract Registration Number from PDF text
 - Extract Period information (date ranges, "As at", "For the period ended")
 - Extract Currency unit ("in Lakhs", "in Crores", etc.)
 
-**🔍 STEP 4: COMPLETE DATA RECOVERY**
+**STEP 4: COMPLETE DATA RECOVERY**
 - Find ALL table rows that exist in PDF but missing from extracted data
 - Recover ALL financial figures, particulars, and data points from PDF
 - Add missing rows with correct data in proper column positions
 - Ensure NO data from PDF is omitted or overlooked
 - Cross-reference every PDF table cell with extracted JSON
+- If extraction is empty, recreate the ENTIRE table from PDF
 
-**✅ STEP 5: PRECISION DATA CORRECTION**
+**STEP 5: PRECISION DATA CORRECTION**
 - Fix ALL incorrect numbers, text, or misplaced data
 - Correct column misalignments (move data to correct headers)
 - Preserve EXACT PDF formatting: "1,23,456", "(123)", "-", etc.
 - Match text case, spelling, punctuation exactly as in PDF
 - Ensure each cell contains only ONE clean value (no merged data)
 
-**🎯 CRITICAL SUCCESS CRITERIA:**
-❌ ZERO tolerance for missing PDF data
-❌ ZERO tolerance for incorrect values or wrong formatting
-❌ ZERO tolerance for column misalignments
-❌ ZERO tolerance for wrong headers when PDF differs from template
-✅ Headers MUST match PDF table structure exactly
-✅ ALL PDF data MUST be captured in JSON
-✅ Formatting MUST preserve PDF appearance exactly
-✅ Structure MUST adapt to PDF reality, not template assumptions
+**CRITICAL SUCCESS CRITERIA:**
+- ZERO tolerance for missing PDF data
+- ZERO tolerance for incorrect values or wrong formatting
+- ZERO tolerance for column misalignments
+- ZERO tolerance for wrong headers when PDF differs from template
+- ZERO tolerance for empty results when PDF contains data
+- Headers MUST match PDF table structure exactly
+- ALL PDF data MUST be captured in JSON
+- Formatting MUST preserve PDF appearance exactly
+- Structure MUST adapt to PDF reality, not template assumptions
+- If extraction is poor, CREATE complete table from PDF
+ 
+**EXECUTE ZERO-LOSS PDF-TO-JSON TRANSFORMATION:**
+**CRITICAL DATA PRESERVATION MANDATE:**
+1. **NEVER DELETE EXISTING DATA**: If the extracted JSON contains numerical values, preserve them unless clearly wrong per the PDF
+2. **VALIDATION REQUIREMENT**: The corrected JSON must have AT LEAST as many non-empty data points as the extracted JSON
+3. **RECOVERY PROTOCOL**: If PDF shows data that's missing from extraction, ADD it. If extraction has data not clearly wrong per PDF, KEEP it
 
-** MANDATORY OUTPUT FORMAT:**
-You MUST return a JSON object with these exact keys:
+**DATA MAPPING EXAMPLES:**
+- "As_at_Current" data -> "As at December 31, 2022" column
+- "As_at_Previous" data -> "As at December 31, 2021" column  
+- "Unit_Linked_Life" data -> appropriate quarterly/period column
+- All Particulars/row labels must be preserved exactly
 
-{{
-  "FormInfo": {{
-    "Form No": "extracted form number from PDF",
-    "Title": "extracted company title from PDF", 
-    "RegistrationNumber": "extracted registration info from PDF",
-    "Period": "extracted period/date from PDF",
-    "Currency": "extracted currency unit from PDF"
-  }},
-  "CorrectedHeaders": ["header1", "header2", "header3"],
-  "Rows": [
-    {{"header1": "value1", "header2": "value2"}},
-    {{"header1": "value1", "header2": "value2"}}
-  ]
-}}
+Compare the provided extracted data with the PDF content. Find EVERY missing row, EVERY missing value, EVERY misaligned piece of data. Add ALL missing information. Correct ALL errors. Make the JSON a PERFECT mirror of the PDF table while preserving ALL meaningful data from the extraction.
 
-**⚠️ CRITICAL INSTRUCTIONS:**
-- FormInfo MUST contain metadata extracted from PDF content
-- CorrectedHeaders MUST match PDF table structure exactly
-- Rows MUST use CorrectedHeaders as keys
-- Every row MUST have all CorrectedHeaders keys (empty string if no data)
-- NO explanations, comments, or markdown fences
-- ONLY return the JSON object
-
-**🚀 EXECUTE PERFECT PDF-TO-JSON TRANSFORMATION NOW:**
+**CRITICAL JSON FORMATTING REQUIREMENTS:**
+- Return ONLY valid JSON - no explanations, comments, or markdown fences
+- Ensure proper array/object closure - no missing brackets or braces
+- No trailing commas before closing brackets/braces
+- Proper spacing and formatting for clean parsing
+- Test JSON validity before responding
 """
     return prompt
 
@@ -266,15 +373,30 @@ def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_n
     """
 
     rows = page_obj.get("Rows", [])
+
+    # Create dummy rows if extraction is empty so Gemini can still correct
     if not rows:
-        logging.warning(f"Page {page_num} has no rows to correct")
-        return page_obj
+        logging.warning(
+            f"Page {page_num} has no rows - creating dummy rows for Gemini to populate from PDF")
+        # Create 10 dummy empty rows for Gemini to fill with actual PDF data
+        dummy_flat_headers = template_json.get(
+            "FlatHeaders") or page_obj.get("FlatHeaders") or []
+        if dummy_flat_headers:
+            rows = [{header: "" for header in dummy_flat_headers}
+                    for _ in range(10)]
+        else:
+            # If no headers either, create basic structure
+            rows = [{"Particulars": "", "Value1": "",
+                     "Value2": "", "Value3": ""} for _ in range(10)]
 
     flat_headers = template_json.get(
         "FlatHeaders") or page_obj.get("FlatHeaders") or []
     if not flat_headers:
-        logging.error(f"FlatHeaders not found for page {page_num}")
-        return page_obj
+        logging.warning(
+            f"FlatHeaders not found for page {page_num} - Gemini will determine from PDF")
+        # Let Gemini determine headers from PDF content
+        flat_headers = ["Particulars", "Value1",
+                        "Value2", "Value3", "Value4", "Value5"]
 
     # Extract text from the specific PDF page
     pdf_text = extract_text_from_pdf_page(pdf_path, pdf_page_num)
@@ -438,14 +560,22 @@ def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_n
                 break
 
             # Ensure each row in rows_chunk has exact flat_headers keys; map/clean as needed
+            # ENHANCED DATA PRESERVATION: Preserve original data when headers change
             normalized_rows = []
-            for r in rows_chunk:
+
+            for i, r in enumerate(rows_chunk):
                 # r might have keys with different case/spacing; map by header tokens
                 if not isinstance(r, dict):
                     continue
+
+                # Get corresponding original row for data preservation
+                original_row = chunk[i] if i < len(chunk) else {}
+
                 normalized = {}
                 # Try direct mapping first
                 for h in flat_headers:
+                    val = ""
+
                     if h in r:
                         val = r[h]
                     else:
@@ -458,14 +588,76 @@ def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_n
                             found = key_variants[key_try]
                             val = r.get(found, "")
                         else:
-                            # fallback: empty
+                            # PRESERVATION LOGIC: If corrected value is empty, try to preserve original
                             val = r.get(h, "")
+
+                            # If still empty, check if we can map from original data
+                            if (not val or str(val).strip() == "") and isinstance(original_row, dict):
+                                # Try common header mappings for data preservation
+                                header_mappings = {
+                                    "As at December 31, 2022": ["As_at_Current", "As_at_2022", "Current"],
+                                    "As at December 31, 2021": ["As_at_Previous", "As_at_2021", "Previous"],
+                                    "As at \nDecember 31, 2022": ["As_at_Current", "As_at_2022", "Current"],
+                                    "As at \nDecember 31, 2021": ["As_at_Previous", "As_at_2021", "Previous"],
+                                    "For the quarter ended \nDecember 31, 2022": ["Unit_Linked_Life", "Participating_Life", "Non_Participating_Life"],
+                                    "Up to the period ended\n   December 31, 2022": ["Unit_Linked_Total", "Participating_Total", "Non_Participating_Total"],
+                                }
+
+                                # Check if this header has a mapping
+                                if h in header_mappings:
+                                    for orig_key in header_mappings[h]:
+                                        if orig_key in original_row and original_row[orig_key]:
+                                            val = original_row[orig_key]
+                                            logging.info(
+                                                f"Preserved data '{val}' from '{orig_key}' to '{h}'")
+                                            break
+
+                                # If still empty, try exact key match from original
+                                if not val and h in original_row:
+                                    val = original_row[h]
+                                    logging.info(
+                                        f"Preserved original data '{val}' for '{h}'")
+
                     if val is None:
                         val = ""
                     # stringify and clean internal newlines
                     val = str(val).replace("\n", " ").strip()
                     normalized[h] = val
+
                 normalized_rows.append(normalized)
+
+            # FINAL DATA PRESERVATION CHECK: Ensure we didn't lose meaningful data
+            original_data_count = sum(1 for row in chunk if isinstance(row, dict)
+                                      for val in row.values() if val and str(val).strip())
+            corrected_data_count = sum(1 for row in normalized_rows if isinstance(row, dict)
+                                       for val in row.values() if val and str(val).strip())
+
+            if corrected_data_count < original_data_count:
+                logging.warning(
+                    f"Data loss detected in chunk {idx}: {original_data_count} -> {corrected_data_count} data points")
+                # Try to recover lost data by appending missing original rows with data
+                for i, orig_row in enumerate(chunk):
+                    if i < len(normalized_rows) and isinstance(orig_row, dict):
+                        norm_row = normalized_rows[i]
+                        # Check if we can add missing data
+                        for orig_key, orig_val in orig_row.items():
+                            if orig_val and str(orig_val).strip():
+                                # Find if this data appears anywhere in the normalized row
+                                found_data = any(str(norm_val).strip() == str(orig_val).strip()
+                                                 for norm_val in norm_row.values())
+                                if not found_data:
+                                    logging.warning(
+                                        f"Lost data '{orig_val}' from field '{orig_key}' - attempting recovery")
+                                    # Try to place it in an empty field with similar name
+                                    for norm_key in norm_row.keys():
+                                        if not norm_row[norm_key] and (
+                                            orig_key.lower() in norm_key.lower() or
+                                            norm_key.lower() in orig_key.lower()
+                                        ):
+                                            norm_row[norm_key] = orig_val
+                                            logging.info(
+                                                f"Recovered data '{orig_val}' to field '{norm_key}'")
+                                            break
 
             corrected_rows_all.extend(normalized_rows)
             success = True
@@ -499,7 +691,7 @@ def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_n
 
 
 def verify_and_correct_multipage(template_path: Path, extracted_path: Path, pdf_path: Path, output_path: Path,
-                                 model_name="gemini-1.5-pro", batch_size=20, max_pages=10, retries=5, backoff=5.0):
+                                 model_name="gemini-2.5-pro", batch_size=20, max_pages=10, retries=5, backoff=5.0):
     """
     Corrects multi-page extracted JSON while preserving page structure.
     Uses page-specific PDF content for each JSON page.
@@ -580,9 +772,9 @@ def verify_and_correct_multipage(template_path: Path, extracted_path: Path, pdf_
         # Log validation results
         if validation_report["is_valid"]:
             logging.info(
-                "✅ Validation PASSED: Corrected JSON meets quality standards")
+                "Validation PASSED: Corrected JSON meets quality standards")
         else:
-            logging.warning("⚠️ Validation ISSUES found:")
+            logging.warning("Validation ISSUES found:")
             for issue in validation_report["issues"]:
                 logging.warning(f"  - {issue}")
 
@@ -594,7 +786,7 @@ def verify_and_correct_multipage(template_path: Path, extracted_path: Path, pdf_
         # Log statistics
         stats = validation_report["stats"]
         logging.info(
-            f"📊 Data Statistics: {stats['total_rows']} total rows, {stats['rows_with_data']} with data, {stats['numeric_values']} numeric values")
+            f"Data Statistics: {stats['total_rows']} total rows, {stats['rows_with_data']} with data, {stats['numeric_values']} numeric values")
 
         # Save validation report
         validation_file = output_path.with_name(
@@ -612,7 +804,7 @@ def verify_and_correct_multipage(template_path: Path, extracted_path: Path, pdf_
 
 def validate_corrected_data(corrected_json, pdf_text, template_json, extracted_json):
     """
-    Comprehensive validation of corrected JSON against PDF content
+    Comprehensive validation of corrected JSON against PDF content and comparison with original extraction
     Returns validation report with issues found
     """
     validation_report = {
@@ -623,18 +815,29 @@ def validate_corrected_data(corrected_json, pdf_text, template_json, extracted_j
             "total_rows": 0,
             "rows_with_data": 0,
             "empty_cells": 0,
-            "numeric_values": 0
+            "numeric_values": 0,
+            "improvement_score": 0,
+            "original_data_points": 0,
+            "corrected_data_points": 0
         }
     }
 
     try:
         # Handle both single page and multi-page structures
         if isinstance(corrected_json, list):
-            pages = corrected_json
+            corrected_pages = corrected_json
         else:
-            pages = [corrected_json]
+            corrected_pages = [corrected_json]
 
-        for page_idx, page_data in enumerate(pages):
+        if isinstance(extracted_json, list):
+            original_pages = extracted_json
+        else:
+            original_pages = [extracted_json]
+
+        original_data_count = 0
+        corrected_data_count = 0
+
+        for page_idx, page_data in enumerate(corrected_pages):
             rows = page_data.get("Rows", [])
             flat_headers = page_data.get(
                 "FlatHeaders", template_json.get("FlatHeaders", []))
@@ -647,18 +850,15 @@ def validate_corrected_data(corrected_json, pdf_text, template_json, extracted_j
                 # Check if row has all required headers
                 missing_headers = set(flat_headers) - set(row.keys())
                 if missing_headers:
-                    validation_report["issues"].append(
-                        f"Page {page_idx+1}, Row {row_idx+1}: Missing headers: {missing_headers}")
-                    validation_report["is_valid"] = False
+                    validation_report["warnings"].append(
+                        f"Row {row_idx} on page {page_idx} missing headers: {missing_headers}")
 
-                # Check each cell
+                # Check each cell and count data
                 for header in flat_headers:
                     cell_value = row.get(header, "")
-
-                    if cell_value and cell_value.strip():
+                    if cell_value and str(cell_value).strip():
                         row_has_data = True
-
-                        # Count numeric values
+                        # Check if it's a number
                         if re.search(r'\d', str(cell_value)):
                             validation_report["stats"]["numeric_values"] += 1
                     else:
@@ -666,19 +866,47 @@ def validate_corrected_data(corrected_json, pdf_text, template_json, extracted_j
 
                 if row_has_data:
                     validation_report["stats"]["rows_with_data"] += 1
+                    corrected_data_count += 1
 
-                # Check for particulars column content
-                particulars = row.get("Particulars", "")
-                if particulars and len(particulars.strip()) > 100:
-                    validation_report["warnings"].append(
-                        f"Page {page_idx+1}, Row {row_idx+1}: Particulars field unusually long ({len(particulars)} chars)")
+        # Compare with original extraction to measure improvement
+        for page_idx, original_page in enumerate(original_pages):
+            original_rows = original_page.get("Rows", [])
+            for row in original_rows:
+                for value in row.values():
+                    if value and str(value).strip():
+                        original_data_count += 1
+                        break
+
+        # Calculate improvement score
+        if original_data_count == 0:
+            # Original was empty, any data is an improvement
+            improvement_score = corrected_data_count * \
+                10  # 10 points per recovered data point
+        else:
+            # Calculate percentage improvement
+            improvement_score = max(
+                0, ((corrected_data_count - original_data_count) / original_data_count) * 100)
+
+        validation_report["stats"]["improvement_score"] = round(
+            improvement_score, 2)
+        validation_report["stats"]["original_data_points"] = original_data_count
+        validation_report["stats"]["corrected_data_points"] = corrected_data_count
+
+        # Quality checks
+        if validation_report["stats"]["rows_with_data"] == 0:
+            validation_report["issues"].append("No rows contain any data")
+            validation_report["is_valid"] = False
+
+        if validation_report["stats"]["empty_cells"] > validation_report["stats"]["total_rows"] * len(flat_headers) * 0.8:
+            validation_report["warnings"].append(
+                f"High percentage of empty cells: {validation_report['stats']['empty_cells']} out of {validation_report['stats']['total_rows'] * len(flat_headers)}")
 
         # Validate against PDF content
         pdf_lower = pdf_text.lower()
 
         # Check for common financial terms that should be present
-        expected_terms = ["total", "amount",
-                          "profit", "loss", "income", "expense"]
+        expected_terms = ["total", "amount", "profit",
+                          "loss", "income", "expense", "premium", "claims"]
         found_terms = []
         for term in expected_terms:
             if term in pdf_lower:
@@ -688,17 +916,14 @@ def validate_corrected_data(corrected_json, pdf_text, template_json, extracted_j
             validation_report["warnings"].append(
                 f"Few financial terms found in PDF content. Expected terms: {expected_terms}, Found: {found_terms}")
 
-        # Compare row counts between original and corrected
-        if isinstance(extracted_json, list):
-            original_total_rows = sum(len(page.get("Rows", []))
-                                      for page in extracted_json)
-        else:
-            original_total_rows = len(extracted_json.get("Rows", []))
+        # Success criteria
+        if corrected_data_count > original_data_count:
+            validation_report["warnings"].append(
+                f"[SUCCESS] Data improvement: {corrected_data_count} vs {original_data_count} original data points (improvement: {improvement_score}%)")
 
-        if validation_report["stats"]["total_rows"] < original_total_rows * 0.8:
-            validation_report["issues"].append(
-                f"Significant row count reduction: {validation_report['stats']['total_rows']} vs original {original_total_rows}")
-            validation_report["is_valid"] = False
+        if improvement_score > 50:
+            validation_report["warnings"].append(
+                "[SUCCESS] Significant data recovery achieved!")
 
     except Exception as e:
         validation_report["issues"].append(f"Validation error: {str(e)}")

@@ -10,3 +10,5 @@ __pycache__
 *.txt
 *.log
 test_*.py
+extractions/*
+gemini_verified_json/*
