@@ -12,9 +12,15 @@
     {
       "Section_Name": "Office and Other information",
       "Headers": {
-        "Sl_No": ["Sl. No."],
-        "Information": ["Information"],
-        "Number": ["Number"]
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Information": [
+          "Information"
+        ],
+        "Number": [
+          "Number"
+        ]
       },
       "FlatHeaders": [
         "Sl. No.",
@@ -23,5 +29,34 @@
       ],
       "Rows": []
     }
-  ]
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

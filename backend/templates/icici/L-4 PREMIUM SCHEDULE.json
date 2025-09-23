@@ -5,39 +5,74 @@
   "Date_Quarter": "For the quarter ended {QUARTER_END_DATE}",
   "Date_Nine_Months": "For the nine months ended {NINE_MONTHS_END_DATE}",
   "Currency": "₹ Lakhs",
-  
-
-  
   "Quarter_Ended": {
     "Title": "For the quarter ended {QUARTER_END_DATE}",
     "Headers": {
-      "Particulars": ["Particulars"],
+      "Particulars": [
+        "Particulars"
+      ],
       "Linked_Business": {
-        "Life": ["Life"],
-        "Pension": ["Pension"],
-        "Health": ["Health"],
-        "Variable_Insurance": ["Variable Insurance"],
-        "Total": ["Total"]
+        "Life": [
+          "Life"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
       },
       "Non_Linked_Business": {
         "Participating": {
-          "Life": ["Life"],
-          "Annuity": ["Annuity"],
-          "Pension": ["Pension"],
-          "Health": ["Health"],
-          "Variable_Insurance": ["Variable Insurance"],
-          "Total": ["Total"]
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
         },
         "Non_Participating": {
-          "Life": ["Life"],
-          "Annuity": ["Annuity"],
-          "Pension": ["Pension"],
-          "Health": ["Health"],
-          "Variable_Insurance": ["Variable Insurance"],
-          "Total": ["Total"]
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
         }
       },
-      "Grand_Total": ["Grand Total"]
+      "Grand_Total": [
+        "Grand Total"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -62,37 +97,74 @@
     ],
     "Rows": []
   },
-  
   "Nine_Months_Ended": {
     "Title": "For the nine months ended {NINE_MONTHS_END_DATE}",
     "Headers": {
-      "Particulars": ["Particulars"],
+      "Particulars": [
+        "Particulars"
+      ],
       "Linked_Business": {
-        "Life": ["Life"],
-        "Pension": ["Pension"],
-        "Health": ["Health"],
-        "Variable_Insurance": ["Variable Insurance"],
-        "Total": ["Total"]
+        "Life": [
+          "Life"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
       },
       "Non_Linked_Business": {
         "Participating": {
-          "Life": ["Life"],
-          "Annuity": ["Annuity"],
-          "Pension": ["Pension"],
-          "Health": ["Health"],
-          "Variable_Insurance": ["Variable Insurance"],
-          "Total": ["Total"]
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
         },
         "Non_Participating": {
-          "Life": ["Life"],
-          "Annuity": ["Annuity"],
-          "Pension": ["Pension"],
-          "Health": ["Health"],
-          "Variable_Insurance": ["Variable Insurance"],
-          "Total": ["Total"]
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
         }
       },
-      "Grand_Total": ["Grand Total"]
+      "Grand_Total": [
+        "Grand Total"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -116,5 +188,34 @@
       "Grand_Total"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

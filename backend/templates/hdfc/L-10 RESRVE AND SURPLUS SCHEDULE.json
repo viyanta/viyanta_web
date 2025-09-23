@@ -5,16 +5,32 @@
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Particulars": ["Particulars"],
-    "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-    "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Period1": [
+      "As at",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Period": [
+      "As at",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Period1": [
+      "As at",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Period2": [
+      "As at",
+      "{PREVIOUS_QUARTER_END}"
+    ]
   },
-  
   "FlatHeaders": [
     "Particulars",
-    "Current_Period_QUARTER_END_DATE",
-    "Previous_Period_PREVIOUS_QUARTER_END"
+    "Current_Period1",
+    "Current_Period2",
+    "Previous_Period1",
+    "Previous_Period2"
   ],
-  
   "Rows": []
-} 
+}

@@ -13,16 +13,36 @@
   "Life_Fund": {
     "Title": "Life Fund",
     "Headers": {
-      "Sr_No": ["Sr. No"],
-      "Name_of_the_security": ["Name of the security"],
-      "COI": ["COI"],
-      "Amount": ["Amount"],
-      "Date_of_purchase": ["Date of purchase"],
-      "Rating_agency": ["Rating agency"],
-      "Original_grade": ["Original grade"],
-      "Current_grade": ["Current grade"],
-      "Date_of_downgrade": ["Date of downgrade"],
-      "Remarks": ["Remarks"]
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "Sr. No",
@@ -41,16 +61,36 @@
   "Pension_General_Annuity_Group_Fund": {
     "Title": "Pension & General Annuity and Group Business Fund",
     "Headers": {
-      "Sr_No": ["Sr. No"],
-      "Name_of_the_security": ["Name of the security"],
-      "COI": ["COI"],
-      "Amount": ["Amount"],
-      "Date_of_purchase": ["Date of purchase"],
-      "Rating_agency": ["Rating agency"],
-      "Original_grade": ["Original grade"],
-      "Current_grade": ["Current grade"],
-      "Date_of_downgrade": ["Date of downgrade"],
-      "Remarks": ["Remarks"]
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "Sr. No",
@@ -69,16 +109,36 @@
   "Unit_Linked_Funds": {
     "Title": "Unit Linked Funds",
     "Headers": {
-      "Sr_No": ["Sr. No"],
-      "Name_of_the_security": ["Name of the security"],
-      "COI": ["COI"],
-      "Amount": ["Amount"],
-      "Date_of_purchase": ["Date of purchase"],
-      "Rating_agency": ["Rating agency"],
-      "Original_grade": ["Original grade"],
-      "Current_grade": ["Current grade"],
-      "Date_of_downgrade": ["Date of downgrade"],
-      "Remarks": ["Remarks"]
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "Sr. No",
@@ -93,5 +153,34 @@
       "Remarks"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

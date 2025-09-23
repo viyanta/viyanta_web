@@ -13,10 +13,18 @@
     "Application_of_Funds_Table": {
       "Title": "Application of Funds as per Balance Sheet (A)",
       "Headers": {
-        "No": ["No"],
-        "Particulars": ["PARTICULARS"],
-        "Schedule_No": ["SCH"],
-        "Amount": ["Amount"]
+        "No": [
+          "No"
+        ],
+        "Particulars": [
+          "PARTICULARS"
+        ],
+        "Schedule_No": [
+          "SCH"
+        ],
+        "Amount": [
+          "Amount"
+        ]
       },
       "FlatHeaders": [
         "No",
@@ -29,10 +37,18 @@
     "Other_Assets_Table": {
       "Title": "Less: Other Assets (B)",
       "Headers": {
-        "No": ["No"],
-        "Particulars": ["PARTICULARS"],
-        "Schedule_No": ["SCH"],
-        "Amount": ["Amount"]
+        "No": [
+          "No"
+        ],
+        "Particulars": [
+          "PARTICULARS"
+        ],
+        "Schedule_No": [
+          "SCH"
+        ],
+        "Amount": [
+          "Amount"
+        ]
       },
       "FlatHeaders": [
         "No",
@@ -46,8 +62,12 @@
   "Reconciliation_of_Investment_Assets": {
     "Title": "Reconciliation of Investment Assets",
     "Headers": {
-      "Particulars": ["Particulars"],
-      "Amount": ["Amount"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "Amount": [
+        "Amount"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -60,24 +80,52 @@
     "Life_Fund_Table": {
       "Title": "A. LIFE FUND",
       "Headers": {
-        "Particulars": ["Particulars"],
-        "Percentage_as_per_Reg": ["% as per Reg"],
-        "Balance": ["Balance (a)"],
+        "Particulars": [
+          "Particulars"
+        ],
+        "Percentage_as_per_Reg": [
+          "% as per Reg"
+        ],
+        "Balance": [
+          "Balance (a)"
+        ],
         "Shareholders_Fund": {
-          "PAR": ["PAR (c)"],
-          "NON_PAR": ["NON PAR (d)"]
+          "PAR": [
+            "PAR (c)"
+          ],
+          "NON_PAR": [
+            "NON PAR (d)"
+          ]
         },
-        "FRSM": ["FRSM* (b)"],
-        "UL_Non_Unit_Res": ["UL-Non Unit Res"],
+        "FRSM": [
+          "FRSM* (b)"
+        ],
+        "UL_Non_Unit_Res": [
+          "UL-Non Unit Res"
+        ],
         "Policyholders_Fund": {
-          "PAR": ["PAR"],
-          "NON_PAR": ["NON PAR"]
+          "PAR": [
+            "PAR"
+          ],
+          "NON_PAR": [
+            "NON PAR"
+          ]
         },
-        "Book_Value": ["Book Value (SH+PH) (f) = [a+b+c+d+e]"],
-        "Actual_Percentage": ["Actual % (g) = (f)-(h)/f*100"],
-        "FVC_Amount": ["FVC Amount (h)"],
-        "Total_Fund": ["Total Fund (i) = (f+h)"],
-        "Market_Value": ["Market Value (j)"]
+        "Book_Value": [
+          "Book Value (SH+PH) (f) = [a+b+c+d+e]"
+        ],
+        "Actual_Percentage": [
+          "Actual % (g) = (f)-(h)/f*100"
+        ],
+        "FVC_Amount": [
+          "FVC Amount (h)"
+        ],
+        "Total_Fund": [
+          "Total Fund (i) = (f+h)"
+        ],
+        "Market_Value": [
+          "Market Value (j)"
+        ]
       },
       "FlatHeaders": [
         "Particulars",
@@ -100,15 +148,33 @@
     "Pension_General_Annuity_Group_Business_Table": {
       "Title": "B. PENSION & GENERAL ANNUITY AND GROUP BUSINESS",
       "Headers": {
-        "Particulars": ["Particulars"],
-        "Percentage_as_per_Reg": ["% as per Reg"],
-        "PAR": ["PAR (a)"],
-        "NON_PAR": ["NON PAR (b)"],
-        "Book_Value": ["Book Value (c) = (a+b)"],
-        "Actual_Percentage": ["Actual % (d)"],
-        "FVC_Amount": ["FVC Amount (e)"],
-        "Total_Fund": ["Total Fund (f) = (c+e)"],
-        "Market_Value": ["Market Value (g)"]
+        "Particulars": [
+          "Particulars"
+        ],
+        "Percentage_as_per_Reg": [
+          "% as per Reg"
+        ],
+        "PAR": [
+          "PAR (a)"
+        ],
+        "NON_PAR": [
+          "NON PAR (b)"
+        ],
+        "Book_Value": [
+          "Book Value (c) = (a+b)"
+        ],
+        "Actual_Percentage": [
+          "Actual % (d)"
+        ],
+        "FVC_Amount": [
+          "FVC Amount (e)"
+        ],
+        "Total_Fund": [
+          "Total Fund (f) = (c+e)"
+        ],
+        "Market_Value": [
+          "Market Value (g)"
+        ]
       },
       "FlatHeaders": [
         "Particulars",
@@ -126,12 +192,24 @@
     "Linked_Funds_Table": {
       "Title": "C. LINKED FUNDS",
       "Headers": {
-        "Particulars": ["Particulars"],
-        "Percentage_as_per_Reg": ["% as per Reg"],
-        "PAR": ["PAR (a)"],
-        "NON_PAR": ["NON PAR (b)"],
-        "Total_Fund": ["Total Fund (c) = (a+b)"],
-        "Actual_Percentage": ["Actual % (d)"]
+        "Particulars": [
+          "Particulars"
+        ],
+        "Percentage_as_per_Reg": [
+          "% as per Reg"
+        ],
+        "PAR": [
+          "PAR (a)"
+        ],
+        "NON_PAR": [
+          "NON PAR (b)"
+        ],
+        "Total_Fund": [
+          "Total Fund (c) = (a+b)"
+        ],
+        "Actual_Percentage": [
+          "Actual % (d)"
+        ]
       },
       "FlatHeaders": [
         "Particulars",
@@ -143,5 +221,34 @@
       ],
       "Rows": []
     }
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

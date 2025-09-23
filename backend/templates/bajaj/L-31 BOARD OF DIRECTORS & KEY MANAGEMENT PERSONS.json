@@ -11,11 +11,21 @@
   "Board_Of_Directors": {
     "Title": "Board Of Directors",
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Name_of_person": ["Name of person"],
-      "Designation": ["Designation"],
-      "Role_Function": ["Role/Function"],
-      "Details_of_change_in_the_period": ["Details of change in the period if any"]
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Name_of_person": [
+        "Name of person"
+      ],
+      "Designation": [
+        "Designation"
+      ],
+      "Role_Function": [
+        "Role/Function"
+      ],
+      "Details_of_change_in_the_period": [
+        "Details of change in the period if any"
+      ]
     },
     "FlatHeaders": [
       "Sl. No.",
@@ -29,11 +39,21 @@
   "Key_Management_Persons": {
     "Title": "Key Management Persons",
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Name_of_person": ["Name of person"],
-      "Designation": ["Designation"],
-      "Role_Function": ["Role/Function"],
-      "Details_of_change_in_the_period": ["Details of change in the period if any"]
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Name_of_person": [
+        "Name of person"
+      ],
+      "Designation": [
+        "Designation"
+      ],
+      "Role_Function": [
+        "Role/Function"
+      ],
+      "Details_of_change_in_the_period": [
+        "Details of change in the period if any"
+      ]
     },
     "FlatHeaders": [
       "Sl. No.",
@@ -43,5 +63,34 @@
       "Details of change in the period if any"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

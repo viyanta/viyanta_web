@@ -5,26 +5,40 @@
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Sr_No": ["Sr.No."],
-    "Particulars": ["Particulars"],
+    "Sr_No": [
+      "Sr.No."
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
     "Current_Period": {
-      "Quarter_Ended": ["For the quarter ended", "{QUARTER_END_DATE}"],
-      "Up_to_Period_Ended": ["Up to the period ended", "{QUARTER_END_DATE}"]
+      "Quarter_Ended": [
+        "For the quarter ended",
+        "{QUARTER_END_DATE}"
+      ],
+      "Up_to_Period_Ended": [
+        "Up to the period ended",
+        "{QUARTER_END_DATE}"
+      ]
     },
     "Previous_Period": {
-      "Quarter_Ended": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
-      "Up_to_Period_Ended": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
+      "Quarter_Ended": [
+        "For the quarter ended",
+        "{PREVIOUS_QUARTER_END}"
+      ],
+      "Up_to_Period_Ended": [
+        "Up to the period ended",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     }
   },
-  
   "FlatHeaders": [
     "Sr_No",
     "Particulars",
-    "Current_Period_Quarter_Ended_QUARTER_END_DATE",
-    "Current_Period_Up_to_Period_Ended_QUARTER_END_DATE",
-    "Previous_Period_Quarter_Ended_PREVIOUS_QUARTER_END",
-    "Previous_Period_Up_to_Period_Ended_PREVIOUS_QUARTER_END"
+    "Current_Period_Quarter_Ended",
+    "Current_Period_Up_to_Period_Ended",
+    "Previous_Period_Quarter_Ended",
+    "Previous_Period_Up_to_Period_Ended"
   ],
-  
   "Rows": []
-} 
+}

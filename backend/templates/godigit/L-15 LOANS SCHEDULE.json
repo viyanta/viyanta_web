@@ -8,9 +8,17 @@
   "Currency": "₹ in Lakhs",
   "Main_Loans_Schedule_Table": {
     "Headers": {
-      "Particulars": ["Particulars"],
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -28,9 +36,15 @@
   "Provisions_against_Non_performing_Loans_Table": {
     "Title": "Provisions against Non-performing Loans",
     "Headers": {
-      "Non_Performing_Loans": ["Non-Performing Loans"],
-      "Loan_Amount_Rs_Lakhs": ["Loan Amount (Rs. Lakhs)"],
-      "Provision_Rs_Lakhs": ["Provision (Rs. Lakhs)"]
+      "Non_Performing_Loans": [
+        "Non-Performing Loans"
+      ],
+      "Loan_Amount_Rs_Lakhs": [
+        "Loan Amount (Rs. Lakhs)"
+      ],
+      "Provision_Rs_Lakhs": [
+        "Provision (Rs. Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Non_Performing_Loans",
@@ -38,5 +52,34 @@
       "Provision_Rs_Lakhs"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

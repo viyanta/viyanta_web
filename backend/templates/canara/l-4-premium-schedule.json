@@ -11,28 +11,90 @@
     {
       "Section_Name": "UPTO QUARTER ENDED {QUARTER_END_DATE}",
       "Headers": {
-        "Particulars": ["Particulars"],
+        "Particulars": [
+          "Particulars"
+        ],
         "Linked_Business": {
-          "Life": ["LINKED BUSINESS", "Life", "(₹ in lacs)"],
-          "Pension": ["LINKED BUSINESS", "Pension", "(₹ in lacs)"],
-          "Total": ["LINKED BUSINESS", "Total", "(₹ in lacs)"]
+          "Life": [
+            "LINKED BUSINESS",
+            "Life",
+            "(₹ in lacs)"
+          ],
+          "Pension": [
+            "LINKED BUSINESS",
+            "Pension",
+            "(₹ in lacs)"
+          ],
+          "Total": [
+            "LINKED BUSINESS",
+            "Total",
+            "(₹ in lacs)"
+          ]
         },
         "Non_Linked_Business": {
           "Participating": {
-            "Life": ["NON-LINKED BUSINESS", "PARTICIPATING", "Life", "(₹ in lacs)"],
-            "Total": ["NON-LINKED BUSINESS", "PARTICIPATING", "Total", "(₹ in lacs)"]
+            "Life": [
+              "NON-LINKED BUSINESS",
+              "PARTICIPATING",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "NON-LINKED BUSINESS",
+              "PARTICIPATING",
+              "Total",
+              "(₹ in lacs)"
+            ]
           },
           "Non_Participating": {
-            "Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Life", "(₹ in lacs)"],
-            "Annuity": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Annuity", "(₹ in lacs)"],
-            "Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Pension", "(₹ in lacs)"],
-            "Health": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Health", "(₹ in lacs)"],
-            "Variable_Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Life", "(₹ in lacs)"],
-            "Variable_Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Pension", "(₹ in lacs)"],
-            "Total": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Total", "(₹ in lacs)"]
+            "Life": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Annuity": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Annuity",
+              "(₹ in lacs)"
+            ],
+            "Pension": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Pension",
+              "(₹ in lacs)"
+            ],
+            "Health": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Health",
+              "(₹ in lacs)"
+            ],
+            "Variable_Life": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Variable Life",
+              "(₹ in lacs)"
+            ],
+            "Variable_Pension": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Variable Pension",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Total",
+              "(₹ in lacs)"
+            ]
           }
         },
-        "Grand_Total": ["Grand Total", "(₹ in lacs)"]
+        "Grand_Total": [
+          "Grand Total",
+          "(₹ in lacs)"
+        ]
       },
       "FlatHeaders": [
         "Particulars",
@@ -60,28 +122,90 @@
     {
       "Section_Name": "UPTO QUARTER ENDED {PREVIOUS_QUARTER_END}",
       "Headers": {
-        "Particulars": ["Particulars"],
+        "Particulars": [
+          "Particulars"
+        ],
         "Linked_Business": {
-          "Life": ["LINKED BUSINESS", "Life", "(₹ in lacs)"],
-          "Pension": ["LINKED BUSINESS", "Pension", "(₹ in lacs)"],
-          "Total": ["LINKED BUSINESS", "Total", "(₹ in lacs)"]
+          "Life": [
+            "LINKED BUSINESS",
+            "Life",
+            "(₹ in lacs)"
+          ],
+          "Pension": [
+            "LINKED BUSINESS",
+            "Pension",
+            "(₹ in lacs)"
+          ],
+          "Total": [
+            "LINKED BUSINESS",
+            "Total",
+            "(₹ in lacs)"
+          ]
         },
         "Non_Linked_Business": {
           "Participating": {
-            "Life": ["NON-LINKED BUSINESS", "PARTICIPATING", "Life", "(₹ in lacs)"],
-            "Total": ["NON-LINKED BUSINESS", "PARTICIPATING", "Total", "(₹ in lacs)"]
+            "Life": [
+              "NON-LINKED BUSINESS",
+              "PARTICIPATING",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "NON-LINKED BUSINESS",
+              "PARTICIPATING",
+              "Total",
+              "(₹ in lacs)"
+            ]
           },
           "Non_Participating": {
-            "Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Life", "(₹ in lacs)"],
-            "Annuity": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Annuity", "(₹ in lacs)"],
-            "Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Pension", "(₹ in lacs)"],
-            "Health": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Health", "(₹ in lacs)"],
-            "Variable_Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Life", "(₹ in lacs)"],
-            "Variable_Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Pension", "(₹ in lacs)"],
-            "Total": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Total", "(₹ in lacs)"]
+            "Life": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Annuity": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Annuity",
+              "(₹ in lacs)"
+            ],
+            "Pension": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Pension",
+              "(₹ in lacs)"
+            ],
+            "Health": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Health",
+              "(₹ in lacs)"
+            ],
+            "Variable_Life": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Variable Life",
+              "(₹ in lacs)"
+            ],
+            "Variable_Pension": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Variable Pension",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "NON-LINKED BUSINESS",
+              "NON-PARTICIPATING",
+              "Total",
+              "(₹ in lacs)"
+            ]
           }
         },
-        "Grand_Total": ["Grand Total", "(₹ in lacs)"]
+        "Grand_Total": [
+          "Grand Total",
+          "(₹ in lacs)"
+        ]
       },
       "FlatHeaders": [
         "Particulars",
@@ -113,28 +237,90 @@
       {
         "Section_Name": "UPTO QUARTER ENDED {QUARTER_END_DATE}",
         "Headers": {
-          "Particulars": ["Particulars"],
+          "Particulars": [
+            "Particulars"
+          ],
           "Linked_Business": {
-            "Life": ["LINKED BUSINESS", "Life", "(₹ in lacs)"],
-            "Pension": ["LINKED BUSINESS", "Pension", "(₹ in lacs)"],
-            "Total": ["LINKED BUSINESS", "Total", "(₹ in lacs)"]
+            "Life": [
+              "LINKED BUSINESS",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Pension": [
+              "LINKED BUSINESS",
+              "Pension",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "LINKED BUSINESS",
+              "Total",
+              "(₹ in lacs)"
+            ]
           },
           "Non_Linked_Business": {
             "Participating": {
-              "Life": ["NON-LINKED BUSINESS", "PARTICIPATING", "Life", "(₹ in lacs)"],
-              "Total": ["NON-LINKED BUSINESS", "PARTICIPATING", "Total", "(₹ in lacs)"]
+              "Life": [
+                "NON-LINKED BUSINESS",
+                "PARTICIPATING",
+                "Life",
+                "(₹ in lacs)"
+              ],
+              "Total": [
+                "NON-LINKED BUSINESS",
+                "PARTICIPATING",
+                "Total",
+                "(₹ in lacs)"
+              ]
             },
             "Non_Participating": {
-              "Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Life", "(₹ in lacs)"],
-              "Annuity": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Annuity", "(₹ in lacs)"],
-              "Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Pension", "(₹ in lacs)"],
-              "Health": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Health", "(₹ in lacs)"],
-              "Variable_Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Life", "(₹ in lacs)"],
-              "Variable_Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Pension", "(₹ in lacs)"],
-              "Total": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Total", "(₹ in lacs)"]
+              "Life": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Life",
+                "(₹ in lacs)"
+              ],
+              "Annuity": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Annuity",
+                "(₹ in lacs)"
+              ],
+              "Pension": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Pension",
+                "(₹ in lacs)"
+              ],
+              "Health": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Health",
+                "(₹ in lacs)"
+              ],
+              "Variable_Life": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Variable Life",
+                "(₹ in lacs)"
+              ],
+              "Variable_Pension": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Variable Pension",
+                "(₹ in lacs)"
+              ],
+              "Total": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Total",
+                "(₹ in lacs)"
+              ]
             }
           },
-          "Grand_Total": ["Grand Total", "(₹ in lacs)"]
+          "Grand_Total": [
+            "Grand Total",
+            "(₹ in lacs)"
+          ]
         },
         "FlatHeaders": [
           "Particulars",
@@ -161,28 +347,90 @@
       {
         "Section_Name": "UPTO QUARTER ENDED {PREVIOUS_QUARTER_END}",
         "Headers": {
-          "Particulars": ["Particulars"],
+          "Particulars": [
+            "Particulars"
+          ],
           "Linked_Business": {
-            "Life": ["LINKED BUSINESS", "Life", "(₹ in lacs)"],
-            "Pension": ["LINKED BUSINESS", "Pension", "(₹ in lacs)"],
-            "Total": ["LINKED BUSINESS", "Total", "(₹ in lacs)"]
+            "Life": [
+              "LINKED BUSINESS",
+              "Life",
+              "(₹ in lacs)"
+            ],
+            "Pension": [
+              "LINKED BUSINESS",
+              "Pension",
+              "(₹ in lacs)"
+            ],
+            "Total": [
+              "LINKED BUSINESS",
+              "Total",
+              "(₹ in lacs)"
+            ]
           },
           "Non_Linked_Business": {
             "Participating": {
-              "Life": ["NON-LINKED BUSINESS", "PARTICIPATING", "Life", "(₹ in lacs)"],
-              "Total": ["NON-LINKED BUSINESS", "PARTICIPATING", "Total", "(₹ in lacs)"]
+              "Life": [
+                "NON-LINKED BUSINESS",
+                "PARTICIPATING",
+                "Life",
+                "(₹ in lacs)"
+              ],
+              "Total": [
+                "NON-LINKED BUSINESS",
+                "PARTICIPATING",
+                "Total",
+                "(₹ in lacs)"
+              ]
             },
             "Non_Participating": {
-              "Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Life", "(₹ in lacs)"],
-              "Annuity": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Annuity", "(₹ in lacs)"],
-              "Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Pension", "(₹ in lacs)"],
-              "Health": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Health", "(₹ in lacs)"],
-              "Variable_Life": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Life", "(₹ in lacs)"],
-              "Variable_Pension": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Variable Pension", "(₹ in lacs)"],
-              "Total": ["NON-LINKED BUSINESS", "NON-PARTICIPATING", "Total", "(₹ in lacs)"]
+              "Life": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Life",
+                "(₹ in lacs)"
+              ],
+              "Annuity": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Annuity",
+                "(₹ in lacs)"
+              ],
+              "Pension": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Pension",
+                "(₹ in lacs)"
+              ],
+              "Health": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Health",
+                "(₹ in lacs)"
+              ],
+              "Variable_Life": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Variable Life",
+                "(₹ in lacs)"
+              ],
+              "Variable_Pension": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Variable Pension",
+                "(₹ in lacs)"
+              ],
+              "Total": [
+                "NON-LINKED BUSINESS",
+                "NON-PARTICIPATING",
+                "Total",
+                "(₹ in lacs)"
+              ]
             }
           },
-          "Grand_Total": ["Grand Total", "(₹ in lacs)"]
+          "Grand_Total": [
+            "Grand Total",
+            "(₹ in lacs)"
+          ]
         },
         "FlatHeaders": [
           "Particulars",
@@ -207,5 +455,34 @@
         ]
       }
     ]
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

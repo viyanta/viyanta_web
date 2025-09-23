@@ -4,56 +4,49 @@
   "Insurer": "HDFC Life Insurance Company Limited",
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
-  "Part_A_Related_Party_Transactions": {
-    "Title": "PART-A Related Party Transactions",
-    "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Name_of_Related_Party": ["Name of the Related Party"],
-      "Nature_of_Relationship": ["Nature of Relationship", "with the Company"],
-      "Description_of_Transactions": ["Description of Transactions", "/ Categories"],
-      "Consideration_paid_received": {
-        "Current_Quarter": ["For the quarter ended", "{QUARTER_END_DATE}"],
-        "Current_Year_To_Date": ["Up to the period ended", "{QUARTER_END_DATE}"],
-        "Previous_Quarter": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
-        "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
-      }
-    },
-    "FlatHeaders": [
-      "Sl_No",
-      "Name_of_Related_Party",
-      "Nature_of_Relationship",
-      "Description_of_Transactions",
-      "Consideration_paid_received_Current_Quarter_QUARTER_END_DATE",
-      "Consideration_paid_received_Current_Year_To_Date_QUARTER_END_DATE",
-      "Consideration_paid_received_Previous_Quarter_PREVIOUS_QUARTER_END",
-      "Consideration_paid_received_Previous_Year_To_Date_PREVIOUS_QUARTER_END"
+  "Headers": {
+    "Sl_No": [
+      "Sl.No."
     ],
-    "Rows": []
+    "Name_of_Related_Party": [
+      "Name of the Related Party"
+    ],
+    "Nature_of_Relationship": [
+      "Nature of Relationship",
+      "with the Company"
+    ],
+    "Description_of_Transactions": [
+      "Description of Transactions",
+      "/ Categories"
+    ],
+    "Consideration_paid_received": {
+      "Current_Quarter": [
+        "For the quarter ended",
+        "{QUARTER_END_DATE}"
+      ],
+      "Current_Year_To_Date": [
+        "Up to the period ended",
+        "{QUARTER_END_DATE}"
+      ],
+      "Previous_Quarter": [
+        "For the quarter ended",
+        "{PREVIOUS_QUARTER_END}"
+      ],
+      "Previous_Year_To_Date": [
+        "Up to the period ended",
+        "{PREVIOUS_QUARTER_END}"
+      ]
+    }
   },
-  "Other_Group_Companies": {
-    "Title": "B. Other group companies with material transactions",
-    "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Name_of_Related_Party": ["Name of the Related Party"],
-      "Nature_of_Relationship": ["Nature of Relationship", "with the Company"],
-      "Description_of_Transactions": ["Description of Transactions", "/ Categories"],
-      "Consideration_paid_received": {
-        "Current_Quarter": ["For the quarter ended", "{QUARTER_END_DATE}"],
-        "Current_Year_To_Date": ["Up to the period ended", "{QUARTER_END_DATE}"],
-        "Previous_Quarter": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
-        "Previous_Year_To_Date": ["Up to the period ended", "{PREVIOUS_QUARTER_END}"]
-      }
-    },
-    "FlatHeaders": [
-      "Sl_No",
-      "Name_of_Related_Party",
-      "Nature_of_Relationship",
-      "Description_of_Transactions",
-      "Consideration_paid_received_Current_Quarter_QUARTER_END_DATE",
-      "Consideration_paid_received_Current_Year_To_Date_QUARTER_END_DATE",
-      "Consideration_paid_received_Previous_Quarter_PREVIOUS_QUARTER_END",
-      "Consideration_paid_received_Previous_Year_To_Date_PREVIOUS_QUARTER_END"
-    ],
-    "Rows": []
-  }
-} 
+  "FlatHeaders": [
+    "Sl_No",
+    "Name_of_Related_Party",
+    "Nature_of_Relationship",
+    "Description_of_Transactions",
+    "Consideration_paid_received_Current_Quarter_QUARTER_END_DATE",
+    "Consideration_paid_received_Current_Year_To_Date_QUARTER_END_DATE",
+    "Consideration_paid_received_Previous_Quarter_PREVIOUS_QUARTER_END",
+    "Consideration_paid_received_Previous_Year_To_Date_PREVIOUS_QUARTER_END"
+  ],
+  "Rows": []
+}

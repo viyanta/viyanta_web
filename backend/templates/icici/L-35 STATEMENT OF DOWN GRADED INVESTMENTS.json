@@ -7,20 +7,40 @@
   "Date": "As at {QUARTER_END_DATE}",
   "Submission_Periodicity": "Quarterly",
   "Currency": "₹ Lakhs",
-  
   "Life_Fund": {
     "Title": "Life Fund",
     "Headers": {
-      "No": ["No"],
-      "Name_of_the_Security": ["Name of the Security"],
-      "COI": ["COI"],
-      "Amount_Lakhs": ["Amount", "(₹ Lakhs)"],
-      "Date_of_Purchase": ["Date of Purchase⁶"],
-      "Rating_Agency": ["Rating Agency"],
-      "Original_Grade": ["Original Grade"],
-      "Current_Grade": ["Current Grade"],
-      "Date_of_last_Downgrade": ["Date of last Downgrade"],
-      "Remarks": ["Remarks"]
+      "No": [
+        "No"
+      ],
+      "Name_of_the_Security": [
+        "Name of the Security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount_Lakhs": [
+        "Amount",
+        "(₹ Lakhs)"
+      ],
+      "Date_of_Purchase": [
+        "Date of Purchase⁶"
+      ],
+      "Rating_Agency": [
+        "Rating Agency"
+      ],
+      "Original_Grade": [
+        "Original Grade"
+      ],
+      "Current_Grade": [
+        "Current Grade"
+      ],
+      "Date_of_last_Downgrade": [
+        "Date of last Downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "No",
@@ -36,20 +56,40 @@
     ],
     "Rows": []
   },
-  
   "Pension_Fund": {
     "Title": "Pension Fund",
     "Headers": {
-      "No": ["No"],
-      "Name_of_the_Security": ["Name of the Security"],
-      "COI": ["COI"],
-      "Amount_Lakhs": ["Amount", "(₹ Lakhs)"],
-      "Date_of_Purchase": ["Date of Purchase⁶"],
-      "Rating_Agency": ["Rating Agency"],
-      "Original_Grade": ["Original Grade"],
-      "Current_Grade": ["Current Grade"],
-      "Date_of_last_Downgrade": ["Date of last Downgrade"],
-      "Remarks": ["Remarks"]
+      "No": [
+        "No"
+      ],
+      "Name_of_the_Security": [
+        "Name of the Security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount_Lakhs": [
+        "Amount",
+        "(₹ Lakhs)"
+      ],
+      "Date_of_Purchase": [
+        "Date of Purchase⁶"
+      ],
+      "Rating_Agency": [
+        "Rating Agency"
+      ],
+      "Original_Grade": [
+        "Original Grade"
+      ],
+      "Current_Grade": [
+        "Current Grade"
+      ],
+      "Date_of_last_Downgrade": [
+        "Date of last Downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "No",
@@ -65,20 +105,40 @@
     ],
     "Rows": []
   },
-  
   "Linked_Fund": {
     "Title": "Linked Fund",
     "Headers": {
-      "No": ["No"],
-      "Name_of_the_Security": ["Name of the Security"],
-      "COI": ["COI"],
-      "Amount_Lakhs": ["Amount", "(₹ Lakhs)"],
-      "Date_of_Purchase": ["Date of Purchase⁶"],
-      "Rating_Agency": ["Rating Agency"],
-      "Original_Grade": ["Original Grade"],
-      "Current_Grade": ["Current Grade"],
-      "Date_of_last_Downgrade": ["Date of last Downgrade"],
-      "Remarks": ["Remarks"]
+      "No": [
+        "No"
+      ],
+      "Name_of_the_Security": [
+        "Name of the Security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount_Lakhs": [
+        "Amount",
+        "(₹ Lakhs)"
+      ],
+      "Date_of_Purchase": [
+        "Date of Purchase⁶"
+      ],
+      "Rating_Agency": [
+        "Rating Agency"
+      ],
+      "Original_Grade": [
+        "Original Grade"
+      ],
+      "Current_Grade": [
+        "Current Grade"
+      ],
+      "Date_of_last_Downgrade": [
+        "Date of last Downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
     },
     "FlatHeaders": [
       "No",
@@ -93,5 +153,34 @@
       "Remarks"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

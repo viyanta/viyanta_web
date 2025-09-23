@@ -9,17 +9,36 @@
     "Grievance_Disposal": {
       "Title": "GRIEVANCE DISPOSAL FOR THE QUARTER ENDED {QUARTER_END_DATE}",
       "Headers": {
-        "SI_No": ["SI No."],
-        "Particulars": ["Particulars"],
-        "Opening_Balance": ["Opening Balance at the beginning of the quarter"],
-        "Additions_during_quarter": ["Additions during the quarter", "(net of duplicate complaints)"],
+        "SI_No": [
+          "SI No."
+        ],
+        "Particulars": [
+          "Particulars"
+        ],
+        "Opening_Balance": [
+          "Opening Balance at the beginning of the quarter"
+        ],
+        "Additions_during_quarter": [
+          "Additions during the quarter",
+          "(net of duplicate complaints)"
+        ],
         "Complaints_Resolved_Settled": {
-          "Fully_Accepted": ["Fully Accepted"],
-          "Partially_Accepted": ["Partially Accepted"],
-          "Rejected": ["Rejected"]
+          "Fully_Accepted": [
+            "Fully Accepted"
+          ],
+          "Partially_Accepted": [
+            "Partially Accepted"
+          ],
+          "Rejected": [
+            "Rejected"
+          ]
         },
-        "Complaints_pending": ["Complaints pending at the end of the quarter"],
-        "Total_Complaints_registered": ["Total Complaints registered upto the quarter during Financial Year"]
+        "Complaints_pending": [
+          "Complaints pending at the end of the quarter"
+        ],
+        "Total_Complaints_registered": [
+          "Total Complaints registered upto the quarter during Financial Year"
+        ]
       },
       "FlatHeaders": [
         "SI_No",
@@ -37,18 +56,35 @@
     "Duration_wise_Pending_Status": {
       "Title": "Duration wise Pending Status",
       "Headers": {
-        "Duration_wise_Pending_Status": ["Duration wise Pending Status"],
+        "Duration_wise_Pending_Status": [
+          "Duration wise Pending Status"
+        ],
         "Complaints_by_customers": {
-          "Number": ["Number"],
-          "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+          "Number": [
+            "Number"
+          ],
+          "Percentage_to_Pending_complaints": [
+            "Percentage to",
+            "Pending complaints"
+          ]
         },
         "Complaints_by_intermediaries": {
-          "Number": ["Number"],
-          "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+          "Number": [
+            "Number"
+          ],
+          "Percentage_to_Pending_complaints": [
+            "Percentage to",
+            "Pending complaints"
+          ]
         },
         "Total": {
-          "Number": ["Number"],
-          "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+          "Number": [
+            "Number"
+          ],
+          "Percentage_to_Pending_complaints": [
+            "Percentage to",
+            "Pending complaints"
+          ]
         }
       },
       "FlatHeaders": [
@@ -62,5 +98,34 @@
       ],
       "Rows": []
     }
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

@@ -5,44 +5,76 @@
   "Company": "ICICI Prudential Life Insurance Company Limited",
   "Date": "As at {QUARTER_END_DATE}",
   "Currency": "₹ Lakhs",
-  
   "Headers": {
-    "Particulars": ["Particulars"],
+    "Particulars": [
+      "Particulars"
+    ],
     "Shareholders": {
-      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
-      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+      "As_at_Current": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_March_31": [
+        "As at",
+        "{MARCH_31_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at",
+        "{PREVIOUS_YEAR_DATE}"
+      ]
     },
     "Policyholders": {
-      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
-      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+      "As_at_Current": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_March_31": [
+        "As at",
+        "{MARCH_31_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at",
+        "{PREVIOUS_YEAR_DATE}"
+      ]
     },
     "Assets_held_to_cover_Linked_Liabilities": {
-      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_March_31": ["As at", "{MARCH_31_DATE}"],
-      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+      "As_at_Current": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_March_31": [
+        "As at",
+        "{MARCH_31_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at",
+        "{PREVIOUS_YEAR_DATE}"
+      ]
     },
     "Total": {
-      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Year": ["As at", "{PREVIOUS_YEAR_DATE}"]
+      "As_at_Current": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at",
+        "{PREVIOUS_YEAR_DATE}"
+      ]
     }
   },
-  
   "FlatHeaders": [
     "Particulars",
-    "Shareholders_As_at_Current_QUARTER_END_DATE",
-    "Shareholders_As_at_March_31_MARCH_31_DATE",
-    "Shareholders_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
-    "Policyholders_As_at_Current_QUARTER_END_DATE",
-    "Policyholders_As_at_March_31_MARCH_31_DATE",
-    "Policyholders_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
-    "Assets_held_to_cover_Linked_Liabilities_As_at_Current_QUARTER_END_DATE",
-    "Assets_held_to_cover_Linked_Liabilities_As_at_March_31_MARCH_31_DATE",
-    "Assets_held_to_cover_Linked_Liabilities_As_at_Previous_Year_PREVIOUS_YEAR_DATE",
-    "Total_As_at_Current_QUARTER_END_DATE",
-    "Total_As_at_Previous_Year_PREVIOUS_YEAR_DATE"
+    "Shareholders_As_at_Current",
+    "Shareholders_As_at_March_31_MARCH_31",
+    "Shareholders_As_at_Previous_Year",
+    "Policyholders_As_at_Current",
+    "Policyholders_As_at_March_31_MARCH_31",
+    "Policyholders_As_at_Previous_Year",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Current",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_March_31_MARCH_31",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Previous_Year",
+    "Total_As_at_Current",
+    "Total_As_at_Previous_Year"
   ],
-  
   "Rows": []
-} 
+}

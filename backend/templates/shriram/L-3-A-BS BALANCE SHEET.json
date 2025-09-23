@@ -9,10 +9,18 @@
   "Currency": "Amt. in Rs. Lakhs",
   "Main_Balance_Sheet": {
     "Headers": {
-      "Particulars": ["Particulars"],
-      "Schedule": ["Schedule"],
-      "As_at_Current_Year": ["As at {QUARTER_END_DATE}"],
-      "As_at_Previous_Year": ["As at {PREVIOUS_QUARTER_END}"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "Schedule": [
+        "Schedule"
+      ],
+      "As_at_Current_Year": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -25,10 +33,18 @@
   "Contingent_Liabilities": {
     "Title": "CONTINGENT LIABILITIES",
     "Headers": {
-      "Particulars": ["Particulars"],
-      "Schedule": ["Schedule"],
-      "As_at_Current_Year": ["As at {QUARTER_END_DATE}"],
-      "As_at_Previous_Year": ["As at {PREVIOUS_QUARTER_END}"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "Schedule": [
+        "Schedule"
+      ],
+      "As_at_Current_Year": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Year": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -37,5 +53,34 @@
       "As_at_Previous_Year"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

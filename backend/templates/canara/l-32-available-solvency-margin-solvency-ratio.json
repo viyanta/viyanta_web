@@ -11,16 +11,26 @@
   "Currency": "₹ in Lacs",
   "PagesUsed": "3-6",
   "Headers": {
-    "Item": ["Item"],
-    "Description": ["Description"],
-    "Notes_No": ["Notes No."],
-    "Adjusted_Value": ["Adjusted Value", "As at {QUARTER_END_DATE}", "(₹ in Lacs)"]
+    "Item": [
+      "Item"
+    ],
+    "Description": [
+      "Description"
+    ],
+    "Notes_No": [
+      "Notes No."
+    ],
+    "Adjusted_Value": [
+      "Adjusted Value",
+      "As at {QUARTER_END_DATE}",
+      "(₹ in Lacs)"
+    ]
   },
   "FlatHeaders": [
     "Item",
     "Description",
     "Notes_No",
-    "Adjusted_Value_As_at_QUARTER_END_DATE"
+    "Adjusted_Value_As_at"
   ],
   "Rows": []
 }

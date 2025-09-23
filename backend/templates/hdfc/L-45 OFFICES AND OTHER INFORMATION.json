@@ -6,9 +6,15 @@
   "Offices_and_Other_Information": {
     "Title": "FORM L-45 OFFICES AND OTHER INFORMATION",
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Information": ["Information"],
-      "Number": ["Number"]
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Information": [
+        "Information"
+      ],
+      "Number": [
+        "Number"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -20,9 +26,15 @@
   "Employees_and_Agents_Movement": {
     "Title": "Employees and Insurance Agents and Intermediaries - Movement",
     "Headers": {
-      "Particulars": ["Particulars"],
-      "Employees": ["Employees"],
-      "Insurance_Agents_and_Intermediaries": ["Insurance Agents and Intermediaries"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "Employees": [
+        "Employees"
+      ],
+      "Insurance_Agents_and_Intermediaries": [
+        "Insurance Agents and Intermediaries"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -30,5 +42,34 @@
       "Insurance_Agents_and_Intermediaries"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

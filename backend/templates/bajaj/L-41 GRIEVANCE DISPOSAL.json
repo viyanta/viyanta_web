@@ -12,15 +12,36 @@
     {
       "Section_Name": "GRIEVANCE DISPOSAL FOR THE QUARTER ENDING DECEMBER 2022",
       "Headers": {
-        "Sl_No": ["Sl No."],
-        "Particulars": ["Particulars"],
-        "Opening_Balance": ["Opening Balance As on beginning of the quarter"],
-        "Additions_during_quarter": ["Additions during the quarter"],
-        "Fully_Accepted": ["Complaints Resolved/ settled during the quarter", "Fully Accepted"],
-        "Partial_Accepted": ["Complaints Resolved/ settled during the quarter", "Partial Accepted"],
-        "Rejected": ["Complaints Resolved/ settled during the quarter", "Rejected"],
-        "Complaints_Pending": ["Complaints Pending at the end of the quarter"],
-        "Total_Complaints_Registered": ["Total complaints registered upto the quarter during the financial year"]
+        "Sl_No": [
+          "Sl No."
+        ],
+        "Particulars": [
+          "Particulars"
+        ],
+        "Opening_Balance": [
+          "Opening Balance As on beginning of the quarter"
+        ],
+        "Additions_during_quarter": [
+          "Additions during the quarter"
+        ],
+        "Fully_Accepted": [
+          "Complaints Resolved/ settled during the quarter",
+          "Fully Accepted"
+        ],
+        "Partial_Accepted": [
+          "Complaints Resolved/ settled during the quarter",
+          "Partial Accepted"
+        ],
+        "Rejected": [
+          "Complaints Resolved/ settled during the quarter",
+          "Rejected"
+        ],
+        "Complaints_Pending": [
+          "Complaints Pending at the end of the quarter"
+        ],
+        "Total_Complaints_Registered": [
+          "Total complaints registered upto the quarter during the financial year"
+        ]
       },
       "FlatHeaders": [
         "Sl No.",
@@ -35,5 +56,34 @@
       ],
       "Rows": []
     }
-  ]
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

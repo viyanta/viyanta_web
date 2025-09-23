@@ -6,36 +6,60 @@
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Particulars": ["Particulars"],
+    "Particulars": [
+      "Particulars"
+    ],
     "Shareholders": {
-      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Policyholders": {
-      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Assets_held_to_cover_Linked_Liabilities": {
-      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Total": {
-      "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-      "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     }
   },
-  
   "FlatHeaders": [
     "Particulars",
-    "Shareholders_Current_Period_QUARTER_END_DATE",
-    "Shareholders_Previous_Period_PREVIOUS_QUARTER_END",
-    "Policyholders_Current_Period_QUARTER_END_DATE",
-    "Policyholders_Previous_Period_PREVIOUS_QUARTER_END",
-    "Assets_held_to_cover_Linked_Liabilities_Current_Period_QUARTER_END_DATE",
-    "Assets_held_to_cover_Linked_Liabilities_Previous_Period_PREVIOUS_QUARTER_END",
-    "Total_Current_Period_QUARTER_END_DATE",
-    "Total_Previous_Period_PREVIOUS_QUARTER_END"
+    "Shareholders_Current_Period",
+    "Shareholders_Previous_Period",
+    "Policyholders_Current_Period",
+    "Policyholders_Previous_Period",
+    "Assets_held_to_cover_Linked_Liabilities_Current_Period",
+    "Assets_held_to_cover_Linked_Liabilities_Previous_Period",
+    "Total_Current_Period",
+    "Total_Previous_Period"
   ],
-  
   "Rows": []
-} 
+}

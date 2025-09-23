@@ -8,10 +8,20 @@
   "Balance_Sheet_Table": {
     "Title": "Main Balance Sheet",
     "Headers": {
-      "Particulars": ["PARTICULARS"],
-      "Schedule": ["Schedule"],
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "Schedule": [
+        "Schedule"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -24,9 +34,17 @@
   "Contingent_Liabilities_Table": {
     "Title": "Contingent Liabilities",
     "Headers": {
-      "Particulars": ["Particulars"],
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -34,5 +52,27 @@
       "As_at_Previous_Date_PREVIOUS_QUARTER_END"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "PARTICULARS"
+    ],
+    "Schedule": [
+      "Schedule"
+    ],
+    "As_at_Current_Date": [
+      "As at",
+      "{QUARTER_END_DATE}"
+    ],
+    "As_at_Previous_Date": [
+      "As at",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "As_at_Current_Date",
+    "As_at_Previous_Date"
+  ]
 }

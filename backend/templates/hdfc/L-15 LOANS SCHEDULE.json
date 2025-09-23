@@ -5,24 +5,38 @@
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Particulars": ["Particulars"],
-    "Current_Period": ["As at", "{QUARTER_END_DATE}"],
-    "Previous_Period": ["As at", "{PREVIOUS_QUARTER_END}"]
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Period": [
+      "As at",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Period": [
+      "As at",
+      "{PREVIOUS_QUARTER_END}"
+    ]
   },
-  
   "FlatHeaders": [
     "Particulars",
-    "Current_Period_QUARTER_END_DATE",
-    "Previous_Period_PREVIOUS_QUARTER_END"
+    "Current_Period",
+    "Previous_Period"
   ],
-  
   "Rows": [],
   "Provisions_Table": {
     "Title": "Provisions against Non-performing Loans",
     "Headers": {
-      "Non_Performing_Loans": ["Non-Performing Loans"],
-      "Loan_Amount": ["Loan Amount", "(₹ Lakh)"],
-      "Provision": ["Provision", "(₹ Lakh)"]
+      "Non_Performing_Loans": [
+        "Non-Performing Loans"
+      ],
+      "Loan_Amount": [
+        "Loan Amount",
+        "(₹ Lakh)"
+      ],
+      "Provision": [
+        "Provision",
+        "(₹ Lakh)"
+      ]
     },
     "FlatHeaders": [
       "Non_Performing_Loans",
@@ -31,4 +45,4 @@
     ],
     "Rows": []
   }
-} 
+}

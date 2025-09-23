@@ -7,11 +7,21 @@
   "Section_I": {
     "Title": "Section I: Application of Funds as per Balance Sheet (A)",
     "Headers": {
-      "No": ["No"],
-      "Particulars": ["Particulars"],
-      "Schedule": ["Schedule"],
-      "Amount_1": ["Amount"],
-      "Amount_2": ["Amount"]
+      "No": [
+        "No"
+      ],
+      "Particulars": [
+        "Particulars"
+      ],
+      "Schedule": [
+        "Schedule"
+      ],
+      "Amount_1": [
+        "Amount"
+      ],
+      "Amount_2": [
+        "Amount"
+      ]
     },
     "FlatHeaders": [
       "No",
@@ -21,5 +31,34 @@
       "Amount_2"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

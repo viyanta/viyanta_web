@@ -13,10 +13,18 @@
       "Section_Name": "Death Claims",
       "Section_Note": "No. of claims only",
       "Headers": {
-        "Sl_No": ["Sl. No."],
-        "Claims_Experience": ["Claims Experience"],
-        "Individual": ["Individual"],
-        "Group": ["Group"]
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Individual": [
+          "Individual"
+        ],
+        "Group": [
+          "Group"
+        ]
       },
       "FlatHeaders": [
         "Sl. No.",
@@ -30,13 +38,27 @@
       "Section_Name": "Individual Claims",
       "Section_Note": "No. of claims only",
       "Headers": {
-        "Sl_No": ["Sl. No."],
-        "Claims_Experience": ["Claims Experience"],
-        "Maturity": ["Maturity"],
-        "Survival_Benefit": ["Survival Benefit"],
-        "Annuities_Pension": ["Annuities/ Pension"],
-        "Surrender": ["Surrender"],
-        "Other_Benefits": ["Other Benefits"]
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Maturity": [
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Survival Benefit"
+        ],
+        "Annuities_Pension": [
+          "Annuities/ Pension"
+        ],
+        "Surrender": [
+          "Surrender"
+        ],
+        "Other_Benefits": [
+          "Other Benefits"
+        ]
       },
       "FlatHeaders": [
         "Sl. No.",
@@ -49,5 +71,34 @@
       ],
       "Rows": []
     }
-  ]
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

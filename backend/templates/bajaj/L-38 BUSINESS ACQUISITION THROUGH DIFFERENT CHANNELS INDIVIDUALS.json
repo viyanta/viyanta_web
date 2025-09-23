@@ -12,16 +12,44 @@
     {
       "Section_Name": "Business Acquisition through Different Channels (Individuals)",
       "Headers": {
-        "Sl_No": ["Sl.No."],
-        "Channels": ["Channels"],
-        "Current_Quarter_No_of_Policies": ["For the Quarter - Current Year", "No. of Policies"],
-        "Current_Quarter_Premium": ["For the Quarter - Current Year", "Premium (Rs. Lakhs)"],
-        "Previous_Quarter_No_of_Policies": ["For the Quarter - Previous Year", "No. of Policies"],
-        "Previous_Quarter_Premium": ["For the Quarter - Previous Year", "Premium (Rs. Lakhs)"],
-        "Current_YTD_No_of_Policies": ["Up to the Quarter - Current Year", "No. of Policies"],
-        "Current_YTD_Premium": ["Up to the Quarter - Current Year", "Premium (Rs. Lakhs)"],
-        "Previous_YTD_No_of_Policies": ["Up to the Quarter - Previous Year", "No. of Policies"],
-        "Previous_YTD_Premium": ["Up to the Quarter - Previous Year", "Premium (Rs. Lakhs)"]
+        "Sl_No": [
+          "Sl.No."
+        ],
+        "Channels": [
+          "Channels"
+        ],
+        "Current_Quarter_No_of_Policies": [
+          "For the Quarter - Current Year",
+          "No. of Policies"
+        ],
+        "Current_Quarter_Premium": [
+          "For the Quarter - Current Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Previous_Quarter_No_of_Policies": [
+          "For the Quarter - Previous Year",
+          "No. of Policies"
+        ],
+        "Previous_Quarter_Premium": [
+          "For the Quarter - Previous Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Current_YTD_No_of_Policies": [
+          "Up to the Quarter - Current Year",
+          "No. of Policies"
+        ],
+        "Current_YTD_Premium": [
+          "Up to the Quarter - Current Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Previous_YTD_No_of_Policies": [
+          "Up to the Quarter - Previous Year",
+          "No. of Policies"
+        ],
+        "Previous_YTD_Premium": [
+          "Up to the Quarter - Previous Year",
+          "Premium (Rs. Lakhs)"
+        ]
       },
       "FlatHeaders": [
         "Sl.No.",
@@ -37,5 +65,34 @@
       ],
       "Rows": []
     }
-  ]
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

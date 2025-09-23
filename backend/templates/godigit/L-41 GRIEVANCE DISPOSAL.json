@@ -9,17 +9,47 @@
   "SubTitle_Detail": "GRIEVANCE DISPOSAL FOR THE QUARTER ENDING {QUARTER_END_DATE}",
   "Main_Table": {
     "Headers": {
-      "Sl_No": ["SI No."],
-      "Particulars": ["Particulars"],
-      "Opening_Balance_at_the_beginning_of_the_quarter": ["Opening Balance", "at the beginning of", "the quarter {PREVIOUS_QUARTER_END}"],
-      "Additions_during_the_quarter_net_of_duplicate_complaints": ["Additions during the", "quarter (net of", "duplicate", "complaints)"],
+      "Sl_No": [
+        "SI No."
+      ],
+      "Particulars": [
+        "Particulars"
+      ],
+      "Opening_Balance_at_the_beginning_of_the_quarter": [
+        "Opening Balance",
+        "at the beginning of",
+        "the quarter {PREVIOUS_QUARTER_END}"
+      ],
+      "Additions_during_the_quarter_net_of_duplicate_complaints": [
+        "Additions during the",
+        "quarter (net of",
+        "duplicate",
+        "complaints)"
+      ],
       "Complaints_Resolved_Settled_during_the": {
-        "Fully_Accepted": ["Fully", "Accepted"],
-        "Partial_Accepted": ["Partial Accepted"],
-        "Rejected": ["Rejected"]
+        "Fully_Accepted": [
+          "Fully",
+          "Accepted"
+        ],
+        "Partial_Accepted": [
+          "Partial Accepted"
+        ],
+        "Rejected": [
+          "Rejected"
+        ]
       },
-      "Complaints_Pending_at_the_end_of_the_quarter": ["Complaints Pending", "at the end of the", "quarter {QUARTER_END_DATE}"],
-      "Total_Complaints_registered_up_to_the_quarter_during_the_financial_year": ["Total Complaints", "registered up to the", "quarter {QUARTER_END_DATE}", "during the", "financial year"]
+      "Complaints_Pending_at_the_end_of_the_quarter": [
+        "Complaints Pending",
+        "at the end of the",
+        "quarter {QUARTER_END_DATE}"
+      ],
+      "Total_Complaints_registered_up_to_the_quarter_during_the_financial_year": [
+        "Total Complaints",
+        "registered up to the",
+        "quarter {QUARTER_END_DATE}",
+        "during the",
+        "financial year"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -44,18 +74,35 @@
   },
   "Duration_wise_Pending_Status_Table": {
     "Headers": {
-      "Duration_wise_Pending_Status": ["Duration wise Pending Status"],
+      "Duration_wise_Pending_Status": [
+        "Duration wise Pending Status"
+      ],
       "Complaints_made_by_customers": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+        "Number": [
+          "Number"
+        ],
+        "Percentage_to_Pending_complaints": [
+          "Percentage to",
+          "Pending complaints"
+        ]
       },
       "Complaints_made_by_Intermediaries": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+        "Number": [
+          "Number"
+        ],
+        "Percentage_to_Pending_complaints": [
+          "Percentage to",
+          "Pending complaints"
+        ]
       },
       "Total": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
+        "Number": [
+          "Number"
+        ],
+        "Percentage_to_Pending_complaints": [
+          "Percentage to",
+          "Pending complaints"
+        ]
       }
     },
     "FlatHeaders": [
@@ -68,5 +115,34 @@
       "Total_Percentage_to_Pending_complaints"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

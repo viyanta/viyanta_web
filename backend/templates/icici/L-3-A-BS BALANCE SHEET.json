@@ -6,33 +6,54 @@
   "Regn_Date": "24.11.2000",
   "Date": "As at {QUARTER_END_DATE}",
   "Currency": "₹ Lakhs",
-  
   "Headers": {
-    "Particulars": ["Particulars"],
-    "Schedule_Ref_Form_No": ["Schedule Ref.", "Form No."],
-    "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-    "As_at_Second_Date": ["As at", "{SECOND_DATE}"],
-    "As_at_Third_Date": ["As at", "{THIRD_DATE}"]
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule_Ref_Form_No": [
+      "Schedule Ref.",
+      "Form No."
+    ],
+    "As_at_Current": [
+      "As at",
+      "{QUARTER_END_DATE}"
+    ],
+    "As_at_Second_Date": [
+      "As at",
+      "{SECOND_DATE}"
+    ],
+    "As_at_Third_Date": [
+      "As at",
+      "{THIRD_DATE}"
+    ]
   },
-  
   "FlatHeaders": [
     "Particulars",
     "Schedule_Ref_Form_No",
-    "As_at_Current_QUARTER_END_DATE",
-    "As_at_Second_Date_SECOND_DATE",
-    "As_at_Third_Date_THIRD_DATE"
+    "As_at_Current",
+    "As_at_Second_Date",
+    "As_at_Third_Date"
   ],
-  
   "Rows": [],
-  
   "Contingent_Liabilities": {
     "Title": "CONTINGENT LIABILITIES",
     "SubTitle": "The Schedules referred to herein form an integral part of the Condensed Consolidated Balance Sheet",
     "Headers": {
-      "Particulars": ["Particulars"],
-      "As_at_Current": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Second_Date": ["As at", "{SECOND_DATE}"],
-      "As_at_Third_Date": ["As at", "{THIRD_DATE}"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Second_Date": [
+        "As at",
+        "{SECOND_DATE}"
+      ],
+      "As_at_Third_Date": [
+        "As at",
+        "{THIRD_DATE}"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -42,4 +63,4 @@
     ],
     "Rows": []
   }
-} 
+}

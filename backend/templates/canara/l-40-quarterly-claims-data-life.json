@@ -11,15 +11,35 @@
   "Death_Claims": {
     "Title": "Death Claims (No. of claims)",
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Claims_Experience": ["Claims Experience"],
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
       "For_Quarter_ended_Current_Year": {
-        "Individual": ["For Quarter ended", "{QUARTER_END_DATE}", "Individual"],
-        "Group": ["For Quarter ended", "{QUARTER_END_DATE}", "Group"]
+        "Individual": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Individual"
+        ],
+        "Group": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Group"
+        ]
       },
       "Upto_Quarter_ended_Current_Year": {
-        "Individual": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Individual"],
-        "Group": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Group"]
+        "Individual": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Individual"
+        ],
+        "Group": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Group"
+        ]
       }
     },
     "FlatHeaders": [
@@ -35,21 +55,65 @@
   "Individual_Claims": {
     "Title": "Number of Claims - Individual",
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Claims_Experience": ["Claims Experience"],
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
       "For_Quarter_ended_Current_Year": {
-        "Maturity": ["For Quarter ended", "{QUARTER_END_DATE}", "Maturity"],
-        "Survival_Benefit": ["For Quarter ended", "{QUARTER_END_DATE}", "Survival Benefit**"],
-        "Annuities_Pension": ["For Quarter ended", "{QUARTER_END_DATE}", "Annuities/ Pension***"],
-        "Surrender": ["For Quarter ended", "{QUARTER_END_DATE}", "Surrender***"],
-        "Other_Benefits": ["For Quarter ended", "{QUARTER_END_DATE}", "Other Benefits*****"]
+        "Maturity": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Survival Benefit**"
+        ],
+        "Annuities_Pension": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Annuities/ Pension***"
+        ],
+        "Surrender": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Surrender***"
+        ],
+        "Other_Benefits": [
+          "For Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Other Benefits*****"
+        ]
       },
       "Upto_Quarter_ended_Current_Year": {
-        "Maturity": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Maturity"],
-        "Survival_Benefit": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Survival Benefit**"],
-        "Annuities_Pension": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Annuities/ Pension***"],
-        "Surrender": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Surrender***"],
-        "Other_Benefits": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Other Benefits*****"]
+        "Maturity": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Survival Benefit**"
+        ],
+        "Annuities_Pension": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Annuities/ Pension***"
+        ],
+        "Surrender": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Surrender***"
+        ],
+        "Other_Benefits": [
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}",
+          "Other Benefits*****"
+        ]
       }
     },
     "FlatHeaders": [
@@ -67,5 +131,34 @@
       "Upto_Quarter_ended_Current_Year_Other_Benefits"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

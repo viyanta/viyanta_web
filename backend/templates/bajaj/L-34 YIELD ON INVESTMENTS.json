@@ -11,21 +11,51 @@
   "Life_Fund": {
     "Title": "Life Fund",
     "Headers": {
-      "Sr_No": ["Sr.No"],
-      "Category_of_Investment": ["Category of Investment"],
-      "TITLE": ["TITLE"],
-      "Current_Quarter_Investment": ["Investment (Rs.)¹"],
-      "Current_Quarter_Income": ["Income on Investment (Rs.)"],
-      "Current_Quarter_Gross_Yield": ["Gross Yield (%)¹"],
-      "Current_Quarter_Net_Yield": ["Net Yield (%)²"],
-      "Year_to_date_Investment": ["Investment (Rs.)¹"],
-      "Year_to_date_Income": ["Income on Investment (Rs.)"],
-      "Year_to_date_Gross_Yield": ["Gross Yield (%)¹"],
-      "Year_to_date_Net_Yield": ["Net Yield (%)²"],
-      "Previous_Year_Investment": ["Investment (Rs.)¹"],
-      "Previous_Year_Income": ["Income on Investment (Rs.)"],
-      "Previous_Year_Gross_Yield": ["Gross Yield (%)¹"],
-      "Previous_Year_Net_Yield": ["Net Yield (%)²"]
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "TITLE": [
+        "TITLE"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
     },
     "FlatHeaders": [
       "Sr.No",
@@ -49,21 +79,51 @@
   "Pension_General_Annuity_Group_Fund": {
     "Title": "Pension & General Annuity and Group Fund",
     "Headers": {
-      "Sr_No": ["Sr.No"],
-      "Category_of_Investment": ["Category of Investment"],
-      "Cat_Code": ["Cat Code"],
-      "Current_Quarter_Investment": ["Investment (Rs.)¹"],
-      "Current_Quarter_Income": ["Income on Investment (Rs.)"],
-      "Current_Quarter_Gross_Yield": ["Gross Yield (%)¹"],
-      "Current_Quarter_Net_Yield": ["Net Yield (%)²"],
-      "Year_to_date_Investment": ["Investment (Rs.)¹"],
-      "Year_to_date_Income": ["Income on Investment (Rs.)"],
-      "Year_to_date_Gross_Yield": ["Gross Yield (%)¹"],
-      "Year_to_date_Net_Yield": ["Net Yield (%)²"],
-      "Previous_Year_Investment": ["Investment (Rs.)¹"],
-      "Previous_Year_Income": ["Income on Investment (Rs.)"],
-      "Previous_Year_Gross_Yield": ["Gross Yield (%)¹"],
-      "Previous_Year_Net_Yield": ["Net Yield (%)²"]
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Cat_Code": [
+        "Cat Code"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
     },
     "FlatHeaders": [
       "Sr.No",
@@ -87,21 +147,51 @@
   "Unit_Linked_Funds": {
     "Title": "Unit Linked Funds",
     "Headers": {
-      "Sr_No": ["Sr.No"],
-      "Category_of_Investment": ["Category of Investment"],
-      "Cat_Code": ["Cat Code"],
-      "Current_Quarter_Investment": ["Investment (Rs.)¹"],
-      "Current_Quarter_Income": ["Income on Investment (Rs.)"],
-      "Current_Quarter_Gross_Yield": ["Gross Yield (%)¹"],
-      "Current_Quarter_Net_Yield": ["Net Yield (%)²"],
-      "Year_to_date_Investment": ["Investment (Rs.)¹"],
-      "Year_to_date_Income": ["Income on Investment (Rs.)"],
-      "Year_to_date_Gross_Yield": ["Gross Yield (%)¹"],
-      "Year_to_date_Net_Yield": ["Net Yield (%)²"],
-      "Previous_Year_Investment": ["Investment (Rs.)¹"],
-      "Previous_Year_Income": ["Income on Investment (Rs.)"],
-      "Previous_Year_Gross_Yield": ["Gross Yield (%)¹"],
-      "Previous_Year_Net_Yield": ["Net Yield (%)²"]
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Cat_Code": [
+        "Cat Code"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
     },
     "FlatHeaders": [
       "Sr.No",
@@ -121,5 +211,34 @@
       "Year to date (Previous Year)³ - Net Yield (%)²"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

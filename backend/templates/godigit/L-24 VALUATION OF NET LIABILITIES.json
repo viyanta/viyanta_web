@@ -7,18 +7,26 @@
   "Date_of_Registration": "9 June 2023",
   "Currency": "₹ in Lakhs",
   "Headers": {
-    "Type": ["Type"],
-    "Category_of_business": ["Category of business"],
-    "Mathematical_Reserves_Current": ["Mathematical Reserves as at", "{QUARTER_END_DATE}"],
-    "Mathematical_Reserves_Previous": ["Mathematical Reserves as at", "{PREVIOUS_QUARTER_END}"]
+    "Type": [
+      "Type"
+    ],
+    "Category_of_business": [
+      "Category of business"
+    ],
+    "Mathematical_Reserves_Current": [
+      "Mathematical Reserves as at",
+      "{QUARTER_END_DATE}"
+    ],
+    "Mathematical_Reserves_Previous": [
+      "Mathematical Reserves as at",
+      "{PREVIOUS_QUARTER_END}"
+    ]
   },
-  
   "FlatHeaders": [
     "Type",
     "Category_of_business",
-    "Mathematical_Reserves_Current_QUARTER_END_DATE",
-    "Mathematical_Reserves_Previous_PREVIOUS_QUARTER_END"
+    "Mathematical_Reserves_Current",
+    "Mathematical_Reserves_Previous"
   ],
-  
   "Rows": []
 }

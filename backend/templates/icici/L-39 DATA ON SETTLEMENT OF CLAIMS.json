@@ -5,22 +5,42 @@
   "Date": "As at {QUARTER_END_DATE}",
   "Quarter_End": "Quarter End {QUARTER_END_DATE}",
   "Currency": "₹ Lakhs",
-  
   "Individual_Claims": {
     "Title": "Individual Claims",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Types_of_Claims": ["Types of Claims"],
-      "Total_No_of_claims_paid": ["Total No. of claims paid"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Types_of_Claims": [
+        "Types of Claims"
+      ],
+      "Total_No_of_claims_paid": [
+        "Total No. of claims paid"
+      ],
       "Ageing_of_Claims": {
-        "On_or_before_maturity": ["On or before maturity"],
-        "1_month": ["1 month"],
-        "1_to_3_months": ["1 - 3 months"],
-        "3_to_6_months": ["3 - 6 months"],
-        "6_months_to_1_year": ["6 months - 1 year"],
-        "Greater_than_1_year": ["> 1 year"]
+        "On_or_before_maturity": [
+          "On or before maturity"
+        ],
+        "1_month": [
+          "1 month"
+        ],
+        "1_to_3_months": [
+          "1 - 3 months"
+        ],
+        "3_to_6_months": [
+          "3 - 6 months"
+        ],
+        "6_months_to_1_year": [
+          "6 months - 1 year"
+        ],
+        "Greater_than_1_year": [
+          "> 1 year"
+        ]
       },
-      "Total_amount_of_claims_paid_Lakhs": ["Total amount of claims paid", "(₹ Lakhs)"]
+      "Total_amount_of_claims_paid_Lakhs": [
+        "Total amount of claims paid",
+        "(₹ Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -36,22 +56,42 @@
     ],
     "Rows": []
   },
-  
   "Group_Claims": {
     "Title": "Group Claims",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Types_of_Claims": ["Types of Claims"],
-      "Total_No_of_claims_paid": ["Total No. of claims paid"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Types_of_Claims": [
+        "Types of Claims"
+      ],
+      "Total_No_of_claims_paid": [
+        "Total No. of claims paid"
+      ],
       "Ageing_of_Claims": {
-        "On_or_before_maturity": ["On or before maturity"],
-        "1_month": ["1 month"],
-        "1_to_3_months": ["1 - 3 months"],
-        "3_to_6_months": ["3 - 6 months"],
-        "6_months_to_1_year": ["6 months - 1 year"],
-        "Greater_than_1_year": ["> 1 year"]
+        "On_or_before_maturity": [
+          "On or before maturity"
+        ],
+        "1_month": [
+          "1 month"
+        ],
+        "1_to_3_months": [
+          "1 - 3 months"
+        ],
+        "3_to_6_months": [
+          "3 - 6 months"
+        ],
+        "6_months_to_1_year": [
+          "6 months - 1 year"
+        ],
+        "Greater_than_1_year": [
+          "> 1 year"
+        ]
       },
-      "Total_amount_of_claims_paid_Lakhs": ["Total amount of claims paid", "(₹ Lakhs)"]
+      "Total_amount_of_claims_paid_Lakhs": [
+        "Total amount of claims paid",
+        "(₹ Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -67,23 +107,43 @@
     ],
     "Rows": []
   },
-  
   "Nine_Month_End_Individual_Claims": {
     "Title": "Nine Month End Individual Claims",
     "Period": "Nine Month End {NINE_MONTHS_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Types_of_Claims": ["Types of Claims"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Types_of_Claims": [
+        "Types of Claims"
+      ],
       "No_of_claims_paid_Ageing": {
-        "On_or_before_maturity": ["On or before maturity"],
-        "1_month": ["1 month"],
-        "1_to_3_months": ["1 - 3 months"],
-        "3_to_6_months": ["3 - 6 months"],
-        "6_months_to_1_year": ["6 months - 1 year"],
-        "Greater_than_1_year": ["> 1 year"]
+        "On_or_before_maturity": [
+          "On or before maturity"
+        ],
+        "1_month": [
+          "1 month"
+        ],
+        "1_to_3_months": [
+          "1 - 3 months"
+        ],
+        "3_to_6_months": [
+          "3 - 6 months"
+        ],
+        "6_months_to_1_year": [
+          "6 months - 1 year"
+        ],
+        "Greater_than_1_year": [
+          "> 1 year"
+        ]
       },
-      "Total_No_of_claims_paid": ["Total No. of claims paid"],
-      "Total_amount_of_claims_paid_Lakhs": ["Total amount of claims paid", "(₹ Lakhs)"]
+      "Total_No_of_claims_paid": [
+        "Total No. of claims paid"
+      ],
+      "Total_amount_of_claims_paid_Lakhs": [
+        "Total amount of claims paid",
+        "(₹ Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -99,23 +159,43 @@
     ],
     "Rows": []
   },
-  
   "Nine_Month_End_Group_Claims": {
     "Title": "Nine Month End Group Claims",
     "Period": "Nine Month End {NINE_MONTHS_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Types_of_Claims": ["Types of Claims"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Types_of_Claims": [
+        "Types of Claims"
+      ],
       "No_of_claims_paid_Ageing": {
-        "On_or_before_maturity": ["On or before maturity"],
-        "1_month": ["1 month"],
-        "1_to_3_months": ["1 - 3 months"],
-        "3_to_6_months": ["3 - 6 months"],
-        "6_months_to_1_year": ["6 months - 1 year"],
-        "Greater_than_1_year": ["> 1 year"]
+        "On_or_before_maturity": [
+          "On or before maturity"
+        ],
+        "1_month": [
+          "1 month"
+        ],
+        "1_to_3_months": [
+          "1 - 3 months"
+        ],
+        "3_to_6_months": [
+          "3 - 6 months"
+        ],
+        "6_months_to_1_year": [
+          "6 months - 1 year"
+        ],
+        "Greater_than_1_year": [
+          "> 1 year"
+        ]
       },
-      "Total_No_of_claims_paid": ["Total No. of claims paid"],
-      "Total_amount_of_claims_paid_Lakhs": ["Total amount of claims paid", "(₹ Lakhs)"]
+      "Total_No_of_claims_paid": [
+        "Total No. of claims paid"
+      ],
+      "Total_amount_of_claims_paid_Lakhs": [
+        "Total amount of claims paid",
+        "(₹ Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -130,5 +210,34 @@
       "Total_amount_of_claims_paid_Lakhs"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

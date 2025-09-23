@@ -4,22 +4,29 @@
   "Company": "ICICI Prudential Life Insurance Co. Ltd.",
   "Date": "{QUARTER_END_DATE}",
   "Currency": "Rs. lakhs",
-  
   "Headers": {
-    "Type": ["Type"],
-    "Category_of_business": ["Category of business"],
+    "Type": [
+      "Type"
+    ],
+    "Category_of_business": [
+      "Category of business"
+    ],
     "Net_Liabilities_Frequency_Quarterly": {
-      "Mathematical_Reserves_as_at_Current_Date": ["Mathematical Reserves as at", "{QUARTER_END_DATE}"],
-      "Mathematical_Reserves_as_at_Previous_Year_End": ["Mathematical Reserves as at", "{PREVIOUS_YEAR_END_DATE}"]
+      "Mathematical_Reserves_as_at_Current_Date": [
+        "Mathematical Reserves as at",
+        "{QUARTER_END_DATE}"
+      ],
+      "Mathematical_Reserves_as_at_Previous_Year_End": [
+        "Mathematical Reserves as at",
+        "{PREVIOUS_YEAR_END_DATE}"
+      ]
     }
   },
-  
   "FlatHeaders": [
     "Type",
     "Category_of_business",
-    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Current_Date_QUARTER_END_DATE",
-    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Previous_Year_End_PREVIOUS_YEAR_END_DATE"
+    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Current_Date",
+    "Net_Liabilities_Frequency_Quarterly_Mathematical_Reserves_as_at_Previous_Year_End"
   ],
-  
   "Rows": []
-} 
+}

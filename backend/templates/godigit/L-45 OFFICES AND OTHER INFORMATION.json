@@ -7,7 +7,6 @@
   "Date_of_Registration": "9 June 2023",
   "Statement_Date": "As at: {QUARTER_END_DATE}",
   "Periodicity_of_Submission": "Quarterly",
-  
   "Offices_and_Branches": {
     "No_of_offices_at_the_beginning_of_the_year": 0,
     "No_of_branches_approved_during_the_year": 0,
@@ -19,7 +18,6 @@
     "No_of_rural_branches": 0,
     "No_of_urban_branches": 0
   },
-  
   "Directors": {
     "Independent_Director": 0,
     "Executive_Director": 0,
@@ -27,13 +25,11 @@
     "Women_Director": 0,
     "Whole_time_director": 0
   },
-  
   "Employees": {
     "On_roll": 0,
     "Off_roll": 0,
     "Total": 0
   },
-  
   "Insurance_Agents_and_Intermediaries": {
     "Individual_Agents": 0,
     "Corporate_Agents_Banks": 0,
@@ -45,12 +41,18 @@
     "Point_of_Sales_persons_DIRECT": 0,
     "Other_as_allowed_by_IRDAI_To_be_specified": 0
   },
-  
   "Movement_Table": {
     "Headers": {
-      "Particulars": ["Particulars"],
-      "Employees": ["Employees"],
-      "Insurance_Agents_and_Intermediaries": ["Insurance Agents and", "Intermediaries"]
+      "Particulars": [
+        "Particulars"
+      ],
+      "Employees": [
+        "Employees"
+      ],
+      "Insurance_Agents_and_Intermediaries": [
+        "Insurance Agents and",
+        "Intermediaries"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -58,5 +60,34 @@
       "Insurance_Agents_and_Intermediaries"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

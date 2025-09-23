@@ -11,11 +11,21 @@
   "Particulars_MKT_Value_Table": {
     "Title": "PARTICULARS (MKT VALUE)",
     "Headers": {
-      "Particulars": ["PARTICULARS"],
-      "SFIN_1": ["SFIN 1"],
-      "SFIN_2": ["SFIN 2"],
-      "SFIN_n": ["SFIN 'n'"],
-      "Total_of_All_Funds": ["Total of All Funds"]
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "SFIN_1": [
+        "SFIN 1"
+      ],
+      "SFIN_2": [
+        "SFIN 2"
+      ],
+      "SFIN_n": [
+        "SFIN 'n'"
+      ],
+      "Total_of_All_Funds": [
+        "Total of All Funds"
+      ]
     },
     "FlatHeaders": [
       "Particulars",
@@ -29,22 +39,40 @@
   "Investment_of_Unit_Fund_Table": {
     "Title": "INVESTMENT OF UNIT FUND",
     "Headers": {
-      "Investment_of_Unit_Fund_Particulars": ["INVESTMENT OF UNIT FUND"],
+      "Investment_of_Unit_Fund_Particulars": [
+        "INVESTMENT OF UNIT FUND"
+      ],
       "SFIN_1": {
-        "Actual_Inv": ["Actual Inv."],
-        "Percentage_Actual": ["% Actual"]
+        "Actual_Inv": [
+          "Actual Inv."
+        ],
+        "Percentage_Actual": [
+          "% Actual"
+        ]
       },
       "SFIN_2": {
-        "Actual_Inv": ["Actual Inv."],
-        "Percentage_Actual": ["% Actual"]
+        "Actual_Inv": [
+          "Actual Inv."
+        ],
+        "Percentage_Actual": [
+          "% Actual"
+        ]
       },
       "SFIN_n": {
-        "Actual_Inv": ["Actual Inv."],
-        "Percentage_Actual": ["% Actual"]
+        "Actual_Inv": [
+          "Actual Inv."
+        ],
+        "Percentage_Actual": [
+          "% Actual"
+        ]
       },
       "Total_of_All_Funds": {
-        "Actual_Inv": ["Actual Inv."],
-        "Percentage_Actual": ["% Actual"]
+        "Actual_Inv": [
+          "Actual Inv."
+        ],
+        "Percentage_Actual": [
+          "% Actual"
+        ]
       }
     },
     "FlatHeaders": [
@@ -59,5 +87,34 @@
       "Total_of_All_Funds_Percentage_Actual"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

@@ -7,30 +7,71 @@
   "Submission_Periodicity": "Quarterly",
   "Fund_Name": "Life Fund",
   "Currency": "₹ Lakhs",
-  
   "Life_Fund": {
     "Title": "Life Fund",
     "Headers": {
-      "No": ["No."],
-      "Category_of_Investment": ["Category of Investment"],
-      "Category_Code": ["Category Code"],
+      "No": [
+        "No."
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Category_Code": [
+        "Category Code"
+      ],
       "Current_Quarter": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Current_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Previous_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       }
     },
     "FlatHeaders": [
@@ -52,30 +93,71 @@
     ],
     "Rows": []
   },
-  
   "Pension_Fund": {
     "Title": "Pension Fund",
     "Headers": {
-      "No": ["No."],
-      "Category_of_Investment": ["Category of Investment"],
-      "Category_Code": ["Category Code"],
+      "No": [
+        "No."
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Category_Code": [
+        "Category Code"
+      ],
       "Current_Quarter": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Current_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Previous_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       }
     },
     "FlatHeaders": [
@@ -97,30 +179,71 @@
     ],
     "Rows": []
   },
-  
   "Linked_Fund": {
     "Title": "Linked Fund",
     "Headers": {
-      "No": ["No."],
-      "Category_of_Investment": ["Category of Investment"],
-      "Category_Code": ["Category Code"],
+      "No": [
+        "No."
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Category_Code": [
+        "Category Code"
+      ],
       "Current_Quarter": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Current_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       },
       "Year_to_Date_Previous_Year": {
-        "Investment_Rupees": ["Investment", "(₹)¹"],
-        "Income_on_Investment_Rupees": ["Income on Investment", "(₹)"],
-        "Gross_Yield_Percentage": ["Gross Yield", "(%)¹,⁶"],
-        "Net_Yield_Percentage": ["Net Yield", "(%)²,⁶"]
+        "Investment_Rupees": [
+          "Investment",
+          "(₹)¹"
+        ],
+        "Income_on_Investment_Rupees": [
+          "Income on Investment",
+          "(₹)"
+        ],
+        "Gross_Yield_Percentage": [
+          "Gross Yield",
+          "(%)¹,⁶"
+        ],
+        "Net_Yield_Percentage": [
+          "Net Yield",
+          "(%)²,⁶"
+        ]
       }
     },
     "FlatHeaders": [
@@ -141,5 +264,34 @@
       "Year_to_Date_Previous_Year_Net_Yield_Percentage"
     ],
     "Rows": []
-  }
-} 
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

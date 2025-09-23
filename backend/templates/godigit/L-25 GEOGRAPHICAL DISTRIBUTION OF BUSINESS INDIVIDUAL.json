@@ -1,4 +1,3 @@
-
 {
   "Form No": "L-25",
   "Title": "GEOGRAPHICAL DISTRIBUTION OF BUSINESS",
@@ -11,25 +10,66 @@
     "Title": "For the Quarter - Individual Business",
     "Date": "{QUARTER_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "State_Union_Territory": ["State / Union Territory"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "State_Union_Territory": [
+        "State / Union Territory"
+      ],
       "New_Business_Rural_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "New_Business_Urban_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "Total_New_Business_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
-      "Renewal_Premium_Rs_Lakhs": ["Renewal", "Premium²", "(Rs. Lakhs)"],
-      "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": ["Total Premium", "(New Business and", "Renewal²)", "(Rs.", "Lakhs)"]
+      "Renewal_Premium_Rs_Lakhs": [
+        "Renewal",
+        "Premium²",
+        "(Rs. Lakhs)"
+      ],
+      "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
+        "Total Premium",
+        "(New Business and",
+        "Renewal²)",
+        "(Rs.",
+        "Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -52,25 +92,66 @@
     "Title": "For the YTD - Individual Business",
     "Date": "{YTD_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "State_Union_Territory": ["State / Union Territory"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "State_Union_Territory": [
+        "State / Union Territory"
+      ],
       "New_Business_Rural_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "New_Business_Urban_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "Total_New_Business_Individual": {
-        "No_of_Policies": ["No. of", "Policies"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Policies": [
+          "No. of",
+          "Policies"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
-      "Renewal_Premium_Rs_Lakhs": ["Renewal", "Premium²", "(Rs. Lakhs)"],
-      "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": ["Total Premium", "(New Business and", "Renewal²)", "(Rs.", "Lakhs)"]
+      "Renewal_Premium_Rs_Lakhs": [
+        "Renewal",
+        "Premium²",
+        "(Rs. Lakhs)"
+      ],
+      "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
+        "Total Premium",
+        "(New Business and",
+        "Renewal²)",
+        "(Rs.",
+        "Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -93,28 +174,75 @@
     "Title": "For the Quarter - Group Business",
     "Date": "{QUARTER_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "State_Union_Territory": ["State / Union Territory"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "State_Union_Territory": [
+        "State / Union Territory"
+      ],
       "New_Business_Rural_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "New_Business_Urban_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "Total_New_Business_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
-      "Renewal_Premium2_Rs_Lakhs": ["Renewal", "Premium²", "(Rs. Lakhs)"],
-      "Total_Premium_New_Business_and_Renewal2_Rs_Lakhs": ["Total Premium", "(New Business", "and Renewal²)", "(Rs.", "Lakhs)"]
+      "Renewal_Premium2_Rs_Lakhs": [
+        "Renewal",
+        "Premium²",
+        "(Rs. Lakhs)"
+      ],
+      "Total_Premium_New_Business_and_Renewal2_Rs_Lakhs": [
+        "Total Premium",
+        "(New Business",
+        "and Renewal²)",
+        "(Rs.",
+        "Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -140,28 +268,75 @@
     "Title": "For the YTD - Group Business",
     "Date": "{YTD_END_DATE}",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "State_Union_Territory": ["State / Union Territory"],
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "State_Union_Territory": [
+        "State / Union Territory"
+      ],
       "New_Business_Rural_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "New_Business_Urban_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
       "Total_New_Business_Group": {
-        "No_of_Schemes": ["No. of", "Schemes"],
-        "No_of_Lives": ["No. of Lives"],
-        "Premium_Rs_Lakhs": ["Premium", "(Rs Lakhs)"],
-        "Sum_Assured_Rs_Lakhs": ["Sum Assured", "(Rs Lakhs)"]
+        "No_of_Schemes": [
+          "No. of",
+          "Schemes"
+        ],
+        "No_of_Lives": [
+          "No. of Lives"
+        ],
+        "Premium_Rs_Lakhs": [
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Sum_Assured_Rs_Lakhs": [
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ]
       },
-      "Renewal_Premium2_Rs_Lakhs": ["Renewal", "Premium²", "(Rs. Lakhs)"],
-      "Total_Premium_New_Business_and_Renewal2_Rs_Lakhs": ["Total Premium", "(New Business", "and Renewal²)", "(Rs.", "Lakhs)"]
+      "Renewal_Premium2_Rs_Lakhs": [
+        "Renewal",
+        "Premium²",
+        "(Rs. Lakhs)"
+      ],
+      "Total_Premium_New_Business_and_Renewal2_Rs_Lakhs": [
+        "Total Premium",
+        "(New Business",
+        "and Renewal²)",
+        "(Rs.",
+        "Lakhs)"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -182,5 +357,34 @@
       "Total_Premium_New_Business_and_Renewal2_Rs_Lakhs"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }

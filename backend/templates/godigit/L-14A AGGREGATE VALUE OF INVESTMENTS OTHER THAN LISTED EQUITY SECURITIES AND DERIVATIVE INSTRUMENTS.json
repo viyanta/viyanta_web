@@ -7,39 +7,62 @@
   "Date_of_Registration": "9 June 2023",
   "Currency": "₹ in Lakhs",
   "Headers": {
-    "Particulars": ["Particulars"],
+    "Particulars": [
+      "Particulars"
+    ],
     "Shareholders": {
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Policyholders": {
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Assets_held_to_cover_Linked_Liabilities": {
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "Total": {
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     }
   },
-  
   "FlatHeaders": [
     "Particulars",
-    "Shareholders_As_at_Current_Date_QUARTER_END_DATE",
-    "Shareholders_As_at_Previous_Date_PREVIOUS_QUARTER_END",
-    "Policyholders_As_at_Current_Date_QUARTER_END_DATE",
-    "Policyholders_As_at_Previous_Date_PREVIOUS_QUARTER_END",
-    "Assets_held_to_cover_Linked_Liabilities_As_at_Current_Date_QUARTER_END_DATE",
-    "Assets_held_to_cover_Linked_Liabilities_As_at_Previous_Date_PREVIOUS_QUARTER_END",
-    "Total_As_at_Current_Date_QUARTER_END_DATE",
-    "Total_As_at_Previous_Date_PREVIOUS_QUARTER_END"
+    "Shareholders_As_at_Current_Date",
+    "Shareholders_As_at_Previous_Date",
+    "Policyholders_As_at_Current_Date",
+    "Policyholders_As_at_Previous_Date",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Current_Date",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_Previous_Date",
+    "Total_As_at_Current_Date",
+    "Total_As_at_Previous_Date"
   ],
-  
   "Rows": [],
-  
   "Notes": [
     "Market Value in respect of Shareholders and Policyholders investments should be arrived as per the guidelines prescribed for linked business investments under IRDAI Investment (Regulations) 2016."
   ]

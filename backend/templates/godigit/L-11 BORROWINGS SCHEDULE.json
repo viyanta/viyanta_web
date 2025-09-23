@@ -8,10 +8,20 @@
   "Currency": "₹ in Lakhs",
   "Borrowings_Schedule_Table": {
     "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Particulars": ["Particulars"],
-      "As_at_Current_Date": ["As at", "{QUARTER_END_DATE}"],
-      "As_at_Previous_Date": ["As at", "{PREVIOUS_QUARTER_END}"]
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -29,11 +39,21 @@
   "Disclosure_for_Secured_Borrowings_Table": {
     "Title": "DISCLOSURE FOR SECURED BORROWINGS (Refer Note a)",
     "Headers": {
-      "Sl_No": ["Sl.No."],
-      "Source_Instrument": ["Source / Instrument"],
-      "Amount_Borrowed": ["Amount Borrowed"],
-      "Amount_of_Security": ["Amount of Security"],
-      "Nature_of_Security": ["Nature of Security"]
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Source_Instrument": [
+        "Source / Instrument"
+      ],
+      "Amount_Borrowed": [
+        "Amount Borrowed"
+      ],
+      "Amount_of_Security": [
+        "Amount of Security"
+      ],
+      "Nature_of_Security": [
+        "Nature of Security"
+      ]
     },
     "FlatHeaders": [
       "Sl_No",
@@ -43,5 +63,34 @@
       "Nature_of_Security"
     ],
     "Rows": []
-  }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
 }
