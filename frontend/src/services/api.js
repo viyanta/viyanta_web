@@ -940,6 +940,26 @@ class ApiService {
     return response.json();
   }
 
+
+// Update/Edit a company
+async updateCompany(companyId, updatedName) {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+    method: 'PUT', // or 'PATCH' depending on your backend
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
   // === LEGACY METHODS (kept for compatibility) ===
 
   // Upload PDF for a specific company (template-based extraction)
