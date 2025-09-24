@@ -529,97 +529,192 @@ async def extract_form_data(
         print(
             f"🤖 Starting Gemini correction (empty extraction: {extracted_is_empty})")
 
-        correction_cmd = [
-            sys.executable,
-            "services/pdf_splitted_gemini_very.py",
-            "--template", str(template_path),
-            "--extracted", str(extracted_json),
-            "--pdf", split_path,
-            "--output", str(corrected_json),
-            "--batch-size", "10"  # Use smaller batch size for better JSON parsing
-        ]
+        import os  # ensure os available for env config
+        # Configurable timeouts & retries (can disable timeout entirely)
+        primary_timeout_env = os.getenv(
+            "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "180")
+        retry_timeout_env = os.getenv("GEMINI_CORRECTION_TIMEOUT_RETRY", "120")
+        no_timeout_mode = os.getenv("GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
+        primary_timeout = None if no_timeout_mode else int(primary_timeout_env)
+        retry_timeout = None if no_timeout_mode else int(retry_timeout_env)
+        enable_retry = os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0"
+        enable_second_retry = os.getenv(
+            "GEMINI_CORRECTION_SECOND_RETRY", "1") != "0"
 
-        print(f"🔧 Gemini correction command: {' '.join(correction_cmd)}")
+        # Dynamic initial batch size based on extracted row count
+        dynamic_rows = extracted_row_count if not extracted_is_empty else 0
+        if dynamic_rows > 120:
+            initial_batch = 3
+        elif dynamic_rows > 80:
+            initial_batch = 4
+        elif dynamic_rows > 40:
+            initial_batch = 5
+        else:
+            initial_batch = 6  # small batches improve JSON correctness
+        # Allow override via env
+        initial_batch = int(
+            os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", str(initial_batch)))
+        second_batch = int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "4"))
+        third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "2"))
 
-        try:
-            correction_result = subprocess.run(
-                # 1 min timeout (much shorter)
-                correction_cmd, capture_output=True, text=True, timeout=60)
-        except subprocess.TimeoutExpired:
+        def run_gemini(batch_size: int, timeout_seconds):
+            cmd = [
+                sys.executable,
+                "services/pdf_splitted_gemini_very.py",
+                "--template", str(template_path),
+                "--extracted", str(extracted_json),
+                "--pdf", split_path,
+                "--output", str(corrected_json),
+                "--batch-size", str(batch_size)
+            ]
+            # Diagnostic banner
             print(
-                "⏰ Gemini correction timed out after 1 minute - using extracted data only")
-            correction_result = subprocess.CompletedProcess(
-                correction_cmd, 1, "", "Timeout - using extracted data")
+                f"🔧 Gemini correction command (batch={batch_size}, timeout={'NONE' if timeout_seconds is None else str(timeout_seconds)+'s'}): {' '.join(cmd)}")
+            try:
+                if timeout_seconds is None:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True)
+                else:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=timeout_seconds)
+                return result, None
+            except subprocess.TimeoutExpired as te:
+                print(
+                    f"⏰ Gemini correction timed out after {timeout_seconds}s (batch={batch_size})")
+                return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout_seconds}s"), te
+
+        # First attempt (dynamic batch)
+        correction_result, primary_timeout_exc = run_gemini(
+            batch_size=initial_batch, timeout_seconds=primary_timeout)
+
+        retry_used = False
+        second_retry_used = False
+
+        # First retry on failure / timeout
+        if (correction_result.returncode != 0) and enable_retry and not corrected_json.exists():
+            print(
+                f"♻️ Attempting Gemini correction retry with smaller batch size ({second_batch})")
+            correction_result_retry, retry_exc = run_gemini(
+                batch_size=second_batch, timeout_seconds=retry_timeout)
+            if correction_result_retry.returncode == 0 and corrected_json.exists():
+                print("✅ Retry succeeded with reduced batch size")
+                correction_result = correction_result_retry
+                retry_used = True
+            else:
+                print(
+                    f"❌ Retry failed (code={correction_result_retry.returncode}) - will consider second retry")
+
+        # Second retry if still failing and enabled
+        if (correction_result.returncode != 0) and enable_second_retry and not corrected_json.exists():
+            print(
+                f"🔁 Second retry with ultra small batch size ({third_batch}) and extended timeout")
+            extended_timeout = None if no_timeout_mode else int(
+                os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", str(retry_timeout or 180)))
+            correction_result_retry2, retry2_exc = run_gemini(
+                batch_size=third_batch, timeout_seconds=extended_timeout)
+            if correction_result_retry2.returncode == 0 and corrected_json.exists():
+                print("✅ Second retry succeeded with ultra small batch")
+                correction_result = correction_result_retry2
+                second_retry_used = True
+            else:
+                print(
+                    f"❌ Second retry failed (code={correction_result_retry2.returncode}) - proceeding with extracted data")
 
         print(
-            f"💯 Gemini correction return code: {correction_result.returncode}")
+            f"💯 Gemini correction final return code: {correction_result.returncode}")
         if correction_result.stdout:
-            print(f"📤 Gemini correction stdout: {correction_result.stdout}")
-        if correction_result.stderr and "Timeout" not in correction_result.stderr:
-            print(f"❌ Gemini correction stderr: {correction_result.stderr}")
-        elif "Timeout" in str(correction_result.stderr):
-            print(f"⏰ Gemini correction timed out - proceeding with extracted data")
+            print(
+                f"📤 Gemini correction stdout (final): {correction_result.stdout[:2000]}")
+        if correction_result.stderr:
+            print(
+                f"❌ Gemini correction stderr (final): {correction_result.stderr[:2000]}")
 
         gemini_corrected = False
+        correction_notes = {
+            "primary_timeout_sec": primary_timeout if primary_timeout is not None else "none",
+            "retry_timeout_sec": retry_timeout if retry_timeout is not None else "none",
+            "retry_used": retry_used,
+            "second_retry_used": second_retry_used,
+            "primary_timed_out": primary_timeout_exc is not None,
+            "attempt_return_code": correction_result.returncode,
+            "initial_batch": initial_batch,
+            "second_batch": second_batch,
+            "third_batch": third_batch,
+            "no_timeout_mode": no_timeout_mode
+        }
+
         final_json_path = extracted_json  # Default fallback
 
-        if correction_result.returncode == 0:
-            # Check if the corrected file was actually created
-            if corrected_json.exists():
+        if correction_result.returncode == 0 and corrected_json.exists():
+            try:
+                with open(corrected_json, "r", encoding="utf-8") as cf:
+                    corrected_content = cf.read()
+                    corrected_data = json.loads(corrected_content)
+                # Robust row counting
+
+                def count_rows(obj):
+                    if isinstance(obj, list):
+                        total = 0
+                        for item in obj:
+                            if isinstance(item, dict):
+                                rows = item.get("Rows")
+                                if isinstance(rows, list):
+                                    total += len(rows)
+                            elif isinstance(item, list):
+                                total += len(item)
+                        return total
+                    if isinstance(obj, dict):
+                        rows = obj.get("Rows")
+                        if isinstance(rows, list):
+                            return len(rows)
+                    return 0
+                corrected_row_count = count_rows(corrected_data)
+                extracted_row_count_baseline = 0
                 try:
-                    # Validate the corrected JSON
-                    with open(corrected_json, "r", encoding="utf-8") as cf:
-                        corrected_content = cf.read()
-                        corrected_data = json.loads(corrected_content)
-
-                    # Count rows in corrected data
-                    if isinstance(corrected_data, list):
-                        corrected_row_count = sum(
-                            len(page.get("Rows", [])) for page in corrected_data)
-                    else:
-                        corrected_row_count = len(
-                            corrected_data.get("Rows", []))
-
-                    if corrected_row_count > 0:
-                        gemini_corrected = True
-                        final_json_path = corrected_json
+                    if extracted_json.exists():
+                        with open(extracted_json, "r", encoding="utf-8") as ef:
+                            baseline = json.load(ef)
+                        extracted_row_count_baseline = count_rows(baseline)
+                except Exception:
+                    pass
+                if corrected_row_count > 0:
+                    gemini_corrected = True
+                    final_json_path = corrected_json
+                    print(
+                        f"✅ Gemini correction successful: {corrected_row_count} rows (baseline {extracted_row_count_baseline})")
+                    if corrected_row_count <= extracted_row_count_baseline:
                         print(
-                            f"✅ Gemini correction successful: {corrected_row_count} rows corrected")
-
-                        # If original was empty but corrected has data, this is a major improvement
-                        if extracted_is_empty:
-                            print(
-                                f"🎉 MAJOR SUCCESS: Gemini recovered data from nearly empty extraction!")
-                    else:
-                        print(f"⚠️ Gemini correction produced empty result")
-
-                except Exception as e:
-                    print(f"⚠️ Error validating corrected JSON: {e}")
-            else:
-                print(f"⚠️ Corrected file not created despite success return code")
+                            "ℹ️ Corrected row count not higher than baseline – may still include qualitative normalization / header fixes")
+                else:
+                    print(
+                        "⚠️ Corrected JSON empty after parse – discarding and using extracted data")
+            except Exception as e:
+                print(
+                    f"⚠️ Error validating corrected JSON: {e} – using extracted data")
         else:
-            print(
-                f"❌ Gemini correction failed with return code {correction_result.returncode}")
-            print(f"❌ Error details: {correction_result.stderr}")
+            print("⚠️ Gemini correction not successful – using extracted data")
 
-        # Final file selection logic with enhanced data preservation preference
+        # Enhanced / enriched corrected variant preference
         enhanced_corrected_json = Path(str(corrected_json).replace(
             "_corrected.json", "_corrected_enhanced.json"))
-
         if enhanced_corrected_json.exists():
-            final_json_path = enhanced_corrected_json
-            print(f"🎯 Using Enhanced Gemini-corrected JSON: {final_json_path}")
-            gemini_corrected = True
-        elif gemini_corrected and corrected_json.exists():
-            final_json_path = corrected_json
-            print(f"🎯 Using Gemini-corrected JSON: {final_json_path}")
+            try:
+                with open(enhanced_corrected_json, "r", encoding="utf-8") as enf:
+                    _ = json.load(enf)  # sanity parse
+                final_json_path = enhanced_corrected_json
+                gemini_corrected = True
+                correction_notes["used_enhanced"] = True
+                print(
+                    f"🎯 Using Enhanced Gemini-corrected JSON: {final_json_path}")
+            except Exception as ee:
+                print(f"⚠️ Failed to parse enhanced corrected JSON: {ee}")
         else:
-            final_json_path = extracted_json
-            print(
-                f"🎯 Using extracted JSON (Gemini correction failed): {final_json_path}")
-            # Still mark as corrected if we attempted correction
-            if extracted_is_empty and correction_result.returncode == 0:
-                gemini_corrected = True  # We tried our best
+            correction_notes["used_enhanced"] = False
+
+        if not gemini_corrected:
+            correction_notes["reason"] = "correction_failed_or_empty"
+        else:
+            correction_notes["reason"] = "success"
 
         # Load the final JSON
         with open(final_json_path, "r", encoding="utf-8") as f:
@@ -658,7 +753,8 @@ async def extract_form_data(
             # Use the actual flag from correction process
             "gemini_corrected": gemini_corrected,
             # Use the actual final file path
-            "output_path": str(final_json_path)
+            "output_path": str(final_json_path),
+            "correction_meta": correction_notes
         }
 
         # Save metadata
@@ -774,6 +870,31 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
         if metadata_source and metadata_source.exists():
             with open(metadata_source, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
+
+        # CRITICAL FIX: Force gemini_corrected = True when source is gemini_verified
+        if source_type == "gemini_verified":
+            metadata["gemini_corrected"] = True
+            print(f"🤖 Forced gemini_corrected=True for gemini_verified source")
+        elif source_type == "corrected":
+            # Also treat corrected JSONs as gemini corrected
+            metadata["gemini_corrected"] = True
+            print(f"🤖 Forced gemini_corrected=True for corrected source")
+
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys
+        if isinstance(data, list) and len(data) > 0:
+            for record_idx, record in enumerate(data):
+                if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
+                    # Get actual keys from first row
+                    first_row = record["Rows"][0]
+                    if isinstance(first_row, dict):
+                        actual_keys = list(first_row.keys())
+
+                        # Update FlatHeaders to match actual data
+                        record["FlatHeaders"] = actual_keys
+                        record["FlatHeadersNormalized"] = actual_keys
+
+                        print(
+                            f"📊 Fixed headers for record {record_idx}: {actual_keys}")
 
         return {
             "success": True,
