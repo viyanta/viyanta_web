@@ -4,41 +4,52 @@
   "Insurer": "HDFC Life Insurance Company Limited",
   "Date": "{QUARTER_END_DATE}",
   "Quarter_End": "{QUARTER_END_DATE}",
-  "Grievance_Disposal_Summary": {
-    "Title": "Grievance Disposal Summary",
-    "Headers": {
-      "SI_No": ["SI No."],
-      "Particulars": ["Particulars*"],
-      "Opening_balance_as_on_beginning_of_quarter": ["Opening balance as on", "beginning of the quarter"],
-      "Additions_during_quarter": ["Additions during the quarter", "(net of duplicate complaints)"],
-      "Complaints_resolved_settled_during_quarter": {
-        "Fully_Accepted": ["Fully Accepted"],
-        "Partial_Accepted": ["Partial Accepted"],
-        "Rejected": ["Rejected"]
-      },
-      "Complaints_pending_at_end_of_quarter": ["Complaints pending at", "the end of the quarter"],
-      "Total_Complaints_registered_up_to_quarter": ["Total Complaints registered", "up to the quarter during", "the financial year"]
+  "Headers": {
+    "SI_No": [
+      "SI No."
+    ],
+    "Particulars": [
+      "Particulars*"
+    ],
+    "Opening_balance_as_on_beginning_of_quarter": [
+      "Opening balance as on",
+      "beginning of the quarter"
+    ],
+    "Additions_during_quarter": [
+      "Additions during the quarter",
+      "(net of duplicate complaints)"
+    ],
+    "Complaints_resolved_settled_during_quarter": {
+      "Fully_Accepted": [
+        "Fully Accepted"
+      ],
+      "Partial_Accepted": [
+        "Partial Accepted"
+      ],
+      "Rejected": [
+        "Rejected"
+      ]
     },
-    "Rows": []
+    "Complaints_pending_at_end_of_quarter": [
+      "Complaints pending at",
+      "the end of the quarter"
+    ],
+    "Total_Complaints_registered_up_to_quarter": [
+      "Total Complaints registered",
+      "up to the quarter during",
+      "the financial year"
+    ]
   },
-
-  "Duration_Wise_Pending_Status": {
-    "Title": "Duration wise pending status",
-    "Headers": {
-      "Duration_wise_pending_status": ["Duration wise pending status"],
-      "Complaints_made_by_customers": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
-      },
-      "Complaints_made_by_intermediaries": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
-      },
-      "Total": {
-        "Number": ["Number"],
-        "Percentage_to_Pending_complaints": ["Percentage to", "Pending complaints"]
-      }
-    },
-    "Rows": []
-  }
-} 
+  "FlatHeaders": [
+    "SI_No",
+    "Particulars",
+    "Opening_balance_as_on_beginning_of_quarter",
+    "Additions_during_quarter_net_of_duplicate_complaints",
+    "Complaints_resolved_settled_during_quarter_Fully_Accepted",
+    "Complaints_resolved_settled_during_quarter_Partial_Accepted",
+    "Complaints_resolved_settled_during_quarter_Rejected",
+    "Complaints_pending_at_end_of_quarter",
+    "Total_Complaints_registered_up_to_quarter_during_the_financial_year"
+  ],
+  "Rows": []
+}

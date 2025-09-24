@@ -7,40 +7,96 @@
   "Date": "{QUARTER_END_DATE}",
   "Business_Type": "INDIVIDUAL BUSINESS",
   "Headers": {
-    "Type": ["Type"],
-    "Category_of_business": ["Category of business"],
+    "Type": [
+      "Type"
+    ],
+    "Category_of_business": [
+      "Category of business"
+    ],
     "Interest_Rate": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Mortality_Rate": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Morbidity_Rate": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Fixed_Expenses": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Variable_Expenses": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Inflation_Rate": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Withdrawal_rates": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     },
     "Future_Bonus_Rates_Assumption": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ]
     }
   },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Interest_Rate_Current_Period_As_at",
+    "Interest_Rate_Previous_Period_As_at",
+    "Mortality_Rate_Current_Period_As_at",
+    "Mortality_Rate_Previous_Period_As_at",
+    "Morbidity_Rate_Current_Period_As_at",
+    "Morbidity_Rate_Previous_Period_As_at",
+    "Fixed_Expenses_Current_Period_As_at",
+    "Fixed_Expenses_Previous_Period_As_at",
+    "Variable_Expenses_Current_Period_As_at",
+    "Variable_Expenses_Previous_Period_As_at",
+    "Inflation_Rate_Current_Period_As_at",
+    "Inflation_Rate_Previous_Period_As_at",
+    "Withdrawal_rates_Current_Period_As_at",
+    "Withdrawal_rates_Previous_Period_As_at",
+    "Future_Bonus_Rates_Assumption_Current_Period_As_at",
+    "Future_Bonus_Rates_Assumption_Previous_Period_As_at"
+  ],
   "Rows": []
-} 
+}

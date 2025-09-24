@@ -41,5 +41,21 @@
       }
     }
   },
+  "FlatHeaders": [
+    "S_No",
+    "Channels",
+    "Current_Quarter_No_of_Policies_No_of_Schemes",
+    "Current_Quarter_No_of_Lives_Covered",
+    "Current_Quarter_Premium",
+    "Previous_Quarter_No_of_Policies_No_of_Schemes",
+    "Previous_Quarter_No_of_Lives_Covered",
+    "Previous_Quarter_Premium",
+    "Current_Year_To_Date_No_of_Policies_No_of_Schemes",
+    "Current_Year_To_Date_No_of_Lives_Covered",
+    "Current_Year_To_Date_Premium",
+    "Previous_Year_To_Date_No_of_Policies_No_of_Schemes",
+    "Previous_Year_To_Date_No_of_Lives_Covered",
+    "Previous_Year_To_Date_Premium"
+  ],
   "Rows": []
 } 

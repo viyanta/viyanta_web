@@ -860,6 +860,87 @@ def _is_l4_premium_table_clean(df) -> bool:
         return False
 
 
+def validate_var_ins_data(row_dict, template_headers):
+    """
+    Validate that VAR. INS columns show hyphens when they should be empty/zero
+    """
+    # Check if this is a 'Premiums earned - net' row
+    particulars = row_dict.get('Particulars', '').lower()
+    
+    # If this is a premiums earned row, VAR. INS should typically be empty/hyphen
+    if 'premium' in particulars and 'earned' in particulars:
+        # Find VAR. INS columns and set them to hyphen if they have values
+        for header in template_headers:
+            if 'VAR. INS' in header or 'VAR.INS' in header:
+                current_value = row_dict.get(header, '').strip()
+                # If there's a numeric value, it might be wrong - set to hyphen
+                if current_value and re.search(r'\d', current_value):
+                    # Check if this looks like it might be from a different column
+                    # If it's a large number, it's probably misaligned
+                    if len(current_value.replace(',', '').replace('.', '')) > 3:
+                        row_dict[header] = '-'
+                        print(f"Fixed misaligned VAR. INS value: {current_value} -> -")
+    
+    return row_dict
+
+def create_intelligent_column_mapping(df, template_headers):
+    """
+    Create intelligent column mapping by matching actual column headers to template headers
+    """
+    # Get the actual column headers from the DataFrame
+    actual_headers = [str(col).strip() for col in df.columns.tolist()]
+    
+    # Create mapping from template header to actual column index
+    column_mapping = {}
+    
+    # Define patterns for matching headers
+    header_patterns = {
+        'Particulars': [r'particulars?', r'description', r'item'],
+        'Schedule': [r'schedule', r'ref', r'reference'],
+        'LIFE': [r'life', r'linked.*life', r'non.*linked.*life'],
+        'PENSION': [r'pension', r'linked.*pension', r'non.*linked.*pension'],
+        'HEALTH': [r'health', r'linked.*health', r'non.*linked.*health'],
+        'VAR. INS': [r'var\.?\s*ins', r'variable.*insurance', r'linked.*var', r'non.*linked.*var'],
+        'TOTAL': [r'total', r'sub.*total'],
+        'ANNUITY': [r'annuity', r'non.*linked.*annuity'],
+        'GRAND TOTAL': [r'grand.*total', r'total.*total']
+    }
+    
+    # Map each template header to actual column index
+    for i, template_header in enumerate(template_headers):
+        template_header_clean = template_header.strip()
+        best_match_idx = None
+        best_match_score = 0
+        
+        for j, actual_header in enumerate(actual_headers):
+            actual_header_clean = actual_header.strip().lower()
+            
+            # Direct match
+            if template_header_clean.lower() == actual_header_clean:
+                best_match_idx = j
+                best_match_score = 100
+                break
+            
+            # Pattern matching
+            for pattern_name, patterns in header_patterns.items():
+                if pattern_name.lower() in template_header_clean.lower():
+                    for pattern in patterns:
+                        if re.search(pattern, actual_header_clean, re.IGNORECASE):
+                            score = len(pattern) / len(actual_header_clean) * 50
+                            if score > best_match_score:
+                                best_match_idx = j
+                                best_match_score = score
+                                break
+        
+        if best_match_idx is not None:
+            column_mapping[i] = best_match_idx
+        else:
+            # Fallback to positional mapping
+            column_mapping[i] = i if i < len(actual_headers) else 0
+    
+    return column_mapping
+
+
 def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[str, Any]]:
     """
     Extract structured rows from an L-4 Premium DataFrame
@@ -892,18 +973,27 @@ def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[st
             # Build row dictionary
             row_dict = {}
 
-            # Map to template headers
+            # Create intelligent column mapping
+            column_mapping = create_intelligent_column_mapping(df, template_headers)
+            
+            # Map to template headers using intelligent mapping
             for i, header in enumerate(template_headers):
                 if i == 0:  # Particulars column
                     row_dict[header] = clean_particulars
-                elif i < len(row_data):
-                    # Clean numeric value
-                    raw_value = str(row_data[i]).strip()
-                    clean_value = _clean_numeric_value(raw_value)
-                    row_dict[header] = clean_value
                 else:
-                    row_dict[header] = ""
+                    # Use intelligent mapping to find the correct column
+                    mapped_idx = column_mapping.get(i, i)
+                    if mapped_idx < len(row_data):
+                        # Clean numeric value
+                        raw_value = str(row_data[mapped_idx]).strip()
+                        clean_value = _clean_numeric_value(raw_value)
+                        row_dict[header] = clean_value
+                    else:
+                        row_dict[header] = ""
 
+            # Validate VAR. INS data
+            row_dict = validate_var_ins_data(row_dict, template_headers)
+            
             # Only add if has meaningful data
             numeric_count = sum(1 for v in row_dict.values()
                                 if v and re.search(r'\d', v))
@@ -931,7 +1021,17 @@ def _clean_particulars_text(text: str) -> str:
     # Fix common issues
     cleaned = cleaned.replace('\n', ' ')
     cleaned = re.sub(r'\s+', ' ', cleaned)
-
+    
+    # Fix hyphen character issues - normalize different types of hyphens to standard hyphen
+    # This specifically addresses the VAR. INS hyphen issue
+    cleaned = cleaned.replace('–', '-')  # en-dash to hyphen
+    cleaned = cleaned.replace('—', '-')  # em-dash to hyphen
+    cleaned = cleaned.replace('‐', '-')  # hyphen-minus to hyphen
+    cleaned = cleaned.replace('‑', '-')  # non-breaking hyphen to hyphen
+    
+    # Ensure VAR. INS has proper hyphen formatting
+    cleaned = re.sub(r'VAR\.\s*INS', 'VAR. INS', cleaned)
+    
     return cleaned.strip()
 
 

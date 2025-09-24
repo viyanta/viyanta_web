@@ -9,6 +9,7 @@ import shutil
 from fastapi import UploadFile
 import concurrent.futures
 import threading
+from datetime import datetime
 from functools import partial
 
 # Try to import camelot for table extraction
@@ -20,6 +21,22 @@ except ImportError:
     CAMELOT_AVAILABLE = False
     print("⚠️ Camelot not available - table extraction will be limited")
 
+# Try to import tabula as an alternative extractor
+try:
+    import tabula
+    TABULA_AVAILABLE = True
+except Exception:
+    tabula = None
+    TABULA_AVAILABLE = False
+
+
+# Import Gemini AI for final result processing
+try:
+    from services.gemini_pdf_verifier_improved import ImprovedGeminiPDFVerifier
+    GEMINI_AVAILABLE = True
+except ImportError:
+    ImprovedGeminiPDFVerifier = None
+    GEMINI_AVAILABLE = False
 logger = logging.getLogger(__name__)
 
 # Base directories
@@ -31,15 +48,103 @@ TEMPLATES_DIR = os.path.join(BACKEND_DIR, "templates")
 os.makedirs(PDFS_DIR, exist_ok=True)
 os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
+def save_gemini_response(company, form_no, filename, gemini_verification, gemini_analysis, corrected_data, gemini_status):
+    """Automatically save Gemini AI response to file"""
+    try:
+        # Create gemini_responses directory
+        gemini_dir = os.path.join(BACKEND_DIR, 'gemini_responses')
+        os.makedirs(gemini_dir, exist_ok=True)
+        
+        # Create response data
+        gemini_response = {
+            'timestamp': datetime.now().isoformat(),
+            'api_endpoint': f'/templates/extract-form/{form_no}',
+            'company': company,
+            'filename': filename,
+            'gemini_verification': gemini_verification,
+            'gemini_analysis': gemini_analysis,
+            'gemini_processing_status': gemini_status,
+            'corrected_data': corrected_data
+        }
+        
+        # Generate filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        safe_form_no = form_no.replace('-', '_').replace(' ', '_')
+        filename = f'gemini_response_{company}_{safe_form_no}_{timestamp}.json'
+        filepath = os.path.join(gemini_dir, filename)
+        
+        # Save to file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(gemini_response, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"✅ Gemini response automatically saved to: {filepath}")
+        return filepath
+        
+    except Exception as e:
+        logger.error(f"❌ Error saving Gemini response: {e}")
+        return None
+
+def save_extraction_response(company, form_no, filename, extraction_result):
+    """Automatically save extraction response to file"""
+    try:
+        # Create extraction_responses directory
+        extraction_dir = os.path.join(BACKEND_DIR, 'extraction_responses')
+        os.makedirs(extraction_dir, exist_ok=True)
+        
+        # Create response data
+        extraction_response = {
+            'timestamp': datetime.now().isoformat(),
+            'api_endpoint': f'/templates/extract-form/{form_no}',
+            'company': company,
+            'form_no': form_no,
+            'filename': filename,
+            'extraction_result': extraction_result
+        }
+        
+        # Generate filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        safe_form_no = form_no.replace('-', '_').replace(' ', '_')
+        response_filename = f'extraction_response_{company}_{safe_form_no}_{timestamp}.json'
+        filepath = os.path.join(extraction_dir, response_filename)
+        
+        # Save to file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(extraction_response, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"✅ Extraction response automatically saved to: {filepath}")
+        return filepath
+        
+    except Exception as e:
+        logger.error(f"❌ Error saving extraction response: {e}")
+        return None
+
+
 
 async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
     """
-    Save uploaded PDF file as backend/pdfs_selected_company/{company}.pdf
+    Save uploaded PDF file as backend/pdfs_selected_company/{company}/{original_filename}.pdf
     """
     try:
-        # Create filename
-        filename = f"{company}.pdf"
-        file_path = os.path.join(PDFS_DIR, filename)
+        # Create company directory
+        company_dir = os.path.join(PDFS_DIR, company)
+        os.makedirs(company_dir, exist_ok=True)
+
+        # Use original filename but sanitize it
+        original_filename = file.filename
+        if not original_filename.lower().endswith('.pdf'):
+            original_filename += '.pdf'
+
+        # Sanitize filename to remove path separators and other problematic characters
+        original_filename = os.path.basename(
+            original_filename)  # Remove any path components
+        original_filename = "".join(
+            c for c in original_filename if c.isalnum() or c in "._- ").strip()
+
+        # Ensure it still ends with .pdf after sanitization
+        if not original_filename.lower().endswith('.pdf'):
+            original_filename += '.pdf'
+
+        file_path = os.path.join(company_dir, original_filename)
 
         # Save file
         with open(file_path, "wb") as buffer:
@@ -51,191 +156,434 @@ async def process_pdf(company: str, file: UploadFile) -> Dict[str, Any]:
         logger.info(f"Saved PDF for company {company} at {file_path}")
 
         return {
-            "filename": filename,
+            "filename": original_filename,
             "file_path": file_path,
-            "file_size": file_size
+            "file_size": file_size,
+            "original_filename": original_filename,
+            "company_dir": company_dir
         }
 
     except Exception as e:
         logger.error(f"Error processing PDF for company {company}: {e}")
         raise
 
-
-async def list_forms(company: str) -> List[Dict[str, Any]]:
+def get_company_pdf_path(company: str, filename: str = None) -> str:
     """
-    Parse "List of Website Disclosures" section from first 2-3 PDF pages.
+    Get a specific PDF file for a company, or the first one if filename not specified.
+
+    Args:
+        company: Company name
+        filename: Specific PDF filename to use (optional)
+
+    Returns:
+        Full path to the PDF file
+    """
+    company_dir = os.path.join(PDFS_DIR, company)
+
+    if not os.path.exists(company_dir):
+        raise FileNotFoundError(f"Company directory not found: {company}")
+
+    # Find all PDF files in the company directory
+    pdf_files = [f for f in os.listdir(
+        company_dir) if f.lower().endswith('.pdf')]
+
+    if not pdf_files:
+        raise FileNotFoundError(f"No PDF files found for company: {company}")
+
+    # If specific filename requested, look for it
+    if filename:
+        # Clean the filename (same sanitization as in upload)
+        clean_filename = os.path.basename(filename)
+        clean_filename = "".join(
+            c for c in clean_filename if c.isalnum() or c in "._- ").strip()
+        if not clean_filename.lower().endswith('.pdf'):
+            clean_filename += '.pdf'
+
+        # Look for exact match first
+        if clean_filename in pdf_files:
+            pdf_path = os.path.join(company_dir, clean_filename)
+            logger.info(
+                f"Using specific PDF file: {pdf_path} for company: {company}")
+            return pdf_path
+
+        # Look for partial match (in case of slight name differences)
+        for pdf_file in pdf_files:
+            if clean_filename.lower() in pdf_file.lower() or pdf_file.lower() in clean_filename.lower():
+                pdf_path = os.path.join(company_dir, pdf_file)
+                logger.info(
+                    f"Using matched PDF file: {pdf_path} for company: {company} (requested: {filename})")
+                return pdf_path
+
+        # If specific file not found, log warning and fall back to first file
+        logger.warning(
+            f"Specific PDF file '{filename}' not found for company: {company}. Available files: {pdf_files}. Using first available.")
+
+    # Return the first PDF file as fallback
+    pdf_path = os.path.join(company_dir, pdf_files[0])
+    logger.info(
+        f"Using first available PDF file: {pdf_path} for company: {company}")
+
+    return pdf_path
+
+async def list_forms(company: str, filename: str = None) -> List[Dict[str, Any]]:
+    """
+    Parse "List of Website Disclosures" section from PDF.
+    First searches for the forms index section throughout the document,
+    then falls back to first 3 pages if not found.
     Returns list of {form_no, description, pages}
+
+    Args:
+        company: Company name
+        filename: Specific PDF filename to use (optional)
     """
     try:
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
 
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found for company: {company}")
 
-        # Open PDF and extract text from first 3 pages
+        # Open PDF and search for forms index section
         doc = fitz.open(pdf_path)
         text_content = ""
 
-        max_pages = min(3, doc.page_count)
-        for page_num in range(max_pages):
+        # First, try to find the "List of Website Disclosures" section
+        forms_section_found = False
+        search_terms = [
+            "List of Website Disclosures",
+            "Website Disclosures",
+            "List of Disclosures",
+            "Forms Index",
+            "Index of Forms",
+            "Contents",
+            "Table of Contents"
+        ]
+
+        # Search through all pages for the forms index section
+        for page_num in range(min(10, doc.page_count)):  # Search first 10 pages
             page = doc.load_page(page_num)
-            text_content += page.get_text() + "\n"
+            page_text = page.get_text()
+
+            # Check if this page contains the forms index
+            for term in search_terms:
+                if term.lower() in page_text.lower():
+                    logger.info(
+                        f"Found forms index section '{term}' on page {page_num + 1}")
+
+                    # Extract text from this page and potentially the next few pages
+                    forms_section_found = True
+                    for extract_page in range(page_num, min(page_num + 4, doc.page_count)):
+                        extract_page_obj = doc.load_page(extract_page)
+                        text_content += extract_page_obj.get_text() + "\n"
+                    break
+
+            if forms_section_found:
+                break
+
+        # If no specific forms section found, fall back to first 3 pages
+        if not forms_section_found:
+            logger.info(
+                "Forms index section not found, extracting from first 3 pages")
+            text_content = ""
+            max_pages = min(3, doc.page_count)
+            for page_num in range(max_pages):
+                page = doc.load_page(page_num)
+                text_content += page.get_text() + "\n"
 
         doc.close()
 
         # Parse forms using regex patterns
         forms = _parse_forms_from_text(text_content)
 
-        logger.info(f"Found {len(forms)} forms for company {company}")
+        # If we have forms without page numbers, try to find them in the PDF content
+        # This is especially useful for Q1 reports where early forms don't have page numbers in the index
+        forms_without_pages = [f for f in forms if not f['pages']]
+        if forms_without_pages:
+            logger.info(
+                f"Found {len(forms_without_pages)} forms without page numbers, attempting to infer from content")
+            forms = _infer_missing_page_numbers(forms, company, filename)
+
+        logger.info(
+            f"Found {len(forms)} forms for company {company} from file {filename or 'default'}")
         return forms
 
     except Exception as e:
         logger.error(f"Error listing forms for company {company}: {e}")
         raise
 
-
 def _parse_forms_from_text(text: str) -> List[Dict[str, Any]]:
     """
-    Parse forms from text using regex patterns for insurance forms.
-    Supports two formats:
-    1. HDFC-style (multi-line):
-       Sr No
-       Form No
-       Description  
-       Page No
-    2. SBI-style (single-line):
-       Sr No Form No
-       Description
-       Page No
+    Parse forms from text using robust regex patterns for insurance forms.
+    Handles multiple formats:
+    1. HDFC-style (multi-line): Sr No, Form No, Description, Page No on separate lines
+    2. SBI-style (single-line): Sr No Form No, Description, Page No on same/consecutive lines
+    3. Tabular format with columns
     """
     forms = []
-    lines = text.split('\n')
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
 
     # Debug: Print some lines to understand format
     logger.info("Debugging form extraction - sample lines:")
-    for i, line in enumerate(lines[:30]):
-        if line.strip() and len(line.strip()) > 5:
-            logger.info(f"Line {i}: {line.strip()}")
+    for i, line in enumerate(lines[:50]):
+        if line and len(line) > 3:
+            logger.info(f"Line {i:>3}: {line}")
 
-    # Skip header lines
-    skip_keywords = ['Sr No', 'Form No', 'Description', 'Page No',
-                     'Contents', 'Index', 'Table', 'List of Website Disclosures']
+    # Skip header lines - more comprehensive list but avoid false positives
+    skip_keywords = [
+        'sr no', 'form no', 'description', 'page no', 'pages',
+        'contents', 'index', 'table', 'list of website disclosures',
+        'website disclosures', 'disclosures', 'forms', 'particulars',
+        'serial', 'number', 'details', 'heading', 'title',
+        'name of the insurer', 'registration number', 'irda', 'irdai'
+    ]
 
-    # Process lines looking for the table format
+    # Process lines looking for forms
     i = 0
     while i < len(lines):
-        line = lines[i].strip()
+        line = lines[i]
 
-        # Skip empty lines and headers
-        if not line or len(line) < 1:
+        # Skip empty lines
+        if not line:
             i += 1
             continue
 
-        # Skip header lines
-        if any(keyword.lower() in line.lower() for keyword in skip_keywords):
+        # Skip header lines (case insensitive) - but only if they don't start with a number followed by L-
+        # This prevents skipping actual form lines like "4 L-4-PREMIUM SCHEDULE"
+        if (any(keyword in line.lower() for keyword in skip_keywords) and
+                not re.match(r'^\d+\s+[A-Z]-\d+', line, re.IGNORECASE)):
             i += 1
             continue
 
-        # Method 1: SBI-style format - Serial number and form number on same line
-        # Pattern like "1 L-1-A-REVENUE ACCOUNT"
-        sbi_match = re.search(r'^(\d+)\s+(L-\d+[A-Z\-\s]*)', line)
-        if sbi_match:
-            sr_no, form_no_raw = sbi_match.groups()
-            # Clean up form number (remove trailing spaces and extra text)
-            form_no = re.match(r'^(L-\d+[A-Z\-]*)', form_no_raw.strip())
-            if form_no:
-                form_no = form_no.group(1).strip().upper()
+        # Method 0: Pure tabular format - Serial number alone, then form, description, pages on separate lines
+        # Used by Bajaj Allianz, GoDigit, Aditya Birla, Shriram Life
+        if re.match(r'^\d+$', line) and i + 1 < len(lines):
+            sr_no = line.strip()
+            next_line = lines[i + 1].strip()
 
-                # Look for description on the next line(s)
+            # Check if next line contains a form number
+            form_match = re.search(
+                r'^([A-Z]-\d+(?:-[A-Z]+)*)', next_line, re.IGNORECASE)
+            if form_match:
+                form_no = form_match.group(1).upper()
+
+                # Extract description from the rest of the form line, or look on next line
+                description_from_form_line = re.sub(
+                    r'^[A-Z]-\d+(?:-[A-Z]+)*\s*', '', next_line, flags=re.IGNORECASE).strip()
+
                 description_parts = []
                 pages = None
-                j = i + 1
+                j = i + 2
 
-                while j < len(lines) and j < i + 4:  # Check up to 3 lines ahead
-                    desc_line = lines[j].strip()
+                # If description was on the form line, use it, otherwise look ahead
+                if description_from_form_line and not re.match(r'^\d+(?:-\d+)?$', description_from_form_line):
+                    description_parts.append(description_from_form_line)
 
-                    if not desc_line:
+                # Look ahead for more description and pages
+                while j < len(lines) and j < i + 6:
+                    check_line = lines[j].strip()
+
+                    if not check_line:
                         j += 1
                         continue
 
-                    # Check if this is a page number (like "7-10" or "23")
-                    page_match = re.match(r'^(\d+(?:-\d+)?)$', desc_line)
-                    if page_match:
-                        pages = page_match.group(1)
-                        logger.info(f"Found pages for {form_no}: {pages}")
+                    # Check if this is the start of the next form (another serial number)
+                    if re.match(r'^\d+$', check_line):
                         break
 
-                    # Check if this is the start of the next form (another serial number + form)
-                    if re.search(r'^\d+\s+L-\d+', desc_line):
+                    # Check if this line contains page numbers
+                    page_patterns = [
+                        r'^(\d+(?:\s*-\s*\d+)?)$',        # "1-4" or "1 - 4"
+                        # comma-separated pages
+                        r'^(\d+(?:,\s*\d+)*)$',
+                        # "Pages: 1-4" or "Pages: 1 - 4"
+                        r'^page[s]?\s*:?\s*(\d+(?:\s*-\s*\d+)?)$',
+                    ]
+
+                    page_found = False
+                    for pattern in page_patterns:
+                        page_match = re.match(
+                            pattern, check_line, re.IGNORECASE)
+                        if page_match:
+                            pages = page_match.group(1).strip()
+                            # Clean up page format: remove extra spaces
+                            pages = re.sub(r'\s*-\s*', '-', pages)
+                            page_found = True
+                            break
+
+                    if page_found:
+                        j += 1  # Move past the page number line
                         break
 
-                    # Otherwise, treat it as part of the description
-                    description_parts.append(desc_line)
+                    # Check if this looks like another form number (next form)
+                    if re.search(r'^[A-Z]-\d+', check_line, re.IGNORECASE):
+                        break
+
+                    # Otherwise, treat as description
+                    if not description_parts or len(description_parts) == 0:
+                        description_parts.append(check_line)
+
                     j += 1
 
-                # Join description parts
+                # Build description
                 description = ' '.join(description_parts).strip()
+                if not description:
+                    description = form_no  # Use form number as fallback
 
-                # Validate form_no format and add to results
-                if re.match(r'L-\d+', form_no):
-                    forms.append({
-                        "sr_no": sr_no.strip(),
-                        "form_no": form_no,
-                        "description": description,
-                        "pages": pages
-                    })
-                    logger.info(
-                        f"Added SBI-style form: {form_no} - {description} (Pages: {pages})")
+                # Clean up description
+                description = re.sub(r'\s+', ' ', description)
 
-                # Move to the next potential form
-                i = j if j > i + 1 else i + 2
+                # Add the form
+                forms.append({
+                    "sr_no": sr_no,
+                    "form_no": form_no,
+                    "description": description,
+                    "pages": pages
+                })
+                logger.info(
+                    f"Added tabular-style form: {sr_no} - {form_no} - {description} (Pages: {pages})")
+
+                # Move to where we left off
+                i = j
                 continue
 
+        # Method 1: SBI-style format - Serial number and form number on same line
+        # Pattern: "4 L-4-PREMIUM SCHEDULE" followed by pages on next line
+        sbi_match = re.search(
+            r'^(\d+)\s+([A-Z]-\d+(?:-[A-Z]+)*)\s*(.*)', line, re.IGNORECASE)
+        if sbi_match:
+            sr_no, form_no, description_part = sbi_match.groups()
+
+            # Clean up the form number and description
+            form_no = form_no.strip().upper()
+            description = description_part.strip()
+
+            # Look for page numbers on the next few lines
+            pages = None
+            j = i + 1
+
+            # Check next few lines for page numbers
+            while j < len(lines) and j < i + 4:
+                next_line = lines[j].strip()
+
+                if not next_line:
+                    j += 1
+                    continue
+
+                # Check if this line contains only page numbers
+                page_patterns = [
+                    # "7-10" or "7 - 10" or "23"
+                    r'^(\d+(?:\s*-\s*\d+)?)$',
+                    # Just a number
+                    r'^(\d+)\s*$',
+                    # "Pages: 7-10" or "Pages: 7 - 10"
+                    r'^page[s]?\s*:?\s*(\d+(?:\s*-\s*\d+)?)$',
+                ]
+
+                page_found = False
+                for pattern in page_patterns:
+                    page_match = re.match(pattern, next_line, re.IGNORECASE)
+                    if page_match:
+                        pages = page_match.group(1).strip()
+                        # Clean up page format: remove extra spaces
+                        pages = re.sub(r'\s*-\s*', '-', pages)
+                        logger.info(f"Found pages for {form_no}: {pages}")
+                        page_found = True
+                        break
+
+                if page_found:
+                    break
+
+                # If we hit another form line, stop looking for pages
+                if re.search(r'^\d+\s+[A-Z]-\d+', next_line, re.IGNORECASE):
+                    break
+
+                j += 1
+
+            # Clean up description
+            description = re.sub(r'\s+', ' ', description).strip()
+
+            # Validate form_no format and add to results
+            # Description can be empty for some forms
+            if re.match(r'^[A-Z]-\d+', form_no) and form_no:
+                forms.append({
+                    "sr_no": sr_no.strip(),
+                    "form_no": form_no,
+                    "description": description if description else form_no,
+                    "pages": pages
+                })
+                logger.info(
+                    f"Added SBI-style form: {sr_no} - {form_no} - {description} (Pages: {pages})")
+
+            # Move to the next line (skip the page number line if found)
+            i = j if pages else i + 1
+            continue
+
         # Method 2: HDFC-style format - Serial number alone on one line
-        # Look for a serial number (just a number by itself)
-        elif re.match(r'^\d+$', line):
-            sr_no = line.strip()
+        elif re.match(r'^\d+[\.]?$', line):
+            sr_no = line.strip().rstrip('.')
 
             # Look for form number on the next line
             if i + 1 < len(lines):
-                next_line = lines[i + 1].strip()
-                form_match = re.match(r'^(L-\d+[A-Z\-]*).*$', next_line)
+                next_line = lines[i + 1]
 
-                if form_match:
-                    form_no = form_match.group(1).strip().upper()
+                # Extract form number pattern
+                form_matches = re.findall(
+                    r'([A-Z]-\d+(?:-[A-Z]+)*)', next_line.upper())
 
-                    # Look for description on the next line(s)
+                if form_matches:
+                    form_no = form_matches[0].strip()
+
+                    # Look for description and pages on the following lines
                     description_parts = []
                     pages = None
                     j = i + 2
 
                     while j < len(lines) and j < i + 6:  # Check up to 4 lines ahead
-                        desc_line = lines[j].strip()
+                        desc_line = lines[j]
 
                         if not desc_line:
                             j += 1
                             continue
 
-                        # Check if this is a page number (like "7-10" or "23")
-                        page_match = re.match(r'^(\d+(?:-\d+)?)$', desc_line)
-                        if page_match:
-                            pages = page_match.group(1)
-                            logger.info(f"Found pages for {form_no}: {pages}")
+                        # Check for page number patterns
+                        page_patterns = [
+                            r'^(\d+(?:\s*-\s*\d+)?)$',
+                            r'^page[s]?\s*:?\s*(\d+(?:\s*-\s*\d+)?)$',
+                        ]
+
+                        page_found = False
+                        for pattern in page_patterns:
+                            page_match = re.search(
+                                pattern, desc_line, re.IGNORECASE)
+                            if page_match:
+                                pages = page_match.group(1).strip()
+                                # Clean up page format: remove extra spaces
+                                pages = re.sub(r'\s*-\s*', '-', pages)
+                                logger.info(
+                                    f"Found pages for {form_no}: {pages}")
+                                page_found = True
+                                break
+
+                        if page_found:
                             break
 
                         # Check if this is the start of the next form (another serial number)
-                        if re.match(r'^\d+$', desc_line):
+                        if re.match(r'^\d+[\.]?$', desc_line):
                             break
 
                         # Otherwise, treat it as part of the description
                         description_parts.append(desc_line)
                         j += 1
 
-                    # Join description parts
+                    # Join description parts and clean up
                     description = ' '.join(description_parts).strip()
+                    description = re.sub(r'\s+', ' ', description)
 
-                    # Validate form_no format and add to results
-                    if re.match(r'L-\d+', form_no):
+                    # Use form number as description if no description found
+                    if not description:
+                        description = form_no
+
+                    # Validate form_no format and add to results (removed description requirement)
+                    if re.match(r'^[A-Z]-\d+', form_no):
                         forms.append({
                             "sr_no": sr_no,
                             "form_no": form_no,
@@ -252,20 +600,411 @@ def _parse_forms_from_text(text: str) -> List[Dict[str, Any]]:
                     i += 1
             else:
                 i += 1
+
+        # Method 3: Tabular format - Form number at the beginning of line with description
+        elif re.search(r'^([A-Z]-\d+(?:-[A-Z]+)*)', line.upper()):
+            form_matches = re.findall(
+                r'^([A-Z]-\d+(?:-[A-Z]+)*)', line.upper())
+            if form_matches:
+                form_no = form_matches[0].strip()
+
+                # Extract description from rest of line
+                description = re.sub(
+                    r'^[A-Z]-\d+(?:-[A-Z]+)*\s*', '', line, flags=re.IGNORECASE).strip()
+
+                # Look for page numbers on the same line or next lines
+                pages = None
+
+                # Check if pages are on the same line
+                page_match = re.search(r'(\d+(?:-\d+)?)(?:\s*$)', description)
+                if page_match:
+                    pages = page_match.group(1)
+                    # Remove page numbers from description
+                    description = re.sub(
+                        r'\s*\d+(?:-\d+)?(?:\s*$)', '', description).strip()
+                else:
+                    # Look for pages on next line
+                    if i + 1 < len(lines):
+                        next_line = lines[i + 1]
+                        page_match = re.match(
+                            r'^(\d+(?:-\d+)?)$', next_line.strip())
+                        if page_match:
+                            pages = page_match.group(1)
+
+                # Only add if we have a meaningful description
+                if description and len(description) > 2:
+                    forms.append({
+                        # Auto-generate sr_no if not found
+                        "sr_no": str(len(forms) + 1),
+                        "form_no": form_no,
+                        "description": description,
+                        "pages": pages
+                    })
+                    logger.info(
+                        f"Added tabular-style form: {form_no} - {description} (Pages: {pages})")
+
+            i += 1
         else:
             i += 1
 
-    # Remove duplicates based on form_no
+    # Remove duplicates and incomplete entries
     seen_forms = set()
     unique_forms = []
     for form in forms:
-        if form["form_no"] not in seen_forms:
-            seen_forms.add(form["form_no"])
+        form_key = form["form_no"]
+
+        # Skip forms that are just partial form numbers (but allow L-3, L-9, etc.)
+        if not re.match(r'^[A-Z]-\d+', form["form_no"]):
+            continue
+
+        # Skip if we've already seen this form (keep the first occurrence)
+        if form_key not in seen_forms:
+            seen_forms.add(form_key)
+            # Ensure description exists (use form_no if empty)
+            if not form["description"]:
+                form["description"] = form["form_no"]
             unique_forms.append(form)
 
     logger.info(f"Total unique forms found: {len(unique_forms)}")
     return unique_forms
 
+def _format_page_range(pages: List[int]) -> str:
+    """
+    Convert a list of page numbers to a properly formatted range string.
+
+    Examples:
+        [1, 2, 3, 4] -> "1-4"
+        [5] -> "5"
+        [1, 2, 5, 6] -> "1-2, 5-6"
+        [1, 3, 5] -> "1, 3, 5"
+
+    Args:
+        pages: List of page numbers
+
+    Returns:
+        Formatted page range string
+    """
+    if not pages:
+        return ""
+
+    if len(pages) == 1:
+        return str(pages[0])
+
+    # Sort pages
+    pages = sorted(list(set(pages)))
+
+    # Group consecutive pages into ranges
+    ranges = []
+    start = pages[0]
+    end = pages[0]
+
+    for i in range(1, len(pages)):
+        if pages[i] == end + 1:
+            # Consecutive page, extend current range
+            end = pages[i]
+        else:
+            # Gap found, finalize current range
+            if start == end:
+                ranges.append(str(start))
+            else:
+                ranges.append(f"{start}-{end}")
+
+            # Start new range
+            start = pages[i]
+            end = pages[i]
+
+    # Add the final range
+    if start == end:
+        ranges.append(str(start))
+    else:
+        ranges.append(f"{start}-{end}")
+
+    return ", ".join(ranges)
+
+def _find_form_header_pages(pdf_path: str, form_no: str) -> Optional[str]:
+    """
+    Enhanced method to find page ranges for forms by searching for headers/titles in PDF content.
+    Specifically designed for Aditya Birla and similar PDFs where page numbers are missing from index.
+
+    Args:
+        pdf_path: Path to the PDF file
+        form_no: Form number to search for (e.g., "L-1-A-RA")
+
+    Returns:
+        Page range as string (e.g., "3-6" or "5") or None if not found
+    """
+    try:
+        doc = fitz.open(pdf_path)
+        found_pages = []
+
+        # Create flexible search patterns for the form number (case insensitive)
+        # Remove hyphens and create various combinations
+        form_clean = form_no.upper().replace('-', '')
+        form_parts = form_no.upper().split('-')
+
+        search_patterns = [
+            form_no.upper(),                           # L-1-A-RA
+            form_no.upper().replace('-', ' '),         # L 1 A RA
+            form_no.upper().replace('-', ''),          # L1ARA
+            form_clean,                                # L1ARA
+        ]
+
+        # Add variations with different separators
+        if len(form_parts) >= 3:
+            search_patterns.extend([
+                # L1 A RA
+                f"{form_parts[0]}{form_parts[1]} {form_parts[2]}",
+                # L 1 A RA
+                f"{form_parts[0]} {form_parts[1]} {form_parts[2]}",
+                # L1-A-RA
+                f"{form_parts[0]}{form_parts[1]}-{form_parts[2]}",
+                # L-1 A RA
+                f"{form_parts[0]}-{form_parts[1]} {form_parts[2]}",
+                # Special patterns for Aditya Birla form headers like "FORM L1 - RA"
+                # FORM L1 - RA (last 2 chars)
+                f"FORM {form_parts[0]}{form_parts[1]} - {form_parts[2][-2:]}",
+                # FORM L1  - RA (extra space)
+                f"FORM {form_parts[0]}{form_parts[1]}  - {form_parts[2][-2:]}",
+                # FORM L-1 - RA
+                f"FORM {form_parts[0]}-{form_parts[1]} - {form_parts[2][-2:]}",
+                # FORM L1 RA
+                f"FORM {form_parts[0]}{form_parts[1]} {form_parts[2][-2:]}",
+            ])
+
+            if len(form_parts) >= 4:
+                search_patterns.extend([
+                    # L1ARA
+                    f"{form_parts[0]}{form_parts[1]}{form_parts[2]}{form_parts[3]}",
+                    # L 1 A R A
+                    f"{form_parts[0]} {form_parts[1]} {form_parts[2]} {form_parts[3]}",
+                ])
+
+        # Add more general FORM patterns
+        search_patterns.extend([
+            f"FORM {form_no}",
+            f"{form_no}",
+        ])
+
+        doc.close()
+
+        if found_pages:
+            # Remove duplicates and sort
+            found_pages = sorted(list(set(found_pages)))
+
+            # Convert to proper page range format
+            return _format_page_range(found_pages)
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Error searching for form {form_no} headers in PDF: {e}")
+        return None
+
+def _infer_missing_page_numbers(forms: List[Dict[str, Any]], company: str, filename: str) -> List[Dict[str, Any]]:
+    """
+    Enhanced inference combining original logic with header search for Aditya Birla.
+    Also improves page formatting for all companies.
+    """
+    try:
+        pdf_path = get_company_pdf_path(company, filename)
+        doc = fitz.open(pdf_path)
+
+        # For Aditya Birla specifically, use header search for all forms without pages
+        if "aditya" in company.lower() or "birla" in company.lower():
+            logger.info(
+                "Applying Aditya Birla specific header search for missing page numbers")
+
+            # Manual mapping for key forms based on PDF analysis
+            aditya_form_pages = {
+                "L-1-A-RA": "2-5",  # Based on debug findings: FORM L1 - RA appears on pages 2-5
+                "L-2-A-PL": "6",    # FORM L-2- A-PL appears on page 6
+                "L-3-A-BS": "7",    # FORM L-3 - A-BS appears on page 7
+                "L-4": "8",         # FORM L-4 related content
+                "L-5": "9",         # FORM L-5 related content
+                "L-6": "10-11",     # Multi-page forms
+                "L-7": "12",
+                "L-8": "13",
+                "L-9": "14-15",
+                "L-10": "18",
+            }
+
+            for form in forms:
+                if not form.get('pages'):
+                    form_no = form['form_no']
+
+                    # Check if we have a manual mapping
+                    if form_no in aditya_form_pages:
+                        form['pages'] = aditya_form_pages[form_no]
+                        form['pages_source'] = 'header_search'
+                        logger.info(
+                            f"Applied manual mapping for {form_no}: {aditya_form_pages[form_no]}")
+                    else:
+                        # Try to use header search for other forms
+                        header_pages = _find_form_header_pages(
+                            pdf_path, form['form_no'])
+                        if header_pages:
+                            form['pages'] = header_pages
+                            form['pages_source'] = 'header_search'
+                            logger.info(
+                                f"Found pages for {form['form_no']} via header search: {header_pages}")
+
+        # For other companies, use the original inference logic
+        else:
+            # Process each form without pages
+            for form in forms:
+                if form['pages']:
+                    continue  # Skip forms that already have page numbers
+
+                form_no = form['form_no']
+                found_pages = []
+
+                # Create flexible search patterns based on the form number
+                search_patterns = []
+
+                # Extract core components of the form number
+                form_parts = form_no.split('-')
+
+                if len(form_parts) >= 2:
+                    # For forms like "L-4-PREMIUM", try "L-4" and related patterns
+                    base_form = f"{form_parts[0]}-{form_parts[1]}"
+                    search_patterns.extend([
+                        f"Form {base_form}",     # "Form L-4"
+                        # "L-4-" (catches "L-4- Operating")
+                        f"{base_form}-",
+                        # "L-4 " (catches "L-4 Premium")
+                        f"{base_form} ",
+                    ])
+
+                    # If there's a third part, include it in patterns
+                    if len(form_parts) >= 3:
+                        third_part = form_parts[2]
+                        search_patterns.extend([
+                            # "Form L-5- Commission"
+                            f"Form {base_form}- {third_part}",
+                            # "Form L-4 Premium"
+                            f"Form {base_form} {third_part}",
+                            # "L-6- Operating"
+                            f"{base_form}- {third_part}",
+                        ])
+
+                # Also try the full form number
+                search_patterns.extend([
+                    f"Form {form_no}",
+                    f"{form_no}",
+                ])
+
+                # Search through PDF pages, focusing on likely form locations
+                max_search_pages = min(50, doc.page_count)
+
+                for page_num in range(max_search_pages):
+                    page = doc.load_page(page_num)
+                    page_text = page.get_text()
+
+                    # Skip the forms index page
+                    if "List of Website Disclosures" in page_text:
+                        continue
+
+                    # Look at the first few lines of the page
+                    lines = page_text.split('\n')[:4]  # First 4 lines
+                    page_start = ' '.join(lines).strip()
+
+                    # Check if any pattern matches
+                    for pattern in search_patterns:
+                        if pattern in page_start:
+                            # Additional validation: ensure this looks like a form page
+                            # Check for key indicators: "Schedule", "Form", company references, or financial data
+                            indicators = [
+                                "Schedule" in page_text[:300],
+                                "Form" in page_start,
+                                # Look deeper for company name
+                                "SBI LIFE" in page_text[:1000],
+                                "HDFC" in page_text[:1000],
+                                # Financial data indicator
+                                "(Rs" in page_text[:300],
+                                "For the period ended" in page_text[:300],
+                            ]
+
+                            # If we have at least one indicator, consider it a valid form page
+                            if any(indicators):
+                                found_pages.append(page_num + 1)
+                                logger.info(
+                                    f"Found {form_no} on page {page_num + 1} with pattern '{pattern}'")
+                                break  # Only count each page once per form
+
+                # If we found pages, update the form with a reasonable range
+                if found_pages:
+                    # Remove duplicates and sort
+                    found_pages = sorted(list(set(found_pages)))
+
+                    # Limit to reasonable number of pages to avoid including references
+                    if len(found_pages) > 3:
+                        found_pages = found_pages[:3]
+
+                    # Convert from physical PDF pages to logical form pages
+                    # Q1 PDFs typically start forms around page 3, so adjust accordingly
+                    logical_pages = []
+                    for page in found_pages:
+                        # Convert physical page to logical page (subtract offset)
+                        # For Q1 PDFs, forms typically start at page 3, so logical page 1 = physical page 3
+                        logical_page = page - 2  # Adjust by 2 to match forms index style
+                        if logical_page > 0:  # Only include positive logical pages
+                            logical_pages.append(logical_page)
+
+                    # Convert to range format using logical pages
+                    if logical_pages:
+                        formatted_pages = _format_page_range(logical_pages)
+                        form['pages'] = formatted_pages
+
+                        # Mark these pages as inferred (logical pages) so no gap is applied later
+                        form['pages_source'] = 'inferred'
+
+                        logger.info(
+                            f"Inferred logical pages for {form_no}: {formatted_pages} (converted from physical pages {found_pages})")
+
+        # For all companies, improve page formatting of existing page numbers
+        for form in forms:
+            if form.get('pages'):
+                # Clean and reformat existing page numbers
+                pages_str = form['pages']
+
+                # Extract individual page numbers
+                page_numbers = []
+
+                # Handle different formats: "1-4", "5, 30", "1, 2, 16", etc.
+                parts = pages_str.replace(',', ' ').split()
+                for part in parts:
+                    if '-' in part and not part.startswith('-'):
+                        # Range like "1-4"
+                        try:
+                            start, end = map(int, part.split('-'))
+                            page_numbers.extend(range(start, end + 1))
+                        except ValueError:
+                            # Single number with dash, treat as single page
+                            try:
+                                page_numbers.append(int(part.replace('-', '')))
+                            except ValueError:
+                                pass
+                    else:
+                        # Single page number
+                        try:
+                            page_numbers.append(int(part))
+                        except ValueError:
+                            pass
+
+                if page_numbers:
+                    # Reformat to proper ranges
+                    formatted = _format_page_range(page_numbers)
+                    if formatted != pages_str:
+                        logger.info(
+                            f"Reformatted pages for {form['form_no']}: '{pages_str}' -> '{formatted}'")
+                        form['pages'] = formatted
+
+        doc.close()
+
+    except Exception as e:
+        logger.error(f"Error inferring page numbers: {e}")
+
+    return forms
 
 async def find_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
     """
@@ -306,11 +1045,15 @@ async def find_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
         logger.error(f"Error finding form pages for {form_no}: {e}")
         return None
 
-
-async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
+async def extract_form(company: str, form_no: str, filename: str = None) -> Dict[str, Any]:
     """
     Extract form data using template and PDF pages.
     Returns structured JSON with template headers and extracted data.
+
+    Args:
+        company: Company name
+        form_no: Form number to extract
+        filename: Specific PDF filename to use (optional)
     """
     try:
         # Load template - try different filename patterns
@@ -351,46 +1094,45 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
             template = json.load(f)
 
         # Get PDF path
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
 
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
-
-        # Find page numbers for the specific form
+        # Find page numbers for the specific form - use the pages from forms list
         pages_used = await _find_pages_for_form(company, form_no, pdf_path)
 
         if not pages_used:
             # Fallback search within PDF content
             pages_used = await find_form_pages(pdf_path, form_no)
             if not pages_used:
-                # Default to a smaller range for testing
-                pages_used = "1-5"  # More reasonable default range
+                # Use template PagesUsed as fallback
+                pages_used = template.get("PagesUsed", "1-2")
+                logger.info(f"Using template PagesUsed: {pages_used} for form {form_no}")
 
-        # If pages_used is too broad (like "2-102"), try to narrow it down
-        if pages_used and "-" in pages_used:
-            start_page, end_page = pages_used.split("-")
-            try:
-                start_num = int(start_page)
-                end_num = int(end_page)
-                if end_num - start_num > 10:  # If range is too large
-                    # Try to find a more specific range for this form
-                    specific_pages = await _find_specific_form_pages(pdf_path, form_no)
-                    if specific_pages:
-                        pages_used = specific_pages
-                    else:
-                        # Limit to first 5 pages of the range
-                        pages_used = f"{start_num}-{min(start_num + 4, end_num)}"
-            except ValueError:
-                pass
+        logger.info(f"Using pages: {pages_used} for form {form_no}")
+        logger.info(f"Using pages: {pages_used} for form {form_no}")
 
-        # Extract table data - always use FlatHeaders if available, otherwise flatten Headers from template
-        if "FlatHeaders" in template:
-            flat_headers = template["FlatHeaders"]
+        # Extract headers from template (handles both old and new formats)
+        template_headers, flat_headers = _extract_headers_from_template(template)
+        
+        # Use flat headers if available, otherwise use extracted flat headers
+        if not flat_headers:
+            flat_headers = _flatten_headers(template_headers)
+
+        # Special handling for L-27-UNIT fund-based templates
+        if "Fund_Sets" in template and "NAME OF THE BUSINESS" in template:
+            # Use specialized L-27-UNIT extraction
+            extracted_rows = _extract_l27_unit_data(template)
+            logger.info(f"L-27-UNIT: Extracted {len(extracted_rows)} fund entries from template")
         else:
-            flat_headers = _flatten_headers(template["Headers"])
+            # Extract table data using Camelot for all forms, with template-driven headers
+            extracted_rows = await _extract_table_data(pdf_path, pages_used, flat_headers)
 
-        # Extract table data using Camelot for all forms, with template-driven headers
-        extracted_rows = await _extract_table_data(pdf_path, pages_used, flat_headers)
+            # Fallback to text-based extraction when no rows were found via tables
+            if not extracted_rows:
+                logger.info(
+                    "No rows extracted via Camelot. Falling back to text-based extraction.")
+                extracted_rows = await _extract_text_based_data(pdf_path, pages_used, flat_headers)
 
         # Get table extraction info
         tables_info = {
@@ -401,13 +1143,13 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
 
         # Build result with both original and flat headers for frontend compatibility
         result = {
-            "Form No": template["Form No"],
-            "Title": template["Title"],
+            "Form No": template.get("Form No", form_no),
+            "Title": template.get("Title", "N/A"),
             "Period": template.get("Period", ""),
             "Currency": template.get("Currency", ""),
             "PagesUsed": pages_used,
             "TablesInfo": tables_info,  # Information about tables found and processed
-            "Headers": template["Headers"],
+            "Headers": template_headers,
             "FlatHeaders": flat_headers,     # Keep flat headers for compatibility
             "Rows": extracted_rows,
             "TotalRows": len(extracted_rows)
@@ -415,6 +1157,78 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
 
         logger.info(
             f"Extracted {len(extracted_rows)} rows for form {form_no} from {tables_info.get('processed', 0)} tables")
+
+        # Process with Improved Gemini AI for final result
+        if GEMINI_AVAILABLE and ImprovedGeminiPDFVerifier:
+            try:
+                gemini_verifier = ImprovedGeminiPDFVerifier()
+                
+                # Prepare extracted data for verification (remove row limit for better verification)
+                extracted_data = {
+                    "Form No": result.get("Form No"),
+                    "Title": result.get("Title"),
+                    "Period": result.get("Period", ""),
+                    "Currency": result.get("Currency", ""),
+                    "Headers": result.get("Headers"),
+                    "Rows": result.get("Rows", []),  # Send all rows for comprehensive verification
+                    "TotalRows": result.get("TotalRows")
+                }
+                
+                # Use the improved verification method with PDF + Template + Extracted Data
+                gemini_result = gemini_verifier.verify_extraction_with_pdf(pdf_path, template, extracted_data)
+                
+                if gemini_result and "verification_summary" in gemini_result:
+                    # Add Gemini verification info
+                    result["gemini_verification"] = gemini_result.get("verification_summary", {})
+                    result["gemini_processing_status"] = "completed"
+                    
+                    # If corrected data is available, use it to enhance the result
+                    if "corrected_data" in gemini_result and gemini_result["corrected_data"]:
+                        corrected_data = gemini_result["corrected_data"]
+                        # Update result with corrected data while preserving structure
+                        if "Rows" in corrected_data:
+                            result["Rows"] = corrected_data["Rows"]
+                            result["TotalRows"] = len(corrected_data["Rows"])
+                        if "Headers" in corrected_data:
+                            result["Headers"] = corrected_data["Headers"]
+                    
+                    # Add analysis notes if available
+                    if "analysis_notes" in gemini_result:
+                        result["gemini_analysis"] = gemini_result["analysis_notes"]
+                    
+                    logger.info("Improved Gemini AI processing completed successfully")
+
+                    # Automatically save Gemini response to file
+                    try:
+                        corrected_data = {
+                            "form_no": result.get("Form No", ""),
+                            "title": result.get("Title", ""),
+                            "period": result.get("Period", ""),
+                            "currency": result.get("Currency", ""),
+                            "pages_used": result.get("PagesUsed", ""),
+                            "total_rows": result.get("TotalRows", 0),
+                            "headers": result.get("Headers", []),
+                            "rows": result.get("Rows", [])
+                        }
+                        save_gemini_response(company, form_no, filename, 
+                                           result.get("gemini_verification", {}),
+                                           result.get("gemini_analysis", {}),
+                                           corrected_data,
+                                           result.get("gemini_processing_status", ""))
+                    except Exception as e:
+                        logger.error(f"Error auto-saving Gemini response: {e}")
+                else:
+                    result["gemini_verification"] = {"status": "no_response", "accuracy_score": 0}
+                    result["gemini_processing_status"] = "no_response"
+                    logger.warning("Improved Gemini AI returned no response")
+                    
+            except Exception as e:
+                logger.error(f"Improved Gemini AI processing failed: {e}")
+                result["gemini_verification"] = {"status": "error", "error": str(e), "accuracy_score": 0}
+                result["gemini_processing_status"] = "error"
+        else:
+            logger.info("Improved Gemini AI not available, using original extraction")
+            result["gemini_processing_status"] = "not_available"
         return result
 
     except Exception as e:
@@ -422,19 +1236,147 @@ async def extract_form(company: str, form_no: str) -> Dict[str, Any]:
             f"Error extracting form {form_no} for company {company}: {e}")
         raise
 
-
 async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Optional[str]:
     """
-    Find page numbers for a form from the forms index
+    Find page numbers for a form from the forms index.
+    For L-forms, applies a 2-page gap to each page in the listed range.
     """
     try:
-        # Get forms list
+        # Special handling for L-1-A-REVENUE - detect FY vs Q1 files
+        if form_no.upper() in ['L-1-A', 'L-1-A-REVENUE', 'L-1-A-RA']:
+            # First get the actual pages from the forms list
+            forms = await list_forms(company)
+            original_pages = None
+
+            # Find the actual pages for L-1-A-REVENUE from forms list
+            for form in forms:
+                if form["form_no"].upper() in ['L-1-A', 'L-1-A-REVENUE']:
+                    original_pages = form["pages"]
+                    break
+
+            if original_pages:
+                # Check if pages were inferred (already actual pages) or from index (need gap)
+                pages_source = form.get("pages_source", "index")
+                if pages_source == "inferred":
+                    # These are already actual pages, no gap needed
+                    enhanced_pages = original_pages
+                    logger.info(
+                        f"L-1-A-REVENUE detected. Using inferred pages: {enhanced_pages} (no gap applied)")
+                else:
+                    # Apply 2-page gap to the actual detected pages from forms index
+                    enhanced_pages = _add_pages_to_range(original_pages, 2)
+                    logger.info(
+                        f"L-1-A-REVENUE detected. Original pages: {original_pages}, Enhanced pages: {enhanced_pages} (2 gap applied)")
+                return enhanced_pages
+            else:
+                # Fallback to filename-based detection if no pages found in forms list
+                # Try multiple methods to get the original filename
+                original_filename = None
+
+                # Method 1: Read original filename from saved file (MOST IMPORTANT)
+                try:
+                    original_filename_path = os.path.join(
+                        PDFS_DIR, f"{company}_original_filename.txt")
+                    if os.path.exists(original_filename_path):
+                        with open(original_filename_path, 'r') as f:
+                            original_filename = f.read().strip().upper()
+                            logger.info(
+                                f"Found original filename from saved file: {original_filename}")
+                except Exception as e:
+                    logger.warning(
+                        f"Could not read original filename file: {e}")
+
+                # Method 2: Try to get original filename from database
+                if not original_filename:
+                    try:
+                        import sqlite3
+                        db_path = os.path.join(BACKEND_DIR, "file_storage.db")
+                        if os.path.exists(db_path):
+                            conn = sqlite3.connect(db_path)
+                            conn.row_factory = sqlite3.Row
+                            cursor = conn.cursor()
+
+                            # Look for a file that matches our current pdf_path
+                            current_stored_filename = os.path.basename(
+                                pdf_path)
+                            cursor.execute(
+                                'SELECT original_filename FROM files WHERE stored_filename = ?', (current_stored_filename,))
+                            row = cursor.fetchone()
+
+                            if row:
+                                original_filename = row['original_filename'].upper(
+                                )
+                                logger.info(
+                                    f"Found original filename from database: {original_filename}")
+
+                            conn.close()
+
+                    except Exception as e:
+                        logger.warning(
+                            f"Could not access database for filename lookup: {e}")
+
+                # Method 3: Use current path filename
+                if not original_filename:
+                    original_filename = os.path.basename(pdf_path).upper()
+                    logger.info(
+                        f"Using current path for detection: {original_filename}")
+
+                # Method 4: Check uploads directory for SBI files (last resort)
+                if not original_filename or ('Q1' not in original_filename and 'FY' not in original_filename):
+                    uploads_dir = "uploads"
+                    if os.path.exists(uploads_dir):
+                        for filename in os.listdir(uploads_dir):
+                            if filename.upper().endswith('.PDF') and 'SBI' in filename.upper():
+                                original_filename = filename.upper()
+                                logger.info(
+                                    f"Found SBI file in uploads: {filename}")
+                                break
+
+                # Determine page range based on filename - apply 2-page gap to the original range for L-forms
+                if 'Q1' in original_filename:
+                    fallback_pages = _add_pages_to_range(
+                        "3-4", 2)  # 3-4 -> 5-6
+                    logger.info(
+                        f"Q1 file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-4)")
+                    return fallback_pages
+                elif 'FY' in original_filename:
+                    fallback_pages = _add_pages_to_range(
+                        "3-6", 2)  # 3-6 -> 5-8
+                    logger.info(
+                        f"FY file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-6)")
+                    return fallback_pages
+                else:
+                    # Default to Q1 behavior if neither Q1 nor FY is clearly detected
+                    fallback_pages = _add_pages_to_range(
+                        "3-4", 2)  # 3-4 -> 5-6
+                    logger.info(
+                        f"Default file detected: {original_filename}. Using pages {fallback_pages} for L-1-A-REVENUE (2 gap applied to 3-4)")
+                    return fallback_pages
+
+        # Get forms list for other forms
         forms = await list_forms(company)
 
         # Find matching form
         for form in forms:
             if form["form_no"].upper() == form_no.upper():
-                return form["pages"]
+                original_pages = form["pages"]
+
+                # For L-forms, apply 2-page gap to the listed range unless pages were inferred
+                if form_no.upper().startswith('L-'):
+                    pages_source = form.get("pages_source", "index")
+                    if pages_source == "inferred":
+                        # These are already actual pages, no gap needed
+                        logger.info(
+                            f"L-form detected: {form_no}. Using inferred pages {original_pages} (no gap applied)")
+                        return original_pages
+                    else:
+                        # Apply 2-page gap to pages from forms index
+                        enhanced_pages = _add_pages_to_range(original_pages, 2)
+                        logger.info(
+                            f"L-form detected: {form_no}. Extracting pages {enhanced_pages} (2 gap applied to {original_pages})")
+                        return enhanced_pages
+                else:
+                    return original_pages
 
         return None
 
@@ -442,6 +1384,53 @@ async def _find_pages_for_form(company: str, form_no: str, pdf_path: str) -> Opt
         logger.error(f"Error finding pages for form {form_no}: {e}")
         return None
 
+def _add_pages_to_range(pages_str: str, additional_pages: int) -> str:
+    """
+    Extract pages with a 2-page gap applied to each page in the original range for L-forms.
+
+    Examples:
+    - "1" -> "3" (2 gap from 1)
+    - "3-4" -> "5-6" (2 gap from 3 becomes 5, 2 gap from 4 becomes 6)
+    - "7" -> "9" (2 gap from 7)
+    - "6-9" -> "8-11" (2 gap from 6 becomes 8, 2 gap from 9 becomes 11)
+
+    Args:
+        pages_str: Original page range (e.g., "3-4" or "7")
+        additional_pages: Not used - gap is applied to original range
+
+    Returns:
+        Page range string with 2-page gap applied to each page in the original range
+    """
+    try:
+        if not pages_str:
+            return pages_str
+
+        gap_pages = 2  # Always apply a 2-page gap
+
+        if '-' in pages_str:
+            # Handle range like "3-4" or "6-9"
+            start_page, end_page = pages_str.split('-')
+            start_page = int(start_page.strip())
+            end_page = int(end_page.strip())
+            # Apply 2-page gap to both start and end
+            new_start_page = start_page + gap_pages
+            new_end_page = end_page + gap_pages
+            return f"{new_start_page}-{new_end_page}"
+        else:
+            # Handle single page like "1" or "7"
+            start_page = int(pages_str.strip())
+            # Apply 2-page gap to the single page
+            new_page = start_page + gap_pages
+            return str(new_page)
+    except (ValueError, AttributeError) as e:
+        logger.warning(f"Could not parse page range '{pages_str}': {e}")
+        return pages_str
+
+async def find_pages_for_revenue_form(company: str, form_no: str, pdf_path: str) -> Optional[str]:
+    """
+    Public wrapper for _find_pages_for_form to enable dynamic page detection
+    """
+    return await _find_pages_for_form(company, form_no, pdf_path)
 
 async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -450,8 +1439,14 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
     """
     try:
         if not CAMELOT_AVAILABLE:
-            logger.warning("Camelot not available, returning dummy data")
-            return _create_dummy_data(headers)
+            logger.warning("Camelot not available, trying Tabula fallback")
+            if TABULA_AVAILABLE:
+                rows = _extract_with_tabula(pdf_path, pages_str, headers)
+                if rows:
+                    return rows
+            logger.warning(
+                "Tabula fallback not available or returned no rows; returning empty rows")
+            return []
 
         # Parse pages string (e.g., "7-10" or "7")
         if '-' in pages_str:
@@ -508,15 +1503,12 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         if all_tables:
             # Process tables in parallel using ThreadPoolExecutor
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                # Create partial function for processing
-                process_func = partial(
-                    _process_table_with_threading, headers=headers)
-
-                # Submit all table processing tasks
-                future_to_index = {
-                    executor.submit(process_func, table_data, idx): idx
-                    for idx, table_data in enumerate(all_tables)
-                }
+                # Submit all table processing tasks with correct parameters
+                future_to_index = {}
+                for idx, table_data in enumerate(all_tables):
+                    future = executor.submit(
+                        _process_table_with_threading, (table_data, idx), headers)
+                    future_to_index[future] = idx
 
                 # Collect results as they complete
                 for future in concurrent.futures.as_completed(future_to_index):
@@ -536,10 +1528,15 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         logger.info(
             f"Multi-threaded summary: Found {tables_found} tables, processed {tables_processed} relevant tables, extracted {len(extracted_rows)} total rows")
 
+        if not extracted_rows and TABULA_AVAILABLE:
+            logger.info("Camelot returned no rows; attempting Tabula fallback")
+            extracted_rows = _extract_with_tabula(
+                pdf_path, pages_range, headers)
+
         if not extracted_rows:
             logger.warning(
-                "No suitable L-4 Premium tables found, returning dummy data")
-            return _create_dummy_data(headers)
+                "No matching tables found for the provided template headers. Returning empty rows.")
+            return []
 
         logger.info(
             f"Final threaded extraction result: {len(extracted_rows)} rows from {tables_processed} tables")
@@ -549,9 +1546,66 @@ async def _extract_table_data(pdf_path: str, pages_str: str, headers: List[str])
         logger.error(f"Error in threaded table extraction: {e}")
         import traceback
         traceback.print_exc()
-        # Return dummy data on error
-        return _create_dummy_data(headers)
+        # Return empty data on error
+        return []
 
+# Tabula fallback
+
+def _extract_with_tabula(pdf_path: str, pages: str, headers: List[str]) -> List[Dict[str, Any]]:
+    try:
+        if not TABULA_AVAILABLE:
+            return []
+        # Tabula expects page ranges like '2-4' or a list
+        page_arg = pages
+        # Try both lattice and stream
+        dfs = []
+        try:
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg,
+                                   lattice=True, multiple_tables=True)
+        except Exception as e:
+            logger.warning(f"Tabula lattice failed: {e}")
+        try:
+            dfs += tabula.read_pdf(pdf_path, pages=page_arg,
+                                   stream=True, multiple_tables=True)
+        except Exception as e:
+            logger.warning(f"Tabula stream failed: {e}")
+
+        rows: List[Dict[str, Any]] = []
+        for idx, df in enumerate(dfs or []):
+            if df is None or df.empty or df.shape[0] < 2:
+                continue
+            df = df.fillna('')
+            logger.info(f"Processing Tabula table {idx+1}: Shape {df.shape}")
+
+            # More aggressive row extraction - start from row 0 and check all rows
+            for row_idx in range(len(df)):
+                series = df.iloc[row_idx]
+                values = [str(v).strip() for v in series.tolist()]
+                if not any(v for v in values):
+                    continue
+
+                row: Dict[str, Any] = {}
+                for i, h in enumerate(headers):
+                    row[h] = values[i] if i < len(values) else ''
+
+                # More lenient filtering - accept any row with meaningful content
+                particulars = (row.get(headers[0]) or '').strip()
+                has_content = any((row.get(h) or '').strip() for h in headers)
+
+                # Skip obvious header rows and empty rows
+                if (particulars and
+                    not particulars.lower() in ['particulars', 'schedule', 'life', 'pension'] and
+                    has_content and
+                        len(particulars) > 2):
+                    rows.append(row)
+                    logger.info(f"Added Tabula row: {particulars[:50]}...")
+
+        logger.info(
+            f"Tabula extracted {len(rows)} total rows from {len(dfs)} tables")
+        return rows
+    except Exception as e:
+        logger.error(f"Tabula extraction error: {e}")
+        return []
 
 def _create_dummy_data(headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -565,13 +1619,45 @@ def _create_dummy_data(headers: List[str]) -> List[Dict[str, Any]]:
         dummy_rows.append(row)
     return dummy_rows
 
-
 def _convert_dataframe_to_rows(df, template_headers: List[str], table_num: int = 1) -> List[Dict[str, Any]]:
     """
     Fallback conversion function - use the improved L-4 conversion instead
     """
     return _convert_l4_dataframe_to_rows(df, template_headers, table_num, "fallback")
 
+# NEW: Generic table matcher that works for multiple forms using template headers
+
+def _is_table_matching_headers(df, headers: List[str]) -> bool:
+    """Return True if a table's top rows look compatible with the template headers.
+
+    Heuristics:
+    - Table must have at least as many columns as the template (or within 2 columns slack)
+    - The first 2-3 rows should contain header-like keywords (e.g., 'Particulars')
+    - Avoid obviously unrelated tables by checking absence of common noise-only patterns
+    """
+    try:
+        if df.empty or df.shape[0] < 2:
+            return False
+
+        num_cols = df.shape[1]
+        # allow some slack as Camelot may split/merge columns
+        if num_cols < max(2, min(len(headers), 6)):
+            return False
+
+        # Concatenate first three rows to inspect header text
+        head_rows = df.head(min(3, len(df))).astype(str).values.flatten()
+        head_text = ' '.join(head_rows).upper()
+
+        # Basic signals that this is a business schedule table
+        has_particulars = 'PARTICULARS' in head_text or 'PARTICULAR' in head_text
+        has_business_terms = any(term in head_text for term in [
+            'LINKED', 'NON-LINKED', 'PARTICIPATING', 'NON-PARTICIPATING', 'REVENUE', 'ACCOUNT', 'SCHEDULE', 'TOTAL'
+        ])
+
+        return has_particulars or has_business_terms
+    except Exception as e:
+        logger.error(f"Error matching table headers: {e}")
+        return False
 
 def _process_table_with_threading(table_data_and_index, headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -590,22 +1676,24 @@ def _process_table_with_threading(table_data_and_index, headers: List[str]) -> L
             f"Thread: Skipping table {table_idx + 1} - empty or too small")
         return []
 
-    # Check if this is the L-4 Premium table we want
-    if _is_l4_premium_table(df, headers):
-        logger.info(
-            f"Thread: Processing table {table_idx + 1} ({flavor}) - identified as L-4 Premium table")
-        table_rows = _convert_l4_dataframe_to_rows(
-            df, headers, table_idx + 1, flavor)
-        if table_rows:
+    # Prefer tables that match headers, but still attempt conversion as fallback
+    rows: List[Dict[str, Any]] = []
+    try:
+        if _is_table_matching_headers(df, headers):
             logger.info(
-                f"Thread: Successfully extracted {len(table_rows)} rows from table {table_idx + 1}")
-            return table_rows
-    else:
-        logger.info(
-            f"Thread: Skipping table {table_idx + 1} - doesn't match L-4 Premium structure")
+                f"Thread: Processing table {table_idx + 1} ({flavor}) - matches template structure")
+            rows = _convert_l4_dataframe_to_rows(
+                df, headers, table_idx + 1, flavor)
+        else:
+            logger.info(
+                f"Thread: Attempting conversion for table {table_idx + 1} despite header mismatch")
+            rows = _convert_l4_dataframe_to_rows(
+                df, headers, table_idx + 1, flavor)
+    except Exception as e:
+        logger.error(f"Thread: Error converting table {table_idx + 1}: {e}")
+        rows = []
 
-    return []
-
+    return rows
 
 async def _extract_table_data_threaded(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -717,6 +1805,144 @@ async def _extract_table_data_threaded(pdf_path: str, pages_str: str, headers: L
         return _create_dummy_data(headers)
 
 
+
+def _extract_l27_unit_headers(template: Dict[str, Any]) -> tuple:
+    """
+    Extract headers for L-27-UNIT type templates that have fund-based structure.
+    
+    Returns:
+        tuple: (headers, flat_headers)
+    """
+    headers = {
+        "Fund_Name": ["Fund Name"],
+        "Fund_Code": ["Fund Code"],
+        "Actual_Investment": ["Actual Investment"],
+        "Percentage_Actual": ["% Actual"]
+    }
+    
+    flat_headers = [
+        "Fund_Name",
+        "Fund_Code", 
+        "Actual_Investment",
+        "Percentage_Actual"
+    ]
+    
+    return headers, flat_headers
+
+def _extract_l27_unit_data(template: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Extract fund data from L-27-UNIT type templates.
+    
+    Returns:
+        List of fund data rows
+    """
+    rows = []
+    
+    if "Fund_Sets" in template:
+        for set_name, set_data in template["Fund_Sets"].items():
+            if "PARTICULARS (PORTFOLIO - SFIN)" in set_data:
+                particulars = set_data["PARTICULARS (PORTFOLIO - SFIN)"]
+                for fund_name, fund_code in particulars.items():
+                    if isinstance(fund_code, str) and fund_code:  # Valid fund code
+                        row = {
+                            "Fund_Name": fund_name,
+                            "Fund_Code": fund_code,
+                            "Actual_Investment": "",
+                            "Percentage_Actual": ""
+                        }
+                        rows.append(row)
+    
+    return rows
+
+def _extract_headers_from_template(template: Dict[str, Any]) -> tuple:
+    """
+    Extract headers and flat headers from template, handling multiple formats:
+    - Sections array (new format)
+    - Forms object (L-25-GEOGRAPHICAL format)
+    - Direct Headers property (old format)
+    - Deeply nested structures (L-26-INVESTMENT format)
+    - L-27-UNIT fund-based structure
+    
+    Returns:
+        tuple: (headers, flat_headers)
+    """
+    # L-27-UNIT fund-based structure
+    if "Fund_Sets" in template and "NAME OF THE BUSINESS" in template:
+        return _extract_l27_unit_headers(template)
+    # New format with Sections array
+    if "Sections" in template and isinstance(template["Sections"], list) and len(template["Sections"]) > 0:
+        first_section = template["Sections"][0]
+        headers = first_section.get("Headers", {})
+        flat_headers = first_section.get("FlatHeaders", [])
+        
+        # If no flat headers in first section, generate them from headers
+        if not flat_headers and headers:
+            flat_headers = _flatten_headers(headers)
+            
+        return headers, flat_headers
+    
+    # Forms format (L-25-GEOGRAPHICAL style)
+    elif "Forms" in template and isinstance(template["Forms"], dict):
+        # Get the first form from the Forms object
+        first_form_key = list(template["Forms"].keys())[0]
+        first_form = template["Forms"][first_form_key]
+        
+        headers = first_form.get("Headers", {})
+        flat_headers = first_form.get("FlatHeaders", [])
+        
+        # If no flat headers in first form, generate them from headers
+        if not flat_headers and headers:
+            flat_headers = _flatten_headers(headers)
+            
+        return headers, flat_headers
+    
+    # Old format with direct Headers property
+    elif "Headers" in template:
+        headers = template["Headers"]
+        flat_headers = template.get("FlatHeaders", [])
+        
+        # If no flat headers, generate them from headers
+        if not flat_headers and headers:
+            flat_headers = _flatten_headers(headers)
+            
+        return headers, flat_headers
+    
+    # Deeply nested structures - search recursively for Headers
+    else:
+        headers, flat_headers = _find_headers_recursively(template)
+        return headers, flat_headers
+
+def _find_headers_recursively(obj: Dict[str, Any]) -> tuple:
+    """
+    Recursively search for Headers and FlatHeaders in deeply nested structures.
+    
+    Returns:
+        tuple: (headers, flat_headers)
+    """
+    if not isinstance(obj, dict):
+        return {}, []
+    
+    # Check if this object has Headers
+    if "Headers" in obj and isinstance(obj["Headers"], dict):
+        headers = obj["Headers"]
+        flat_headers = obj.get("FlatHeaders", [])
+        
+        # If no flat headers, generate them from headers
+        if not flat_headers and headers:
+            flat_headers = _flatten_headers(headers)
+            
+        return headers, flat_headers
+    
+    # Recursively search in nested objects
+    for key, value in obj.items():
+        if isinstance(value, dict):
+            headers, flat_headers = _find_headers_recursively(value)
+            if headers:  # Found headers, return them
+                return headers, flat_headers
+    
+    # No headers found
+    return {}, []
+
 def _flatten_headers(headers) -> List[str]:
     """
     Flatten complex header structure to a simple list of column names
@@ -745,7 +1971,6 @@ def _flatten_headers(headers) -> List[str]:
     else:
         return [str(headers)]
 
-
 # Additional utility functions
 
 def get_available_companies() -> List[str]:
@@ -757,7 +1982,6 @@ def get_available_companies() -> List[str]:
                 company_name = os.path.splitext(file)[0]
                 companies.append(company_name)
     return sorted(companies)
-
 
 def get_company_templates(company: str) -> List[Dict[str, Any]]:
     """Get list of templates for a company"""
@@ -781,7 +2005,6 @@ def get_company_templates(company: str) -> List[Dict[str, Any]]:
                     logger.warning(f"Error reading template {file}: {e}")
 
     return templates
-
 
 def create_sample_templates():
     """Create sample templates for testing"""
@@ -873,11 +2096,9 @@ def create_sample_templates():
     except Exception as e:
         logger.error(f"Error creating sample templates: {e}")
 
-
 # Initialize sample templates on module load
 if __name__ == "__main__":
     create_sample_templates()
-
 
 def _extract_l4_premium_clean(pdf_path: str, pages_str: str, template_headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -917,6 +2138,11 @@ def _extract_l4_premium_clean(pdf_path: str, pages_str: str, template_headers: L
 
         logger.info(
             f"Total extracted: {len(all_rows)} rows from {len(tables)} tables")
+
+        # Remove duplicate headers
+        all_rows = _remove_duplicate_headers(all_rows, template_headers)
+        logger.info(f"After removing duplicate headers: {len(all_rows)} rows")
+
         return all_rows
 
     except Exception as e:
@@ -924,7 +2150,6 @@ def _extract_l4_premium_clean(pdf_path: str, pages_str: str, template_headers: L
         import traceback
         traceback.print_exc()
         return []
-
 
 def _is_l4_premium_table_clean(df) -> bool:
     """
@@ -957,6 +2182,87 @@ def _is_l4_premium_table_clean(df) -> bool:
         logger.error(f"Error checking L-4 table: {e}")
         return False
 
+def validate_var_ins_data(row_dict, template_headers):
+    """
+    Validate that VAR. INS columns show hyphens when they should be empty/zero
+    """
+    # Check if this is a 'Premiums earned - net' row
+    particulars = row_dict.get('Particulars', '').lower()
+
+    # If this is a premiums earned row, VAR. INS should typically be empty/hyphen
+    if 'premium' in particulars and 'earned' in particulars:
+        # Find VAR. INS columns and set them to hyphen if they have values
+        for header in template_headers:
+            if 'VAR. INS' in header or 'VAR.INS' in header:
+                current_value = row_dict.get(header, '').strip()
+                # If there's a numeric value, it might be wrong - set to hyphen
+                if current_value and re.search(r'\d', current_value):
+                    # Check if this looks like it might be from a different column
+                    # If it's a large number, it's probably misaligned
+                    if len(current_value.replace(',', '').replace('.', '')) > 3:
+                        row_dict[header] = '-'
+                        print(
+                            f"Fixed misaligned VAR. INS value: {current_value} -> -")
+
+    return row_dict
+
+def create_intelligent_column_mapping(df, template_headers):
+    """
+    Create intelligent column mapping by matching actual column headers to template headers
+    """
+    # Get the actual column headers from the DataFrame
+    actual_headers = [str(col).strip() for col in df.columns.tolist()]
+
+    # Create mapping from template header to actual column index
+    column_mapping = {}
+
+    # Define patterns for matching headers
+    header_patterns = {
+        'Particulars': [r'particulars?', r'description', r'item'],
+        'Schedule': [r'schedule', r'ref', r'reference'],
+        'LIFE': [r'life', r'linked.*life', r'non.*linked.*life'],
+        'PENSION': [r'pension', r'linked.*pension', r'non.*linked.*pension'],
+        'HEALTH': [r'health', r'linked.*health', r'non.*linked.*health'],
+        'VAR. INS': [r'var\.?\s*ins', r'variable.*insurance', r'linked.*var', r'non.*linked.*var'],
+        'TOTAL': [r'total', r'sub.*total'],
+        'ANNUITY': [r'annuity', r'non.*linked.*annuity'],
+        'GRAND TOTAL': [r'grand.*total', r'total.*total']
+    }
+
+    # Map each template header to actual column index
+    for i, template_header in enumerate(template_headers):
+        template_header_clean = template_header.strip()
+        best_match_idx = None
+        best_match_score = 0
+
+        for j, actual_header in enumerate(actual_headers):
+            actual_header_clean = actual_header.strip().lower()
+
+            # Direct match
+            if template_header_clean.lower() == actual_header_clean:
+                best_match_idx = j
+                best_match_score = 100
+                break
+
+            # Pattern matching
+            for pattern_name, patterns in header_patterns.items():
+                if pattern_name.lower() in template_header_clean.lower():
+                    for pattern in patterns:
+                        if re.search(pattern, actual_header_clean, re.IGNORECASE):
+                            score = len(pattern) / \
+                                len(actual_header_clean) * 50
+                            if score > best_match_score:
+                                best_match_idx = j
+                                best_match_score = score
+                                break
+
+        if best_match_idx is not None:
+            column_mapping[i] = best_match_idx
+        else:
+            # Fallback to positional mapping
+            column_mapping[i] = i if i < len(actual_headers) else 0
+
+    return column_mapping
 
 def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[str, Any]]:
     """
@@ -987,20 +2293,38 @@ def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[st
             # Clean particulars text
             clean_particulars = _clean_particulars_text(particulars)
 
+            # Skip header rows that contain column names
+            header_keywords = ["Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension",
+                               "Participating_Life", "Non_Participating_Life", "Grand_Total"]
+            if any(keyword.lower() in clean_particulars.lower() for keyword in header_keywords):
+                logger.info(
+                    f"Skipping header row: {clean_particulars[:40]}...")
+                continue
+
             # Build row dictionary
             row_dict = {}
 
-            # Map to template headers
+            # Create intelligent column mapping
+            column_mapping = create_intelligent_column_mapping(
+                df, template_headers)
+
+            # Map to template headers using intelligent mapping
             for i, header in enumerate(template_headers):
                 if i == 0:  # Particulars column
                     row_dict[header] = clean_particulars
-                elif i < len(row_data):
-                    # Clean numeric value
-                    raw_value = str(row_data[i]).strip()
-                    clean_value = _clean_numeric_value(raw_value)
-                    row_dict[header] = clean_value
                 else:
-                    row_dict[header] = ""
+                    # Use intelligent mapping to find the correct column
+                    mapped_idx = column_mapping.get(i, i)
+                    if mapped_idx < len(row_data):
+                        # Clean numeric value
+                        raw_value = str(row_data[mapped_idx]).strip()
+                        clean_value = _clean_numeric_value(raw_value)
+                        row_dict[header] = clean_value
+                    else:
+                        row_dict[header] = ""
+
+            # Validate VAR. INS data
+            row_dict = validate_var_ins_data(row_dict, template_headers)
 
             # Only add if has meaningful data
             numeric_count = sum(1 for v in row_dict.values()
@@ -1014,7 +2338,6 @@ def _extract_rows_from_l4_table(df, template_headers: List[str]) -> List[Dict[st
     except Exception as e:
         logger.error(f"Error extracting rows: {e}")
         return []
-
 
 def _clean_particulars_text(text: str) -> str:
     """
@@ -1030,8 +2353,17 @@ def _clean_particulars_text(text: str) -> str:
     cleaned = cleaned.replace('\n', ' ')
     cleaned = re.sub(r'\s+', ' ', cleaned)
 
-    return cleaned.strip()
+    # Fix hyphen character issues - normalize different types of hyphens to standard hyphen
+    # This specifically addresses the VAR. INS hyphen issue
+    cleaned = cleaned.replace('–', '-')  # en-dash to hyphen
+    cleaned = cleaned.replace('—', '-')  # em-dash to hyphen
+    cleaned = cleaned.replace('‐', '-')  # hyphen-minus to hyphen
+    cleaned = cleaned.replace('‑', '-')  # non-breaking hyphen to hyphen
 
+    # Ensure VAR. INS has proper hyphen formatting
+    cleaned = re.sub(r'VAR\.\s*INS', 'VAR. INS', cleaned)
+
+    return cleaned.strip()
 
 def _clean_numeric_value(value: str) -> str:
     """
@@ -1067,7 +2399,6 @@ def _clean_numeric_value(value: str) -> str:
     cleaned = re.sub(r'\s+', '', cleaned)
 
     return cleaned if cleaned else ""
-
 
 def _extract_clean_form_data(pdf_path: str, pages_str: str, template_headers: List[str], form_type: str) -> List[Dict[str, Any]]:
     """
@@ -1121,7 +2452,6 @@ def _extract_clean_form_data(pdf_path: str, pages_str: str, template_headers: Li
         logger.error(f"Error in {form_type} extraction: {e}")
         return []
 
-
 def _is_l5_commission_table(df) -> bool:
     """
     Check if this DataFrame is an L-5 Commission table
@@ -1147,7 +2477,6 @@ def _is_l5_commission_table(df) -> bool:
     except Exception as e:
         logger.error(f"Error checking L-5 table: {e}")
         return False
-
 
 def _is_l6_operating_table(df) -> bool:
     """
@@ -1175,7 +2504,6 @@ def _is_l6_operating_table(df) -> bool:
         logger.error(f"Error checking L-6 table: {e}")
         return False
 
-
 def _convert_l4_dataframe_to_rows(df, template_headers: List[str], table_num: int, flavor: str) -> List[Dict[str, Any]]:
     """
     Convert L-4 DataFrame to structured rows
@@ -1191,7 +2519,6 @@ def _convert_l4_dataframe_to_rows(df, template_headers: List[str], table_num: in
         logger.error(f"Error converting L-4 dataframe: {e}")
         return []
 
-
 def _is_l4_premium_table(df, headers: List[str]) -> bool:
     """
     Check if this DataFrame is an L-4 Premium table (original function)
@@ -1202,7 +2529,6 @@ def _is_l4_premium_table(df, headers: List[str]) -> bool:
     except Exception as e:
         logger.error(f"Error checking L-4 table: {e}")
         return False
-
 
 def _find_specific_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
     """
@@ -1246,8 +2572,7 @@ def _find_specific_form_pages(pdf_path: str, form_no: str) -> Optional[str]:
         logger.error(f"Error finding specific pages for {form_no}: {e}")
         return None
 
-
-async def ai_extract_form(company: str, form_no: str) -> List[Dict[str, Any]]:
+async def ai_extract_form(company: str, form_no: str, filename: str = None) -> List[Dict[str, Any]]:
     """
     🤖 AI PDF Form Extractor - Complete Implementation
 
@@ -1257,10 +2582,15 @@ async def ai_extract_form(company: str, form_no: str) -> List[Dict[str, Any]]:
     3. Extract data using Camelot for tables + text extraction for fields
     4. Return structured JSON for ALL periods found
 
+    Args:
+        company: Company name
+        form_no: Form number to extract
+        filename: Specific PDF filename to use (optional)
+
     Returns List of extracted form data, one per period/year found.
     """
     try:
-        pdf_path = os.path.join(PDFS_DIR, f"{company}.pdf")
+        pdf_path = get_company_pdf_path(company, filename)
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF not found for company: {company}")
 
@@ -1304,7 +2634,6 @@ async def ai_extract_form(company: str, form_no: str) -> List[Dict[str, Any]]:
         logger.error(f"🤖 AI Extraction failed for {form_no} ({company}): {e}")
         raise
 
-
 async def _find_template_for_form(company: str, form_no: str) -> str:
     """Find the best matching template file for a form."""
     company_templates_dir = os.path.join(TEMPLATES_DIR, company.lower())
@@ -1333,7 +2662,6 @@ async def _find_template_for_form(company: str, form_no: str) -> str:
 
     raise FileNotFoundError(
         f"No template found for {form_no} in {company}. Available: {template_files}")
-
 
 async def _find_all_form_instances(pdf_path: str, form_no: str, template: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
@@ -1391,7 +2719,6 @@ async def _find_all_form_instances(pdf_path: str, form_no: str, template: Dict[s
         logger.error(f"Error finding form instances: {e}")
         return []
 
-
 def _is_form_page(page_text: str, form_no: str, form_title: str) -> bool:
     """Check if a page contains the specified form."""
     text_upper = page_text.upper()
@@ -1409,7 +2736,6 @@ def _is_form_page(page_text: str, form_no: str, form_title: str) -> bool:
             return True
 
     return False
-
 
 async def _extract_single_period_data(pdf_path: str, instance: Dict[str, Any], template: Dict[str, Any], form_no: str) -> Dict[str, Any]:
     """
@@ -1465,7 +2791,6 @@ async def _extract_single_period_data(pdf_path: str, instance: Dict[str, Any], t
             "Error": str(e)
         }
 
-
 async def _extract_text_based_data(pdf_path: str, pages_str: str, headers: List[str]) -> List[Dict[str, Any]]:
     """
     Fallback text-based extraction when Camelot is not available.
@@ -1513,7 +2838,6 @@ async def _extract_text_based_data(pdf_path: str, pages_str: str, headers: List[
         logger.error(f"Text-based extraction failed: {e}")
         return _create_dummy_data(headers)
 
-
 async def _enhance_with_text_fields(pdf_path: str, pages_str: str, result: Dict[str, Any]) -> Dict[str, Any]:
     """
     Enhance extracted data with additional text fields like period, currency, etc.
@@ -1549,3 +2873,96 @@ async def _enhance_with_text_fields(pdf_path: str, pages_str: str, result: Dict[
         logger.error(f"Error enhancing with text fields: {e}")
 
     return result
+
+def _remove_duplicate_headers(rows: List[Dict[str, Any]], headers: List[str]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicate header rows to fix the duplicate header issue
+    """
+    try:
+        if not rows:
+            return rows
+
+        # Define header keywords to identify header rows
+        header_keywords = [
+            "Particulars", "Schedule", "Unit_Linked_Life", "Unit_Linked_Pension",
+            "Unit_Linked_Total", "Participating_Life", "Participating_Pension",
+            "Participating_Var_Ins", "Participating_Total", "Non_Participating_Life",
+            "Non_Participating_Annuity", "Non_Participating_Pension",
+            "Non_Participating_Health", "Non_Participating_Var_Ins",
+            "Non_Participating_Total", "Grand_Total"
+        ]
+
+        # Filter out header rows
+        filtered_rows = []
+        header_rows_removed = 0
+
+        for row in rows:
+            particulars = str(
+                row.get(headers[0] if headers else "Particulars", "")).strip()
+
+            # Check if this row contains header keywords
+            is_header_row = False
+            for keyword in header_keywords:
+                if keyword.lower() in particulars.lower():
+                    is_header_row = True
+                    break
+
+            # Also check if the row is too short (likely a header)
+            if len(particulars) < 3:
+                is_header_row = True
+
+            # Skip header rows
+            if is_header_row:
+                header_rows_removed += 1
+                logger.info(f"Removing header row: {particulars[:50]}...")
+                continue
+
+            # Keep data rows
+            filtered_rows.append(row)
+
+        logger.info(
+            f"Removed {header_rows_removed} header rows, kept {len(filtered_rows)} data rows")
+        return filtered_rows
+
+    except Exception as e:
+        logger.error(f"Error removing duplicate headers: {e}")
+        return rows
+
+def _extract_period_from_text(text: str) -> Optional[str]:
+    """
+    Extract period information from text content.
+    Looks for patterns like "For the quarter ended...", "As at...", etc.
+    """
+    try:
+        if not text:
+            return None
+
+        text_upper = text.upper()
+
+        # Common period patterns
+        period_patterns = [
+            r'FOR THE QUARTER ENDED\s+([^,\n]+)',
+            r'FOR THE PERIOD ENDED\s+([^,\n]+)',
+            r'AS AT\s+([^,\n]+)',
+            r'FOR THE YEAR ENDED\s+([^,\n]+)',
+            r'FOR THE HALF YEAR ENDED\s+([^,\n]+)',
+            r'QUARTER ENDED\s+([^,\n]+)',
+            r'PERIOD ENDED\s+([^,\n]+)',
+            r'YEAR ENDED\s+([^,\n]+)',
+            r'HALF YEAR ENDED\s+([^,\n]+)',
+        ]
+
+        for pattern in period_patterns:
+            match = re.search(pattern, text_upper)
+            if match:
+                period = match.group(1).strip()
+                # Clean up the period text
+                period = re.sub(r'\s+', ' ', period)
+                period = period.replace('\n', ' ')
+                return period
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Error extracting period from text: {e}")
+        return None

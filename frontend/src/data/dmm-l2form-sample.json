@@ -1,150 +1,150 @@
 {
-  "company": "HDFC Life Insurance Company Limited",
-  "formType": "L-2 Profit and Loss Account",
-  "reportType": "Standalone",
-  "period": "Jun 24",
-  "breadcrumb": "L Forms > HDFC Life Insurance Company Limited > L-2 Profit and Loss Account > Standalone > Jun 24",
-  "description": "In the DMM modules, user would be able to retrieve the data, update data, edit and modify data. Save Data and Migrate data",
-  "periodDetails": {
-    "asIsReported": {
-      "periodType": "Quarterly",
-      "periodDetail": "First Quarter",
-      "numberOfMonths": 3
-    },
-    "consolidateStandalone": {
-      "standalone": "Standalone",
-      "periodTypeMarking": "3M",
-      "halfyearlyMarking": 1,
-      "periodEnd": "30-06-2024"
-    },
-    "rightColumn": {
-      "periodYear": "202406",
-      "periodShortDate": "Jun-24",
-      "calendarYear": "2024-2025",
-      "periodEndDetail": "For the Quarter Ended",
-      "previousPeriod": "31-03-2024",
-      "financialYear": "FY2025"
-    }
-  },
-  "profitLossAccount": {
-    "title": "PROFIT AND LOSS ACCOUNT FOR THE NINE MONTHS ENDED DECEMBER 31, 2022",
-    "columns": ["Particulars", "Units", "Jun-24"],
-    "rows": [
-      {
-        "particulars": "Amounts transferred from the Policyholders Account",
-        "units": "",
-        "jun24": "41,611"
+    "company": "HDFC Life Insurance Company Limited",
+    "formType": "L-2 Profit and Loss Account",
+    "reportType": "Standalone",
+    "period": "Jun 24",
+    "breadcrumb": "L Forms > HDFC Life Insurance Company Limited > L-2 Profit and Loss Account > Standalone > Jun 24",
+    "description": "In the DMM modules, user would be able to retrieve the data, update data, edit and modify data. Save Data and Migrate data",
+    "periodDetails": {
+      "asIsReported": {
+        "periodType": "Quarterly",
+        "periodDetail": "First Quarter",
+        "numberOfMonths": 3
       },
-      {
-        "particulars": "Income from Investments:",
-        "units": "",
-        "jun24": ""
+      "consolidateStandalone": {
+        "standalone": "Standalone",
+        "periodTypeMarking": "3M",
+        "halfyearlyMarking": 1,
+        "periodEnd": "30-06-2024"
       },
-      {
-        "particulars": "(a) Interest, Dividend & Rent - Gross",
-        "units": "",
-        "jun24": "18,790"
-      },
-      {
-        "particulars": "(b) Profit on sale / redemption of investments",
-        "units": "",
-        "jun24": "5,639"
-      },
-      {
-        "particulars": "(c) (Loss on sale / redemption of investments)",
-        "units": "",
-        "jun24": "-63"
-      },
-      {
-        "particulars": "(d) Amortisation of Premium / Discount on Investments",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "Investments",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "Other Income",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "Total (A)",
-        "units": "",
-        "jun24": "65,977"
-      },
-      {
-        "particulars": "Remuneration of KMPs over specified limits",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "Expenses other than those directly related to the insurance:",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(a) Rates and Taxes",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(b) Directors' Sitting Fees",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(c) Board Meeting Related Expenses",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(d) Depreciation",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(e) Other expenses",
-        "units": "",
-        "jun24": "697"
-      },
-      {
-        "particulars": "Contribution to the Policyholders' A/c:",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(a) Towards Excess Expenses of Management",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "(b) towards deficit funding and others",
-        "units": "",
-        "jun24": "31,373"
-      },
-      {
-        "particulars": "Managerial Remuneration*",
-        "units": "",
-        "jun24": ""
-      },
-      {
-        "particulars": "Interest on subordinated debt",
-        "units": "",
-        "jun24": "1,733"
-      },
-      {
-        "particulars": "Expenses towards CSR activities",
-        "units": "",
-        "jun24": "522"
-      },
-      {
-        "particulars": "Penalties",
-        "units": "",
-        "jun24": ""
+      "rightColumn": {
+        "periodYear": "202406",
+        "periodShortDate": "Jun-24",
+        "calendarYear": "2024-2025",
+        "periodEndDetail": "For the Quarter Ended",
+        "previousPeriod": "31-03-2024",
+        "financialYear": "FY2025"
       }
-    ]
-  }
-} 
+    },
+    "profitLossAccount": {
+      "title": "PROFIT AND LOSS ACCOUNT FOR THE NINE MONTHS ENDED DECEMBER 31, 2022",
+      "columns": ["Particulars", "Units", "Jun-24"],
+      "rows": [
+        {
+          "particulars": "Amounts transferred from the Policyholders Account",
+          "units": "",
+          "jun24": "41,611"
+        },
+        {
+          "particulars": "Income from Investments:",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(a) Interest, Dividend & Rent - Gross",
+          "units": "",
+          "jun24": "18,790"
+        },
+        {
+          "particulars": "(b) Profit on sale / redemption of investments",
+          "units": "",
+          "jun24": "5,639"
+        },
+        {
+          "particulars": "(c) (Loss on sale / redemption of investments)",
+          "units": "",
+          "jun24": "-63"
+        },
+        {
+          "particulars": "(d) Amortisation of Premium / Discount on Investments",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "Investments",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "Other Income",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "Total (A)",
+          "units": "",
+          "jun24": "65,977"
+        },
+        {
+          "particulars": "Remuneration of KMPs over specified limits",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "Expenses other than those directly related to the insurance:",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(a) Rates and Taxes",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(b) Directors' Sitting Fees",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(c) Board Meeting Related Expenses",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(d) Depreciation",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(e) Other expenses",
+          "units": "",
+          "jun24": "697"
+        },
+        {
+          "particulars": "Contribution to the Policyholders' A/c:",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(a) Towards Excess Expenses of Management",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "(b) towards deficit funding and others",
+          "units": "",
+          "jun24": "31,373"
+        },
+        {
+          "particulars": "Managerial Remuneration*",
+          "units": "",
+          "jun24": ""
+        },
+        {
+          "particulars": "Interest on subordinated debt",
+          "units": "",
+          "jun24": "1,733"
+        },
+        {
+          "particulars": "Expenses towards CSR activities",
+          "units": "",
+          "jun24": "522"
+        },
+        {
+          "particulars": "Penalties",
+          "units": "",
+          "jun24": ""
+        }
+      ]
+    }
+  } 

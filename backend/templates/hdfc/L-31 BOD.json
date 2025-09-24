@@ -10,5 +10,14 @@
     "Role_Function": ["Role/ Function"],
     "Details_of_change": ["Details of change in the period if any"]
   },
+  
+  "FlatHeaders": [
+    "Sl_No",
+    "Name_of_Person",
+    "Designation",
+    "Role_Function",
+    "Details_of_change"
+  ],
+  
   "Rows": []
 } 

@@ -3,22 +3,21 @@
   "Title": "OFFICES AND OTHER INFORMATION",
   "Insurer": "HDFC Life Insurance Company Limited",
   "Date": "{QUARTER_END_DATE}",
-  "Offices_and_Other_Information": {
-    "Title": "FORM L-45 OFFICES AND OTHER INFORMATION",
-    "Headers": {
-      "Sl_No": ["Sl. No."],
-      "Information": ["Information"],
-      "Number": ["Number"]
-    },
-    "Rows": []
+  "Headers": {
+    "sl no": [
+      "sl no"
+    ],
+    "information": [
+      "information"
+    ],
+    "number": [
+      "number"
+    ]
   },
-  "Employees_and_Agents_Movement": {
-    "Title": "Employees and Insurance Agents and Intermediaries - Movement",
-    "Headers": {
-      "Particulars": ["Particulars"],
-      "Employees": ["Employees"],
-      "Insurance_Agents_and_Intermediaries": ["Insurance Agents and Intermediaries"]
-    },
-    "Rows": []
-  }
-} 
+  "FlatHeaders": [
+    "sl no",
+    "information",
+    "number"
+  ],
+  "Rows": []
+}

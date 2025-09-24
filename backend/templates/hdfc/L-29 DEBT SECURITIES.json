@@ -5,19 +5,52 @@
   "Date": "{QUARTER_END_DATE}",
   "Currency": "₹ Lakh",
   "Headers": {
-    "Description": ["Description"],
+    "Description": [
+      "Description"
+    ],
     "Market_Value": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "As_percent_of_total": ["As % of total", "for this class"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"],
-      "As_percent_of_total_previous": ["As % of total", "for this class"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "As_percent_of_total": [
+        "As % of total",
+        "for this class"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ],
+      "As_percent_of_total_previous": [
+        "As % of total",
+        "for this class"
+      ]
     },
     "Book_Value": {
-      "Current_Period": ["As at {QUARTER_END_DATE}"],
-      "As_percent_of_total": ["As % of total", "for this class"],
-      "Previous_Period": ["As at {PREVIOUS_QUARTER_END}"],
-      "As_percent_of_total_previous": ["As % of total", "for this class"]
+      "Current_Period": [
+        "As at {QUARTER_END_DATE}"
+      ],
+      "As_percent_of_total": [
+        "As % of total",
+        "for this class"
+      ],
+      "Previous_Period": [
+        "As at {PREVIOUS_QUARTER_END}"
+      ],
+      "As_percent_of_total_previous": [
+        "As % of total",
+        "for this class"
+      ]
     }
   },
+  "FlatHeaders": [
+    "Description",
+    "Market_Value_Current_Period",
+    "Market_Value_As_percent_of_total",
+    "Market_Value_Previous_Period",
+    "Market_Value_As_percent_of_total_previous",
+    "Book_Value_Current_Period",
+    "Book_Value_As_percent_of_total",
+    "Book_Value_Previous_Period",
+    "Book_Value_As_percent_of_total_previous"
+  ],
   "Rows": []
-} 
+}

@@ -11,10 +11,21 @@
       "Period": "As at {CURRENT_DATE}",
       "Previous_Period": "As at {PREVIOUS_DATE}",
       "Headers": {
-        "Particulars": ["Particulars"],
-        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
-        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+        "Particulars": [
+          "Particulars"
+        ],
+        "As_at_{CURRENT_DATE}": [
+          "As at {CURRENT_DATE}"
+        ],
+        "As_at_{PREVIOUS_DATE}": [
+          "As at {PREVIOUS_DATE}"
+        ]
       },
+      "FlatHeaders": [
+        "Particulars",
+        "As_at_CURRENT_DATE",
+        "As_at_PREVIOUS_DATE"
+      ],
       "Rows": []
     },
     {
@@ -22,11 +33,51 @@
       "Period": "As at {CURRENT_DATE}",
       "Previous_Period": "As at {PREVIOUS_DATE}",
       "Headers": {
-        "Particulars": ["Particulars"],
-        "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
-        "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+        "Particulars": [
+          "Particulars"
+        ],
+        "As_at_{CURRENT_DATE}": [
+          "As at {CURRENT_DATE}"
+        ],
+        "As_at_{PREVIOUS_DATE}": [
+          "As at {PREVIOUS_DATE}"
+        ]
       },
+      "FlatHeaders": [
+        "Particulars",
+        "As_at_CURRENT_DATE",
+        "As_at_PREVIOUS_DATE"
+      ],
       "Rows": []
     }
-  ]
-} 
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

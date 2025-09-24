@@ -21,5 +21,19 @@
       "As_percentage_of_total_shares": ["As a percentage of total shares held (IX) = (VIII)/(III)*100"]
     }
   },
+  
+  "FlatHeaders": [
+    "Sl_No",
+    "Category",
+    "No_of_Investors",
+    "No_of_shares_held",
+    "Percentage_of_shareholdings",
+    "Paid_up_equity",
+    "Shares_pledged_or_encumbered_Number_of_shares",
+    "Shares_pledged_or_encumbered_As_percentage_of_shares",
+    "Shares_under_Lock_in_Period_Number_of_shares",
+    "Shares_under_Lock_in_Period_As_percentage_of_total_shares"
+  ],
+  
   "Rows": []
 } 

@@ -7,3 +7,8 @@ venv
 *.csv
 __pycache__
 *.pyc
+*.txt
+*.log
+test_*.py
+extractions/*
+gemini_verified_json/*

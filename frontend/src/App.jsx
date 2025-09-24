@@ -14,7 +14,6 @@ import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
-
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -92,7 +91,7 @@ function App() {
                     >
                       <Routes>
                         <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
+                        {/* <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} /> */}
                         <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
                         <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />

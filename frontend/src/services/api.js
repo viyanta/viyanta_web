@@ -894,30 +894,80 @@ class ApiService {
     return response.json();
   }
 
-  // === TEMPLATE-BASED FORM EXTRACTION METHODS ===
-  
-  // Template API base URL (different from main API)
-  getTemplateApiBase() {
-    return 'http://localhost:8000/templates';
-  }
+  // === COMPANY MANAGEMENT METHODS ===
 
-  // Get available companies that have uploaded PDFs
-  async getTemplateCompanies() {
-    const response = await fetch(`${this.getTemplateApiBase()}/companies`);
-    
+  // Get all companies from database
+  async getCompanies() {
+    const response = await fetch(`${API_BASE_URL}/companies/`);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
-    
+
     return response.json();
   }
 
-  // Upload PDF for a specific company
+  // Create a new company
+  async createCompany(companyName) {
+    const response = await fetch(`${API_BASE_URL}/companies/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: companyName.toLowerCase().trim() }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Delete a company
+  async deleteCompany(companyId) {
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+
+// Update/Edit a company
+async updateCompany(companyId, updatedName) {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+    method: 'PUT', // or 'PATCH' depending on your backend
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
+  // === LEGACY METHODS (kept for compatibility) ===
+
+  // Upload PDF for a specific company (template-based extraction)
   async uploadTemplateCompanyPDF(file, company) {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${this.getTemplateApiBase()}/upload?company=${company}`, {
+    const response = await fetch(`${this.getTemplateApiBase()}/upload?company=${encodeURIComponent(company)}`, {
       method: 'POST',
       body: formData,
     });
@@ -930,93 +980,110 @@ class ApiService {
     return response.json();
   }
 
-  // List all forms available in a company's PDF
-  async listCompanyForms(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/list-forms?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
+  // Get template API base URL
+  getTemplateApiBase() {
+    return 'http://localhost:8000/templates';
   }
 
-  // Get forms with template availability information
-  async getFormsWithTemplates(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/forms-with-templates/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
+  // PDF Splitter API methods
+  async uploadAndSplitPDF(file, companyName, userId) {
+    const formData = new FormData();
+    formData.append('pdf_file', file);
+    formData.append('company_name', companyName);
+    formData.append('user_id', userId);
 
-  // Extract single period of a form (original method)
-  async extractTemplateForm(company, formNo) {
-    const response = await fetch(`${this.getTemplateApiBase()}/extract-form/${formNo}?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // 🤖 AI Extract ALL periods of a form (new comprehensive method)
-  async aiExtractTemplateForm(company, formNo) {
-    const response = await fetch(`${this.getTemplateApiBase()}/ai-extract-form/${formNo}?company=${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Get available templates for a company
-  async getCompanyTemplates(company) {
-    const response = await fetch(`${this.getTemplateApiBase()}/templates/${company}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-
-  // Create a new template
-  async createTemplate(company, formNo, title, headers) {
-    const response = await fetch(`${this.getTemplateApiBase()}/create-template?company=${company}&form_no=${formNo}&title=${encodeURIComponent(title)}&headers=${encodeURIComponent(JSON.stringify(headers))}`, {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/upload-and-split`, {
       method: 'POST',
+      body: formData,
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload and split failed');
     }
 
     return response.json();
   }
 
-  // Debug PDF text extraction
-  async debugPdfText(company, page = 1) {
-    const response = await fetch(`${this.getTemplateApiBase()}/debug-pdf-text?company=${company}&page=${page}`);
+  async getCompanyPDFs(companyName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to load company PDFs');
+    }
+
+    return response.json();
+  }
+
+  async getPDFSplits(companyName, pdfName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to load PDF splits');
+    }
+
+    return response.json();
+  }
+
+  async downloadSplitFile(companyName, pdfName, splitFileName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFileName)}/download`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to download split file');
+    }
+
+    return response.blob();
+  }
+
+  async deletePDF(companyName, pdfName) {
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete PDF');
+    }
+
+    return response.json();
+  }
+
+  // PDF Form Extraction
+  async extractFormData(companyName, pdfName, splitFilename, userId) {
+    const formData = new FormData();
+    formData.append('company_name', companyName);
+    formData.append('pdf_name', pdfName);
+    formData.append('split_filename', splitFilename);
+    formData.append('user_id', userId);
+    
+    const response = await fetch(`${API_BASE_URL}/pdf-splitter/extract-form`, {
+      method: 'POST',
+      body: formData
+    });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.detail || 'Form extraction failed');
     }
-    
+
     return response.json();
   }
 
-  // === LEGACY METHODS (kept for compatibility) ===
+  async getExtractedData(companyName, pdfName, splitFilename) {
+    const response = await fetch(
+      `${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFilename)}/extraction`
+    );
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get extracted data');
+    }
+
+    return response.json();
+  }
 }
 
 export default new ApiService();

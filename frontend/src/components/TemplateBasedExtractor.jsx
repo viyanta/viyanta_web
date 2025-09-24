@@ -1,7 +1,5 @@
-
-
 import React, { useState, useEffect } from 'react';
-import ApiService from '../services/api';
+import apiService from '../services/api';
 
 const TemplateBasedExtractor = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -11,11 +9,19 @@ const TemplateBasedExtractor = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingForms, setIsLoadingForms] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [isAiExtracting, setIsAiExtracting] = useState(false);
   const [extractionResult, setExtractionResult] = useState(null);
-  const [aiExtractionResult, setAiExtractionResult] = useState(null);
-  const [availableCompanies, setAvailableCompanies] = useState(['sbi', 'hdfc', 'icici', 'bajaj']);
+  const [availableCompanies, setAvailableCompanies] = useState(['sbi']);
   const [error, setError] = useState(null);
+  
+  // New state for file selection
+  const [availableFiles, setAvailableFiles] = useState([]);
+  const [selectedPdfFile, setSelectedPdfFile] = useState('');
+  
+  // New state for company management
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+  const [showAddCompanyForm, setShowAddCompanyForm] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState('');
+  const [isAddingCompany, setIsAddingCompany] = useState(false);
 
   // Load available companies on mount
   useEffect(() => {
@@ -29,27 +35,62 @@ const TemplateBasedExtractor = () => {
     } else {
       setAvailableForms([]);
       setSelectedForm('');
+      setAvailableFiles([]);
+      setSelectedPdfFile('');
     }
   }, [selectedCompany]);
 
+  // Load forms when selected PDF file changes
+  useEffect(() => {
+    if (selectedCompany && selectedPdfFile) {
+      loadFormsForCompany(selectedCompany, selectedPdfFile);
+    }
+  }, [selectedPdfFile]);
+
   const loadAvailableCompanies = async () => {
+    setIsLoadingCompanies(true);
     try {
-      const data = await ApiService.getTemplateCompanies();
-      setAvailableCompanies(data.companies || ['sbi', 'hdfc', 'icici', 'bajaj']);
+      const companies = await apiService.getCompanies();
+      setAvailableCompanies(companies || []);
     } catch (error) {
-      console.log('Using default companies list:', error.message);
+      console.error('Failed to load companies:', error);
+      setError('Failed to load companies from database. Please check your connection.');
+      // Show empty array during loading failure to avoid confusion
+      setAvailableCompanies([]);
+    } finally {
+      setIsLoadingCompanies(false);
     }
   };
 
-  const loadFormsForCompany = async (company) => {
+  const loadFormsForCompany = async (company, filename = null) => {
     setIsLoadingForms(true);
     setError(null);
     try {
-      const data = await ApiService.listCompanyForms(company);
-      setAvailableForms(data.forms || []);
+      const templateApiBase = apiService.getTemplateApiBase();
+      const url = filename 
+        ? `${templateApiBase}/list-forms?company=${company}&filename=${encodeURIComponent(filename)}`
+        : `${templateApiBase}/list-forms?company=${company}`;
+        
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableForms(data.forms || []);
+        setAvailableFiles(data.files || []);
+        
+        // Auto-select the file returned by the backend if not already selected
+        if (!selectedPdfFile && data.selected_file) {
+          setSelectedPdfFile(data.selected_file);
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to load forms. Please upload PDF first.');
+        setAvailableForms([]);
+        setAvailableFiles([]);
+      }
     } catch (error) {
-      setError(error.message || 'Failed to load forms. Please upload PDF first.');
+      setError('Failed to connect to template API. Make sure the template server is running.');
       setAvailableForms([]);
+      setAvailableFiles([]);
     } finally {
       setIsLoadingForms(false);
     }
@@ -61,12 +102,28 @@ const TemplateBasedExtractor = () => {
     setIsUploading(true);
     setError(null);
     try {
-      const data = await ApiService.uploadTemplateCompanyPDF(selectedFile, selectedCompany);
-      console.log('Upload successful:', data);
-      // Reload forms after successful upload
-      await loadFormsForCompany(selectedCompany);
+      const templateApiBase = apiService.getTemplateApiBase();
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await fetch(`${templateApiBase}/upload?company=${selectedCompany}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Upload successful:', data);
+        // Reload forms after successful upload
+        await loadFormsForCompany(selectedCompany);
+        // Reset file selection since we uploaded a new file
+        setSelectedPdfFile('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Upload failed');
+      }
     } catch (error) {
-      setError(error.message || 'Upload failed');
+      setError('Upload failed: ' + error.message);
     } finally {
       setIsUploading(false);
     }
@@ -78,29 +135,57 @@ const TemplateBasedExtractor = () => {
     setIsExtracting(true);
     setError(null);
     try {
-      const data = await ApiService.extractTemplateForm(selectedCompany, selectedForm);
-      setExtractionResult(data.data);
+      const templateApiBase = apiService.getTemplateApiBase();
+      const url = selectedPdfFile 
+        ? `${templateApiBase}/extract-form/${selectedForm}?company=${selectedCompany}&filename=${encodeURIComponent(selectedPdfFile)}`
+        : `${templateApiBase}/extract-form/${selectedForm}?company=${selectedCompany}`;
+        
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setExtractionResult(data.extraction_result);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Extraction failed');
+      }
     } catch (error) {
-      setError(error.message || 'Extraction failed');
+      setError('Extraction failed: ' + error.message);
     } finally {
       setIsExtracting(false);
     }
   };
 
-  // 🤖 NEW: AI Extraction for ALL periods
-  const handleAiFormExtraction = async () => {
-    if (!selectedForm || !selectedCompany) return;
+  const handleAddNewCompany = async () => {
+    if (!newCompanyName.trim()) {
+      setError('Company name is required');
+      return;
+    }
 
-    setIsAiExtracting(true);
+    setIsAddingCompany(true);
     setError(null);
     try {
-      const data = await ApiService.aiExtractTemplateForm(selectedCompany, selectedForm);
-      setAiExtractionResult(data);
+      const newCompany = await apiService.createCompany(newCompanyName.trim());
+      
+      // Add to companies list and select it
+      setAvailableCompanies(prev => [...prev, newCompany]);
+      setSelectedCompany(newCompany.name);
+      
+      // Reset form
+      setNewCompanyName('');
+      setShowAddCompanyForm(false);
+      
+      console.log('Company added successfully:', newCompany);
     } catch (error) {
-      setError(error.message || 'AI Extraction failed');
+      setError('Failed to add company: ' + error.message);
     } finally {
-      setIsAiExtracting(false);
+      setIsAddingCompany(false);
     }
+  };
+
+  const handleCancelAddCompany = () => {
+    setNewCompanyName('');
+    setShowAddCompanyForm(false);
+    setError(null);
   };
 
   // Helper function to create multi-level header structure for rendering
@@ -134,15 +219,36 @@ const TemplateBasedExtractor = () => {
         // Nested structure like Non-Linked Business
         let totalCols = 0;
         Object.entries(subHeaders).forEach(([subKey, subSubHeaders]) => {
-          totalCols += subSubHeaders.length;
+          if (Array.isArray(subSubHeaders)) {
+            totalCols += subSubHeaders.length;
+          } else if (typeof subSubHeaders === 'object') {
+            // Handle nested objects by counting their array values
+            Object.values(subSubHeaders).forEach(value => {
+              if (Array.isArray(value)) {
+                totalCols += value.length;
+              }
+            });
+          }
         });
         topRow.push({ text: mainKey, colspan: totalCols });
         
         Object.entries(subHeaders).forEach(([subKey, subSubHeaders]) => {
-          subSubHeaders.forEach(sub => {
-            bottomRow.push({ text: sub, colspan: 1 });
-            flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
-          });
+          if (Array.isArray(subSubHeaders)) {
+            subSubHeaders.forEach(sub => {
+              bottomRow.push({ text: sub, colspan: 1 });
+              flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
+            });
+          } else if (typeof subSubHeaders === 'object') {
+            // Handle nested objects
+            Object.entries(subSubHeaders).forEach(([nestedKey, nestedValue]) => {
+              if (Array.isArray(nestedValue)) {
+                nestedValue.forEach(sub => {
+                  bottomRow.push({ text: sub, colspan: 1 });
+                  flatHeaders.push(subKey.includes('Participating') ? `P ${sub}` : `NP ${sub}`);
+                });
+              }
+            });
+          }
         });
       }
     });
@@ -156,7 +262,9 @@ const TemplateBasedExtractor = () => {
   const renderExtractionResult = () => {
     if (!extractionResult) return null;
 
-    const { headerRows, flatHeaders } = createMultiLevelHeaders(extractionResult.Headers);
+    const { headerRows, flatHeaders } = createMultiLevelHeaders(extractionResult.FlatHeaders || extractionResult.Headers);
+    console.log("Using headers:", extractionResult.FlatHeaders ? "FlatHeaders" : "Headers");
+    console.log("Headers data:", extractionResult.FlatHeaders || extractionResult.Headers);
 
     return (
       <div style={{
@@ -236,161 +344,6 @@ const TemplateBasedExtractor = () => {
     );
   };
 
-  // Helper function to render AI extraction results
-  const renderAiExtractionResult = () => {
-    if (!aiExtractionResult) return null;
-
-    return (
-      <div style={{
-        marginTop: '2rem',
-        padding: '1.5rem',
-        border: '1px solid var(--border-color)',
-        borderRadius: '8px',
-        backgroundColor: 'var(--bg-color-light)'
-      }}>
-        <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
-          🤖 AI Extraction Complete!
-        </h4>
-        
-        <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-color-light)' }}>
-          <span><strong>Company:</strong> {aiExtractionResult.company}</span>
-          <span style={{ marginLeft: '2rem' }}><strong>Form:</strong> {aiExtractionResult.form_no}</span>
-          <span style={{ marginLeft: '2rem' }}><strong>Total Periods:</strong> {aiExtractionResult.total_periods}</span>
-        </div>
-
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-color-light)', marginBottom: '1.5rem' }}>
-          {aiExtractionResult.message}
-        </p>
-
-        {aiExtractionResult.data && aiExtractionResult.data.length > 0 ? (
-          <div>
-            <h5 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
-              📊 All Extracted Periods ({aiExtractionResult.data.length}):
-            </h5>
-            
-            {aiExtractionResult.data.map((period, index) => (
-              <div key={index} style={{
-                border: '1px solid #ddd',
-                margin: '10px 0',
-                padding: '15px',
-                borderRadius: '8px',
-                backgroundColor: '#f9f9f9'
-              }}>
-                <h6 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>
-                  Period {index + 1}: {period.Form} - {period.Title}
-                </h6>
-                
-                <div style={{ marginBottom: '10px', fontSize: '0.9rem' }}>
-                  <span><strong>Period:</strong> {period.Period}</span>
-                  <span style={{ marginLeft: '2rem' }}><strong>Currency:</strong> {period.Currency}</span>
-                  <span style={{ marginLeft: '2rem' }}><strong>Page Used:</strong> {period.PagesUsed}</span>
-                  <span style={{ marginLeft: '2rem' }}><strong>Rows:</strong> {period.Rows ? period.Rows.length : 0}</span>
-                </div>
-
-                {period.Rows && period.Rows.length > 0 ? (
-                  <details style={{ marginTop: '10px' }}>
-                    <summary style={{ 
-                      cursor: 'pointer', 
-                      fontWeight: 'bold', 
-                      color: '#3498db',
-                      padding: '5px 0' 
-                    }}>
-                      📋 View Data Preview (Click to expand)
-                    </summary>
-                    <div style={{ 
-                      marginTop: '10px', 
-                      maxHeight: '300px', 
-                      overflow: 'auto',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}>
-                      <table style={{
-                        width: '100%',
-                        borderCollapse: 'collapse',
-                        fontSize: '0.8rem'
-                      }}>
-                        <thead>
-                          <tr style={{ backgroundColor: '#3498db', color: 'white' }}>
-                            {period.Headers && period.Headers.map((header, hIndex) => (
-                              <th key={hIndex} style={{
-                                padding: '8px',
-                                border: '1px solid #ddd',
-                                textAlign: 'center',
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold'
-                              }}>
-                                {header}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {period.Rows.slice(0, 3).map((row, rIndex) => (
-                            <tr key={rIndex} style={{
-                              backgroundColor: rIndex % 2 === 0 ? 'white' : '#f8f9fa'
-                            }}>
-                              {period.Headers && period.Headers.map((header, hIndex) => (
-                                <td key={hIndex} style={{
-                                  padding: '8px',
-                                  border: '1px solid #ddd',
-                                  fontSize: '0.75rem',
-                                  textAlign: hIndex === 0 ? 'left' : 'right'
-                                }}>
-                                  {row[header] || '-'}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                          {period.Rows.length > 3 && (
-                            <tr>
-                              <td colSpan={period.Headers ? period.Headers.length : 1} 
-                                  style={{ 
-                                    textAlign: 'center', 
-                                    fontStyle: 'italic', 
-                                    padding: '8px',
-                                    color: '#666'
-                                  }}>
-                                ... and {period.Rows.length - 3} more rows
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </details>
-                ) : (
-                  <p style={{ color: '#888', fontStyle: 'italic' }}>No data rows found for this period</p>
-                )}
-              </div>
-            ))}
-            
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#e8f5e8',
-              borderRadius: '8px',
-              borderLeft: '4px solid #27ae60'
-            }}>
-              <h6 style={{ margin: '0 0 10px 0', color: '#27ae60' }}>
-                ✅ Extraction Summary
-              </h6>
-              <p><strong>Total Periods:</strong> {aiExtractionResult.total_periods}</p>
-              <p><strong>Total Rows Across All Periods:</strong> {
-                aiExtractionResult.data.reduce((sum, period) => sum + (period.Rows ? period.Rows.length : 0), 0)
-              }</p>
-              <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '10px' }}>
-                💡 This AI extraction found multiple instances of the same form across different time periods in your PDF. 
-                Each period represents the same form structure but with data for different quarters/years.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <p style={{ color: '#e74c3c' }}>❌ No periods found or extraction failed</p>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div>
       <h3 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
@@ -398,6 +351,7 @@ const TemplateBasedExtractor = () => {
       </h3>
       <p style={{ color: 'var(--text-color-light)', marginBottom: '1.5rem' }}>
         Extract specific forms from insurance PDFs using predefined templates. 
+        Companies are loaded from MySQL database. Forms list is dynamically extracted from your uploaded PDF files.
         Upload a PDF, select a company, and choose from available forms to extract structured data.
       </p>
 
@@ -436,24 +390,136 @@ const TemplateBasedExtractor = () => {
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
             1️⃣ Select Company:
           </label>
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px solid var(--border-color)',
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <select
+              value={selectedCompany}
+              onChange={(e) => {
+                if (e.target.value === 'ADD_NEW') {
+                  setShowAddCompanyForm(true);
+                  setSelectedCompany('');
+                } else {
+                  setSelectedCompany(e.target.value);
+                  setShowAddCompanyForm(false);
+                }
+              }}
+              disabled={isLoadingCompanies}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                fontSize: '1rem'
+              }}
+            >
+              {isLoadingCompanies ? (
+                <option value="">🔄 Loading companies from database...</option>
+              ) : availableCompanies.length === 0 ? (
+                <option value="">⚠️ No companies found - Add a new one below</option>
+              ) : (
+                <option value="">✅ Choose from {availableCompanies.length} companies in database...</option>
+              )}
+              {availableCompanies.map(company => (
+                <option key={company.id || company.name} value={company.name}>
+                  {(company.name || company).toUpperCase()}
+                </option>
+              ))}
+              {!isLoadingCompanies && (
+                <option value="ADD_NEW" style={{ fontWeight: 'bold', color: 'var(--main-color)' }}>
+                  ➕ Add New Company
+                </option>
+              )}
+            </select>
+            
+            {availableCompanies.length > 0 && (
+              <button
+                onClick={() => loadAvailableCompanies()}
+                disabled={isLoadingCompanies}
+                style={{
+                  padding: '0.75rem',
+                  backgroundColor: 'var(--border-color)',
+                  color: 'var(--text-color)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+                title="Refresh companies list"
+              >
+                🔄
+              </button>
+            )}
+          </div>
+          
+          {/* Add New Company Form */}
+          {showAddCompanyForm && (
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              border: '2px solid var(--main-color)',
               borderRadius: '8px',
-              fontSize: '1rem'
-            }}
-          >
-            <option value="">Choose a company...</option>
-            {availableCompanies.map(company => (
-              <option key={company} value={company}>
-                {company.toUpperCase()}
-              </option>
-            ))}
-          </select>
+              backgroundColor: 'var(--bg-color-light)'
+            }}>
+              <h4 style={{ color: 'var(--main-color)', margin: '0 0 1rem 0' }}>
+                ➕ Add New Company
+              </h4>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={newCompanyName}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
+                  placeholder="Enter company name (e.g., 'max', 'birla')"
+                  disabled={isAddingCompany}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    fontSize: '1rem'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !isAddingCompany) {
+                      handleAddNewCompany();
+                    } else if (e.key === 'Escape') {
+                      handleCancelAddCompany();
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleAddNewCompany}
+                  disabled={!newCompanyName.trim() || isAddingCompany}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: (!newCompanyName.trim() || isAddingCompany) ? 'var(--border-color)' : 'var(--success-color)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    cursor: (!newCompanyName.trim() || isAddingCompany) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isAddingCompany ? '⏳ Adding...' : '✅ Add'}
+                </button>
+                <button
+                  onClick={handleCancelAddCompany}
+                  disabled={isAddingCompany}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'var(--error-bg)',
+                    color: 'var(--error-color)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    cursor: isAddingCompany ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  ❌ Cancel
+                </button>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-color-light)', margin: '0.5rem 0 0 0' }}>
+                💡 Company names will be stored in lowercase in the database
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Step 2: File Upload */}
@@ -491,14 +557,44 @@ const TemplateBasedExtractor = () => {
           </div>
         </div>
 
-        {/* Step 3: Form Selection */}
+        {/* Step 3: Select PDF File (if multiple available) */}
+        {selectedCompany && availableFiles.length > 0 && (
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              3️⃣ Select PDF File:
+            </label>
+            <select
+              value={selectedPdfFile}
+              onChange={(e) => setSelectedPdfFile(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                fontSize: '1rem'
+              }}
+            >
+              <option value="">Choose a PDF file...</option>
+              {availableFiles.map(file => (
+                <option key={file} value={file}>
+                  📄 {file}
+                </option>
+              ))}
+            </select>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-color-light)', marginTop: '0.5rem' }}>
+              💡 Select which PDF file to use for form extraction. Available files: {availableFiles.length}
+            </p>
+          </div>
+        )}
+
+        {/* Step 4: Form Selection */}
         <div>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            3️⃣ Select Form to Extract:
+            {availableFiles.length > 0 ? '4️⃣' : '3️⃣'} Select Form to Extract:
           </label>
           {isLoadingForms ? (
             <p style={{ color: 'var(--text-color-light)' }}>🔄 Loading available forms...</p>
-          ) : availableForms.length > 0 ? (
+          ) : availableForms.length > 0 && (availableFiles.length === 0 || selectedPdfFile) ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <select
                 value={selectedForm}
@@ -518,57 +614,31 @@ const TemplateBasedExtractor = () => {
                   </option>
                 ))}
               </select>
-              
-              <div style={{
-                padding: '0.75rem',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '6px',
-                fontSize: '0.9rem',
-                color: '#666',
-                border: '1px solid #e9ecef'
-              }}>
-                <strong>Choose Extraction Method:</strong>
-                <br />
-                • <strong>Single Period:</strong> Extract data from one specific period/year
-                <br />
-                • <strong>🤖 AI Extract ALL Periods:</strong> Find and extract ALL instances of this form across different time periods (recommended)
-              </div>
-              
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button
-                  onClick={handleFormExtraction}
-                  disabled={!selectedForm || isExtracting}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    cursor: (!selectedForm || isExtracting) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {isExtracting ? '⏳ Extracting...' : '🎯 Extract Single Period'}
-                </button>
-                <button
-                  onClick={handleAiFormExtraction}
-                  disabled={!selectedForm || isAiExtracting}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: (!selectedForm || isAiExtracting) ? 'var(--border-color)' : '#667eea',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    cursor: (!selectedForm || isAiExtracting) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {isAiExtracting ? '🤖 AI Extracting...' : '🤖 AI Extract ALL Periods'}
-                </button>
-              </div>
+              <button
+                onClick={handleFormExtraction}
+                disabled={!selectedForm || isExtracting}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: (!selectedForm || isExtracting) ? 'var(--border-color)' : 'var(--success-color)',
+                  color:(!selectedForm || isExtracting) ? 'black' : 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  cursor: (!selectedForm || isExtracting) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isExtracting ? '⏳ Extracting...' : '🎯 Extract Form Data'}
+              </button>
+              {selectedPdfFile && (
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-color-light)' }}>
+                  📄 Using file: {selectedPdfFile}
+                </p>
+              )}
             </div>
+          ) : availableFiles.length > 0 && !selectedPdfFile ? (
+            <p style={{ color: 'var(--text-color-light)' }}>
+              📄 Please select a PDF file above to view available forms.
+            </p>
           ) : selectedCompany ? (
             <p style={{ color: 'var(--text-color-light)' }}>
               📁 No forms found. Please upload a PDF first to discover available forms.
@@ -583,7 +653,6 @@ const TemplateBasedExtractor = () => {
 
       {/* Extraction Results */}
       {renderExtractionResult()}
-      {renderAiExtractionResult()}
     </div>
   );
 };

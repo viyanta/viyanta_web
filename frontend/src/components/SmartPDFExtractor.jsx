@@ -225,7 +225,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
         </h3>
         
         {/* Upload Mode Selection */}
-        <div style={{ 
+        {/* <div style={{ 
           marginBottom: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
@@ -253,7 +253,7 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
             >
               📄 Single File (Instant)
             </button>
-            {/* <button
+            <button
               style={uploadMode === 'multi' ? activeButtonStyle : inactiveButtonStyle}
               onClick={() => setUploadMode('multi')}
             >
@@ -270,9 +270,9 @@ const SmartPDFExtractor = ({ onExtractComplete, onError, user }) => {
               onClick={() => setUploadMode('folder_text')}
             >
               � Folder (Text Only)
-            </button> */}
+            </button> 
           </div>
-        </div>
+        </div> */}
 
         {/* Extract Mode Selection - Only for single and multi modes */}
         {(uploadMode === 'single' || uploadMode === 'multi') && (

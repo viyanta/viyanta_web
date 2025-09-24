@@ -14,5 +14,13 @@
     "Notes_No": ["Notes No."],
     "Adjusted_Value": ["Adjusted Value", "(₹ Lakh)"]
   },
+  
+  "FlatHeaders": [
+    "Item",
+    "Description",
+    "Notes_No",
+    "Adjusted_Value_Lakh"
+  ],
+  
   "Rows": []
 } 
