@@ -1,0 +1,42 @@
+{
+  "Form No": "L-33",
+  "Title": "DETAILS OF NON-PERFORMING ASSETS",
+  "Subtitle": "FORM L-33-NPA's (Read with Regulation 10)",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "Statement as on : {QUARTER_END_DATE}",
+  "Name_of_Fund": "Life Fund",
+  "Periodicity": "Quarterly",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "No": ["No"],
+    "PARTICULARS": ["PARTICULARS"],
+    "Bonds_Debentures_YTD": ["Bonds/Debentures", "YTD (As on date)"],
+    "Bonds_Debentures_Prev_FY": ["Bonds/Debentures", "Prev. FY (As on 31 March 2022)"],
+    "Loans_YTD": ["Loans", "YTD (As on date)"],
+    "Loans_Prev_FY": ["Loans", "Prev. FY (As on 31 March 2022)"],
+    "Other_Debt_instruments_YTD": ["Other Debt instruments", "YTD (As on date)"],
+    "Other_Debt_instruments_Prev_FY": ["Other Debt instruments", "Prev. FY (As on 31 March 2022)"],
+    "All_Other_Assets_YTD": ["All Other Assets", "YTD (As on date)"],
+    "All_Other_Assets_Prev_FY": ["All Other Assets", "Prev. FY (As on 31 March 2022)"],
+    "TOTAL_YTD": ["TOTAL", "YTD (As on date)"],
+    "TOTAL_Prev_FY": ["TOTAL", "Prev. FY (As on 31 March 2022)"]
+  },
+  "FlatHeaders": [
+    "No",
+    "PARTICULARS",
+    "Bonds/Debentures - YTD (As on date)",
+    "Bonds/Debentures - Prev. FY (As on 31 March 2022)",
+    "Loans - YTD (As on date)",
+    "Loans - Prev. FY (As on 31 March 2022)",
+    "Other Debt instruments - YTD (As on date)",
+    "Other Debt instruments - Prev. FY (As on 31 March 2022)",
+    "All Other Assets - YTD (As on date)",
+    "All Other Assets - Prev. FY (As on 31 March 2022)",
+    "TOTAL - YTD (As on date)",
+    "TOTAL - Prev. FY (As on 31 March 2022)"
+  ],
+  "Rows": []
+}

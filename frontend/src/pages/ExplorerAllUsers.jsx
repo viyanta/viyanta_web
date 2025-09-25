@@ -84,12 +84,30 @@ function ExplorerAllUsers({ onMenuClick }) {
                 recordRows = record.data;
             }
             
-            // Use headers from first record and add page info header
+            // Use headers from first record and add form info header
             if (recordIndex === 0) {
-                headers = ['Page Info', ...recordHeaders];
+                headers = ['Form Info', ...recordHeaders];
             }
             
-            // Add rows with record info - convert objects to arrays for SmartTableViewer
+            // Add form information row
+            if (record.PagesUsed) {
+                // Create consolidated form metadata in single cell
+                const metadataFields = [
+                    { key: 'Form No', value: record['Form No'] },
+                    { key: 'Title', value: record.Title },
+                    { key: 'Period', value: record.Period },
+                    { key: 'Currency', value: record.Currency },
+                    { key: 'Pages Used', value: record.PagesUsed },
+                    { key: 'Registration No', value: record.RegistrationNumber }
+                ].filter(field => field.value);
+                
+                // Create single row with all metadata in first cell
+                const metadataText = metadataFields.map(field => `${field.key}: ${field.value}`).join(' | ');
+                const metadataRow = [`FORM_METADATA_${record.PagesUsed}`, metadataText, ...new Array(recordHeaders.length - 1).fill('')];
+                allRowsData.push(metadataRow);
+            }
+            
+            // Add data rows
             if (recordRows.length > 0) {
                 const convertedRows = recordRows.map(row => {
                     // If row is already an array, use it as is
@@ -104,14 +122,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     return [row];
                 });
                 
-                // Add page information only once at the beginning of each record's data
-                if (record.PagesUsed) {
-                    // Create a page header row with page info in first column and empty cells for other columns
-                    const pageHeaderRow = [`PAGE_HEADER_${record.PagesUsed}`, ...new Array(recordHeaders.length).fill('')];
-                    allRowsData.push(pageHeaderRow);
-                }
-                
-                // Add all data rows without page info in every row
+                // Add all data rows with empty page info column
                 const rowsWithEmptyPageInfo = convertedRows.map(row => {
                     if (Array.isArray(row)) {
                         // Add empty page info column
@@ -126,12 +137,6 @@ function ExplorerAllUsers({ onMenuClick }) {
         
         const hasData = headers.length > 0 && allRowsData.length > 0;
         console.log('Final rendering data:', { headers, allRowsData, hasData, totalRecords: records.length });
-        console.log('Sample row structure:', allRowsData[0]);
-        console.log('Is first row an array?', Array.isArray(allRowsData[0]));
-        console.log('Number of columns:', headers.length);
-        console.log('Calculated table width:', `${headers.length * 400}px`);
-        console.log('Container max width: 1200px');
-        console.log('Should show horizontal scroll:', headers.length * 400 > 1200);
         
         return { headers, allRowsData, records, hasData };
     }, [extractedData]);
@@ -331,7 +336,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         if (hasData) {
             return (
                 <div style={{ 
-                    background: '#ef1313',
+                    background: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     overflow: 'hidden',
@@ -380,12 +385,14 @@ function ExplorerAllUsers({ onMenuClick }) {
                         </div>
                     </div>
 
+
+
                     {/* Scrollable Table Container */}
                     <div style={{ 
                         overflowX: 'scroll', 
                         overflowY: 'auto',
-                        maxHeight: 'calc(100vh - 120px)',
-                        height: 'calc(100vh - 120px)',
+                        maxHeight: 'calc(100vh - 200px)',
+                        height: 'calc(100vh - 200px)',
                         width: '100%',
                         maxWidth: '800px',
                         border: '1px solid #e5e7eb',
@@ -404,68 +411,74 @@ function ExplorerAllUsers({ onMenuClick }) {
                         }}>
                             <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                                 <tr style={{ backgroundColor: '#667eea' }}>
-                                    {headers.map((header, index) => (
-                                        <th key={index} style={{ 
-                                            padding: '12px 8px',
-                                            textAlign: 'left',
-                                            fontWeight: '600',
-                                            color: 'white',
-                                            borderBottom: '2px solid #667eea',
-                                            width: '200px',
-                                            minWidth: '200px',
-                                            whiteSpace: 'normal',
-                                            wordWrap: 'break-word',
-                                            lineHeight: '1.3'
-                                        }}>
-                                            {header}
-                                        </th>
-                                    ))}
+                                     {headers.map((header, index) => (
+                                         <th key={index} style={{ 
+                                             padding: '12px 8px',
+                                             textAlign: 'left',
+                                             fontWeight: '600',
+                                             color: 'white',
+                                             borderBottom: '2px solid #667eea',
+                                             width: index === 0 ? '400px' : '200px',
+                                             minWidth: index === 0 ? '400px' : '200px',
+                                             whiteSpace: 'normal',
+                                             wordWrap: 'break-word',
+                                             lineHeight: '1.3'
+                                         }}>
+                                             {header}
+                                         </th>
+                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
-                                {allRowsData.map((row, rowIndex) => {
-                                    const isPageHeaderRow = Array.isArray(row) && row[0] && typeof row[0] === 'string' && row[0].startsWith('PAGE_HEADER_');
+                             <tbody>
+                                 {allRowsData.map((row, rowIndex) => {
+                                    const isFormMetadataRow = Array.isArray(row) && row[0] && typeof row[0] === 'string' && row[0].startsWith('FORM_METADATA_');
+                                    
                                     return (
                                         <tr key={rowIndex} style={{ 
-                                            backgroundColor: isPageHeaderRow ? '#e3f2fd' : (rowIndex % 2 === 0 ? 'white' : '#e2e3e4'),
-                                            borderTop: isPageHeaderRow ? '2px solid #1976d2' : 'none'
+                                            backgroundColor: isFormMetadataRow ? '#f8f9fa' :
+                                                           (rowIndex % 2 === 0 ? 'white' : '#f8f9fa'),
+                                            borderTop: isFormMetadataRow ? '2px solid #1976d2' : 'none'
                                         }}>
-                                            {Array.isArray(row) ? (
-                                                row.map((cell, cellIndex) => (
-                                                    <td key={cellIndex} style={{ 
-                                                        padding: '12px 8px',
-                                                        borderBottom: '1px solid #e9ecef',
-                                                        width: cellIndex === 0 ? '150px' : '200px',
-                                                        minWidth: cellIndex === 0 ? '150px' : '200px',
-                                                        whiteSpace: 'normal',
-                                                        wordWrap: 'break-word',
-                                                        lineHeight: '1.3',
-                                                        fontWeight: cellIndex === 0 && isPageHeaderRow ? '600' : 'normal',
-                                                        color: cellIndex === 0 && isPageHeaderRow ? '#1976d2' : 'inherit',
-                                                        background: cellIndex === 0 && isPageHeaderRow ? '#bbdefb' : 'transparent'
-                                                    }}>
-                                                        {cellIndex === 0 && isPageHeaderRow ? `Pages: ${cell.replace('PAGE_HEADER_', '')}` : (cellIndex === 0 ? '' : (cell || '-'))}
-                                                    </td>
-                                                ))
-                                            ) : (
-                                                headers.map((header, cellIndex) => (
-                                                    <td key={cellIndex} style={{ 
-                                                        padding: '12px 8px',
-                                                        borderBottom: '1px solid #e9ecef',
-                                                        width: '200px',
-                                                        minWidth: '200px',
-                                                        whiteSpace: 'normal',
-                                                        wordWrap: 'break-word',
-                                                        lineHeight: '1.3'
-                                                    }}>
-                                                        {row[header] || '-'}
-                                                    </td>
-                                                ))
-                                            )}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
+                                             {Array.isArray(row) ? (
+                                                 row.map((cell, cellIndex) => (
+                                                     <td key={cellIndex} style={{ 
+                                                         padding: isFormMetadataRow ? '12px 16px' : '12px 8px',
+                                                         borderBottom: '1px solid #e9ecef',
+                                                         width: cellIndex === 0 ? (isFormMetadataRow ? '400px' : '150px') : '200px',
+                                                         minWidth: cellIndex === 0 ? (isFormMetadataRow ? '400px' : '150px') : '200px',
+                                                         whiteSpace: isFormMetadataRow ? 'normal' : 'normal',
+                                                         wordWrap: 'break-word',
+                                                         lineHeight: isFormMetadataRow ? '1.5' : '1.3',
+                                                         fontWeight: isFormMetadataRow ? '600' : 'normal',
+                                                         color: isFormMetadataRow ? '#495057' : 'inherit',
+                                                         background: isFormMetadataRow ? '#f1f3f4' : 'transparent',
+                                                         fontSize: isFormMetadataRow ? '12px' : '14px',
+                                                         textAlign: isFormMetadataRow ? 'left' : 'inherit'
+                                                     }}>
+                                                         {cellIndex === 0 && isFormMetadataRow ? `📋 Form Information: ${row[1] || ''}` :
+                                                          isFormMetadataRow ? '' :
+                                                          cellIndex === 0 ? '' : (cell || '-')}
+                                                     </td>
+                                                 ))
+                                             ) : (
+                                                 headers.map((header, cellIndex) => (
+                                                     <td key={cellIndex} style={{ 
+                                                         padding: '12px 8px',
+                                                         borderBottom: '1px solid #e9ecef',
+                                                         width: '200px',
+                                                         minWidth: '200px',
+                                                         whiteSpace: 'normal',
+                                                         wordWrap: 'break-word',
+                                                         lineHeight: '1.3'
+                                                     }}>
+                                                         {row[header] || '-'}
+                                                     </td>
+                                                 ))
+                                             )}
+                                         </tr>
+                                     );
+                                 })}
+                             </tbody>
                         </table>
                     </div>
 

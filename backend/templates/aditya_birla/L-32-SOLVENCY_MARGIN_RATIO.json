@@ -1,0 +1,24 @@
+{
+  "Form No": "L-32",
+  "Title": "Available Solvency Margin and Solvency Ratio (Frequency -Quarterly)",
+  "Company": "Aditya Birla Sun Life Insurance Company Ltd",
+  "Classification": "Total Business",
+  "As at": "31st December 2022",
+  "Form Code": "KT-3",
+  "Registration Number": "11-128110",
+  "Period": "For the quarter and nine months ended {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Item": ["Item", "(1)"],
+    "Description": ["Description", "(2)"],
+    "Notes_No": ["Notes No...", "(3)"],
+    "Adjusted_Value_Rs_Lakhs": ["Adjusted Value (Rs.Lakhs)", "(4)"]
+  },
+  "FlatHeaders": [
+    "Item (1)",
+    "Description (2)",
+    "Notes No... (3)",
+    "Adjusted Value (Rs.Lakhs) (4)"
+  ],
+  "Rows": []
+}

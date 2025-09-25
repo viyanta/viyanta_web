@@ -1,0 +1,107 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENT ASSETS(LIFE INSURERS)",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration Number": "109",
+  "Statement as on": "December 31, 2022",
+  "Statement of": "Investment Assets (Life Insurers)",
+  "Business Scope": "Business within India",
+  "Periodicity of Submission": "Quarterly",
+  "Period": "For the quarter and nine months ended {QUARTER_END_DATE}",
+  "Currency": "Rs. In Lakhs",
+  "Sections": {
+    "Section_I": {
+      "Title": "Section I",
+      "Headers": {
+        "No": ["No"],
+        "Particulars": ["Particulars"],
+        "Sch": ["Sch"],
+        "Amount": ["Amount"]
+      },
+      "FlatHeaders": [
+        "No",
+        "Particulars",
+        "Sch",
+        "Amount"
+      ],
+      "Rows": []
+    },
+    "Section_II": {
+      "Title": "Section II",
+      "Subsections": {
+        "A_NON_LINKED_BUSINESS": {
+          "Title": "A. NON-LINKED BUSINESS (A. LIFE FUND)",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg"],
+            "SH_Balance": ["SH", "Balance (a)"],
+            "SH_FRSM": ["SH", "FRSM* (b)"],
+            "PH_UL_Non_Unit_Res": ["PH", "UL-Non Unit Res (c)"],
+            "PH_PAR": ["PH", "PAR (d)"],
+            "PH_NON_PAR": ["PH", "NON PAR (e)"],
+            "Book_Value_SH_PH": ["Book Value (SH+PH)", "(f)"],
+            "Actual_Percent": ["Actual %", "(g)"],
+            "FVC_Amount": ["FVC Amount", "(h)"],
+            "Total_Fund": ["Total Fund", "(i)"],
+            "Market_Value": ["Market Value", "(j)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg",
+            "SH Balance (a)",
+            "SH FRSM* (b)",
+            "PH UL-Non Unit Res (c)",
+            "PH PAR (d)",
+            "PH NON PAR (e)",
+            "Book Value (SH+PH) (f)",
+            "Actual % (g)",
+            "FVC Amount (h)",
+            "Total Fund (i)",
+            "Market Value (j)"
+          ],
+          "Rows": []
+        },
+        "B_PENSION_GENERAL_ANNUITY_GROUP": {
+          "Title": "B. PENSION & GENERAL ANNUITY AND GROUP BUSINESS",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg"],
+            "PH_PAR": ["PH", "PAR (a)"],
+            "PH_NON_PAR": ["PH", "NON PAR (b)"],
+            "Book_Value": ["Book Value", "(c) = (a+b)"],
+            "Actual_Percent": ["Actual %", "(d)"],
+            "FVC_Amount": ["FVC Amount", "(e)"],
+            "Total_Fund": ["Total Fund*", "(f) = (c+e)"],
+            "Market_Value": ["Market Value", "(g)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg",
+            "PH PAR (a)",
+            "PH NON PAR (b)",
+            "Book Value (c) = (a+b)",
+            "Actual % (d)",
+            "FVC Amount (e)",
+            "Total Fund* (f) = (c+e)",
+            "Market Value (g)"
+          ],
+          "Rows": []
+        },
+        "C_LINKED_BUSINESS": {
+          "Title": "C. LINKED BUSINESS (C. LINKED FUNDS)",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg"],
+            "PH_PAR": ["PH", "PAR (a)"],
+            "PH_NON_PAR": ["PH", "NON PAR (b)"],
+            "Total_Fund": ["Total Fund*", "(c)"],
+            "Actual_Percent": ["Actual %", "(d)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg",
+            "PH PAR (a)",
+            "PH NON PAR (b)",
+            "Total Fund* (c)",
+            "Actual % (d)"
+          ],
+          "Rows": []
+        }
+      }
+    }
+  }
+}

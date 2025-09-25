@@ -1,0 +1,38 @@
+{
+  "Form No": "L-9A",
+  "Title": "PARTICULARS OF THE SHAREHOLDING PATTERN OF ADITYA BIRLA SUN LIFE INSURANCE COMPANY LIMITED",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Date of Registration": "31st January 2001",
+  "Period": "As at Quarter ended {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Sr_No": ["Sr.No."],
+    "CATEGORY": ["CATEGORY"],
+    "No_of_Investors": ["No. of Investors"],
+    "No_of_shares_held": ["No. of shares held"],
+    "Percentage_of_Shareholdings": ["% of Shareholdings"],
+    "Paid_up_equity_Rs_in_lakhs": ["Paid up equity", "(Rs.in lakhs)"],
+    "Shares_pledged_or_otherwise_encumbered": {
+      "No_of_shares": ["No. of shares"],
+      "As_a_percentage_of_Total_Shares_held": ["As a percentage of Total Shares held(VII) =(VI)/(III)*100"]
+    },
+    "Shares_under_Lock_in_Period": {
+      "Number_of_Shares": ["Number of Shares"],
+      "As_a_percentage_of_Total_Shares_Held": ["As a percentage of Total Shares Held (IX)=(VIII)/(III)*100"]
+    }
+  },
+  "FlatHeaders": [
+    "Sr_No",
+    "CATEGORY",
+    "No_of_Investors",
+    "No_of_shares_held",
+    "Percentage_of_Shareholdings",
+    "Paid_up_equity_Rs_in_lakhs",
+    "Shares_pledged_or_otherwise_encumbered_No_of_shares",
+    "Shares_pledged_or_otherwise_encumbered_As_a_percentage_of_Total_Shares_held",
+    "Shares_under_Lock_in_Period_Number_of_Shares",
+    "Shares_under_Lock_in_Period_As_a_percentage_of_Total_Shares_Held"
+  ],
+  "Rows": []
+}

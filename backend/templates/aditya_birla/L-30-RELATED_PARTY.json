@@ -1,0 +1,40 @@
+{
+  "Form No": "L-30",
+  "Title": "RELATED PARTY",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Date of Registration": "31st January 2001",
+  "Period": "For the quarter and nine months ended {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Sr_No": ["Sr. No."],
+    "Name_of_Related_Party": ["Name of the related party", "with whom the transaction", "has been made"],
+    "Description_of_Relationship": ["Description of relationship with the party"],
+    "Nature_of_Transaction": ["Nature of Transaction"],
+    "Transactions_during_Quarter_ended": {
+      "Current_Year": ["31st Dec 2022"],
+      "Previous_Year": ["31st Dec 2021"]
+    },
+    "Audited_Transactions_during_Year_ended": {
+      "Current_Year": ["31st Dec 2022"],
+      "Previous_Year": ["31st Dec 2021"]
+    },
+    "Outstanding_balance_recoverable_payable_as_on": {
+      "Current_Year": ["31st Dec 2022"],
+      "Previous_Year": ["31st Dec 2021"]
+    }
+  },
+  "FlatHeaders": [
+    "Sr. No.",
+    "Name of the related party with whom the transaction has been made",
+    "Description of relationship with the party",
+    "Nature of Transaction",
+    "Transactions during the quarter ended 31st Dec 2022",
+    "Transactions during the quarter ended 31st Dec 2021",
+    "Audited Transactions during the year ended 31st Dec 2022",
+    "Audited Transactions during the year ended 31st Dec 2021",
+    "Outstanding balance recoverable /(payable) as on 31st Dec 2022",
+    "Outstanding balance recoverable /(payable) as on 31st Dec 2021"
+  ],
+  "Rows": []
+}

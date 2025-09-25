@@ -1,0 +1,23 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Mathematical_Reserves_as_at_current": ["Mathematical Reserves as at {QUARTER_END_DATE}"],
+    "Mathematical_Reserves_as_at_previous": ["Mathematical Reserves as at {PREVIOUS_YEAR_END_DATE}"]
+  },
+  "FlatHeaders": [
+    "Type",
+    "Category of business",
+    "Mathematical Reserves as at {QUARTER_END_DATE}",
+    "Mathematical Reserves as at {PREVIOUS_YEAR_END_DATE}"
+  ],
+  "Rows": []
+}

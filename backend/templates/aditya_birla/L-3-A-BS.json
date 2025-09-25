@@ -1,0 +1,35 @@
+{
+  "Form No": "L-3-A-BS",
+  "Title": "BALANCE SHEET AS AT {QUARTER_END_DATE}",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Date of Registration": "31st January 2001",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Sch"],
+    "Audited_As_at_Current": ["Audited As at {QUARTER_END_DATE}"],
+    "Audited_As_at_Previous": ["Audited As at {PREVIOUS_YEAR_END_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "Audited_As_at_Current",
+    "Audited_As_at_Previous"
+  ],
+  "Contingent_Liabilities": {
+    "Title": "Contingent Liabilities",
+    "Headers": {
+      "Particulars": ["Particulars"],
+      "Audited_As_at_Current": ["Audited as at {QUARTER_END_DATE}"],
+      "Audited_As_at_Previous": ["Audited as at {PREVIOUS_YEAR_END_DATE}"]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "Audited_As_at_Current",
+      "Audited_As_at_Previous"
+    ]
+  },
+  "Rows": []
+}

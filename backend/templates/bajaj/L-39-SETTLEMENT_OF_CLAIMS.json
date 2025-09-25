@@ -1,0 +1,68 @@
+{
+  "Form No": "L-39",
+  "Title": "PERIODIC DISCLOSURES - Data on Settlement of Claims (YTD)",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "31 December 2022",
+  "Currency": "Rs. In Lakhs",
+  "PagesUsed": "1",
+  "Sections": {
+    "Ageing_of_Claims_Individual": {
+      "Title": "Ageing of Claims (Individual)",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "Types_of_Claims": ["Types of Claims"],
+        "On_or_before_maturity": ["On or before maturity"],
+        "No_of_claims_paid_1_month": ["No. of claims paid", "1 month"],
+        "No_of_claims_paid_1_3_months": ["No. of claims paid", "1 - 3 months"],
+        "No_of_claims_paid_3_6_months": ["No. of claims paid", "3 - 6 months"],
+        "No_of_claims_paid_6_months_1_year": ["No. of claims paid", "6 months - 1 year"],
+        "No_of_claims_paid_greater_than_1_year": ["No. of claims paid", "> 1 year"],
+        "Total_No_of_claims_paid": ["Total No. of claims paid"],
+        "Total_amount_of_claims_paid_Rs_In_Lakhs": ["Total amount of claims paid", "(Rs. In Lakhs)"]
+      },
+      "FlatHeaders": [
+        "Sl.No.",
+        "Types of Claims",
+        "On or before maturity",
+        "No. of claims paid - 1 month",
+        "No. of claims paid - 1 - 3 months",
+        "No. of claims paid - 3 - 6 months",
+        "No. of claims paid - 6 months - 1 year",
+        "No. of claims paid - > 1 year",
+        "Total No. of claims paid",
+        "Total amount of claims paid (Rs. In Lakhs)"
+      ],
+      "Rows": []
+    },
+    "Ageing_of_Claims_Group": {
+      "Title": "Ageing of Claims (Group)",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "Types_of_Claims": ["Types of Claims"],
+        "On_or_before_maturity": ["On or before maturity"],
+        "No_of_claims_paid_1_month": ["No. of claims paid", "1 month"],
+        "No_of_claims_paid_1_3_months": ["No. of claims paid", "1 - 3 months"],
+        "No_of_claims_paid_3_6_months": ["No. of claims paid", "3 - 6 months"],
+        "No_of_claims_paid_6_months_1_year": ["No. of claims paid", "6 months - 1 year"],
+        "No_of_claims_paid_greater_than_1_year": ["No. of claims paid", "> 1 year"],
+        "Total_No_of_claims_paid": ["Total No. of claims paid"],
+        "Total_amount_of_claims_paid_Rs_In_Lakhs": ["Total amount of claims paid", "(Rs. In Lakhs)"]
+      },
+      "FlatHeaders": [
+        "Sl.No.",
+        "Types of Claims",
+        "On or before maturity",
+        "No. of claims paid - 1 month",
+        "No. of claims paid - 1 - 3 months",
+        "No. of claims paid - 3 - 6 months",
+        "No. of claims paid - 6 months - 1 year",
+        "No. of claims paid - > 1 year",
+        "Total No. of claims paid",
+        "Total amount of claims paid (Rs. In Lakhs)"
+      ],
+      "Rows": []
+    }
+  }
+}

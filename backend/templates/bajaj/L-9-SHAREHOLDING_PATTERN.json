@@ -1,0 +1,25 @@
+{
+  "Form No": "L-9",
+  "Title": "PATTERN OF SHAREHOLDING SCHEDULE",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Shareholder": ["Shareholder"],
+    "As_at_current_Number_of_Shares": ["As at {QUARTER_END_DATE}", "Number of Shares"],
+    "As_at_current_Percentage_of_Holding": ["As at {QUARTER_END_DATE}", "% of Holding"],
+    "As_at_previous_Number_of_Shares": ["As at {PREVIOUS_YEAR_END_DATE}", "Number of Shares"],
+    "As_at_previous_Percentage_of_Holding": ["As at {PREVIOUS_YEAR_END_DATE}", "% of Holding"]
+  },
+  "FlatHeaders": [
+    "Shareholder",
+    "As_at_current_Number_of_Shares",
+    "As_at_current_Percentage_of_Holding",
+    "As_at_previous_Number_of_Shares",
+    "As_at_previous_Percentage_of_Holding"
+  ],
+  "Rows": []
+}

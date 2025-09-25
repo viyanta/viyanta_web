@@ -1,0 +1,21 @@
+{
+  "Form No": "L-19",
+  "Title": "CURRENT LIABILITIES",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "As_at_current": ["As at {QUARTER_END_DATE}"],
+    "As_at_previous": ["As at {PREVIOUS_YEAR_END_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "As at {QUARTER_END_DATE}",
+    "As at {PREVIOUS_YEAR_END_DATE}"
+  ],
+  "Rows": []
+}

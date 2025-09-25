@@ -1,0 +1,64 @@
+{
+  "Form No": "L-30",
+  "Title": "RELATED PARTY TRANSACTIONS",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "Statement as on {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1-2",
+  "Parts": {
+    "Part_A": {
+      "Title": "Part A- Related Party Transactions",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "Name_of_Related_Party": ["Name of the Related Party"],
+        "Nature_of_Relationship": ["Nature of Relationship with the Company"],
+        "Description_of_Transactions": ["Description of Transactions / Categories"],
+        "Consideration_For_the_Quarter": ["Consideration paid / received* (Rs in Lakhs)", "For the Quarter"],
+        "Consideration_Up_to_the_Quarter": ["Consideration paid / received* (Rs in Lakhs)", "Up to the Quarter"],
+        "Consideration_For_Corresponding_Quarter_Previous_Year": ["Consideration paid / received* (Rs in Lakhs)", "For the Corresponding Quarter of the Previous Year"],
+        "Consideration_Up_to_Quarter_Previous_Year": ["Consideration paid / received* (Rs in Lakhs)", "Up to the Quarter of the Previous Year"]
+      },
+      "FlatHeaders": [
+        "Sl.No.",
+        "Name of the Related Party",
+        "Nature of Relationship with the Company",
+        "Description of Transactions / Categories",
+        "Consideration paid / received* (Rs in Lakhs) - For the Quarter",
+        "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter",
+        "Consideration paid / received* (Rs in Lakhs) - For the Corresponding Quarter of the Previous Year",
+        "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter of the Previous Year"
+      ],
+      "Rows": []
+    },
+    "Part_B": {
+      "Title": "Part-B Related Party Transaction balances - As at the end of the Quarter {QUARTER_END_DATE}",
+      "Headers": {
+        "Sl_No": ["Sl.No."],
+        "Name_of_Related_Party": ["Name of the Related Party"],
+        "Nature_of_Relationship": ["Nature of Relationship with the Company"],
+        "Nature_of_Transaction": ["Nature of Transaction"],
+        "Amount_of_Outstanding_Balances": ["Amount of Outstanding Balances including Commitments (Rs. in Lakhs)"],
+        "Whether_Payable_Receivable": ["Whether Payable / Receivable"],
+        "Whether_Secured": ["Whether Secured? If so, Nature of consideration to be provided at the time of settlement"],
+        "Details_of_Guarantees": ["Details of any Guarantees given or received"],
+        "Balance_under_Provision_for_doubtful_debts": ["Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)"],
+        "Expenses_recognised_for_bad_doubtful_debts": ["Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"]
+      },
+      "FlatHeaders": [
+        "Sl.No.",
+        "Name of the Related Party",
+        "Nature of Relationship with the Company",
+        "Nature of Transaction",
+        "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)",
+        "Whether Payable / Receivable",
+        "Whether Secured? If so, Nature of consideration to be provided at the time of settlement",
+        "Details of any Guarantees given or received",
+        "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)",
+        "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
+      ],
+      "Rows": []
+    }
+  }
+}
