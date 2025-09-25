@@ -1,0 +1,38 @@
+{
+  "Form No": "L-35",
+  "Title": "DOWNGRADING OF INVESTMENTS",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Statement as on": "December 31, 2022",
+  "Statement of": "Downgraded Investments",
+  "Periodicity of Submission": "Quarterly",
+  "Name of Fund": "Life",
+  "Part": "A",
+  "Currency": "Rs Lakhs",
+  "Period": "For the quarter and nine months ended {QUARTER_END_DATE}",
+  "Headers": {
+    "No": ["No"],
+    "Name_of_the_Security": ["Name of the Security"],
+    "COI": ["COI"],
+    "Amount": ["Amount"],
+    "Date_of_Purchase": ["Date of Purchase"],
+    "Rating_Agency": ["Rating Agency"],
+    "Original_Grade": ["Original Grade"],
+    "Current_Grade": ["Current Grade"],
+    "Date_of_Downgrade": ["Date of Downgrade"],
+    "Remarks": ["Remarks"]
+  },
+  "FlatHeaders": [
+    "No",
+    "Name of the Security",
+    "COI",
+    "Amount",
+    "Date of Purchase",
+    "Rating Agency",
+    "Original Grade",
+    "Current Grade",
+    "Date of Downgrade",
+    "Remarks"
+  ],
+  "Rows": []
+}

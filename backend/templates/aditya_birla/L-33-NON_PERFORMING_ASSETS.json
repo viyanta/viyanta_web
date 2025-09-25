@@ -1,0 +1,39 @@
+{
+  "Form No": "L-33",
+  "Title": "DETAILS OF NON-PERFORMING ASSETS",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Name of the Fund": "Life",
+  "As on": "December 31, 2022",
+  "Currency": "Rs.Lakhs",
+  "Period": "For the quarter and nine months ended {QUARTER_END_DATE}",
+  "Headers": {
+    "No": ["NO"],
+    "Particulars": ["PARTICULARS"],
+    "Bonds_Debentures_YTD": ["Bonds / Debentures", "YTD (As on date)"],
+    "Bonds_Debentures_Prev_FY": ["Bonds / Debentures", "Prev. FY (As on 31 Mar 2022)"],
+    "Loans_YTD": ["Loans", "YTD (As on date)"],
+    "Loans_Prev_FY": ["Loans", "Prev. FY (As on 31 Mar 2022)"],
+    "Other_Debt_Instruments_YTD": ["Other Debt Instruments", "YTD (As on date)"],
+    "Other_Debt_Instruments_Prev_FY": ["Other Debt Instruments", "Prev. FY (As on 31 Mar 2022)"],
+    "All_Other_Assets_YTD": ["All Other Assets", "YTD (As on date)"],
+    "All_Other_Assets_Prev_FY": ["All Other Assets", "Prev. FY (As on 31 Mar 2022)"],
+    "Total_YTD": ["TOTAL", "YTD (As on date)"],
+    "Total_Prev_FY": ["TOTAL", "Prev. FY (As on 31 Mar 2022)"]
+  },
+  "FlatHeaders": [
+    "NO",
+    "PARTICULARS",
+    "Bonds / Debentures - YTD (As on date)",
+    "Bonds / Debentures - Prev. FY (As on 31 Mar 2022)",
+    "Loans - YTD (As on date)",
+    "Loans - Prev. FY (As on 31 Mar 2022)",
+    "Other Debt Instruments - YTD (As on date)",
+    "Other Debt Instruments - Prev. FY (As on 31 Mar 2022)",
+    "All Other Assets - YTD (As on date)",
+    "All Other Assets - Prev. FY (As on 31 Mar 2022)",
+    "TOTAL - YTD (As on date)",
+    "TOTAL - Prev. FY (As on 31 Mar 2022)"
+  ],
+  "Rows": []
+}

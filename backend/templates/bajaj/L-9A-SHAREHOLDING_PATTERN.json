@@ -1,0 +1,37 @@
+{
+  "Form No": "L-9A",
+  "Title": "SHAREHOLDING PATTERN",
+  "Subtitle": "DETAILS OF EQUITY HOLDING OF INSURERS",
+  "Description": "PARTICULARS OF THE SHREHOLDING PATTERN",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Sl_No": ["Sl. No.", "(I)"],
+    "Category": ["Category", "(II)"],
+    "No_of_Investors": ["No. of Investors"],
+    "No_of_shares_held": ["No. of shares held", "(III)"],
+    "Percentage_of_shareholdings": ["% of share-holdings", "(IV)"],
+    "Paid_up_equity": ["Paid up equity (Rs. In lakhs)", "(V)"],
+    "Shares_pledged_Number_of_shares": ["Shares pledged or otherwise encumbered", "Number of shares", "(VI)"],
+    "Shares_pledged_Percentage": ["Shares pledged or otherwise encumbered", "As a percentage of Total Shares held", "(VII) = (VI)/(III)*100"],
+    "Shares_under_lock_in_Number_of_shares": ["Shares under Lock in Period", "Number of shares", "(VIII)"],
+    "Shares_under_lock_in_Percentage": ["Shares under Lock in Period", "As a percentage of Total Shares held", "(IX) = (VIII)/(III)*100"]
+  },
+  "FlatHeaders": [
+    "Sl. No. (I)",
+    "Category (II)",
+    "No. of Investors",
+    "No. of shares held (III)",
+    "% of share-holdings (IV)",
+    "Paid up equity (Rs. In lakhs) (V)",
+    "Shares pledged or otherwise encumbered - Number of shares (VI)",
+    "Shares pledged or otherwise encumbered - As a percentage of Total Shares held (VII) = (VI)/(III)*100",
+    "Shares under Lock in Period - Number of shares (VIII)",
+    "Shares under Lock in Period - As a percentage of Total Shares held (IX) = (VIII)/(III)*100"
+  ],
+  "Rows": []
+}

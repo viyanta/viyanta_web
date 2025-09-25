@@ -1,0 +1,26 @@
+{
+  "Form No": "L-22",
+  "Title": "ANALYTICAL RATIOS",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Date of Registration": "31st January 2001",
+  "Period": "Quarter and nine months ended {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Sr_No": ["Sr.", "No"],
+    "Ratios_for_Life_Insurers": ["Ratios for Life Insurers"],
+    "Audited_Quarter_ended_Current": ["Audited", "Quarter ended {QUARTER_END_DATE}"],
+    "Audited_Nine_Months_ended_Current": ["Audited", "Nine Months ended {QUARTER_END_DATE}"],
+    "Audited_Quarter_ended_Previous": ["Audited", "Quarter ended {PREVIOUS_YEAR_END_DATE}"],
+    "Audited_Nine_Months_ended_Previous": ["Audited", "Nine Months ended {PREVIOUS_YEAR_END_DATE}"]
+  },
+  "FlatHeaders": [
+    "Sr_No",
+    "Ratios_for_Life_Insurers",
+    "Audited_Quarter_ended_Current",
+    "Audited_Nine_Months_ended_Current",
+    "Audited_Quarter_ended_Previous",
+    "Audited_Nine_Months_ended_Previous"
+  ],
+  "Rows": []
+}

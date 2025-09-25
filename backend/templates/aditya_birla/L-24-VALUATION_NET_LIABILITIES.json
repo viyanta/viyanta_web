@@ -1,0 +1,22 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "Aditya Birla Sun Life Insurance Company Limited",
+  "Registration No": "109",
+  "Date of Registration": "31st January 2001",
+  "Period": "Quarterly as at {QUARTER_END_DATE}",
+  "Currency": "in lacs of Indian Rupees",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Mathematical_Reserves_as_at_Current_Year": ["Mathematical Reserves as at 31st December", "for the year {CURRENT_YEAR}"],
+    "Mathematical_Reserves_as_at_Previous_Year": ["Mathematical Reserves as at 31st December", "for the year {PREVIOUS_YEAR}"]
+  },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_as_at_Current_Year",
+    "Mathematical_Reserves_as_at_Previous_Year"
+  ],
+  "Rows": []
+}

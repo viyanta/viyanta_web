@@ -1,0 +1,33 @@
+{
+  "Form No": "L-29",
+  "Title": "DETAIL REGARDING DEBT SECURITIES",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "Statement as on {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Market_Value_As_at_current": ["MARKET VALUE", "As at {QUARTER_END_DATE}"],
+    "Market_Value_As_percent_of_total_current": ["MARKET VALUE", "As % of total for this class"],
+    "Market_Value_As_at_previous": ["MARKET VALUE", "As at {PREVIOUS_YEAR_END_DATE}"],
+    "Market_Value_As_percent_of_total_previous": ["MARKET VALUE", "As % of total for this class"],
+    "Book_Value_As_at_current": ["BOOK VALUE", "As at {QUARTER_END_DATE}"],
+    "Book_Value_As_percent_of_total_current": ["BOOK VALUE", "As % of total for this class"],
+    "Book_Value_As_at_previous": ["BOOK VALUE", "As at {PREVIOUS_YEAR_END_DATE}"],
+    "Book_Value_As_percent_of_total_previous": ["BOOK VALUE", "As % of total for this class"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "MARKET VALUE - As at {QUARTER_END_DATE}",
+    "MARKET VALUE - As % of total for this class",
+    "MARKET VALUE - As at {PREVIOUS_YEAR_END_DATE}",
+    "MARKET VALUE - As % of total for this class",
+    "BOOK VALUE - As at {QUARTER_END_DATE}",
+    "BOOK VALUE - As % of total for this class",
+    "BOOK VALUE - As at {PREVIOUS_YEAR_END_DATE}",
+    "BOOK VALUE - As % of total for this class"
+  ],
+  "Rows": []
+}

@@ -1,0 +1,33 @@
+{
+  "Form No": "L-14A",
+  "Title": "AGGREGATE VALUE OF INVESTMENTS OTHER THAN LISTED EQUITY SECURITIES AND DERIVATIVE INSTRUMENTS",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Shareholders_As_at_current": ["Shareholders", "As at {QUARTER_END_DATE}"],
+    "Shareholders_As_at_previous": ["Shareholders", "As at {PREVIOUS_YEAR_END_DATE}"],
+    "Policyholders_As_at_current": ["Policyholders", "As at {QUARTER_END_DATE}"],
+    "Policyholders_As_at_previous": ["Policyholders", "As at {PREVIOUS_YEAR_END_DATE}"],
+    "Assets_held_to_cover_Linked_Liabilities_As_at_current": ["Assets held to cover Linked Liabilities", "As at {QUARTER_END_DATE}"],
+    "Assets_held_to_cover_Linked_Liabilities_As_at_previous": ["Assets held to cover Linked Liabilities", "As at {PREVIOUS_YEAR_END_DATE}"],
+    "Total_As_at_current": ["Total", "As at {QUARTER_END_DATE}"],
+    "Total_As_at_previous": ["Total", "As at {PREVIOUS_YEAR_END_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Shareholders - As at {QUARTER_END_DATE}",
+    "Shareholders - As at {PREVIOUS_YEAR_END_DATE}",
+    "Policyholders - As at {QUARTER_END_DATE}",
+    "Policyholders - As at {PREVIOUS_YEAR_END_DATE}",
+    "Assets held to cover Linked Liabilities - As at {QUARTER_END_DATE}",
+    "Assets held to cover Linked Liabilities - As at {PREVIOUS_YEAR_END_DATE}",
+    "Total - As at {QUARTER_END_DATE}",
+    "Total - As at {PREVIOUS_YEAR_END_DATE}"
+  ],
+  "Rows": []
+}

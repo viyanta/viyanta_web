@@ -1,0 +1,109 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENTS ASSETS (LIFE INSURERS) 3A",
+  "Subtitle": "(Read with Regulation 10)",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "Statement as on {QUARTER_END_DATE}",
+  "Statement_Type": "Statement of investment assets (Life insurers)",
+  "Business_Scope": "Business within India",
+  "Periodicity": "Quarterly",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Sections": {
+    "Section_I": {
+      "Title": "Section I",
+      "Headers": {
+        "No": ["No"],
+        "Particulars": ["Particulars"],
+        "Sch": ["Sch"],
+        "Amount": ["Amount"]
+      },
+      "FlatHeaders": [
+        "No",
+        "Particulars",
+        "Sch",
+        "Amount"
+      ],
+      "Rows": []
+    },
+    "Section_II": {
+      "Title": "Section II",
+      "Subsections": {
+        "A_LIFE_FUND": {
+          "Title": "A. LIFE FUND",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg."],
+            "Shareholders_Balance": ["Shareholders'", "Balance (a)"],
+            "Shareholders_FRSM": ["Shareholders'", "FRSM+ (b)"],
+            "Policyholders_UL_Non_Unit_Res": ["Policyholders'", "UL-Non Unit Res (c)"],
+            "Policyholders_Par": ["Policyholders'", "Par (d)"],
+            "Policyholders_Non_Par": ["Policyholders'", "Non-Par (e)"],
+            "Book_value_SH_PH": ["Book value (SH+PH)", "f= [a+b+c+d+e]"],
+            "Actual_Percent": ["Actual %", "(g) = ((f)-(a))%"],
+            "FVC_amount": ["FVC amount (h)"],
+            "Total_fund": ["Total fund", "(i) = (f+h)"],
+            "Market_value": ["Market value (j)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg.",
+            "Shareholders' - Balance (a)",
+            "Shareholders' - FRSM+ (b)",
+            "Policyholders' - UL-Non Unit Res (c)",
+            "Policyholders' - Par (d)",
+            "Policyholders' - Non-Par (e)",
+            "Book value (SH+PH) - f= [a+b+c+d+e]",
+            "Actual % - (g) = ((f)-(a))%",
+            "FVC amount (h)",
+            "Total fund - (i) = (f+h)",
+            "Market value (j)"
+          ],
+          "Rows": []
+        },
+        "B_PENSION_GENERAL_ANNUITY_GROUP_BUSINESS": {
+          "Title": "B. PENSION & GENERAL ANNUITY & GROUP BUSINESS",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg."],
+            "Policyholders_Par": ["Policyholders'", "Par (a)"],
+            "Policyholders_Non_Par": ["Policyholders'", "Non-Par (b)"],
+            "Book_value": ["Book value", "(c)=(a)+(b)"],
+            "Actual_Percent": ["Actual % (d)"],
+            "FVC_amount": ["FVC amount (e)"],
+            "Total_fund": ["Total fund", "(f)=(c+e)"],
+            "Market_value": ["Market value (g)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg.",
+            "Policyholders' - Par (a)",
+            "Policyholders' - Non-Par (b)",
+            "Book value - (c)=(a)+(b)",
+            "Actual % (d)",
+            "FVC amount (e)",
+            "Total fund - (f)=(c+e)",
+            "Market value (g)"
+          ],
+          "Rows": []
+        },
+        "C_LINKED_FUNDS": {
+          "Title": "C. LINKED FUNDS",
+          "Headers": {
+            "Percent_as_per_Reg": ["% as per Reg."],
+            "Policyholders_Par": ["Policyholders'", "Par (a)"],
+            "Policyholders_Non_Par": ["Policyholders'", "Non-Par (b)"],
+            "Total_fund": ["Total fund", "(c)=(a)+(b)"],
+            "Actual_Percent": ["Actual % (d)"]
+          },
+          "FlatHeaders": [
+            "% as per Reg.",
+            "Policyholders' - Par (a)",
+            "Policyholders' - Non-Par (b)",
+            "Total fund - (c)=(a)+(b)",
+            "Actual % (d)"
+          ],
+          "Rows": []
+        }
+      }
+    }
+  }
+}
