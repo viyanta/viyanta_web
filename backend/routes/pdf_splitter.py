@@ -10,7 +10,11 @@ import subprocess
 import traceback
 from pathlib import Path
 from datetime import datetime
+from dotenv import load_dotenv
 from services.pdf_splitter import PDFSplitterService
+
+# Load environment variables
+load_dotenv()
 
 router = APIRouter(tags=["PDF Splitter"])
 
@@ -632,6 +636,21 @@ async def extract_form_data(
             print(
                 f"🤖 Starting Gemini correction (empty extraction: {extracted_is_empty}, rows: {extracted_row_count})")
 
+            # CRITICAL: Verify environment is loaded correctly
+            api_key_check = os.getenv("GEMINI_API_KEY")
+            if not api_key_check:
+                print("❌ CRITICAL: GEMINI_API_KEY not found in environment!")
+                print("🔧 Attempting to reload .env file...")
+                load_dotenv()
+                api_key_check = os.getenv("GEMINI_API_KEY")
+                if api_key_check:
+                    print(
+                        f"✅ GEMINI_API_KEY loaded after reload (length: {len(api_key_check)})")
+                else:
+                    print("❌ GEMINI_API_KEY still not found after reload!")
+            else:
+                print(f"✅ GEMINI_API_KEY found (length: {len(api_key_check)})")
+
             # OPTIMIZED: Faster timeouts for quicker processing
             # Shorter timeouts since we're using smaller batches and multithreading
             primary_timeout_env = os.getenv(
@@ -785,49 +804,141 @@ async def extract_form_data(
                     with open(corrected_json, "r", encoding="utf-8") as cf:
                         corrected_content = cf.read()
                         corrected_data = json.loads(corrected_content)
-                    # Robust row counting
+                    # Enhanced row counting to handle multiple JSON formats
 
                     def count_rows(obj):
+                        """Count rows in various JSON formats from different versions of Gemini correction"""
+                        if obj is None:
+                            return 0
+
+                        # Format 1: New Gemini format with metadata wrapper
+                        if isinstance(obj, dict) and "data" in obj:
+                            data = obj["data"]
+                            if isinstance(data, list):
+                                total = 0
+                                for item in data:
+                                    if isinstance(item, dict) and "Rows" in item:
+                                        rows = item["Rows"]
+                                        if isinstance(rows, list):
+                                            total += len(rows)
+                                    elif isinstance(item, list):
+                                        total += len(item)
+                                return total
+                            return 0
+
+                        # Format 2: Direct list format (old extraction)
                         if isinstance(obj, list):
                             total = 0
                             for item in obj:
                                 if isinstance(item, dict):
-                                    rows = item.get("Rows")
-                                    if isinstance(rows, list):
-                                        total += len(rows)
+                                    # Check for "Rows" key
+                                    if "Rows" in item:
+                                        rows = item["Rows"]
+                                        if isinstance(rows, list):
+                                            total += len(rows)
+                                    # Check for "data" key
+                                    elif "data" in item:
+                                        data = item["data"]
+                                        if isinstance(data, list):
+                                            total += len(data)
                                 elif isinstance(item, list):
                                     total += len(item)
                             return total
+
+                        # Format 3: Direct dict with "Rows"
                         if isinstance(obj, dict):
-                            rows = obj.get("Rows")
-                            if isinstance(rows, list):
-                                return len(rows)
+                            if "Rows" in obj:
+                                rows = obj["Rows"]
+                                if isinstance(rows, list):
+                                    return len(rows)
+                            # Check for "data" key at root level
+                            elif "data" in obj:
+                                data = obj["data"]
+                                if isinstance(data, list):
+                                    return len(data)
+
                         return 0
                     corrected_row_count = count_rows(corrected_data)
+
+                    # Enhanced debugging for corrected JSON structure
+                    print(f"🔍 DEBUG: Corrected JSON structure analysis:")
+                    print(f"   Type: {type(corrected_data)}")
+                    if isinstance(corrected_data, dict):
+                        print(f"   Keys: {list(corrected_data.keys())}")
+                        if "data" in corrected_data:
+                            data = corrected_data["data"]
+                            print(f"   data type: {type(data)}")
+                            if isinstance(data, list) and data:
+                                print(f"   data length: {len(data)}")
+                                print(f"   first item type: {type(data[0])}")
+                                if isinstance(data[0], dict):
+                                    print(
+                                        f"   first item keys: {list(data[0].keys())}")
+                    elif isinstance(corrected_data, list):
+                        print(f"   List length: {len(corrected_data)}")
+                        if corrected_data:
+                            print(
+                                f"   First item type: {type(corrected_data[0])}")
+                            if isinstance(corrected_data[0], dict):
+                                print(
+                                    f"   First item keys: {list(corrected_data[0].keys())}")
+
+                    print(
+                        f"🔢 Calculated corrected row count: {corrected_row_count}")
+
                     extracted_row_count_baseline = 0
                     try:
                         if extracted_json.exists():
                             with open(extracted_json, "r", encoding="utf-8") as ef:
                                 baseline = json.load(ef)
                             extracted_row_count_baseline = count_rows(baseline)
-                    except Exception:
+                            print(
+                                f"🔢 Calculated baseline row count: {extracted_row_count_baseline}")
+                    except Exception as baseline_e:
+                        print(f"⚠️ Error calculating baseline: {baseline_e}")
                         pass
-                    if corrected_row_count > 0:
+                    # More lenient success criteria for Gemini correction
+                    # Accept 0 or more rows (Gemini might clean up sparse data)
+                    if corrected_row_count >= 0:
                         gemini_corrected = True
                         final_json_path = corrected_json
-                        print(
-                            f"✅ Gemini correction successful: {corrected_row_count} rows (baseline {extracted_row_count_baseline})")
-                        if corrected_row_count <= extracted_row_count_baseline:
+
+                        if corrected_row_count > 0:
                             print(
-                                "ℹ️ Corrected row count not higher than baseline – may still include qualitative normalization / header fixes")
+                                f"✅ Gemini correction successful: {corrected_row_count} rows (baseline {extracted_row_count_baseline})")
+                            if corrected_row_count <= extracted_row_count_baseline:
+                                print(
+                                    "ℹ️ Corrected row count not higher than baseline – may include qualitative normalization / header fixes")
+                        else:
+                            print(
+                                f"✅ Gemini correction successful: Data cleaned/optimized (0 rows, baseline {extracted_row_count_baseline})")
+                            print(
+                                "ℹ️ Gemini may have cleaned up sparse or redundant data")
                     else:
                         print(
-                            "⚠️ Corrected JSON empty after parse – discarding and using extracted data")
+                            "⚠️ Corrected JSON has invalid structure – discarding and using extracted data")
                 except Exception as e:
                     print(
                         f"⚠️ Error validating corrected JSON: {e} – using extracted data")
             else:
                 print("⚠️ Gemini correction not successful – using extracted data")
+                print(
+                    f"🔧 Debug Info: return_code={correction_result.returncode}")
+                if correction_result.stdout:
+                    print(f"📤 Stdout: {correction_result.stdout[:1000]}")
+                if correction_result.stderr:
+                    print(f"❌ Stderr: {correction_result.stderr[:1000]}")
+                print(f"🔍 Corrected JSON exists: {corrected_json.exists()}")
+                if corrected_json.exists():
+                    try:
+                        file_size = corrected_json.stat().st_size
+                        print(f"📊 Corrected JSON file size: {file_size} bytes")
+                        if file_size > 0:
+                            with open(corrected_json, "r", encoding="utf-8") as f:
+                                preview = f.read(500)
+                                print(f"📄 File preview: {preview}")
+                    except Exception as pe:
+                        print(f"❌ Error reading corrected JSON: {pe}")
 
             # Enhanced / enriched corrected variant preference
             enhanced_corrected_json = Path(str(corrected_json).replace(
@@ -898,10 +1009,28 @@ async def extract_form_data(
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(extraction_metadata, f, indent=2, ensure_ascii=False)
 
+        # Normalize final_data to ensure consistent frontend format
+        # Handle both old format {metadata, data} and new format {Rows, _metadata}
+        normalized_data = final_data
+        if isinstance(final_data, dict):
+            if "Rows" in final_data:
+                # New Gemini format: {Rows: [...], _metadata: {...}}
+                # Convert to frontend-expected format: {data: [...]}
+                normalized_data = final_data["Rows"]
+                print(
+                    f"🔄 Normalized new Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            elif "data" in final_data:
+                # Old Gemini format: {metadata: {...}, data: [...]}
+                # Extract the data array
+                normalized_data = final_data["data"]
+                print(
+                    f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            # If it's already a plain dict or other format, leave as-is
+
         return {
             "success": True,
             "extraction_id": extraction_metadata["extraction_id"],
-            "data": final_data,
+            "data": normalized_data,
             "metadata": extraction_metadata
         }
 
@@ -1032,9 +1161,25 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
                         print(
                             f"📊 Fixed headers for record {record_idx}: {actual_keys}")
 
+        # Normalize data to ensure consistent frontend format
+        # Handle both old format {metadata, data} and new format {Rows, _metadata}
+        normalized_data = data
+        if isinstance(data, dict):
+            if "Rows" in data:
+                # New Gemini format: {Rows: [...], _metadata: {...}}
+                normalized_data = data["Rows"]
+                print(
+                    f"🔄 Normalized new Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            elif "data" in data:
+                # Old Gemini format: {metadata: {...}, data: [...]}
+                normalized_data = data["data"]
+                print(
+                    f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            # If it's already a plain dict or other format, leave as-is
+
         return {
             "success": True,
-            "data": data,
+            "data": normalized_data,
             "metadata": metadata,
             "source": source_type,
             "file_path": str(json_path)

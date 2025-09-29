@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 from routes.upload import router as upload_router
 from routes.download import router as download_router
 from routes.preview import router as preview_router
@@ -12,7 +13,7 @@ from routes.extraction import router as extract_router
 from routes.folder_uploader import router as folder_uploader_router
 from routes.master_template import router as template_router
 from routes.pdf_splitter import router as pdf_splitter_router
-from databases.database import Base, engine
+from databases.database import Base, engine, get_db
 from routes import company
 import logging
 import os
@@ -131,14 +132,7 @@ def db_status():
     }
 
 
-@app.get("/api/companies/")
-def get_companies_api():
-    """API endpoint for companies list"""
-    return {
-        "success": True,
-        "companies": ["SBI Life", "HDFC Life", "ICICI Prudential", "Bajaj Allianz"],
-        "message": "Companies retrieved successfully"
-    }
+# Companies endpoint moved to routes/company.py to avoid duplication
 
 
 if __name__ == "__main__":
