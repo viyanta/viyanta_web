@@ -15,11 +15,36 @@ const PDFSplitterWorkflow = ({ user }) => {
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState(null);
   const [extractionError, setExtractionError] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
-  const companies = [
-    'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
-    'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
-  ];
+  // Load companies from database
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  const loadCompanies = async () => {
+    try {
+      setLoadingCompanies(true);
+      console.log('Loading companies from database...');
+      const response = await apiService.get('/api/companies/');
+      console.log('Companies response:', response);
+      
+      // Extract company names from the response
+      const companyNames = response.map(company => company.name);
+      setCompanies(companyNames);
+      console.log('Companies loaded:', companyNames);
+    } catch (error) {
+      console.error('Failed to load companies:', error);
+      // Fallback to hardcoded companies
+      setCompanies([
+        'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
+        'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
+      ]);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
 
   // Load PDFs when company is selected
   useEffect(() => {
@@ -253,6 +278,7 @@ const PDFSplitterWorkflow = ({ user }) => {
         <select
           style={selectStyle}
           value={selectedCompany}
+          disabled={loadingCompanies}
           onChange={(e) => {
             setSelectedCompany(e.target.value);
             setSelectedPDF('');
@@ -263,7 +289,9 @@ const PDFSplitterWorkflow = ({ user }) => {
             clearExtractionData();
           }}
         >
-          <option value="">Choose a company...</option>
+          <option value="">
+            {loadingCompanies ? 'Loading companies...' : 'Choose a company...'}
+          </option>
           {companies.map(company => (
             <option key={company} value={company}>{company}</option>
           ))}

@@ -97,7 +97,7 @@ genai.configure(api_key=API_KEY)
 thread_local = threading.local()
 
 
-def get_gemini_model(model_name: str = "gemini-1.5-pro"):
+def get_gemini_model(model_name: str = "gemini-2.5-pro"):
     """Get thread-local Gemini model instance"""
     if not hasattr(thread_local, 'model'):
         thread_local.model = genai.GenerativeModel(model_name)
@@ -306,7 +306,7 @@ Return ONLY the corrected JSON in this exact format:
 
 def correct_chunk_with_gemini(chunk_data: list, template_structure: dict,
                               pdf_context: str, chunk_idx: int, total_chunks: int,
-                              model_name: str = "gemini-1.5-pro", retries: int = 3,
+                              model_name: str = "gemini-2.5-pro", retries: int = 3,
                               backoff: float = 2.0) -> list:
     """Correct a single chunk using Gemini with thread-safe operations and performance monitoring"""
 
@@ -395,7 +395,7 @@ def determine_optimal_workers(data_size: int, max_workers: int = None) -> int:
 
 def verify_and_correct_multipage_parallel(template_path: Path, extracted_path: Path,
                                           pdf_path: Path, output_path: Path,
-                                          model_name: str = "gemini-1.5-pro",
+                                          model_name: str = "gemini-2.5-pro",
                                           batch_size: int = None, max_pages: int = 10,
                                           retries: int = 3, backoff: float = 2.0,
                                           max_workers: int = None):
@@ -527,9 +527,11 @@ def verify_and_correct_multipage_parallel(template_path: Path, extracted_path: P
             safe_warning(f"Missing chunk {i}, using original data")
             final_corrected_data.extend(chunks[i][1])
 
-    # Create output structure
+    # Create output structure in L-2 legacy format (flat array with Rows)
+    # This ensures compatibility with existing frontend/backend display logic
     output_structure = {
-        "metadata": {
+        "Rows": final_corrected_data,
+        "_metadata": {
             "correction_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "template_file": str(template_path.name),
             "pdf_file": str(pdf_path.name),
@@ -539,8 +541,7 @@ def verify_and_correct_multipage_parallel(template_path: Path, extracted_path: P
             "parallel_workers": optimal_workers,
             "batch_size": batch_size,
             "model_used": model_name
-        },
-        "data": final_corrected_data
+        }
     }
 
     # Save the corrected data
@@ -567,7 +568,7 @@ def main():
     parser.add_argument("--extracted", help="Extracted JSON path (single)")
     parser.add_argument("--pdf", help="Split PDF path (single)")
     parser.add_argument("--output", help="Output corrected JSON path (single)")
-    parser.add_argument("--model", default="gemini-1.5-pro",
+    parser.add_argument("--model", default="gemini-2.5-pro",
                         help="Gemini model name")
     parser.add_argument("--retries", type=int, default=3,
                         help="Retries per chunk")
