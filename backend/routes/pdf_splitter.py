@@ -671,22 +671,22 @@ async def extract_form_data(
 
             # Smaller batches for faster parallel processing
             if dynamic_rows > 200:
-                initial_batch = 8  # Reduced from 18 for better parallelization
+                initial_batch = 25  # Reduced from 18 for better parallelization
             elif dynamic_rows > 100:
-                initial_batch = 6  # Reduced from 12
+                initial_batch = 20  # Reduced from 12
             elif dynamic_rows > 50:
-                initial_batch = 4  # Reduced from 6
+                initial_batch = 15  # Reduced from 6
             else:
-                initial_batch = 3  # Reduced from 6 for faster small datasets
+                initial_batch = 10  # Reduced from 6 for faster small datasets
 
             # Allow override via env (with better defaults)
             initial_batch = int(
                 os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", str(initial_batch)))
             second_batch = int(
                 # Faster retry
-                os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "2"))
+                os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8"))
             # Fastest final retry
-            third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "1"))
+            third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
 
             # Force enable multithreading and optimize worker count
             max_workers = min(8, max(2, dynamic_rows // 10)
@@ -1145,7 +1145,7 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
             metadata["gemini_corrected"] = True
             print(f"🤖 Forced gemini_corrected=True for corrected source")
 
-        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (BEFORE normalization for old format)
         if isinstance(data, list) and len(data) > 0:
             for record_idx, record in enumerate(data):
                 if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
@@ -1176,6 +1176,22 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
                 print(
                     f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
             # If it's already a plain dict or other format, leave as-is
+
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (AFTER normalization for new format)
+        if isinstance(normalized_data, list) and len(normalized_data) > 0:
+            for record_idx, record in enumerate(normalized_data):
+                if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
+                    # Get actual keys from first row
+                    first_row = record["Rows"][0]
+                    if isinstance(first_row, dict):
+                        actual_keys = list(first_row.keys())
+
+                        # Update FlatHeaders to match actual data
+                        record["FlatHeaders"] = actual_keys
+                        record["FlatHeadersNormalized"] = actual_keys
+
+                        print(
+                            f"🔧 Fixed headers for normalized record {record_idx}: {actual_keys}")
 
         return {
             "success": True,
@@ -1213,9 +1229,9 @@ async def debug_gemini_config():
             "no_timeout_mode": os.getenv("GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
         },
         "batch_sizes": {
-            "initial": int(os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", "4")),
-            "second": int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "2")),
-            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "1"))
+            "initial": int(os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", "10")),
+            "second": int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8")),
+            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
         },
         "retry_settings": {
             "enable_retry": os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0",
@@ -1267,7 +1283,7 @@ async def test_extraction_performance(
 
     performance_config = {
         "dynamic_rows": extracted_row_count,
-        "initial_batch": 4 if extracted_row_count > 50 else 3,
+        "initial_batch": 10 if extracted_row_count > 50 else 3,
         "max_workers": min(8, max(2, extracted_row_count // 10)),
         "quick_mode_enabled": enable_quick_mode,
         "quick_mode_threshold": quick_mode_threshold,
