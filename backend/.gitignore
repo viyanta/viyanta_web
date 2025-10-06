@@ -1,8 +1,8 @@
 .env
 .env.*
 venv
-*.json
-*.pdf
+# *.json
+# *.pdf
 *.parquet
 *.csv
 __pycache__

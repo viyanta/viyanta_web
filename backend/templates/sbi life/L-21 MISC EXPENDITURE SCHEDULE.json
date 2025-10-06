@@ -1,0 +1,19 @@
+{
+  "Form No": "L-21",
+  "Title": "Miscellaneous Expenditure Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULE FORMING PART OF FINANCIAL STATEMENTS",
+  "Main_Title": "MISCELLANEOUS EXPENDITURE (To the extent not written off or adjusted)",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "As_at_{CURRENT_DATE}": ["As at {CURRENT_DATE}"],
+    "As_at_{PREVIOUS_DATE}": ["As at {PREVIOUS_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "As_at_CURRENT_DATE",
+    "As_at_PREVIOUS_DATE"
+  ],
+  "Rows": []
+} 

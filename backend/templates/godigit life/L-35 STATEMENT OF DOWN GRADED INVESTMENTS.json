@@ -1,0 +1,39 @@
+{
+  "Form No": "L-35",
+  "Title": "STATEMENT OF DOWN GRADED INVESTMENTS",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Name_of_the_Fund": "Life Fund",
+  "Statement_Date": "As on {QUARTER_END_DATE}",
+  "Periodicity_of_Submission": "Quarterly",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "No": ["No"],
+    "Name_of_the_Security": ["Name of the Security"],
+    "COI": ["COI"],
+    "Amount": ["Amount"],
+    "Date_of_Purchase": ["Date of Purchase"],
+    "Rating_Agency": ["Rating Agency"],
+    "Original_Grade": ["Original Grade"],
+    "Current_Grade": ["Current Grade"],
+    "Date_of_last_Downgrade": ["Date of last Downgrade"],
+    "Remarks": ["Remarks"]
+  },
+  
+  "FlatHeaders": [
+    "No",
+    "Name_of_the_Security",
+    "COI",
+    "Amount",
+    "Date_of_Purchase",
+    "Rating_Agency",
+    "Original_Grade",
+    "Current_Grade",
+    "Date_of_last_Downgrade",
+    "Remarks"
+  ],
+  
+  "Rows": []
+}

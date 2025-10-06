@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 // import { Card } from '../utils/Card';
 import SmartPDFExtractor from '../components/SmartPDFExtractor';
 import SmartTableViewer from '../components/SmartTableViewer';
-import BulkResultsViewer from '../components/BulkResultsViewer';
+// import BulkResultsViewer from '../components/BulkResultsViewer';
 import JobStatusTracker from '../components/JobStatusTracker';
-import TemplateBasedExtractor from '../components/TemplateBasedExtractor';
+// import TemplateBasedExtractor from '../components/TemplateBasedExtractor';
 import PDFSplitterWorkflow from '../components/PDFSplitterWorkflow';
 import apiService from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -14,9 +14,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [currentResults, setCurrentResults] = useState(null);
   const [currentJob, setCurrentJob] = useState(null);
   const [jobResults, setJobResults] = useState(null);
-  const [extractionHistory, setExtractionHistory] = useState([]);
-  const [uploadHistory, setUploadHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('new_template'); // 'new_template', 'template', 'results', 'history', 'upload'
+  const [activeTab, setActiveTab] = useState('new_template'); // 'new_template'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -26,73 +24,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Subscribe to authentication changes and load user-specific history
-  useEffect(() => {
-    if (user) {
-      // Load user-specific extraction history and upload history
-      loadUserHistory(user.id);
-      loadUploadHistory(user.id);
-    } else {
-      // Clear history when user logs out
-      setExtractionHistory([]);
-      setUploadHistory([]);
-      setCurrentResults(null);
-      setCurrentJob(null);
-    }
-  }, [user]);
 
-  // Load user-specific extraction history from backend
-  const loadUserHistory = async (userId) => {
-    try {
-      setIsLoading(true);
-      const history = await apiService.getUserExtractionHistory(userId);
-      console.log('Loaded user history:', history);
-      
-      // Deduplicate entries by ID (keep only the most recent)
-      const deduplicatedHistory = [];
-      const seenIds = new Set();
-      
-      if (history && Array.isArray(history)) {
-        for (const entry of history) {
-          if (!seenIds.has(entry.id)) {
-            seenIds.add(entry.id);
-            deduplicatedHistory.push(entry);
-          }
-        }
-      }
-      
-      console.log('Deduplicated history:', deduplicatedHistory);
-      setExtractionHistory(deduplicatedHistory);
-    } catch (error) {
-      console.error('Failed to load user history:', error);
-      // Don't show error to user for history loading failure
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load user-specific upload history from backend
-  const loadUploadHistory = async (userId) => {
-    try {
-      const history = await apiService.getUploadHistory(userId);
-      console.log('Loaded upload history:', history);
-      setUploadHistory(Array.isArray(history) ? history : []);
-    } catch (error) {
-      console.error('Failed to load upload history:', error);
-      setUploadHistory([]);
-    }
-  };
-
-  // Save extraction to user-specific history
-  const saveToUserHistory = async (extractionData) => {
-    if (!user?.id) return;
-
-    try {
-      await apiService.saveUserExtractionHistory(user.id, extractionData);
-    } catch (error) {
-      console.error('Failed to save extraction to user history:', error);
-    }
-  };
 
   // Handle file selection for new upload
   const handleFileSelect = (event) => {
@@ -122,28 +54,14 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
       
       console.log('Upload response:', response);
 
-      // Save to upload history
-      const uploadData = {
-        id: Date.now().toString(),
-        folder_name: folderName.trim(),
-        file_count: selectedFiles.length,
-        uploaded_at: new Date().toISOString(),
-        status: 'completed',
-        user_id: user.id,
-        files: selectedFiles.map(f => f.name),
-        s3_structure: response.s3_structure || {},
-        gemini_verification: response.gemini_verification || {}
-      };
-
-      await apiService.saveToUploadHistory(uploadData, user.id);
       
       // Refresh upload history
-      await loadUploadHistory(user.id);
+      // await loadUploadHistory(user.id);
 
       // Clear form
       setSelectedFiles([]);
       setFolderName('');
-      setActiveTab('history');
+      // setActiveTab('history');
 
     } catch (error) {
       console.error('Upload failed:', error);
@@ -154,142 +72,6 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
     }
   };
 
-  const handleExtractComplete = async (response, mode, fileCount) => {
-    console.log('Extraction complete:', { response, mode, fileCount });
-
-    if (!user?.id) {
-      setError('User not authenticated. Please log in to save extraction results.');
-      return;
-    }
-
-    if (mode === 'single') {
-      // Single file extraction - immediate results
-      const extractionData = {
-        ...response,
-        extractionMode: mode,
-        fileCount: 1,
-        completedAt: new Date().toISOString(),
-        userId: user.id
-      };
-      
-      setCurrentResults(extractionData);
-      setActiveTab('results');
-
-      // Add to history
-      const historyEntry = {
-        id: response.job_id,
-        timestamp: new Date().toISOString(),
-        filename: response.filename,
-        fileCount: 1,
-        mode: 'single',
-        status: 'completed',
-        results: response,
-        userId: user.id
-      };
-      addToHistory(historyEntry);
-      await saveToUserHistory(historyEntry);
-
-    } else {
-      // Bulk extraction - background processing
-      setCurrentJob(response.job_id);
-      setCurrentResults(null);
-      setActiveTab('results');
-
-      // Add to history
-      const historyEntry = {
-        id: response.job_id,
-        timestamp: new Date().toISOString(),
-        fileCount,
-        mode: 'bulk',
-        status: 'processing',
-        userId: user.id
-      };
-      addToHistory(historyEntry);
-      await saveToUserHistory(historyEntry);
-    }
-
-    setError(null);
-  };
-
-  const addToHistory = (newEntry) => {
-    setExtractionHistory(prev => {
-      // Check if entry already exists
-      const exists = prev.some(entry => entry.id === newEntry.id);
-      if (exists) {
-        return prev; // Don't add duplicate
-      }
-      return [newEntry, ...prev];
-    });
-  };
-
-  const loadHistoryItem = (historyId) => {
-    const item = extractionHistory.find(h => h.id === historyId);
-    if (item && item.results) {
-      setCurrentResults({
-        ...item.results,
-        extractionMode: item.mode,
-        completedAt: item.completedAt || item.timestamp,
-        userId: user?.id
-      });
-      setActiveTab('results');
-    }
-  };
-
-  const getTabNotification = (tab) => {
-    if (tab === 'results') {
-      return currentResults || jobResults || currentJob ? '●' : null;
-    }
-    if (tab === 'history') {
-      return extractionHistory.length;
-    }
-    return null;
-  };
-
-  const clearAllHistory = async () => {
-    if (!user?.id) return;
-    
-    if (window.confirm('Are you sure you want to clear all extraction history?')) {
-      try {
-        await apiService.clearUserExtractionHistory(user.id);
-        setExtractionHistory([]);
-      } catch (error) {
-        console.error('Failed to clear history:', error);
-        setError('Failed to clear history');
-      }
-    }
-  };
-
-  const handleJobComplete = async (jobStatus) => {
-    console.log('Job complete:', jobStatus);
-    setJobResults(jobStatus);
-    setCurrentJob(null);
-
-    if (!user?.id) return;
-
-    // Update history
-    const updatedEntry = {
-      status: 'completed',
-      results: jobStatus.results,
-      completedAt: new Date().toISOString(),
-      userId: user.id
-    };
-
-    setExtractionHistory(prev =>
-      prev.map(entry =>
-        entry.id === jobStatus.id
-          ? { ...entry, ...updatedEntry }
-          : entry
-      )
-    );
-
-    // Show results
-    setCurrentResults({
-      ...jobStatus.results,
-      extractionMode: 'bulk',
-      completedAt: new Date().toISOString(),
-      userId: user.id
-    });
-  };
 
   const handleJobError = (error) => {
     console.error('Job error:', error);
@@ -447,31 +229,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
           >
             � PDF Split & Extract
           </button>
-          <button
-            style={{ ... (activeTab === 'template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
-            onClick={() => setActiveTab('template')}
-          >
-            🎯 Template Extract
-          </button>
-          <button
-            style={{ ... (activeTab === 'upload' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
-            onClick={() => setActiveTab('upload')}
-          >
-            📤 Legacy Upload
-          </button>
-          <button
-            style={{ ... (activeTab === 'results' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
-            onClick={() => setActiveTab('results')}
-          >
-            📊 Results {getTabNotification('results')}
-          </button>
-          <button
-            // style={activeTab === 'history' ? activeTabStyle : inactiveTabStyle}
-            style={{ ... (activeTab === 'history' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
-            onClick={() => setActiveTab('history')}
-          >
-            📚 History {getTabNotification('history') && `(${getTabNotification('history')})`}
-          </button>
+        
         </div>
       </div>
 
@@ -496,11 +254,6 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
               ×
             </button>
           </div>
-        )}
-
-        {/* New PDF Split & Extract Tab */}
-        {activeTab === 'new_template' && (
-          <PDFSplitterWorkflow user={user} />
         )}
 
         {/* Upload Tab */}
@@ -613,191 +366,11 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
         )}
 
         {/* Extract Tab */}
-        {activeTab === 'extract' && (
-          <div>
-            <h3 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>
-              📄 Legacy PDF Extraction
-            </h3>
-            <SmartPDFExtractor
-              onExtractComplete={handleExtractComplete}
-              onError={handleError}
-              user={user}
-            />
-          </div>
+        {/* New PDF Split & Extract Tab */}
+        {activeTab === 'new_template' && (
+          <PDFSplitterWorkflow user={user} />
         )}
 
-        {/* Template-Based Extraction Tab */}
-        {activeTab === 'template' && (
-          <TemplateBasedExtractor />
-        )}
-
-        {/* Results Tab */}
-        {activeTab === 'results' && (
-          <div>
-            {currentJob && (
-              <JobStatusTracker
-                jobId={currentJob}
-                onJobComplete={handleJobComplete}
-                onJobError={handleJobError}
-              />
-            )}
-            
-            {currentResults && (
-              <div>
-                {currentResults.extractionMode === 'single' ? (
-                  <SmartTableViewer
-                    data={currentResults}
-                    filename={currentResults.filename}
-                  />
-                ) : (
-                  <BulkResultsViewer
-                    results={currentResults}
-                  />
-                )}
-              </div>
-            )}
-            
-            {jobResults && (
-              <BulkResultsViewer
-                results={jobResults.results}
-              />
-            )}
-            
-            {!currentResults && !jobResults && !currentJob && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
-                <h3>No Results Yet</h3>
-                <p>Extract some PDFs to see results here</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* History Tab */}
-        {activeTab === 'history' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0, color: 'var(--main-color)' }}>📚 Upload & Extraction History</h3>
-              {isLoading && <span style={{ fontSize: 12, color: 'var(--text-color-light)' }}>Loading...</span>}
-            </div>
-
-            {/* Upload History Section */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>🚀 Upload History (New S3 Structure)</h4>
-              {uploadHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-color-light)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
-                  <p>No uploads yet. Use the Upload tab to start uploading files with Gemini verification.</p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {uploadHistory.map((item, index) => (
-                    <div
-                      key={`upload-${item.id}-${index}`}
-                      style={{
-                        border: '1px solid #e9ecef',
-                        borderRadius: '8px',
-                        padding: '0.75rem 1rem',
-                        background: item.status === 'completed' ? '#f8fff8' : '#fff8e1'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--text-color-dark)', marginBottom: 4 }}>
-                            📁 {item.folder_name}
-                            <span style={{
-                              marginLeft: 8,
-                              fontSize: 12,
-                              padding: '2px 8px',
-                              borderRadius: 12,
-                              background: item.status === 'completed' ? '#d4edda' : '#fff3cd',
-                              color: item.status === 'completed' ? '#155724' : '#856404'
-                            }}>
-                              {item.status}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: 14, color: 'var(--text-color-light)' }}>
-                            {item.file_count} files • {new Date(item.uploaded_at).toLocaleDateString()} {new Date(item.uploaded_at).toLocaleTimeString()}
-                          </div>
-                          {item.files && (
-                            <div style={{ fontSize: 12, color: 'var(--text-color-light)', marginTop: 4 }}>
-                              Files: {item.files.slice(0, 3).join(', ')}
-                              {item.files.length > 3 && ` + ${item.files.length - 3} more`}
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-color-light)' }}>
-                          🚀 New Structure
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Extraction History Section */}
-            <div>
-              <h4 style={{ color: 'var(--main-color)', marginBottom: '1rem' }}>📄 Legacy Extraction History</h4>
-              {extractionHistory.length === 0 && !isLoading ? (
-                <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-color-light)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</div>
-                  <p>No legacy extractions yet</p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {extractionHistory.map((item, index) => (
-                    <div
-                      key={`extraction-${item.id}-${index}`}
-                      style={{
-                        border: '1px solid #e9ecef',
-                        borderRadius: '8px',
-                        padding: '0.75rem 1rem',
-                        cursor: 'pointer',
-                        transition: 'var(--transition)',
-                        background: item.status === 'completed' ? 'var(--background-color)' : 
-                                   item.status === 'failed' ? '#fff5f5' : '#fff8e1'
-                      }}
-                      onClick={() => loadHistoryItem(item.id)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = 'var(--shadow-light)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--text-color-dark)', marginBottom: 4 }}>
-                            {item.filename || `${item.fileCount} files`}
-                            <span style={{
-                              marginLeft: 8,
-                              fontSize: 12,
-                              padding: '2px 8px',
-                              borderRadius: 12,
-                              background: item.status === 'completed' ? '#d4edda' : '#fff3cd',
-                              color: item.status === 'completed' ? '#155724' : '#856404'
-                            }}>
-                              {item.status}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: 14, color: 'var(--text-color-light)' }}>
-                            {new Date(item.timestamp).toLocaleDateString()} • {item.mode}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-color-light)' }}>
-                          📄 Legacy
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

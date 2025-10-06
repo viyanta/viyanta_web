@@ -1,0 +1,42 @@
+{
+  "Form No": "L-14A",
+  "Title": "AGGREGATE VALUE OF INVESTMENTS OTHER THAN LISTED EQUITY SECURITIES AND DERIVATIVE INSTRUMENTS",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Shareholders": {
+      "As_at_Current_Year": ["Shareholders", "As at", "{QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["Shareholders", "As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Policyholders": {
+      "As_at_Current_Year": ["Policyholders", "As at", "{QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["Policyholders", "As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Assets_held_to_cover_Linked": {
+      "As_at_Current_Year": ["Assets held to cover Linked", "As at", "{QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["Assets held to cover Linked", "As at", "{PREVIOUS_QUARTER_END}"]
+    },
+    "Total": {
+      "As_at_Current_Year": ["Total", "As at", "{QUARTER_END_DATE}"],
+      "As_at_Previous_Year": ["Total", "As at", "{PREVIOUS_QUARTER_END}"]
+    }
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Shareholders_As_at_Current_Year",
+    "Shareholders_As_at_Previous_Year",
+    "Policyholders_As_at_Current_Year",
+    "Policyholders_As_at_Previous_Year",
+    "Assets_held_to_cover_Linked_As_at_Current_Year",
+    "Assets_held_to_cover_Linked_As_at_Previous_Year",
+    "Total_As_at_Current_Year",
+    "Total_As_at_Previous_Year"
+  ],
+  "Rows": []
+}

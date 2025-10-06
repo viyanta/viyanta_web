@@ -1,0 +1,22 @@
+{
+  "Form No": "L-16",
+  "Title": "PREMIUM SCHEDULE FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Period": "Quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "PagesUsed": "5-6",
+  "FlatHeaders": [
+    "Particulars",
+    "Cost / Gross Block_As at April 01, 2022",
+    "Cost / Gross Block_Additions",
+    "Cost / Gross Block_deductions",
+    "Cost / Gross Block_As at December 31, 2022",
+    "Depreciation_As at April 01, 2022",
+    "Depreciation_For the period",
+    "Depreciation_on_adjustments",
+    "Depreciation_on_sales",
+    "Depreciation_as at December 31, 2022",
+    "Net Block_As at December 31, 2022",
+    "Net Block_As at March 31, 2021"
+  ],
+  "Rows": []
+}

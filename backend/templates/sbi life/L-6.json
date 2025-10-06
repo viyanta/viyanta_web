@@ -1,0 +1,72 @@
+{
+    "Form No": "L-6-OPERATING",
+    "Title": "OPERATING SCHEDULE FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+    "Period": "Quarter ended {QUARTER_END_DATE}",
+    "Currency": "Rs in Lakhs",
+    "PagesUsed": "17-20",
+    "Headers": {
+        "Particulars": [
+            "Particulars"
+        ],
+        "Unit_Linked_Life": [
+            "Unit_Linked_Life"
+        ],
+        "Unit_Linked_Pension": [
+            "Unit_Linked_Pension"
+        ],
+        "Unit_Linked_Total": [
+            "Unit_Linked_Total"
+        ],
+        "Participating_Life": [
+            "Participating_Life"
+        ],
+        "Participating_Pension": [
+            "Participating_Pension"
+        ],
+        "Participating_Var_Ins": [
+            "Participating_Var_Ins"
+        ],
+        "Participating_Total": [
+            "Participating_Total"
+        ],
+        "Non_Participating_Life": [
+            "Non_Participating_Life"
+        ],
+        "Non_Participating_Annuity": [
+            "Non_Participating_Annuity"
+        ],
+        "Non_Participating_Pension": [
+            "Non_Participating_Pension"
+        ],
+        "Non_Participating_Health": [
+            "Non_Participating_Health"
+        ],
+        "Non_Participating_Var_Ins": [
+            "Non_Participating_Var_Ins"
+        ],
+        "Non_Participating_Total": [
+            "Non_Participating_Total"
+        ],
+        "Grand_Total": [
+            "Grand_Total"
+        ]
+    },
+    "FlatHeaders": [
+        "Particulars",
+        "Unit_Linked_Life",
+        "Unit_Linked_Pension",
+        "Unit_Linked_Total",
+        "Participating_Life",
+        "Participating_Pension",
+        "Participating_Var_Ins",
+        "Participating_Total",
+        "Non_Participating_Life",
+        "Non_Participating_Annuity",
+        "Non_Participating_Pension",
+        "Non_Participating_Health",
+        "Non_Participating_Var_Ins",
+        "Non_Participating_Total",
+        "Grand_Total"
+    ],
+    "Rows": []
+}
