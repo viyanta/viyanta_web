@@ -1,12 +1,27 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from .database import get_file_by_id
-from .shared import get_parquet_file_path
 import os
 
 router = APIRouter()
 UPLOAD_DIR = "uploads"
 CONVERTED_DIR = "converted"
+
+
+def get_parquet_file_path(parquet_filename: str) -> str:
+    """Get the full path to a parquet file, checking both converted and extracted directories"""
+    # Check converted directory first
+    converted_path = os.path.join(CONVERTED_DIR, parquet_filename)
+    if os.path.exists(converted_path):
+        return converted_path
+    
+    # Check extracted directory as fallback
+    extracted_path = os.path.join("extracted", parquet_filename)
+    if os.path.exists(extracted_path):
+        return extracted_path
+    
+    # Return the converted path as default (even if it doesn't exist)
+    return converted_path
 
 
 @router.get("/view/original/{file_id}")
