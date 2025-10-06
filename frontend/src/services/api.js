@@ -171,25 +171,7 @@ class ApiService {
     return response.json();
   }
 
-  async getFiles() {
-    const response = await fetch(`${API_BASE_URL}/files/files`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch files');
-    }
 
-    return response.json();
-  }
-
-  async getStats() {
-    const response = await fetch(`${API_BASE_URL}/files/stats`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch stats');
-    }
-
-    return response.json();
-  }
 
   async downloadOriginalFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/original/${fileId}`);
@@ -304,22 +286,7 @@ class ApiService {
     return response.json();
   }
 
-  // User-specific history management methods
-  async getUserExtractionHistory(userId) {
-    const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      // Don't throw error for missing history, just return empty array
-      return [];
-    }
-
-    return response.json();
-  }
+ 
 
   async saveUserExtractionHistory(userId, extractionData) {
     const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
@@ -837,33 +804,7 @@ class ApiService {
 
   // === UPLOAD HISTORY METHODS ===
   
-  // Get upload history
-  async getUploadHistory(userId = null) {
-    // Get user from localStorage if not provided
-    if (!userId) {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        userId = user.id || user.user_id || 'default_user';
-      } else {
-        userId = 'default_user';
-      }
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/extraction/upload-history/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      // Return empty array if no history found
-      return [];
-    }
-
-    return response.json();
-  }
+ 
 
   // Save upload to history
   async saveToUploadHistory(uploadData, userId = null) {

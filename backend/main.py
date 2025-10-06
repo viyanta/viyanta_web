@@ -2,16 +2,9 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from routes.upload import router as upload_router
 from routes.download import router as download_router
-from routes.preview import router as preview_router
-from routes.stats import router as stats_router
 from routes.dropdown import router as dropdown_router
-from routes.report import router as report_router
 from routes.company_lforms import router as company_l_forms_router
-from routes.extraction import router as extract_router
-from routes.folder_uploader import router as folder_uploader_router
-from routes.master_template import router as template_router
 from routes.pdf_splitter import router as pdf_splitter_router
 from databases.database import Base, engine, get_db
 from routes import company
@@ -52,19 +45,10 @@ async def startup_event():
         print(f"⚠️ Startup event failed: {e}")
 
 # Include routers
-app.include_router(upload_router, prefix="/api/files", tags=["upload"])
 app.include_router(download_router, prefix="/api/files", tags=["download"])
-app.include_router(preview_router, prefix="/api/files", tags=["preview"])
-app.include_router(stats_router, prefix="/api/files", tags=["stats"])
 app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
-app.include_router(report_router, prefix="/api/files", tags=["report"])
 app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
-app.include_router(extract_router, prefix="/api/extraction",
-                   tags=["extraction"])
-app.include_router(folder_uploader_router, prefix="/api",
-                   tags=["folder_uploader"])
-app.include_router(template_router, prefix="/templates", tags=["templates"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
 app.include_router(company.router, prefix="/api")
