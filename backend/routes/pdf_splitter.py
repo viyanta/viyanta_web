@@ -25,7 +25,7 @@ pdf_splitter = PDFSplitterService()
 @router.post("/upload-and-split")
 async def upload_and_split_pdf(
     company_name: str = Form(...),
-    user_id: str = Form(...),
+    # user_id: str = Form(...),
     pdf_file: UploadFile = File(...)
 ):
     """
@@ -38,7 +38,7 @@ async def upload_and_split_pdf(
                 status_code=400, detail="Only PDF files are allowed")
 
         result = pdf_splitter.upload_and_split_pdf(
-            company_name, pdf_file, user_id)
+            company_name, pdf_file)
 
         if not result["success"]:
             raise HTTPException(status_code=500, detail=result["error"])
@@ -47,7 +47,7 @@ async def upload_and_split_pdf(
             "success": True,
             "message": f"PDF uploaded and split into {result['total_splits']} files",
             "data": {
-                "upload_id": result["upload_id"],
+                # "upload_id": result["upload_id"],
                 "company_name": result["company_name"],
                 "pdf_name": result["pdf_name"],
                 "total_splits": result["total_splits"]
@@ -191,7 +191,7 @@ async def extract_form_data(
     company_name: str = Form(...),
     pdf_name: str = Form(...),
     split_filename: str = Form(...),
-    user_id: str = Form(...)
+    # user_id: str = Form(...)
 ):
     """
     Extract form data from a split PDF and correct it with Gemini
@@ -201,7 +201,7 @@ async def extract_form_data(
     try:
 
         print(
-            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}, user={user_id}")
+            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}")
 
         import subprocess
         import sys
@@ -986,8 +986,8 @@ async def extract_form_data(
 
         # Store metadata about the extraction
         extraction_metadata = {
-            "extraction_id": str(uuid.uuid4()),
-            "user_id": user_id,
+            # "extraction_id": str(uuid.uuid4()),
+            # "user_id": user_id,
             "company_name": company_name,
             "pdf_name": pdf_name,
             "split_filename": split_filename,
@@ -1029,7 +1029,7 @@ async def extract_form_data(
 
         return {
             "success": True,
-            "extraction_id": extraction_metadata["extraction_id"],
+            # "extraction_id": extraction_metadata["extraction_id"],
             "data": normalized_data,
             "metadata": extraction_metadata
         }
