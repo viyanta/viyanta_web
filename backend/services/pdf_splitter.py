@@ -15,7 +15,7 @@ class PDFSplitterService:
         self.base_upload_dir.mkdir(exist_ok=True)
         self.base_splits_dir.mkdir(exist_ok=True)
 
-    def upload_and_split_pdf(self, company_name: str, pdf_file, user_id: str) -> Dict:
+    def upload_and_split_pdf(self, company_name: str, pdf_file,) -> Dict:
         """
         Upload PDF and split it according to index extraction
         """
@@ -50,8 +50,8 @@ class PDFSplitterService:
 
             # Create metadata
             metadata = {
-                "upload_id": str(uuid.uuid4()),
-                "user_id": user_id,
+                # "upload_id": str(uuid.uuid4()),
+                # "user_id": user_id,
                 "company_name": company_name,
                 "original_filename": pdf_filename,
                 "original_path": str(pdf_path),
@@ -81,7 +81,7 @@ class PDFSplitterService:
 
             return {
                 "success": True,
-                "upload_id": metadata["upload_id"],
+                # "upload_id": metadata["upload_id"],
                 "company_name": company_name,
                 "pdf_name": pdf_name_clean,
                 "total_splits": len(split_files),
@@ -202,7 +202,7 @@ class PDFSplitterService:
                         pdfs.append({
                             "pdf_name": pdf_folder.name,
                             "total_splits": metadata.get("total_splits", 0),
-                            "upload_id": metadata.get("upload_id"),
+                            # "upload_id": metadata.get("upload_id"),
                             "original_filename": metadata.get("original_filename"),
                             "method": metadata.get("method", "unknown")
                         })
