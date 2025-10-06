@@ -193,7 +193,7 @@ Respond now with that JSON only.
     return prompt
 
 
-def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_name="gemini-1.5-pro",
+def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_name="gemini-2.0-flash",
                         batch_size=20, retries=5, backoff=5.0, page_num=1,
                         extracted_path_stem="extracted"):
     """
@@ -403,7 +403,7 @@ def correct_single_page(template_json, page_obj, pdf_path, pdf_page_num, model_n
 
 
 def verify_and_correct_multipage(template_path: Path, extracted_path: Path, pdf_path: Path, output_path: Path,
-                                 model_name="gemini-1.5-pro", batch_size=20, max_pages=10, retries=5, backoff=5.0):
+                                 model_name="gemini-2.0-flash", batch_size=20, max_pages=10, retries=5, backoff=5.0):
     """
     Corrects multi-page extracted JSON while preserving page structure.
     Uses page-specific PDF content for each JSON page.
@@ -479,7 +479,7 @@ def main():
     parser.add_argument("--extracted", help="Extracted JSON path (single)")
     parser.add_argument("--pdf", help="Split PDF path (single)")
     parser.add_argument("--output", help="Output corrected JSON path (single)")
-    parser.add_argument("--model", default="gemini-1.5-pro",
+    parser.add_argument("--model", default="gemini-2.0-flash",
                         help="Gemini model name")
     parser.add_argument("--retries", type=int, default=5,
                         help="Retries per chunk")

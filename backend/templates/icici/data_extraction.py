@@ -6,9 +6,9 @@ import camelot
 import string
 
 # template for L-1-A-REVENUE (adjust paths as needed)
-TEMPLATE_JSON = r"../templates/sbi/L-1-A-REVENUE.json"
-INPUT_PDF = r"sbi_pdf_splits_auto/L-1-A-REVENUE_ACCOUNT_Revenue_Account_1-4_3_6.pdf"
-OUTPUT_JSON = r"L-1-A-REVENUE_extracted-sbi-v1.json"
+TEMPLATE_JSON = r"../templates/icici/L-20 PROVISIONS SCHEDULE.json"
+INPUT_PDF = r"pdf_splits_auto/L-20-PROVISIONS_SCHEDULE_51_51.pdf"
+OUTPUT_JSON = r"L-20_finalss-extracted.json"
 
 
 def load_template(path):
@@ -126,7 +126,7 @@ def build_header_token_set(flat_headers):
             for w in raw.split():
                 tokens.add(w)
     extras = {"particulars", "schedule", "total", "grand", "linked", "non", "participating",
-              "business", "life", "pension", "health", "var", "ins", "insurance", "annuity"}
+              "business", "life", "pension", "health", "var", "ins", "insurance", "annuity", }
     tokens.update(extras)
     return tokens
 
