@@ -1,0 +1,74 @@
+{
+  "Form": "L-25",
+  "Title": "GEOGRAPHICAL DISTRIBUTION OF BUSINESS",
+  "Period": "",
+  "Currency": "Rs in Lakhs",
+  "PagesUsed": "",
+  "Headers": {
+    "Sl_No": [
+      "Sl.No.",
+      "Sl No"
+    ],
+    "State_Territory": [
+      "State / Union Territory",
+      "State/Territory",
+      "Particulars"
+    ],
+    "Individual_New_Count": [
+      "Individual New Business Count",
+      "New_Business"
+    ],
+    "Individual_New_Premium": [
+      "Individual New Business Premium"
+    ],
+    "Individual_Renewal_Count": [
+      "Individual Renewal Count",
+      "Renewal"
+    ],
+    "Individual_Renewal_Premium": [
+      "Individual Renewal Premium"
+    ],
+    "Individual_Total_Count": [
+      "Individual Total Count"
+    ],
+    "Individual_Total_Premium": [
+      "Individual Total Premium"
+    ],
+    "Group_New_Count": [
+      "Group New Business Count"
+    ],
+    "Group_New_Premium": [
+      "Group New Business Premium"
+    ],
+    "Group_Renewal_Count": [
+      "Group Renewal Count"
+    ],
+    "Group_Renewal_Premium": [
+      "Group Renewal Premium"
+    ],
+    "Group_Total_Count": [
+      "Group Total Count"
+    ],
+    "Group_Total_Premium": [
+      "Group Total Premium",
+      "Total"
+    ]
+  },
+  "FlatHeaders": [
+    "Sl_No",
+    "State_Territory",
+    "Individual_New_Count",
+    "Individual_New_Premium",
+    "Individual_Renewal_Count",
+    "Individual_Renewal_Premium",
+    "Individual_Total_Count",
+    "Individual_Total_Premium",
+    "Group_New_Count",
+    "Group_New_Premium",
+    "Group_Renewal_Count",
+    "Group_Renewal_Premium",
+    "Group_Total_Count",
+    "Group_Total_Premium"
+  ],
+  "Rows": []
+}

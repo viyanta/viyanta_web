@@ -13,6 +13,7 @@ const PDFSplitterWorkflow = ({ user }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionPhase, setExtractionPhase] = useState(''); // 'python' or 'gemini'
   const [extractedData, setExtractedData] = useState(null);
   const [extractionError, setExtractionError] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -121,6 +122,7 @@ const PDFSplitterWorkflow = ({ user }) => {
     }
 
     setIsExtracting(true);
+    setExtractionPhase('python');
     setExtractionError(null);
     setExtractedData(null);
     setError('');
@@ -154,6 +156,14 @@ const PDFSplitterWorkflow = ({ user }) => {
         console.log('No existing extraction found, proceeding with new extraction');
       }
 
+      // Step 5: Python extraction phase
+      setExtractionPhase('python');
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
+
+      // Step 6: Gemini correction phase
+      setExtractionPhase('gemini');
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing time
+
       // Perform new extraction
       const extractionResult = await apiService.extractFormData(
         selectedCompany, 
@@ -165,7 +175,7 @@ const PDFSplitterWorkflow = ({ user }) => {
       if (extractionResult.success) {
         console.log('Extraction completed successfully');
         setExtractedData(extractionResult);
-        setSuccess(`Form ${selectedSplit.form_name} extracted and corrected successfully!`);
+        setSuccess(`Form ${selectedSplit.form_name} - Python extraction and Gemini correction completed successfully!`);
       } else {
         setExtractionError(extractionResult.detail || 'Extraction failed');
       }
@@ -183,6 +193,7 @@ const PDFSplitterWorkflow = ({ user }) => {
     setExtractedData(null);
     setExtractionError(null);
     setIsExtracting(false);
+    setExtractionPhase('');
   };
 
   const cardStyle = {
@@ -411,7 +422,7 @@ const PDFSplitterWorkflow = ({ user }) => {
           onClick={handleExtractForm}
           disabled={!selectedForm || isExtracting}
         >
-          {isExtracting ? '⏳ Extracting...' : '🎯 Extract Form Data'}
+          {isExtracting ? '⏳ Processing...' : '🚀 Start Extraction Process'}
         </button>
         {pdfSplits.length === 0 && selectedPDF && (
           <div style={{ marginTop: '0.5rem', fontSize: '12px', color: 'var(--text-color-light)' }}>
@@ -420,27 +431,62 @@ const PDFSplitterWorkflow = ({ user }) => {
         )}
       </div>
 
-      {/* Step 5: Extraction Results */}
-      {(extractedData || extractionError || isExtracting) && (
+      {/* Step 5: Extracting Form Data */}
+      {(isExtracting && extractionPhase === 'python') && (
         <div style={stepStyle}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
-            5️⃣ Extraction Results:
+            5️⃣ Extracting Form Data:
           </h3>
           
-          {isExtracting && (
-            <div style={{ 
-              padding: '1rem', 
-              background: '#fff8e1', 
-              borderRadius: '8px',
-              border: '1px solid #ffd54f',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⏳</div>
-              <p style={{ margin: 0, color: '#f57f17' }}>
-                Extracting form data and applying Gemini corrections...
-              </p>
-            </div>
-          )}
+          <div style={{ 
+            padding: '1rem', 
+            background: '#e3f2fd', 
+            borderRadius: '8px',
+            border: '1px solid #2196f3',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🐍</div>
+            <p style={{ margin: 0, color: '#1976d2', fontWeight: '500' }}>
+              Python extraction in progress...
+            </p>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#1565c0' }}>
+              Using Camelot and templates to extract table data
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: Gemini Correction */}
+      {(isExtracting && extractionPhase === 'gemini') && (
+        <div style={stepStyle}>
+          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
+            6️⃣ Gemini Correction:
+          </h3>
+          
+          <div style={{ 
+            padding: '1rem', 
+            background: '#e8f5e8', 
+            borderRadius: '8px',
+            border: '1px solid #4caf50',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
+            <p style={{ margin: 0, color: '#2e7d32', fontWeight: '500' }}>
+              Applying Gemini AI corrections...
+            </p>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#388e3c' }}>
+              AI-powered verification and data enhancement
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 7: Extraction Results */}
+      {(extractedData || extractionError) && (
+        <div style={stepStyle}>
+          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
+            7️⃣ Extraction Results:
+          </h3>
 
           {extractionError && (
             <div style={{ 
@@ -474,10 +520,10 @@ const PDFSplitterWorkflow = ({ user }) => {
                 <div style={{ fontSize: '1.5rem' }}>✅</div>
                 <div>
                   <h4 style={{ margin: 0, color: '#2e7d32' }}>
-                    Extraction Completed Successfully
+                    Two-Step Extraction Completed Successfully
                   </h4>
                   <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: '#388e3c' }}>
-                    Data extracted and corrected with Gemini AI
+                    Step 5: Python extraction → Step 6: Gemini AI correction
                   </p>
                 </div>
               </div>

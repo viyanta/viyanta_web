@@ -1,0 +1,41 @@
+{
+  "Form No": "L-9A",
+  "Title": "DETAILS OF EQUITY HOLDINGS OF INSURERS",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PARTICULARS OF THE SHAREHOLDING PATTERN",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Statement_Date": "As at Quarter Ended {QUARTER_END_DATE}",
+  "Currency": "Rs. In Lakhs",
+  "Headers": {
+    "SL_No": ["SL No", "(Column I)"],
+    "CATEGORY": ["CATEGORY", "(Column II)"],
+    "No_of_Investors": ["No. of", "Investors"],
+    "No_of_shares_held": ["No of shares held", "(Column III)"],
+    "Percentage_of_shareholdings": ["% of shareholdings", "(Column IV)"],
+    "Paid_up_equity_Rs_In_Lakhs": ["Paid up equity", "(Rs. In Lakhs)", "(Column V)"],
+    "Shares_pledged_or_otherwise_encumbered": {
+      "Number_of_shares_VI": ["Number of shares", "(VI)"],
+      "As_a_percentage_of_Total_shares_held_VII": ["As a percentage of", "Total shares held", "(VII) = (VI)/(III)*100"]
+    },
+    "Shares_under_Lock_in_period": {
+      "Number_of_shares_VIII": ["Number of shares", "(VIII)"],
+      "As_a_percentage_of_Total_shares_held_IX": ["As a percentage of", "Total shares held", "(IX) = (VIII)/(III)*100"]
+    }
+  },
+  
+  "FlatHeaders": [
+    "SL_No",
+    "CATEGORY",
+    "No_of_Investors",
+    "No_of_shares_held",
+    "Percentage_of_shareholdings",
+    "Paid_up_equity_Rs_In_Lakhs",
+    "Shares_pledged_or_otherwise_encumbered_Number_of_shares_VI",
+    "Shares_pledged_or_otherwise_encumbered_As_a_percentage_of_Total_shares_held_VII",
+    "Shares_under_Lock_in_period_Number_of_shares_VIII",
+    "Shares_under_Lock_in_period_As_a_percentage_of_Total_shares_held_IX"
+  ],
+  
+  "Rows": []
+}

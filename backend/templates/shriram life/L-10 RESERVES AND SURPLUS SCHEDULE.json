@@ -1,0 +1,25 @@
+{
+  "Form No": "L-10",
+  "Title": "RESERVES AND SURPLUS SCHEDULE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "RESERVES AND SURPLUS",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Statement_Date": "As at 31st December, {QUARTER_END_DATE}",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Headers": {
+    "S_No": ["S.No."],
+    "Particulars": ["Particulars"],
+    "As_at_Current_Year": ["As at 31st", "December, {QUARTER_END_DATE}"],
+    "As_at_Previous_Year": ["As at 31st", "December, {PREVIOUS_QUARTER_END}"]
+  },
+  
+  "FlatHeaders": [
+    "S_No",
+    "Particulars",
+    "As_at_Current_Year",
+    "As_at_Previous_Year"
+  ],
+  
+  "Rows": []
+}

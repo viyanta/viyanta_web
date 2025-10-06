@@ -1,0 +1,182 @@
+{
+  "Form No": "L-39",
+  "Title": "DATA ON SETTLEMENT OF CLAIMS",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Data on Settlement of Claims",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Rs. In Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "INDIVIDUAL",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "Types_of_Claims": [
+          "Types of Claims"
+        ],
+        "Ageing_of_Claims_No_of_claims_On_or_before_maturity": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "On or before",
+          "maturity"
+        ],
+        "Ageing_of_Claims_No_of_claims_1_month": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "1",
+          "month"
+        ],
+        "Ageing_of_Claims_No_of_claims_1_3_months": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "1-3",
+          "months"
+        ],
+        "Ageing_of_Claims_No_of_claims_3_6_months": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "3-6",
+          "months"
+        ],
+        "Ageing_of_Claims_No_of_claims_6_months_1_year": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "6 months - 1",
+          "year"
+        ],
+        "Ageing_of_Claims_No_of_claims_Greater_than_1_year": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "> 1",
+          "year"
+        ],
+        "Total_No_of_claims_paid": [
+          "Total No.",
+          "of claims",
+          "paid"
+        ],
+        "Total_amount_of_claims_paid_Rs_In_Lakhs": [
+          "Total amount of",
+          "claims paid (Rs.",
+          "In Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Types_of_Claims",
+        "Ageing_of_Claims_No_of_claims_On_or_before_maturity",
+        "Ageing_of_Claims_No_of_claims_1_month",
+        "Ageing_of_Claims_No_of_claims_1_3_months",
+        "Ageing_of_Claims_No_of_claims_3_6_months",
+        "Ageing_of_Claims_No_of_claims_6_months_1_year",
+        "Ageing_of_Claims_No_of_claims_Greater_than_1_year",
+        "Total_No_of_claims_paid",
+        "Total_amount_of_claims_paid_Rs_In_Lakhs"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "GROUP",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "Types_of_Claims": [
+          "Types of Claims"
+        ],
+        "Ageing_of_Claims_No_of_claims_On_or_before_maturity": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "On or before",
+          "maturity"
+        ],
+        "Ageing_of_Claims_No_of_claims_1_month": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "1",
+          "month"
+        ],
+        "Ageing_of_Claims_No_of_claims_1_3_months": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "1-3",
+          "months"
+        ],
+        "Ageing_of_Claims_No_of_claims_3_6_months": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "3-6",
+          "months"
+        ],
+        "Ageing_of_Claims_No_of_claims_6_months_1_year": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "6 months - 1",
+          "year"
+        ],
+        "Ageing_of_Claims_No_of_claims_Greater_than_1_year": [
+          "Ageing of Claims",
+          "No. of claims paid",
+          "> 1",
+          "year"
+        ],
+        "Total_No_of_claims_paid": [
+          "Total No.",
+          "of claims",
+          "paid"
+        ],
+        "Total_amount_of_claims_paid_Rs_In_Lakhs": [
+          "Total amount of",
+          "claims paid (Rs.",
+          "In Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Types_of_Claims",
+        "Ageing_of_Claims_No_of_claims_On_or_before_maturity",
+        "Ageing_of_Claims_No_of_claims_1_month",
+        "Ageing_of_Claims_No_of_claims_1_3_months",
+        "Ageing_of_Claims_No_of_claims_3_6_months",
+        "Ageing_of_Claims_No_of_claims_6_months_1_year",
+        "Ageing_of_Claims_No_of_claims_Greater_than_1_year",
+        "Total_No_of_claims_paid",
+        "Total_amount_of_claims_paid_Rs_In_Lakhs"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

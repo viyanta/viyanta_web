@@ -1,0 +1,31 @@
+{
+  "Form No": "L-9",
+  "Title": "FORM L-9 Shareholding Pattern",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Certification": "As certified by the Management",
+  "Currency": "Shares",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Shareholder": ["Shareholder"],
+    "As_at_Current_Year": {
+      "Number_of_Shares": ["As at", "{QUARTER_END_DATE}", "Number of Shares"],
+      "Percentage_of_Holding": ["As at", "{QUARTER_END_DATE}", "% of Holding"]
+    },
+    "As_at_Previous_Year": {
+      "Number_of_Shares": ["As at", "{PREVIOUS_QUARTER_END}", "Number of Shares"],
+      "Percentage_of_Holding": ["As at", "{PREVIOUS_QUARTER_END}", "% of Holding"]
+    }
+  },
+  "FlatHeaders": [
+    "Shareholder",
+    "As_at_Current_Year_Number_of_Shares",
+    "As_at_Current_Year_Percentage_of_Holding",
+    "As_at_Previous_Year_Number_of_Shares",
+    "As_at_Previous_Year_Percentage_of_Holding"
+  ],
+  "Rows": []
+}

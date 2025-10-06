@@ -1,0 +1,28 @@
+{
+  "Form": "L-3",
+  "Title": "BALANCE SHEET AS AT {QUARTER_END_DATE}",
+  "Period": "As at {QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "PagesUsed": "4",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule": [
+      "Schedule"
+    ],
+    "As_at_Current": [
+      "As_at_Current"
+    ],
+    "As_at_Previous": [
+      "As_at_Previous"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "As_at_Current",
+    "As_at_Previous"
+  ],
+  "Rows": []
+}

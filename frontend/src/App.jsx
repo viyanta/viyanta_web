@@ -10,7 +10,7 @@ import { StatsProvider } from './context/StatsContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import Lform from './pages/Lform.jsx'
 import DMML2Form from './pages/DMML2Form.jsx'
-import PDFExtraction from './pages/PDFExtraction.jsx'
+// import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
@@ -101,7 +101,7 @@ function App() {
                             <SmartPDFExtraction onMenuClick={openSidebar} />
                           </AdminRoute>
                         } />
-                        <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} />
+                        {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
                         <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
                         <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
                       </Routes>

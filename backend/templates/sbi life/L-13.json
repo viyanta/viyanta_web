@@ -1,0 +1,28 @@
+{
+  "Form No": "L-13",
+  "Title": "Reserves and Surplus Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Main_Title": "RESERVES AND SURPLUS",
+  "Period": "As at {CURRENT_DATE}",
+  "Previous_Period": "As at {PREVIOUS_DATE}",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "As_at_{CURRENT_DATE}": [
+      "As at {CURRENT_DATE}"
+    ],
+    "As_at_{PREVIOUS_DATE}": [
+      "As at {PREVIOUS_DATE}"
+    ]
+  },
+  "FlatHeaders": [
+    "sr. no.",
+    "Particulars",
+    "As_at_Current",
+    "As_at_Previous"
+  ],
+  "Rows": []
+}

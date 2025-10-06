@@ -1,0 +1,96 @@
+{
+  "Form No": "L-11",
+  "Title": "BORROWINGS SCHEDULE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Currency": "₹ in Lakhs",
+  "Borrowings_Schedule_Table": {
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Particulars",
+      "As_at_Current_Date_QUARTER_END_DATE",
+      "As_at_Previous_Date_PREVIOUS_QUARTER_END"
+    ],
+    "Rows": []
+  },
+  "Notes": {
+    "a": "The extent to which the borrowings are secured shall be separately disclosed stating the nature of the security under each sub-head, as given below.",
+    "b": "Amounts due within 12 months from the date of Balance Sheet should be shown separately.",
+    "c": "Debentures include NCDs issued as per IRDAI (Other Forms of Capital) Regulations, 2015"
+  },
+  "Disclosure_for_Secured_Borrowings_Table": {
+    "Title": "DISCLOSURE FOR SECURED BORROWINGS (Refer Note a)",
+    "Headers": {
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Source_Instrument": [
+        "Source / Instrument"
+      ],
+      "Amount_Borrowed": [
+        "Amount Borrowed"
+      ],
+      "Amount_of_Security": [
+        "Amount of Security"
+      ],
+      "Nature_of_Security": [
+        "Nature of Security"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Source_Instrument",
+      "Amount_Borrowed",
+      "Amount_of_Security",
+      "Nature_of_Security"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

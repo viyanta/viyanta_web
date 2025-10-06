@@ -1,0 +1,32 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "Type": [
+      "Type"
+    ],
+    "Category_of_business": [
+      "Category of business"
+    ],
+    "Mathematical_Reserves_Current": [
+      "Mathematical Reserves as at",
+      "{QUARTER_END_DATE}"
+    ],
+    "Mathematical_Reserves_Previous": [
+      "Mathematical Reserves as at",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_Current",
+    "Mathematical_Reserves_Previous"
+  ],
+  "Rows": []
+}

@@ -1,0 +1,193 @@
+{
+  "Form No": "L-40",
+  "Title": "QUARTERLY CLAIMS DATA FOR LIFE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Reporting_Period": "For the Quarter ended {QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Death_Claims_Section": {
+    "Title": "Death Claims",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": {
+        "Claims_O_S_at_the_beginning_of_the_period": [
+          "Claims O/S at the beginning of the period¹"
+        ],
+        "Claims_Intimated_Booked_during_the_period": {
+          "Less_than_3_years_from_the_date_of_acceptance_of_risk": [
+            "Less than 3 years from the date of acceptance of risk"
+          ],
+          "Greater_than_3_years_from_the_date_of_acceptance_of_risk": [
+            "Greater than 3 years from the date of acceptance of risk"
+          ]
+        },
+        "Claims_Paid_during_the_period": [
+          "Claims Paid during the period"
+        ],
+        "Claims_Repudiated_during_the_period": [
+          "Claims Repudiated during the period²"
+        ],
+        "Claims_Rejected": [
+          "Claims Rejected³"
+        ],
+        "Unclaimed": [
+          "Unclaimed⁴"
+        ],
+        "Claims_O_S_at_End_of_the_period": [
+          "Claims O/S at End of the period"
+        ],
+        "Outstanding_Claims": {
+          "Less_than_3months": [
+            "Less than 3months"
+          ],
+          "3_months_and_less_than_6_months": [
+            "3 months and less than 6 months"
+          ],
+          "6_months_and_less_than_1_year": [
+            "6 months and less than 1 year"
+          ],
+          "1year_and_above": [
+            "1year and above"
+          ]
+        }
+      },
+      "No_of_claims_only": {
+        "Individual": [
+          "Individual"
+        ],
+        "Group": [
+          "Group"
+        ]
+      }
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience_Claims_O_S_at_the_beginning_of_the_period",
+      "Claims_Experience_Claims_Intimated_Booked_during_the_period_Less_than_3_years_from_the_date_of_acceptance_of_risk",
+      "Claims_Experience_Claims_Intimated_Booked_during_the_period_Greater_than_3_years_from_the_date_of_acceptance_of_risk",
+      "Claims_Experience_Claims_Paid_during_the_period",
+      "Claims_Experience_Claims_Repudiated_during_the_period",
+      "Claims_Experience_Claims_Rejected",
+      "Claims_Experience_Unclaimed",
+      "Claims_Experience_Claims_O_S_at_End_of_the_period",
+      "Claims_Experience_Outstanding_Claims_Less_than_3months",
+      "Claims_Experience_Outstanding_Claims_3_months_and_less_than_6_months",
+      "Claims_Experience_Outstanding_Claims_6_months_and_less_than_1_year",
+      "Claims_Experience_Outstanding_Claims_1year_and_above",
+      "No_of_claims_only_Individual",
+      "No_of_claims_only_Group"
+    ],
+    "Rows": []
+  },
+  "Individual_Claims_Section": {
+    "Title": "Individual Claims",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": {
+        "Claims_O_S_at_the_beginning_of_the_period": [
+          "Claims O/S at the beginning of the period"
+        ],
+        "Claims_Booked_during_the_period": [
+          "Claims Booked during the period"
+        ],
+        "Claims_Paid_during_the_period": [
+          "Claims Paid during the period"
+        ],
+        "Unclaimed": [
+          "Unclaimed³"
+        ],
+        "Claims_O_S_at_End_of_the_period": [
+          "Claims O/S at End of the period"
+        ],
+        "Outstanding_Claims_Individual": {
+          "Less_than_3months": [
+            "Less than 3months"
+          ],
+          "3_months_and_less_than_6_months": [
+            "3 months and less than 6 months"
+          ],
+          "6_months_and_less_than_1_year": [
+            "6 months and less than 1 year"
+          ],
+          "1year_and_above": [
+            "1year and above"
+          ]
+        }
+      },
+      "No_of_claims_only": {
+        "Maturity": [
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Survival",
+          "Benefit¹"
+        ],
+        "Annuities_Pension": [
+          "Annuities/",
+          "Pension"
+        ],
+        "Surrender": [
+          "Surrender"
+        ],
+        "Other_Benefits": [
+          "Other",
+          "Benefits²"
+        ]
+      }
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience_Claims_O_S_at_the_beginning_of_the_period",
+      "Claims_Experience_Claims_Booked_during_the_period",
+      "Claims_Experience_Claims_Paid_during_the_period",
+      "Claims_Experience_Unclaimed",
+      "Claims_Experience_Claims_O_S_at_End_of_the_period",
+      "Claims_Experience_Outstanding_Claims_Individual_Less_than_3months",
+      "Claims_Experience_Outstanding_Claims_Individual_3_months_and_less_than_6_months",
+      "Claims_Experience_Outstanding_Claims_Individual_6_months_and_less_than_1_year",
+      "Claims_Experience_Outstanding_Claims_Individual_1year_and_above",
+      "No_of_claims_only_Maturity",
+      "No_of_claims_only_Survival_Benefit",
+      "No_of_claims_only_Annuities_Pension",
+      "No_of_claims_only_Surrender",
+      "No_of_claims_only_Other_Benefits"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

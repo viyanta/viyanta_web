@@ -1,0 +1,116 @@
+{
+  "Form No": "L-37",
+  "Title": "BUSINESS ACQUISITION THROUGH DIFFERENT CHANNELS (GROUP)",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "Business Acquisition through Different Channels (Group)",
+      "Headers": {
+        "Sl_No": [
+          "Sl.No."
+        ],
+        "Channels": [
+          "Channels"
+        ],
+        "Current_Quarter_No_of_Schemes": [
+          "For the Quarter - Current Year",
+          "No. of Schemes"
+        ],
+        "Current_Quarter_No_of_Lives_Covered": [
+          "For the Quarter - Current Year",
+          "No. of Lives Covered"
+        ],
+        "Current_Quarter_Premium": [
+          "For the Quarter - Current Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Previous_Quarter_No_of_Schemes": [
+          "For the Quarter - Previous Year",
+          "No. of Schemes"
+        ],
+        "Previous_Quarter_No_of_Lives_Covered": [
+          "For the Quarter - Previous Year",
+          "No. of Lives Covered"
+        ],
+        "Previous_Quarter_Premium": [
+          "For the Quarter - Previous Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Current_YTD_No_of_Schemes": [
+          "Up to the Quarter - Current Year",
+          "No. of Schemes"
+        ],
+        "Current_YTD_No_of_Lives_Covered": [
+          "Up to the Quarter - Current Year",
+          "No. of Lives Covered"
+        ],
+        "Current_YTD_Premium": [
+          "Up to the Quarter - Current Year",
+          "Premium (Rs. Lakhs)"
+        ],
+        "Previous_YTD_No_of_Schemes": [
+          "Up to the Quarter - Previous Year",
+          "No. of Schemes"
+        ],
+        "Previous_YTD_No_of_Lives_Covered": [
+          "Up to the Quarter - Previous Year",
+          "No. of Lives Covered"
+        ],
+        "Previous_YTD_Premium": [
+          "Up to the Quarter - Previous Year",
+          "Premium (Rs. Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl.No.",
+        "Channels",
+        "For the Quarter - Current Year - No. of Schemes",
+        "For the Quarter - Current Year - No. of Lives Covered",
+        "For the Quarter - Current Year - Premium (Rs. Lakhs)",
+        "For the Quarter - Previous Year - No. of Schemes",
+        "For the Quarter - Previous Year - No. of Lives Covered",
+        "For the Quarter - Previous Year - Premium (Rs. Lakhs)",
+        "Up to the Quarter - Current Year - No. of Schemes",
+        "Up to the Quarter - Current Year - No. of Lives Covered",
+        "Up to the Quarter - Current Year - Premium (Rs. Lakhs)",
+        "Up to the Quarter - Previous Year - No. of Schemes",
+        "Up to the Quarter - Previous Year - No. of Lives Covered",
+        "Up to the Quarter - Previous Year - Premium (Rs. Lakhs)"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}
