@@ -1,0 +1,29 @@
+{
+  "Form No": "L-2-A-PL",
+  "Title": "PROFIT AND LOSS ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Subtitle": "SHAREHOLDERS' ACCOUNT (NON-TECHNICAL ACCOUNT)",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Period": "Quarter ended {QUARTER_END_DATE}",
+  "Currency": "₹ in lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Schedule"],
+    "For_the_quarter_Current_Year": ["For the quarter ended", "{QUARTER_END_DATE}"],
+    "For_the_period_Current_Year": ["For the period ended", "{QUARTER_END_DATE}"],
+    "For_the_quarter_Previous_Year": ["For the quarter ended", "{PREVIOUS_QUARTER_END}"],
+    "For_the_period_Previous_Year": ["For the period ended", "{PREVIOUS_QUARTER_END}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "For_the_quarter_Current_Year",
+    "For_the_period_Current_Year",
+    "For_the_quarter_Previous_Year",
+    "For_the_period_Previous_Year"
+  ],
+  "Rows": []
+}

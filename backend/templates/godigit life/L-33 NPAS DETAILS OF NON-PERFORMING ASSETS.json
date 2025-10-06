@@ -1,0 +1,83 @@
+{
+  "Form No": "L-33",
+  "Title": "NPAS - DETAILS OF NON-PERFORMING ASSETS",
+  "Company": "Go Digit Life Insurance Limited",
+  "Fund": "Life Fund",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Statement_Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "No": [
+      "NO"
+    ],
+    "Particulars": [
+      "PARTICULARS"
+    ],
+    "Bonds_Debentures": {
+      "As_on_Current_Date": [
+        "As on",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_on_Previous_Date": [
+        "As on",
+        "{PREVIOUS_QUARTER_END_DATE}"
+      ]
+    },
+    "Loans": {
+      "As_on_Current_Date": [
+        "As on",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_on_Previous_Date": [
+        "As on",
+        "{PREVIOUS_QUARTER_END_DATE}"
+      ]
+    },
+    "Other_Debt_instruments": {
+      "As_on_Current_Date": [
+        "As on",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_on_Previous_Date": [
+        "As on",
+        "{PREVIOUS_QUARTER_END_DATE}"
+      ]
+    },
+    "All_Other_Assets": {
+      "As_on_Current_Date": [
+        "As on",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_on_Previous_Date": [
+        "As on",
+        "{PREVIOUS_QUARTER_END_DATE}"
+      ]
+    },
+    "TOTAL": {
+      "As_on_Current_Date": [
+        "As on",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_on_Previous_Date": [
+        "As on",
+        "{PREVIOUS_QUARTER_END_DATE}"
+      ]
+    }
+  },
+  "FlatHeaders": [
+    "No",
+    "Particulars",
+    "Bonds_Debentures_As_on_Current_Date",
+    "Bonds_Debentures_As_on_Previous_Date",
+    "Loans_As_on_Current_Date",
+    "Loans_As_on_Previous_Date",
+    "Other_Debt_instruments_As_on_Current_Date",
+    "Other_Debt_instruments_As_on_Previous_Date",
+    "All_Other_Assets_As_on_Current_Date",
+    "All_Other_Assets_As_on_Previous_Date",
+    "TOTAL_As_on_Current_Date",
+    "TOTAL_As_on_Previous_Date"
+  ],
+  "Rows": []
+}

@@ -1,0 +1,98 @@
+{
+  "Form No": "L-11",
+  "Title": "BORROWINGS SCHEDULE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "BORROWINGS",
+      "Period": "As at 31st December, {QUARTER_END_DATE}",
+      "Previous_Period": "As at 31st December, {PREVIOUS_QUARTER_END}",
+      "Headers": {
+        "S_No": [
+          "S.",
+          "No."
+        ],
+        "Particulars": [
+          "Particulars"
+        ],
+        "As_at_Current_Year": [
+          "As at 31st",
+          "December, {QUARTER_END_DATE}"
+        ],
+        "As_at_Previous_Year": [
+          "As at 31st",
+          "December, {PREVIOUS_QUARTER_END}"
+        ]
+      },
+      "FlatHeaders": [
+        "S_No",
+        "Particulars",
+        "As_at_Current_Year",
+        "As_at_Previous_Year"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "DISCLOSURE FOR SECURED BORROWINGS",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "Source_Instrument": [
+          "Source / Instrument"
+        ],
+        "Amount_Borrowed": [
+          "Amount Borrowed"
+        ],
+        "Amount_of_Security": [
+          "Amount of Security"
+        ],
+        "Nature_of_Security": [
+          "Nature of Security"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Source_Instrument",
+        "Amount_Borrowed",
+        "Amount_of_Security",
+        "Nature_of_Security"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

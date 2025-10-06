@@ -1,0 +1,171 @@
+{
+  "Form No": "L-40",
+  "Title": "QUARTERLY CLAIMS DATA FOR LIFE",
+  "Company": "ICICI Prudential Life Insurance Co. Ltd.",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Quarter_End": "Quarter End {QUARTER_END_DATE}",
+  "Note": "No. of claims only",
+  "Death_Claims": {
+    "Title": "Death Claims",
+    "Note": "No. of claims only",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
+      "Individual": [
+        "Individual"
+      ],
+      "Group": [
+        "Group"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Individual",
+      "Group"
+    ],
+    "Rows": []
+  },
+  "Individual_Claims": {
+    "Title": "Individual Claims",
+    "Note": "No. of claims only",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
+      "Maturity": [
+        "Maturity"
+      ],
+      "Survival_Benefit": [
+        "Survival Benefit"
+      ],
+      "Annuities_Pension": [
+        "Annuities/Pension"
+      ],
+      "Surrender": [
+        "Surrender"
+      ],
+      "Health": [
+        "Health"
+      ],
+      "Other_Benefits": [
+        "Other Benefits"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Health",
+      "Other_Benefits"
+    ],
+    "Rows": []
+  },
+  "Nine_Month_End_Death_Claims": {
+    "Title": "Nine Month End Death Claims",
+    "Note": "No. of claims only",
+    "Period": "Nine Month End {NINE_MONTHS_END_DATE}",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
+      "Individual": [
+        "Individual"
+      ],
+      "Group": [
+        "Group"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Individual",
+      "Group"
+    ],
+    "Rows": []
+  },
+  "Nine_Month_End_Individual_Claims": {
+    "Title": "Nine Month End Individual Claims",
+    "Note": "No. of claims only",
+    "Period": "Nine Month End {NINE_MONTHS_END_DATE}",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Claims_Experience": [
+        "Claims Experience"
+      ],
+      "Maturity": [
+        "Maturity"
+      ],
+      "Survival_Benefit": [
+        "Survival Benefit"
+      ],
+      "Annuities_Pension": [
+        "Annuities/Pension"
+      ],
+      "Surrender": [
+        "Surrender"
+      ],
+      "Health": [
+        "Health"
+      ],
+      "Other_Benefits": [
+        "Other Benefits"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Claims_Experience",
+      "Maturity",
+      "Survival_Benefit",
+      "Annuities_Pension",
+      "Surrender",
+      "Health",
+      "Other_Benefits"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

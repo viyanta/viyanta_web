@@ -1,0 +1,102 @@
+{
+  "Form No": "L-1-A-RA",
+  "Title": "CONDENSED CONSOLIDATED REVENUE ACCOUNT",
+  "SubTitle": "Policyholders' Account (Technical Account)",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "For the quarter ended {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule_Ref_Form_No": [
+      "Schedule Ref.",
+      "Form No."
+    ],
+    "Linked_Business": {
+      "Life": [
+        "Life"
+      ],
+      "Pension": [
+        "Pension"
+      ],
+      "Health": [
+        "Health"
+      ],
+      "Variable_Insurance": [
+        "Variable Insurance"
+      ],
+      "Total": [
+        "Total"
+      ]
+    },
+    "Non_Linked_Business": {
+      "Participating": {
+        "Life": [
+          "Life"
+        ],
+        "Annuity": [
+          "Annuity"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
+      },
+      "Non_Participating": {
+        "Life": [
+          "Life"
+        ],
+        "Annuity": [
+          "Annuity"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
+      }
+    },
+    "Grand_Total": [
+      "Grand Total"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "LINKED_BUSINESS_LIFE",
+    "LINKED_BUSINESS_PENSION",
+    "LINKED_BUSINESS_HEALTH",
+    "LINKED_BUSINESS_VAR_INS",
+    "LINKED_BUSINESS_TOTAL",
+    "NON_LINKED_BUSINESS_PARTICIPATING_LIFE",
+    "NON_LINKED_BUSINESS_PARTICIPATING_ANNUITY",
+    "NON_LINKED_BUSINESS_PARTICIPATING_PENSION",
+    "NON_LINKED_BUSINESS_PARTICIPATING_HEALTH",
+    "NON_LINKED_BUSINESS_PARTICIPATING_VAR_INS",
+    "NON_LINKED_BUSINESS_PARTICIPATING_TOTAL",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_LIFE",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_ANNUITY",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_PENSION",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_HEALTH",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_VAR_INS",
+    "NON_LINKED_BUSINESS_NON_PARTICIPATING_TOTAL",
+    "GRAND_TOTAL"
+  ],
+  "Rows": []
+}

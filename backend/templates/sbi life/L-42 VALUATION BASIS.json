@@ -1,0 +1,89 @@
+{
+  "Form No": "L-42",
+  "Title": "Valuation Basis (Frequency - Quarterly and Annual)",
+  "Insurer": "SBI Life Insurance Company Limited",
+  "Quarter End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Type_of_Business": "INDIVIDUAL",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_business": ["Category of business"],
+    "Interest_Rate": {
+      "Main": ["Interest Rate"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Mortality_Rate": {
+      "Main": ["Mortality Rate"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for the", "year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Morbidity_Rate": {
+      "Main": ["Morbidity Rate"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Fixed_Expenses": {
+      "Main": ["Fixed Expenses²"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Variable_Expenses": {
+      "Main": ["Variable Expenses²"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Inflation_Rate": {
+      "Main": ["Inflation Rate"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE}", "for the year", "{CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END}", "for the year", "{PREVIOUS_YEAR}"]
+      }
+    },
+    "Withdrawal_rates": {
+      "Main": ["Withdrawal rates⁴"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    },
+    "Future_Bonus_Rates_Assumption": {
+      "Main": ["Future Bonus Rates (Assumption)"],
+      "Sub_Headers": {
+        "Current_Year": ["As at {QUARTER_END_DATE} for", "the year {CURRENT_YEAR}"],
+        "Previous_Year": ["As at {PREVIOUS_QUARTER_END} for", "the year {PREVIOUS_YEAR}"]
+      }
+    }
+  },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Interest_Rate_Current_Year",
+    "Interest_Rate_Previous_Year",
+    "Mortality_Rate_Current_Year",
+    "Mortality_Rate_Previous_Year",
+    "Morbidity_Rate_Current_Year",
+    "Morbidity_Rate_Previous_Year",
+    "Fixed_Expenses_Current_Year",
+    "Fixed_Expenses_Previous_Year",
+    "Variable_Expenses_Current_Year",
+    "Variable_Expenses_Previous_Year",
+    "Inflation_Rate_Current_Year",
+    "Inflation_Rate_Previous_Year",
+    "Withdrawal_rates_Current_Year",
+    "Withdrawal_rates_Previous_Year",
+    "Future_Bonus_Rates_Assumption_Current_Year",
+    "Future_Bonus_Rates_Assumption_Previous_Year"
+  ],
+  "Rows": []
+} 

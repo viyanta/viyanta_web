@@ -1,0 +1,38 @@
+{
+  "Form No": "L-16",
+  "Title": "FIXED ASSETS SCHEDULE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Cost_Gross_Block_As_at_1st_April": ["Cost/Gross Block", "As at 1st", "April, {CURRENT_YEAR_APRIL_1}"],
+    "Cost_Gross_Block_On_Adjustments": ["Cost/Gross Block", "On", "Adjustments"],
+    "Cost_Gross_Block_Additions": ["Cost/Gross Block", "Additions"],
+    "Cost_Gross_Block_Deductions": ["Cost/Gross Block", "Deductions"],
+    "Cost_Gross_Block_As_at_31st_December_Current_Year": ["Cost/Gross Block", "As at 31st", "December, {QUARTER_END_DATE}"],
+    "Depreciation_Upto_31st_March_Current_Year": ["Depreciation", "Upto 31st", "March, {CURRENT_YEAR_MARCH_31}"],
+    "Depreciation_For_the_Year": ["Depreciation", "For the Year"],
+    "Depreciation_On_Sales_Adjustment": ["Depreciation", "On Sales/", "Adjustments"],
+    "Depreciation_Upto_31st_December_Current_Year": ["Depreciation", "Upto 31st", "December,", "{QUARTER_END_DATE}"],
+    "Net_Block_As_at_31st_December_Current_Year": ["Net Block", "As at 31st", "December,", "{QUARTER_END_DATE}"],
+    "Net_Block_As_at_31st_December_Previous_Year": ["Net Block", "As at 31st", "December, {PREVIOUS_YEAR_DECEMBER_31}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Cost_Gross_Block_As_at_1st_April",
+    "Cost_Gross_Block_On_Adjustments",
+    "Cost_Gross_Block_Additions",
+    "Cost_Gross_Block_Deductions",
+    "Cost_Gross_Block_As_at_31st_December_Current_Year",
+    "Depreciation_Upto_31st_March_Current_Year",
+    "Depreciation_For_the_Year",
+    "Depreciation_On_Sales_Adjustment",
+    "Depreciation_Upto_31st_December_Current_Year",
+    "Net_Block_As_at_31st_December_Current_Year",
+    "Net_Block_As_at_31st_December_Previous_Year"
+  ],
+  "Rows": []
+}

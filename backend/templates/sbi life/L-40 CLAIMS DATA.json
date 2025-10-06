@@ -1,0 +1,99 @@
+{
+  "Form No": "L-40",
+  "Title": "Quarterly claims data for Life",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LTD.",
+  "Date": "{QUARTER_END_DATE}",
+  "Period": "Quarterly",
+  "Currency": "No. of claims only",
+  "Sections": {
+    "Death_Claims": {
+      "Title": "Death Claims",
+      "Headers": {
+        "S_No": [
+          "S. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Individual": [
+          "Individual"
+        ],
+        "Group": [
+          "Group"
+        ]
+      },
+      "FlatHeaders": [
+        "S_No",
+        "Claims_Experience",
+        "Individual",
+        "Group"
+      ],
+      "Rows": []
+    },
+    "Individual_Claims": {
+      "Title": "Individual Claims",
+      "Headers": {
+        "S_No": [
+          "S. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Maturity": [
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Survival Benefit"
+        ],
+        "Annuities_Pension": [
+          "Annuities/Pension"
+        ],
+        "Surrender": [
+          "Surrender"
+        ],
+        "Other_Benefits": [
+          "Other Benefits"
+        ]
+      },
+      "FlatHeaders": [
+        "S_No",
+        "Claims_Experience",
+        "Maturity",
+        "Survival_Benefit",
+        "Annuities_Pension",
+        "Surrender",
+        "Other_Benefits"
+      ],
+      "Rows": []
+    }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

@@ -1,0 +1,31 @@
+{
+    "Form No": "L-31",
+    "Title": "Board of Directors & Key Management Persons",
+    "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+    "Date": "",
+    "Headers": {
+        "Sl_No": [
+            "S. No."
+        ],
+        "Name_of_person": [
+            "Name of person"
+        ],
+        "Designation": [
+            "Designation"
+        ],
+        "Role_Function": [
+            "Role/Function"
+        ],
+        "Details_of_change_in_the_period_if_any": [
+            "Details of change in the period if any"
+        ]
+    },
+    "FlatHeaders": [
+        "Sl_No",
+        "Name_of_person",
+        "Designation",
+        "Role_Function",
+        "Details_of_change_in_the_period_if_any"
+    ],
+    "Rows": []
+}
