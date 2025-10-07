@@ -474,7 +474,7 @@ const PDFSplitterWorkflow = ({ user }) => {
       {/* Step 5: Python Extraction */}
       <div style={stepStyle}>
         <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
-          6️⃣python Extraction:
+          5️⃣ Python Extraction:
         </h3>
         <button
           style={{
@@ -495,9 +495,37 @@ const PDFSplitterWorkflow = ({ user }) => {
         )}
       </div>
 
-  
+      {/* Step 6: Show Split Details */}
+      <div style={stepStyle}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
+          6️⃣ Split Details:
+        </h3>
+        {selectedPDF && selectedForm && (
+          <div style={{ fontSize: '0.95rem', color: 'var(--text-color-dark)', lineHeight: '1.5', marginBottom: '1rem' }}>
+            <div><strong>PDF Name:</strong> {selectedPDF}</div>
+            <div><strong>Original Path:</strong> {`uploads\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${selectedPDF}.pdf`}</div>
+            <div><strong>Splits Location:</strong> {`pdf_splits\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${selectedPDF}`}</div>
+            <div><strong>Selected Split File:</strong> {selectedForm}</div>
+            <div><strong>Form Name:</strong> {pdfSplits.find(s => s.filename === selectedForm)?.form_name || 'N/A'}</div>
+            <div><strong>Form Template:</strong> {(() => {
+              const split = pdfSplits.find(s => s.filename === selectedForm);
+              const formCode = split?.form_code;
+              return formCode ? `templates\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${formCode}.json` : 'N/A';
+            })()}</div>
+            <div><strong>Pages:</strong> {(() => {
+              const split = pdfSplits.find(s => s.filename === selectedForm);
+              return split ? `${split.start_page}-${split.end_page}` : 'N/A';
+            })()}</div>
+          </div>
+        )}
+        {selectedPDF && pdfSplits.length > 0 && !selectedForm && (
+          <div style={{ fontSize: '0.95rem', color: 'var(--text-color-light)' }}>
+            Please select a split form to view details.
+          </div>
+        )}
+      </div>
 
-      {/* Step 8: Gemini AI Correction */}
+      {/* Step 7: Gemini AI Correction */}
       <div style={stepStyle}>
         <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
           7️⃣ Gemini AI Correction:
@@ -526,11 +554,11 @@ const PDFSplitterWorkflow = ({ user }) => {
         )}
       </div>
 
-      {/* Step 9: Python Extraction Progress */}
+      {/* Step 8: Python Extraction Progress */}
       {isPythonExtracting && (
         <div style={stepStyle}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
-            9️⃣ Python Extraction Progress:
+            8️⃣ Python Extraction Progress:
           </h3>
           
           <div style={{ 
@@ -551,11 +579,11 @@ const PDFSplitterWorkflow = ({ user }) => {
         </div>
       )}
 
-      {/* Step 8: Gemini Correction Progress */}
+      {/* Step 9: Gemini Correction Progress */}
       {isGeminiCorrecting && (
         <div style={stepStyle}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
-            8️⃣ Gemini AI Correction Progress:
+            9️⃣ Gemini AI Correction Progress:
           </h3>
           
           <div style={{ 
@@ -576,11 +604,11 @@ const PDFSplitterWorkflow = ({ user }) => {
         </div>
       )}
 
-      {/* Step 9: Extraction Results */}
+      {/* Step 10: Extraction Results */}
       {(extractedData || extractionError) && (
         <div style={stepStyle}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
-            9️⃣ Extraction Results:
+            🔍 Extraction Results:
           </h3>
 
           {extractionError && (

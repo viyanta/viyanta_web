@@ -8,6 +8,7 @@ import JobStatusTracker from '../components/JobStatusTracker';
 import PDFSplitterWorkflow from '../components/PDFSplitterWorkflow';
 import apiService from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const SmartPDFExtraction = ({ onMenuClick }) => {
   const { user } = useAuth();
@@ -368,7 +369,9 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
         {/* Extract Tab */}
         {/* New PDF Split & Extract Tab */}
         {activeTab === 'new_template' && (
-          <PDFSplitterWorkflow user={user} />
+         <ErrorBoundary>
+         <PDFSplitterWorkflow user={user} />
+       </ErrorBoundary>
         )}
 
       </div>
