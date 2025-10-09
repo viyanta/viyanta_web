@@ -25,7 +25,7 @@ pdf_splitter = PDFSplitterService()
 @router.post("/upload-and-split")
 async def upload_and_split_pdf(
     company_name: str = Form(...),
-    # user_id: str = Form(...),
+    user_id: str = Form(...),
     pdf_file: UploadFile = File(...)
 ):
     """
@@ -38,7 +38,7 @@ async def upload_and_split_pdf(
                 status_code=400, detail="Only PDF files are allowed")
 
         result = pdf_splitter.upload_and_split_pdf(
-            company_name, pdf_file)
+            company_name, pdf_file, user_id)
 
         if not result["success"]:
             raise HTTPException(status_code=500, detail=result["error"])
@@ -47,7 +47,7 @@ async def upload_and_split_pdf(
             "success": True,
             "message": f"PDF uploaded and split into {result['total_splits']} files",
             "data": {
-                # "upload_id": result["upload_id"],
+                "upload_id": result["upload_id"],
                 "company_name": result["company_name"],
                 "pdf_name": result["pdf_name"],
                 "total_splits": result["total_splits"]
@@ -191,7 +191,7 @@ async def extract_form_data(
     company_name: str = Form(...),
     pdf_name: str = Form(...),
     split_filename: str = Form(...),
-    # user_id: str = Form(...)
+    user_id: str = Form(...)
 ):
     """
     Extract form data from a split PDF and correct it with Gemini
@@ -201,7 +201,7 @@ async def extract_form_data(
     try:
 
         print(
-            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}")
+            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}, user={user_id}")
 
         import subprocess
         import sys
@@ -654,9 +654,9 @@ async def extract_form_data(
             # OPTIMIZED: Faster timeouts for quicker processing
             # Shorter timeouts since we're using smaller batches and multithreading
             primary_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "90")   # Reduced from 180s
+                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "300")   # Reduced from 180s
             retry_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_RETRY", "60")  # Reduced from 120s
+                "GEMINI_CORRECTION_TIMEOUT_RETRY", "200")  # Reduced from 120s
             no_timeout_mode = os.getenv(
                 "GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
             primary_timeout = None if no_timeout_mode else int(
@@ -699,18 +699,15 @@ async def extract_form_data(
             print(f"   Max workers: {max_workers}")
             print(f"   Multithreading: ENABLED")
 
-            def run_gemini(batch_size: int, timeout_seconds):
+            def run_gemini():
                 cmd = [
                     sys.executable,
                     "services/pdf_splitted_gemini_very.py",
                     "--template", str(template_path),
                     "--extracted", str(extracted_json),
                     "--pdf", split_path,
-                    "--output", str(corrected_json),
-                    "--batch-size", str(batch_size),
-                    "--workers", str(max_workers),  # Enable multithreading
-                    "--max-pages", "3",  # Limit PDF context for speed
-                    "--retries", "2"     # Reduce retries for speed
+                    "--output", str(corrected_json)
+                    # Optionally: "--model", "gemini-2.5-pro"
                 ]
                 print(f"Prompt being sent to Google Gemini : {cmd}")
                 # Enhanced Gemini command debugging
@@ -720,59 +717,21 @@ async def extract_form_data(
                 print(f"📄 Extracted JSON Exists: {extracted_json.exists()}")
                 print(f"📄 Split PDF Path: {split_path}")
                 print(f"🤖 Corrected JSON Output: {corrected_json}")
-                print(f"📊 Batch Size: {batch_size}")
-                print(
-                    f"🔧 Gemini correction command (batch={batch_size}, timeout={'NONE' if timeout_seconds is None else str(timeout_seconds)+'s'}): {' '.join(cmd)}")
                 print(f"=== END GEMINI PATHS DEBUG ===\n")
                 try:
-                    if timeout_seconds is None:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True)
-                    else:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True, timeout=timeout_seconds)
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=primary_timeout)
                     return result, None
                 except subprocess.TimeoutExpired as te:
                     print(
-                        f"⏰ Gemini correction timed out after {timeout_seconds}s (batch={batch_size})")
-                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout_seconds}s"), te
+                        f"⏰ Gemini correction timed out after {primary_timeout}s")
+                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {primary_timeout}s"), te
 
-            # First attempt (dynamic batch)
-            correction_result, primary_timeout_exc = run_gemini(
-                batch_size=initial_batch, timeout_seconds=primary_timeout)
-
+            # Only one call needed for single-call Gemini
+            correction_result, primary_timeout_exc = run_gemini()
+            # Remove all retry logic for Gemini correction (single call only)
             retry_used = False
             second_retry_used = False
-
-            # First retry on failure / timeout
-            if (correction_result.returncode != 0) and enable_retry and not corrected_json.exists():
-                print(
-                    f"♻️ Attempting Gemini correction retry with smaller batch size ({second_batch})")
-                correction_result_retry, retry_exc = run_gemini(
-                    batch_size=second_batch, timeout_seconds=retry_timeout)
-                if correction_result_retry.returncode == 0 and corrected_json.exists():
-                    print("✅ Retry succeeded with reduced batch size")
-                    correction_result = correction_result_retry
-                    retry_used = True
-                else:
-                    print(
-                        f"❌ Retry failed (code={correction_result_retry.returncode}) - will consider second retry")
-
-            # Second retry if still failing and enabled
-            if (correction_result.returncode != 0) and enable_second_retry and not corrected_json.exists():
-                print(
-                    f"🔁 Second retry with ultra small batch size ({third_batch}) and extended timeout")
-                extended_timeout = None if no_timeout_mode else int(
-                    os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", str(retry_timeout or 180)))
-                correction_result_retry2, retry2_exc = run_gemini(
-                    batch_size=third_batch, timeout_seconds=extended_timeout)
-                if correction_result_retry2.returncode == 0 and corrected_json.exists():
-                    print("✅ Second retry succeeded with ultra small batch")
-                    correction_result = correction_result_retry2
-                    second_retry_used = True
-                else:
-                    print(
-                        f"❌ Second retry failed (code={correction_result_retry2.returncode}) - proceeding with extracted data")
 
             print(
                 f"💯 Gemini correction final return code: {correction_result.returncode}")
@@ -986,8 +945,8 @@ async def extract_form_data(
 
         # Store metadata about the extraction
         extraction_metadata = {
-            # "extraction_id": str(uuid.uuid4()),
-            # "user_id": user_id,
+            "extraction_id": str(uuid.uuid4()),
+            "user_id": user_id,
             "company_name": company_name,
             "pdf_name": pdf_name,
             "split_filename": split_filename,
@@ -1029,7 +988,7 @@ async def extract_form_data(
 
         return {
             "success": True,
-            # "extraction_id": extraction_metadata["extraction_id"],
+            "extraction_id": extraction_metadata["extraction_id"],
             "data": normalized_data,
             "metadata": extraction_metadata
         }
