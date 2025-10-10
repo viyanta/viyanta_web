@@ -174,7 +174,17 @@ def create_single_call_prompt(template: dict, extracted, pdf_text: str) -> str:
             safe_warning(
                 f"Extracted data is very large ({len(extracted_data)} rows), Gemini may truncate internally.")
     prompt = f"""
-You are a financial data extraction specialist. Correct the extracted JSON below using the PDF content.
+You are a financial data extraction and correction specialist.
+
+Your job is to analyze and correct extracted JSON data using the actual PDF content below.
+
+=== OBJECTIVE ===
+- Identify and correct ALL incorrect, inconsistent, or missing values.
+- If any part of the extracted JSON is empty or missing, FILL it using the PDF content.
+- Follow the template structure and headers exactly.
+- Maintain the same keys, order, and JSON structure.
+- Use "" (empty string) when data is not found.
+- Return ONLY the corrected JSON output (no explanations, no markdown).
 
 HEADERS: {headers_str}
 
@@ -191,15 +201,7 @@ EXTRACTED DATA:
 {json.dumps({"data": extracted_data}, indent=2)}
 ```
 
-TASK:
-
-Correct all values using the PDF
-
-Fill empty fields from PDF
-
-Keep exact headers and JSON structure
-
-Use "" for missing data
+"" for missing data
 
 Return ONLY JSON in this format: {{"data":[corrected_rows_here]}}"""
     safe_info(
