@@ -7,6 +7,9 @@
   "Date_of_Registration": "9 June 2023",
   "Currency": "₹ in Lakhs",
   "Headers": {
+    "sr": [
+      "Sr. No."
+    ],
     "Particulars": [
       "Particulars"
     ],
@@ -20,6 +23,7 @@
     ]
   },
   "FlatHeaders": [
+    "Sr. No.",
     "Particulars",
     "As_at_Current_Date",
     "As_at_Previous_Date"
