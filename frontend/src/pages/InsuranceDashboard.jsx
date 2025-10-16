@@ -336,7 +336,7 @@ const TreemapSection = ({ title, data, colors }) => {
 function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
   const { stats } = useStats();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('Background');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [s3Companies, setS3Companies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
