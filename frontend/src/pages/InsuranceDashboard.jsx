@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import BackgroundPage from './BackgroundPage';
 import { useStats } from '../context/StatsContext.jsx';
@@ -336,7 +336,8 @@ const TreemapSection = ({ title, data, colors }) => {
 function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
   const { stats } = useStats();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('Dashboard');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [s3Companies, setS3Companies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
@@ -369,6 +370,14 @@ function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
       fetchCompanyData(selectedCompany);
     }
   }, [selectedCompany]);
+
+  // Handle URL parameter for tab navigation
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const fetchS3Companies = async () => {
     try {

@@ -20,7 +20,7 @@ const Dashboard = ({ onMenuClick }) => {
   // Handle tab clicks
   const handleTabClick = (tab) => {
     if (tab === 'Background') {
-      navigate('/insurance-dashboard');
+      navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
       navigate('/lform');
     } else if (tab === 'Dashboard') {
