@@ -3,239 +3,45 @@ import ApiService from '../services/api'
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar'
 
 function Lform({ onMenuClick }) {
-    const [dropdownData, setDropdownData] = useState({
-        companies: [],
-        companyInfo: [],
-        lforms: [],
-        reportTypes: [],
-        periods: []
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [selectedValues, setSelectedValues] = useState({
-        company: null,
-        companyInfo: null,
-        lform: null,
-        reportType: null,
-        period: null
+        lform: '',
+        period: '',
+        reportType: ''
     });
-    const [reportData, setReportData] = useState(null);
-    const [generatingReport, setGeneratingReport] = useState(false);
 
-    useEffect(() => {
-        fetchDropdownData();
-    }, []);
+    // L Form options from the image
+    const lformOptions = [
+        'L-1_Revenue Account - L-1-A-Ra',
+        'L-2_Profit And Loss Account - L-2-A-Pl',
+        'L-3_Balance Sheet - L-3-A-Bs',
+        'L-4-Premium Schedule - L-4',
+        'L-4-Commission Schedule - L-5',
+        'L-6-Operating Expenses Schedule - L-6',
+        'L-6-Operating Expenses Schedule - L-6A',
+        'L-7-Benefits Paid - L-7'
+    ];
 
-    const fetchDropdownData = async () => {
-        try {
-            setLoading(true);
-            const response = await ApiService.getDropdownData();
-            if (response.success) {
-                setDropdownData(response.dropdown_data);
-            }
-        } catch (err) {
-            setError(`Failed to load data: ${err.message}`);
-            console.error('Error fetching dropdown data:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Period options from the image
+    const periodOptions = [
+        'Dec 24',
+        'Sep 24',
+        'Jun 24',
+        'Mar-24'
+    ];
 
-    const handleSelection = (category, item) => {
+    // Report type options from the image
+    const reportTypeOptions = [
+        'Consolidated',
+        'Standalone'
+    ];
+
+    const handleSelection = (field, value) => {
         setSelectedValues(prev => ({
             ...prev,
-            [category]: item
+            [field]: value
         }));
-        
-        // When company is selected, fetch company-specific L-forms
-        if (category === 'company' && item) {
-            fetchCompanyLforms(item.name);
-        }
     };
 
-    const fetchCompanyLforms = async (companyName) => {
-        try {
-            setLoading(true);
-            const response = await ApiService.getCompanyLforms(companyName);
-            if (response.success) {
-                setDropdownData(prev => ({
-                    ...prev,
-                    lforms: response.lforms
-                }));
-                // Clear L-form selection when company changes
-                setSelectedValues(prev => ({
-                    ...prev,
-                    lform: null
-                }));
-            }
-        } catch (err) {
-            setError(`Failed to load L-forms for ${companyName}: ${err.message}`);
-            console.error('Error fetching company L-forms:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleGenerateReport = async () => {
-        if (!selectedValues.lform) {
-            setError('Please select an L-form to generate the report.');
-            return;
-        }
-
-        try {
-            setGeneratingReport(true);
-            setError(null);
-            
-            const filters = {
-                company: selectedValues.company?.name,
-                lform: selectedValues.lform?.name,
-                period: selectedValues.period?.name,
-                reportType: selectedValues.reportType?.name,
-                companyInfo: selectedValues.companyInfo?.name
-            };
-
-            const response = await ApiService.generateLformReport(filters);
-            
-            if (response.success) {
-                setReportData(response.report_data);
-            } else {
-                setError(response.message || 'Failed to generate report');
-            }
-        } catch (err) {
-            setError(`Error generating report: ${err.message}`);
-            console.error('Error generating report:', err);
-        } finally {
-            setGeneratingReport(false);
-        }
-    };
-
-    const renderReportTable = () => {
-        if (!reportData) return null;
-
-        return (
-            <div style={{
-                marginTop: '30px',
-                padding: '20px',
-                backgroundColor: '#fff',
-                borderRadius: '8px',
-                border: '1px solid #dee2e6',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                overflowX: 'auto'
-            }}>
-                <h3 style={{ 
-                    margin: '0 0 20px 0', 
-                    color: '#333',
-                    fontSize: 'clamp(18px, 4vw, 24px)'
-                }}>
-                    Generated Report Data
-                </h3>
-                <div style={{
-                    overflowX: 'auto',
-                    border: '1px solid #dee2e6',
-                    borderRadius: '6px',
-                    minWidth: '600px' // Ensure table doesn't get too cramped on mobile
-                }}>
-                    <table style={{
-                        width: '100%',
-                        borderCollapse: 'collapse',
-                        fontSize: 'clamp(12px, 2.5vw, 14px)'
-                    }}>
-                        <thead style={{
-                            backgroundColor: '#f8f9fa',
-                            borderBottom: '2px solid #dee2e6'
-                        }}>
-                            <tr>
-                                {reportData.columns && reportData.columns.map((header, index) => (
-                                    <th key={index} style={{
-                                        padding: 'clamp(8px, 2vw, 12px)',
-                                        textAlign: 'left',
-                                        borderBottom: '1px solid #dee2e6',
-                                        fontWeight: '600',
-                                        color: '#495057',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {header}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {reportData.rows && reportData.rows.map((row, rowIndex) => (
-                                <tr key={rowIndex} style={{
-                                    borderBottom: '1px solid #f1f3f4',
-                                    backgroundColor: rowIndex % 2 === 0 ? '#fff' : '#f8f9fa'
-                                }}>
-                                    {Object.values(row).map((cell, cellIndex) => (
-                                        <td key={cellIndex} style={{
-                                            padding: 'clamp(8px, 2vw, 12px)',
-                                            borderBottom: '1px solid #f1f3f4',
-                                            color: '#495057',
-                                            wordBreak: 'break-word'
-                                        }}>
-                                            {cell || '-'}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
-    };
-
-    if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                fontSize: 'clamp(16px, 4vw, 18px)',
-                color: '#666',
-                padding: '20px',
-                textAlign: 'center'
-            }}>
-                Loading...
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100vh',
-                gap: '20px',
-                padding: '20px'
-            }}>
-                <div style={{
-                    color: '#dc3545',
-                    fontSize: 'clamp(16px, 4vw, 18px)',
-                    textAlign: 'center',
-                    maxWidth: '90vw'
-                }}>
-                    {error}
-                </div>
-                <button
-                    onClick={fetchDropdownData}
-                    style={{
-                        padding: 'clamp(10px, 3vw, 15px) clamp(20px, 5vw, 30px)',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: 'clamp(14px, 3vw, 16px)'
-                    }}>
-                    Retry
-                </button>
-            </div>
-        );
-    }
 
     return (
         <div style={{
@@ -304,302 +110,530 @@ function Lform({ onMenuClick }) {
                 {/* Main Content Area */}
                 <div style={{ flex: '1', minWidth: 0 }}>
                     <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                        gap: 'clamp(15px, 3vw, 20px)',
-                        marginBottom: '20px'
+                        display: 'flex',
+                        gap: '20px',
+                        marginBottom: '30px',
+                        flexWrap: 'wrap'
                     }}>
-                        <div className='dropdown' style={{
-                            minWidth: '200px',
-                            width: '100%'
+                        {/* Select L Form Dropdown */}
+                        <div style={{
+                            minWidth: '300px',
+                            flex: '1'
                         }}>
                             <h3 style={{
-                                fontSize: 'clamp(16px, 3.5vw, 18px)',
-                                marginBottom: '8px'
-                            }}>Select Company</h3>
+                                fontSize: '16px',
+                                marginBottom: '8px',
+                                color: '#007bff',
+                                fontWeight: '600'
+                            }}>Select L Form</h3>
                             <select 
-                                value={selectedValues.company?.id || ''} 
-                                onChange={(e) => {
-                                    const selected = dropdownData.companies.find(item => item.id === parseInt(e.target.value));
-                                    handleSelection('company', selected);
-                                }}
+                                value={selectedValues.lform} 
+                                onChange={(e) => handleSelection('lform', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: 'clamp(10px, 2.5vw, 12px)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: 'clamp(14px, 3vw, 16px)'
+                                    padding: '12px',
+                                    border: '2px solid #28a745',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                <option value="">Select a company...</option>
-                                {dropdownData.companies.map(item => (
-                                    <option key={item.id} value={item.id}>{item.name}</option>
+                                <option value="">Select L Form...</option>
+                                {lformOptions.map((option, index) => (
+                                    <option key={index} value={option}>{option}</option>
                                 ))}
                             </select>
-                            {selectedValues.company && (
-                                <p style={{
-                                    fontSize: 'clamp(11px, 2.5vw, 12px)', 
-                                    color: '#666', 
-                                    margin: '5px 0'
-                                }}>
-                                    Selected: {selectedValues.company.name}
-                                </p>
-                            )}
                         </div>
 
-                        <div className='dropdown' style={{
+                        {/* Select Period Dropdown */}
+                        <div style={{
                             minWidth: '200px',
-                            width: '100%'
+                            flex: '1'
                         }}>
                             <h3 style={{
-                                fontSize: 'clamp(16px, 3.5vw, 18px)',
-                                marginBottom: '8px'
-                            }}>Company Information</h3>
-                            <select 
-                                value={selectedValues.companyInfo?.id || ''} 
-                                onChange={(e) => {
-                                    const selected = dropdownData.companyInfo.find(item => item.id === parseInt(e.target.value));
-                                    handleSelection('companyInfo', selected);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: 'clamp(10px, 2.5vw, 12px)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: 'clamp(14px, 3vw, 16px)'
-                                }}
-                            >
-                                <option value="">Select information type...</option>
-                                {dropdownData.companyInfo.map(item => (
-                                    <option key={item.id} value={item.id}>{item.name}</option>
-                                ))}
-                            </select>
-                            {selectedValues.companyInfo && (
-                                <p style={{
-                                    fontSize: 'clamp(11px, 2.5vw, 12px)', 
-                                    color: '#666', 
-                                    margin: '5px 0'
-                                }}>
-                                    Selected: {selectedValues.companyInfo.name}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className='dropdown' style={{
-                            minWidth: '200px',
-                            width: '100%'
-                        }}>
-                            <h3 style={{
-                                fontSize: 'clamp(16px, 3.5vw, 18px)',
-                                marginBottom: '8px'
-                            }}>Select Report Type</h3>
-                            <select 
-                                value={selectedValues.reportType?.id || ''} 
-                                onChange={(e) => {
-                                    const selected = dropdownData.reportTypes.find(item => item.id === parseInt(e.target.value));
-                                    handleSelection('reportType', selected);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: 'clamp(10px, 2.5vw, 12px)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: 'clamp(14px, 3vw, 16px)'
-                                }}
-                            >
-                                <option value="">Select report type...</option>
-                                {dropdownData.reportTypes.map(item => (
-                                    <option key={item.id} value={item.id}>{item.name}</option>
-                                ))}
-                            </select>
-                            {selectedValues.reportType && (
-                                <p style={{
-                                    fontSize: 'clamp(11px, 2.5vw, 12px)', 
-                                    color: '#666', 
-                                    margin: '5px 0'
-                                }}>
-                                    Selected: {selectedValues.reportType.name}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className='dropdown' style={{
-                            minWidth: '200px',
-                            width: '100%'
-                        }}>
-                            <h3 style={{
-                                fontSize: 'clamp(16px, 3.5vw, 18px)',
-                                marginBottom: '8px'
+                                fontSize: '16px',
+                                marginBottom: '8px',
+                                color: '#6c757d',
+                                fontWeight: '600'
                             }}>Select Period</h3>
                             <select 
-                                value={selectedValues.period?.id || ''} 
-                                onChange={(e) => {
-                                    const selected = dropdownData.periods.find(item => item.id === parseInt(e.target.value));
-                                    handleSelection('period', selected);
-                                }}
+                                value={selectedValues.period} 
+                                onChange={(e) => handleSelection('period', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: 'clamp(10px, 2.5vw, 12px)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: 'clamp(14px, 3vw, 16px)'
+                                    padding: '12px',
+                                    border: '2px solid #28a745',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                <option value="">Select period...</option>
-                                {dropdownData.periods.map(item => (
-                                    <option key={item.id} value={item.id}>{item.name}</option>
+                                <option value="">Select Period...</option>
+                                {periodOptions.map((option, index) => (
+                                    <option key={index} value={option}>{option}</option>
                                 ))}
                             </select>
-                            {selectedValues.period && (
-                                <p style={{
-                                    fontSize: 'clamp(11px, 2.5vw, 12px)', 
-                                    color: '#666', 
-                                    margin: '5px 0'
-                                }}>
-                                    Selected: {selectedValues.period.name}
-                                </p>
-                            )}
                         </div>
 
-                        <div className='dropdown' style={{
+                        {/* Select Report Type Dropdown */}
+                        <div style={{
                             minWidth: '200px',
-                            width: '100%'
+                            flex: '1'
                         }}>
                             <h3 style={{
-                                fontSize: 'clamp(16px, 3.5vw, 18px)',
-                                marginBottom: '8px'
-                            }}>Select L-Form</h3>
+                                fontSize: '16px',
+                                marginBottom: '8px',
+                                color: '#6c757d',
+                                fontWeight: '600'
+                            }}>Select</h3>
                             <select 
-                                value={selectedValues.lform?.id || ''} 
-                                onChange={(e) => {
-                                    const selected = dropdownData.lforms.find(item => item.id === parseInt(e.target.value));
-                                    handleSelection('lform', selected);
-                                }}
+                                value={selectedValues.reportType} 
+                                onChange={(e) => handleSelection('reportType', e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: 'clamp(10px, 2.5vw, 12px)',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '4px',
-                                    fontSize: 'clamp(14px, 3vw, 16px)'
+                                    padding: '12px',
+                                    border: '2px solid #28a745',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                <option value="">
-                                    {selectedValues.company ? 'Select L-form...' : 'Select a company first'}
-                                </option>
-                                {dropdownData.lforms.map(item => (
-                                    <option key={item.id} value={item.id} disabled={!selectedValues.company}>
-                                        {item.name}
-                                    </option>
+                                <option value="">Select...</option>
+                                {reportTypeOptions.map((option, index) => (
+                                    <option key={index} value={option}>{option}</option>
                                 ))}
                             </select>
-                            {selectedValues.lform && (
-                                <p style={{
-                                    fontSize: 'clamp(11px, 2.5vw, 12px)', 
-                                    color: '#666', 
-                                    margin: '5px 0'
-                                }}>
-                                    Selected: {selectedValues.lform.name}
-                                </p>
-                            )}
                         </div>
                     </div>
 
-                    {/* Display selected values summary */}
+                    {/* Message when L-2 is selected but Period or Report Type is missing */}
+                    {selectedValues.lform === 'L-2_Profit And Loss Account - L-2-A-Pl' && 
+                     (!selectedValues.period || !selectedValues.reportType) && (
                     <div style={{
                         marginTop: '30px',
-                        padding: 'clamp(15px, 4vw, 20px)',
-                        backgroundColor: '#f8f9fa',
+                            padding: '20px',
+                            backgroundColor: '#fff3cd',
                         borderRadius: '8px',
-                        border: '1px solid #dee2e6'
+                            border: '1px solid #ffeaa7',
+                            textAlign: 'center'
                     }}>
                         <h3 style={{
-                            fontSize: 'clamp(18px, 4vw, 20px)',
-                            marginBottom: '15px'
-                        }}>Selected Configuration:</h3>
+                                fontSize: '18px',
+                                marginBottom: '10px',
+                                color: '#856404'
+                            }}>Please Select Period and Report Type</h3>
+                            <p style={{
+                                fontSize: '14px',
+                                color: '#856404',
+                                margin: 0
+                            }}>
+                                To view the L-2 Profit and Loss Account data, please select both the Period and Report Type (Consolidated/Standalone) from the dropdowns above.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* L-2 Profit and Loss Account Data Display */}
+                    {selectedValues.lform === 'L-2_Profit And Loss Account - L-2-A-Pl' && 
+                     selectedValues.period && 
+                     selectedValues.reportType && (
                         <div style={{
-                            display: 'grid', 
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                            gap: 'clamp(10px, 3vw, 15px)'
+                            marginTop: '30px',
+                            padding: '20px',
+                            backgroundColor: 'white',
+                            borderRadius: '8px',
+                            border: '1px solid #dee2e6',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                         }}>
-                            <div style={{
-                                fontSize: 'clamp(13px, 3vw, 14px)'
+                            <h2 style={{
+                                fontSize: '20px',
+                                marginBottom: '20px',
+                                color: '#333',
+                                textAlign: 'center'
                             }}>
-                                <strong>Company:</strong><br />
-                                {selectedValues.company ? selectedValues.company.name : 'Not selected'}
+                                Condensed {selectedValues.reportType} Profit & Loss Account for the quarter ended {selectedValues.period}<br />
+                                Shareholders' Account (Non-technical Account)
+                            </h2>
+                            
+                            <div style={{
+                                overflowX: 'auto',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px'
+                            }}>
+                                <table style={{
+                                    width: '100%',
+                                    borderCollapse: 'collapse',
+                                    fontSize: '14px'
+                                }}>
+                                    <thead>
+                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                            <th style={{
+                                                padding: '12px',
+                                                textAlign: 'left',
+                                                border: '1px solid #ddd',
+                                                fontWeight: '600'
+                                            }}>Particulars</th>
+                                            <th style={{
+                                                padding: '12px',
+                                                textAlign: 'center',
+                                                border: '1px solid #ddd',
+                                                fontWeight: '600'
+                                            }}>Schedule Ref. Form No.</th>
+                                            <th style={{
+                                                padding: '12px',
+                                                textAlign: 'center',
+                                                border: '1px solid #ddd',
+                                                fontWeight: '600'
+                                            }}>Quarter ended {selectedValues.period}</th>
+                                            <th style={{
+                                                padding: '12px',
+                                                textAlign: 'center',
+                                                border: '1px solid #ddd',
+                                                fontWeight: '600'
+                                            }}>Quarter ended {selectedValues.period === 'Jun 24' ? 'Jun 23' : 'Previous Period'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Amounts transferred from the Policyholders Account (Technical Account)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>37,960</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>29,600</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Income From Investments
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (a) Interest, Dividends & Rent – Gross
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>15,756</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>17,963</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (b) Profit on sale/redemption of investments
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>17,903</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>1</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (c) (Loss on sale/redemption of investments)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(9)</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(383)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (d) Amortisation of Premium/Discount on Investments (Net)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(383)</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(387)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                Other Income
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>567</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>300</td>
+                                        </tr>
+                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                <strong>Total (A)</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>71,794</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>47,477</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Expense other than those directly related to the insurance business
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>L-6A</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>804</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>399</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Contribution to Policyholders' A/c
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (a) Towards Excess Expenses of Management
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>44,564</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>29,212</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (b) towards deficit funding and others
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>132</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Managerial Remuneration*
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>2,049</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>2,049</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Interest on subordinated debt
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>47</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>3</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Expenses towards CSR activities
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Penalties
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Bad debts written off
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Amount Transferred to Policyholders' Account
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Provisions (Other than taxation)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (a) For diminution in the value of investments (Net)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>3,587</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (b) Provision for doubtful debts
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (c) Others
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                <strong>Total (B)</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>51,051</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>31,795</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Profit/ (Loss) before tax
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>20,743</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>15,682</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Provision for Taxation
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (a) Current tax credit/(charge)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(158)</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (b) Deferred tax credit/(charge)
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>34</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(26)</td>
+                                        </tr>
+                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                <strong>Profit/(Loss) after tax</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>20,619</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>15,656</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                Appropriations
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (a) Balance at the beginning of the period
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>480,695</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>407,252</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (b) Interim dividend paid
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (c) Final dividend paid
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>7,906</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                                (d) Transfer to reserves/other accounts
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                        </tr>
+                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                                <strong>Profit/Loss carried forward to Balance Sheet</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>501,314</strong>
+                                            </td>
+                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                                <strong>415,002</strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
+                            
                             <div style={{
-                                fontSize: 'clamp(13px, 3vw, 14px)'
+                                marginTop: '20px',
+                                fontSize: '12px',
+                                color: '#666'
                             }}>
-                                <strong>Information Type:</strong><br />
-                                {selectedValues.companyInfo ? selectedValues.companyInfo.name : 'Not selected'}
-                            </div>
-                            <div style={{
-                                fontSize: 'clamp(13px, 3vw, 14px)'
-                            }}>
-                                <strong>L-Form:</strong><br />
-                                {selectedValues.lform ? selectedValues.lform.name : 'Not selected'}
-                            </div>
-                            <div style={{
-                                fontSize: 'clamp(13px, 3vw, 14px)'
-                            }}>
-                                <strong>Report Type:</strong><br />
-                                {selectedValues.reportType ? selectedValues.reportType.name : 'Not selected'}
-                            </div>
-                            <div style={{
-                                fontSize: 'clamp(13px, 3vw, 14px)'
-                            }}>
-                                <strong>Period:</strong><br />
-                                {selectedValues.period ? selectedValues.period.name : 'Not selected'}
+                                <p><strong>Units:</strong> (₹ Lakhs)</p>
+                                <p><strong>*</strong> in excess of the allowable limits as prescribed by IRDAI</p>
+                                <p>The Schedules referred to herein form an integral part of the Condensed Consolidated Profit and Loss Account.</p>
                             </div>
                         </div>
-                        
-                        {Object.values(selectedValues).some(val => val !== null) && (
-                            <button 
-                                onClick={handleGenerateReport}
-                                disabled={!selectedValues.lform || generatingReport}
-                                style={{
-                                    marginTop: '20px',
-                                    padding: 'clamp(12px, 3vw, 16px) clamp(24px, 5vw, 32px)',
-                                    backgroundColor: selectedValues.lform ? '#28a745' : '#6c757d',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: selectedValues.lform ? 'pointer' : 'not-allowed',
-                                    fontSize: 'clamp(14px, 3vw, 16px)',
-                                    opacity: generatingReport ? 0.7 : 1,
-                                    width: '100%',
-                                    maxWidth: '300px'
-                                }}
-                            >
-                                {generatingReport ? 'Generating Report...' : 'Generate Report'}
-                            </button>
-                        )}
-                    </div>
+                    )}
 
-                    {/* Report data table */}
-                    {renderReportTable()}
-
-                    {/* Data source info */}
-                    <div style={{
-                        marginTop: '20px',
-                        padding: 'clamp(12px, 3vw, 15px)',
-                        backgroundColor: '#e7f3ff',
-                        borderRadius: '6px',
-                        fontSize: 'clamp(12px, 2.5vw, 14px)',
-                        color: '#0066cc'
-                    }}>
-                        <strong>📊 Dynamic L-form System:</strong> 
-                        <br />
-                        • <strong>Company Selection:</strong> First select a company to see only their available L-forms
-                        <br />
-                        • <strong>Real Data:</strong> L-forms are extracted from actual uploaded PDF/CSV files
-                        <br />
-                        • <strong>Available Companies:</strong> {dropdownData.companies.length} found in files
-                        <br />
-                        • <strong>L-forms for Selected Company:</strong> {dropdownData.lforms.length} found
-                        <br />
-                        • <strong>Data Source:</strong> Reports show exact rows from company's financial documents
-                    </div>
+                    {/* Selected Values Display for other forms */}
+                    {(selectedValues.lform && selectedValues.lform !== 'L-2_Profit And Loss Account - L-2-A-Pl') && (
+                            <div style={{
+                            marginTop: '30px',
+                            padding: '20px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '8px',
+                            border: '1px solid #dee2e6'
+                        }}>
+                            <h3 style={{
+                                fontSize: '18px',
+                                marginBottom: '15px',
+                                color: '#333'
+                            }}>Selected Values:</h3>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '15px'
+                            }}>
+                                <div style={{ fontSize: '14px' }}>
+                                    <strong>L Form:</strong><br />
+                                    {selectedValues.lform || 'Not selected'}
+                                </div>
+                                <div style={{ fontSize: '14px' }}>
+                                <strong>Period:</strong><br />
+                                    {selectedValues.period || 'Not selected'}
+                                </div>
+                                <div style={{ fontSize: '14px' }}>
+                                    <strong>Report Type:</strong><br />
+                                    {selectedValues.reportType || 'Not selected'}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

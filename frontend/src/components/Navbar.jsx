@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
 
-function Navbar({ onMenuClick }) {
+function Navbar({ onMenuClick, selectedInsurer, onInsurerChange }) {
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -86,6 +86,21 @@ function Navbar({ onMenuClick }) {
             Welcome, {user.displayName || 'User'}
           </div>
         )}
+
+        {/* Insurer Name Dropdown */}
+        <div className="navbar__insurer-dropdown">
+          <select
+            value={selectedInsurer || ''}
+            onChange={(e) => onInsurerChange && onInsurerChange(e.target.value)}
+          >
+            <option value="">Insurer Name</option>
+            <option value="hdfc">HDFC Life</option>
+            <option value="sbi">SBI Life</option>
+            <option value="icici">ICICI Prudential</option>
+            <option value="lic">LIC</option>
+            <option value="bajaj">Bajaj Allianz</option>
+          </select>
+        </div>
 
         <div className="navbar__profile" ref={dropdownRef}>
           <button

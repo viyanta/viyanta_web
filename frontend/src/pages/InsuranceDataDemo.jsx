@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InsuranceDataTable from '../components/InsuranceDataTable';
 import './InsuranceDataDemo.css';
 
 const InsuranceDataDemo = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [insuranceData, setInsuranceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState('');
-  const [activeNavItem, setActiveNavItem] = useState('Dashboard');
+  const [activeNavItem, setActiveNavItem] = useState('L Forms');
 
   useEffect(() => {
     // Simulate loading data
@@ -32,6 +34,18 @@ const InsuranceDataDemo = ({ onMenuClick }) => {
 
   const handleNavClick = (navItem) => {
     setActiveNavItem(navItem);
+    
+    // Navigate to respective pages
+    if (navItem === 'Dashboard') {
+      navigate('/dashboard');
+    } else if (navItem === 'Background') {
+      navigate('/insurance-dashboard');
+    } else if (navItem === 'L Forms') {
+      navigate('/lform');
+    } else {
+      // For other tabs, you can add navigation logic later
+      console.log(`Clicked ${navItem} tab`);
+    }
   };
 
 

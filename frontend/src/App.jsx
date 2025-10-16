@@ -14,9 +14,10 @@ import DMML2Form from './pages/DMML2Form.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
+import UserAgreement from './components/UserAgreement.jsx'
 // Protected Route Component
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, agreementAccepted, acceptAgreement, logout } = useAuth();
 
   if (loading) {
     return (
@@ -29,7 +30,21 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Show user agreement if user is authenticated but hasn't accepted the agreement
+  if (user && !agreementAccepted) {
+    return (
+      <UserAgreement 
+        onAccept={acceptAgreement}
+        onReject={logout}
+      />
+    );
+  }
+
+  return children;
 }
 
 // Admin-only Route Component
@@ -66,9 +81,14 @@ function AdminRoute({ children }) {
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedInsurer, setSelectedInsurer] = useState('');
 
   const closeSidebar = () => setSidebarOpen(false);
   const openSidebar = () => setSidebarOpen(true);
+
+  const handleInsurerChange = (insurer) => {
+    setSelectedInsurer(insurer);
+  };
 
   return (
     <AuthProvider>
@@ -82,7 +102,11 @@ function App() {
             <Route path="/*" element={
               <ProtectedRoute>
                 <div className="app-container">
-                  <Navbar onMenuClick={openSidebar} />
+                  <Navbar 
+                    onMenuClick={openSidebar} 
+                    selectedInsurer={selectedInsurer}
+                    onInsurerChange={handleInsurerChange}
+                  />
                   <div className="layout">
                     <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
                     <main 
@@ -91,7 +115,7 @@ function App() {
                     >
                       <Routes>
                         <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
-                        {/* <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} /> */}
+                        <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
                         <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
                         <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
@@ -102,7 +126,12 @@ function App() {
                           </AdminRoute>
                         } />
                         {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
-                        <Route path="/insurance-dashboard" element={<InsuranceDashboard onMenuClick={openSidebar} />} />
+                        <Route path="/insurance-dashboard" element={
+                          <InsuranceDashboard 
+                            onMenuClick={openSidebar} 
+                            selectedInsurer={selectedInsurer}
+                          />
+                        } />
                         <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
                       </Routes>
                     </main>
