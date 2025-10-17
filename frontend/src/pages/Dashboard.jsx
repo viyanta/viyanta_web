@@ -8,6 +8,7 @@ const Dashboard = ({ onMenuClick }) => {
   const [selectedFrequency, setSelectedFrequency] = useState('Quarterly');
   const [selectedType, setSelectedType] = useState('Factsheet');
   const [activeView, setActiveView] = useState('Visuals');
+  const [selectedCompany, setSelectedCompany] = useState('');
 
   const frequencyOptions = ['Yearly', 'Quarterly', 'Monthly'];
   const typeOptions = ['Products', 'Business', 'Factsheet', 'People'];
@@ -67,6 +68,45 @@ const Dashboard = ({ onMenuClick }) => {
               Comprehensive view of key performance indicators and market analysis
             </p>
       </div>
+
+          {/* Insurer Name Dropdown - Right side */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+            padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+          }}>
+            <div style={{
+              position: 'relative',
+              display: 'inline-block'
+            }}>
+              <select
+                value={selectedCompany || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedCompany(value);
+                }}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  backgroundColor: '#f8f9fa',
+                  color: '#333',
+                  minWidth: '150px',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value="">Insurer Name</option>
+                <option value="hdfc">HDFC Life</option>
+                <option value="sbi">SBI Life</option>
+                <option value="icici">ICICI Prudential</option>
+                <option value="lic">LIC</option>
+                <option value="bajaj">Bajaj Allianz</option>
+              </select>
+            </div>
+          </div>
 
           {/* Navigation Tabs Only */}
           <div className="navigation-tabs-container" style={{
