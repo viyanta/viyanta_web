@@ -333,7 +333,7 @@ const TreemapSection = ({ title, data, colors }) => {
   );
 };
 
-function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
+function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -521,7 +521,7 @@ function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
           {/* Show Background Page when Background tab is active */}
           {activeTab === 'Background' ? (
             <BackgroundPage 
-              selectedInsurer={selectedInsurer || selectedCompany}
+              selectedInsurer={selectedCompany}
               onTabChange={setActiveTab}
               onInsurerChange={(insurer) => {
                 setSelectedCompany(insurer);
@@ -547,6 +547,46 @@ function InsuranceDashboard({ onMenuClick, selectedInsurer }) {
                 }}>
                   Comprehensive view of key performance indicators and market analysis
                 </p>
+              </div>
+
+              {/* Insurer Name Dropdown - Right side */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+                padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+              }}>
+                <div style={{
+                  position: 'relative',
+                  display: 'inline-block'
+                }}>
+                  <select
+                    value={selectedCompany || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedCompany(value);
+                      // You can also update the navbar selection if needed
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      fontSize: '14px',
+                      border: '1px solid #ddd',
+                      borderRadius: '6px',
+                      backgroundColor: '#f8f9fa',
+                      color: '#333',
+                      minWidth: '150px',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Insurer Name</option>
+                    <option value="hdfc">HDFC Life</option>
+                    <option value="sbi">SBI Life</option>
+                    <option value="icici">ICICI Prudential</option>
+                    <option value="lic">LIC</option>
+                    <option value="bajaj">Bajaj Allianz</option>
+                  </select>
+                </div>
               </div>
 
               {/* Top Navigation Bar */}

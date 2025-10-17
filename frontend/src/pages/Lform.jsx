@@ -8,6 +8,7 @@ function Lform({ onMenuClick }) {
         period: '',
         reportType: ''
     });
+    const [selectedCompany, setSelectedCompany] = useState('');
 
     // L Form options from the image
     const lformOptions = [
@@ -97,6 +98,45 @@ function Lform({ onMenuClick }) {
                     fontSize: 'clamp(18px, 5vw, 28px)',
                     lineHeight: '1.2'
                 }}>L-Form Data Selection</h1>
+            </div>
+
+            {/* Insurer Name Dropdown - Right side */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+                padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+            }}>
+                <div style={{
+                    position: 'relative',
+                    display: 'inline-block'
+                }}>
+                    <select
+                        value={selectedCompany || ''}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedCompany(value);
+                        }}
+                        style={{
+                            padding: '8px 12px',
+                            fontSize: '14px',
+                            border: '1px solid #ddd',
+                            borderRadius: '6px',
+                            backgroundColor: '#f8f9fa',
+                            color: '#333',
+                            minWidth: '150px',
+                            cursor: 'pointer',
+                            outline: 'none'
+                        }}
+                    >
+                        <option value="">Insurer Name</option>
+                        <option value="hdfc">HDFC Life</option>
+                        <option value="sbi">SBI Life</option>
+                        <option value="icici">ICICI Prudential</option>
+                        <option value="lic">LIC</option>
+                        <option value="bajaj">Bajaj Allianz</option>
+                    </select>
+                </div>
             </div>
             
             <div style={{ 

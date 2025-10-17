@@ -81,14 +81,9 @@ function AdminRoute({ children }) {
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedInsurer, setSelectedInsurer] = useState('');
 
   const closeSidebar = () => setSidebarOpen(false);
   const openSidebar = () => setSidebarOpen(true);
-
-  const handleInsurerChange = (insurer) => {
-    setSelectedInsurer(insurer);
-  };
 
   return (
     <AuthProvider>
@@ -104,8 +99,6 @@ function App() {
                 <div className="app-container">
                   <Navbar 
                     onMenuClick={openSidebar} 
-                    selectedInsurer={selectedInsurer}
-                    onInsurerChange={handleInsurerChange}
                   />
                   <div className="layout">
                     <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
@@ -129,7 +122,6 @@ function App() {
                         <Route path="/insurance-dashboard" element={
                           <InsuranceDashboard 
                             onMenuClick={openSidebar} 
-                            selectedInsurer={selectedInsurer}
                           />
                         } />
                         <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
