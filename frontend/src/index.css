@@ -578,6 +578,43 @@ li {
   gap: 1rem;
 }
 
+.navbar__insurer-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar__insurer-dropdown select {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--border-radius);
+  background-color: rgba(255,255,255,0.1);
+  color: var(--text-color);
+  min-width: 150px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.navbar__insurer-dropdown select:hover {
+  background-color: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.navbar__insurer-dropdown select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.4);
+  background-color: rgba(255,255,255,0.2);
+}
+
+.navbar__insurer-dropdown select option {
+  background-color: #333;
+  color: white;
+  padding: 0.5rem;
+  font-weight: normal;
+}
+
 .navbar__welcome {
   padding: 0.75rem 1.25rem;
   background-color: rgba(255,255,255,0.1);

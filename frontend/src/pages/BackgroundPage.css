@@ -1,0 +1,349 @@
+/* Background Page Styles */
+.background-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Navigation Tabs */
+.background-navigation-tabs {
+  margin-bottom: 20px;
+}
+
+.navigation-tabs-container {
+  margin-bottom: 15px;
+  padding: 0 1.5rem;
+}
+
+.navigation-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  overflow: visible;
+}
+
+.nav-tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  text-align: center;
+  border: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.nav-tab:hover {
+  color: #333;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.nav-tab.active {
+  color: var(--main-color) !important;
+  font-weight: 600;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Company Selection Section */
+.company-selection-section {
+  margin-bottom: 25px;
+  padding: 0 1.5rem;
+}
+
+.company-selection-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--main-color);
+  margin: 0 0 15px 0;
+}
+
+.company-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.company-dropdown {
+  padding: 10px 15px;
+  font-size: 14px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background-color: white;
+  color: #333;
+  min-width: 280px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.company-dropdown:hover {
+  border-color: var(--main-color);
+}
+
+.company-dropdown:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+
+
+.company-dropdown option {
+  padding: 8px;
+  background-color: white;
+  color: #333;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.breadcrumb-separator {
+  color: #999;
+}
+
+.breadcrumb-current {
+  color: #333;
+  font-weight: 500;
+}
+
+/* Content Tabs */
+.content-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.content-tab {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+
+}
+
+.content-tab:hover {
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.content-tab.active {
+  color: var(--main-color);
+  border-bottom-color: var(--main-color);
+  background-color: #f8f9fa;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Company Logo Section */
+.company-logo-section {
+  flex: 0 0 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.company-logo {
+  max-width: 220px;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+/* Company Data Table */
+.company-data-table {
+  flex: 0 0 600px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--main-color);
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.data-row {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: start;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.data-value {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Visuals Content */
+.visuals-content {
+  flex: 0 0 600px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.visuals-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--main-color);
+}
+
+.visuals-placeholder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.visual-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.visual-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--main-color);
+  margin-bottom: 10px;
+}
+
+.visual-card p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .background-page {
+    padding: 15px;
+  }
+  
+  .navigation-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .nav-tab {
+    padding: 10px 8px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+  
+  .company-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .company-dropdown {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .main-content {
+    flex-direction: column;
+    gap: 20px;
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .company-logo-section {
+    flex: none;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .company-data-table,
+  .visuals-content {
+    flex: none;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .data-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px 0;
+  }
+  
+  .data-label {
+    font-weight: 600;
+    color: var(--main-color);
+    margin-bottom: 4px;
+  }
+  
+  .visuals-placeholder {
+    grid-template-columns: 1fr;
+  }
+}
