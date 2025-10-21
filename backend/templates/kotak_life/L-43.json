@@ -1,0 +1,82 @@
+{
+  "Form No": "L-43",
+  "Title": "VOTING ACTIVITY DISCLOSURE UNDER STEWARDSHIP CODE",
+  "Company": "Aviva Life Insurance Company India Limited",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Sections": [
+    {
+      "Section_Name": "Voting Activity Disclosure under Stewardship Code",
+      "Headers": {
+        "Meeting_Date": [
+          "Meeting Date"
+        ],
+        "Investee_Company_Name": [
+          "Investee Company Name"
+        ],
+        "Type_of_Meetings": [
+          "Type of Meetings (AGM/EGM)"
+        ],
+        "Proposal_of_Management_Shareholders": [
+          "Proposal of Management / Shareholders"
+        ],
+        "Description_of_Proposal": [
+          "Description of Proposal"
+        ],
+        "Investee_Company_Management_Recommendation": [
+          "Investee Company's Management Recommendation"
+        ],
+        "Vote": [
+          "Vote (For/Against/Abstain)"
+        ],
+        "Reason_supporting_vote_decision": [
+          "Reason supporting the vote decision"
+        ]
+      },
+      "FlatHeaders": [
+        "Meeting Date",
+        "Investee Company Name",
+        "Type of Meetings (AGM/EGM)",
+        "Proposal of Management / Shareholders",
+        "Description of Proposal",
+        "Investee Company's Management Recommendation",
+        "Vote (For/Against/Abstain)",
+        "Reason supporting the vote decision"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

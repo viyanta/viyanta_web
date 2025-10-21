@@ -88,41 +88,49 @@ def extract_index_entries(pdf_path: str, pages_to_scan: int = INDEX_PAGES_TO_SCA
     pdf_path = Path(pdf_path)
     index_text = read_index_text(pdf_path, pages_to_scan)
     raw_lines = index_text.splitlines()
-    lines = stitch_lines(raw_lines)
+    # --- Improved stitching: join lines where form code and page number are split ---
+    lines = []
+    i = 0
+    while i < len(raw_lines):
+        line = raw_lines[i].strip()
+        if not line:
+            i += 1
+            continue
+        # If line has form code but no page number, and next line is just a number/range, join
+        has_form = re.search(r'\bL[\s\-_]?\d+[A-Za-z0-9\-]*\b', line, re.I)
+        has_page = re.search(
+            r'(\d{1,3}\s*(?:[-–—to]+\s*\d{1,3})?|\bpp\.\s*\d{1,3}\b)$', line)
+        if has_form and not has_page and i + 1 < len(raw_lines):
+            nxt = raw_lines[i + 1].strip()
+            if re.match(r'^\d{1,3}\s*(?:[-–—to]+\s*\d{1,3})?$', nxt):
+                lines.append(f"{line} {nxt}")
+                i += 2
+                continue
+            if re.search(r'\.{2,}\s*\d', nxt):
+                lines.append(line + " " + nxt)
+                i += 2
+                continue
+        lines.append(line)
+        i += 1
 
     entries = []
-    # Regex attempts (try from most-specific to fallback)
-    pattern_range = re.compile(
-        r'^\s*(?:(\d{1,3})[\.\)]?\s+)?'                 # optional serial
-        r'([Ll][\s\-_]*\d+[A-Za-z0-9\-\s]*)'            # form token
-        # any separator/desc (lazy)
-        r'(?:[^\d\n]{0,80})'
-        r'(\d{1,3})\s*(?:[-–—to]+)\s*(\d{1,3})\b',      # start - end
-        flags=re.I
-    )
-    pattern_single = re.compile(
-        r'^\s*(?:(\d{1,3})[\.\)]?\s+)?'
-        r'([Ll][\s\-_]*\d+[A-Za-z0-9\-\s]*)'
-        r'(?:[^\d\n]{0,80})'
-        r'(?:pp?\.\s*)?(\d{1,3})\b',
-        flags=re.I
-    )
     pattern_form = re.compile(r'([Ll][\s\-_]*\d+[A-Za-z0-9\-]*)', flags=re.I)
-
     for line in lines:
         if not line:
             continue
-        # first try range
-        m = pattern_range.search(line)
-        if m:
-            serial = (m.group(1) or "").strip()
-            raw_form = m.group(2).strip()
-            start = int(m.group(3))
-            end = int(m.group(4))
-            desc = line[:m.start(3)].strip()
-            norm = normalize_form_code(raw_form)
+        m_form = pattern_form.search(line)
+        if not m_form:
+            continue
+        raw_form = m_form.group(1).strip()
+        norm = normalize_form_code(raw_form)
+        # Find last number or range at end of line
+        m_range = re.search(r'(\d{1,3})\s*[-–—to]+\s*(\d{1,3})\s*$', line)
+        if m_range:
+            start = int(m_range.group(1))
+            end = int(m_range.group(2))
+            desc = line[:m_range.start()].strip()
             entries.append({
-                "serial_no": serial,
+                "serial_no": "",
                 "original_form_no": raw_form,
                 "form_code": norm,
                 "description": desc,
@@ -130,16 +138,12 @@ def extract_index_entries(pdf_path: str, pages_to_scan: int = INDEX_PAGES_TO_SCA
                 "end_page": end
             })
             continue
-        # then single page
-        m2 = pattern_single.search(line)
-        if m2:
-            serial = (m2.group(1) or "").strip()
-            raw_form = m2.group(2).strip()
-            start = int(m2.group(3))
-            desc = line[:m2.start(3)].strip()
-            norm = normalize_form_code(raw_form)
+        m_single = re.search(r'(\d{1,3})\s*$', line)
+        if m_single:
+            start = int(m_single.group(1))
+            desc = line[:m_single.start()].strip()
             entries.append({
-                "serial_no": serial,
+                "serial_no": "",
                 "original_form_no": raw_form,
                 "form_code": norm,
                 "description": desc,
@@ -147,44 +151,21 @@ def extract_index_entries(pdf_path: str, pages_to_scan: int = INDEX_PAGES_TO_SCA
                 "end_page": start
             })
             continue
-        # fallback: detect form token only (no page numbers)
-        m3 = pattern_form.search(line)
-        if m3:
-            raw_form = m3.group(1).strip()
-            norm = normalize_form_code(raw_form)
-            # try to parse trailing page numbers anywhere else in the line
-            p = re.search(
-                r'(\d{1,3})\s*(?:[-–—to]+\s*(\d{1,3}))?', line[m3.end():])
-            if p:
-                s = int(p.group(1))
-                e = int(p.group(2)) if p.group(2) else s
-                entries.append({
-                    "serial_no": "",
-                    "original_form_no": raw_form,
-                    "form_code": norm,
-                    "description": line,
-                    "start_page": s,
-                    "end_page": e
-                })
-            else:
-                entries.append({
-                    "serial_no": "",
-                    "original_form_no": raw_form,
-                    "form_code": norm,
-                    "description": line
-                })
-            continue
-        # otherwise skip
+        # fallback: just form code and description
+        entries.append({
+            "serial_no": "",
+            "original_form_no": raw_form,
+            "form_code": norm,
+            "description": line
+        })
     # deduplicate while preserving order (keep first appearance)
     seen = set()
     final = []
     for e in entries:
         key = e["form_code"]
         if key in seen:
-            # if we already have it, attempt to merge missing info
             for prev in final:
                 if prev["form_code"] == key:
-                    # fill missing fields
                     for k in ("serial_no", "original_form_no", "description", "start_page", "end_page"):
                         if k not in prev or not prev.get(k):
                             if e.get(k):
@@ -224,34 +205,42 @@ def scan_pdf_for_forms(pdf_path: str, expected_forms: List[Dict]) -> Dict[str, i
 # ---------------- compute ranges + apply offset ----------------
 
 
-def compute_final_ranges(pdf_path: str, index_entries: List[Dict]) -> List[Dict]:
+def compute_final_ranges(pdf_path: str, index_entries: List[Dict], force_offset: int = None) -> List[Dict]:
     reader = PdfReader(str(pdf_path))
     total_pages = len(reader.pages)
     entries = [dict(e) for e in index_entries]  # copy
-    # detect occurrences in PDF
     detected = scan_pdf_for_forms(pdf_path, entries)
 
-    # Compute offset using entries that have start_page from index AND detected page
-    diffs = []
-    for e in entries:
-        if "start_page" in e and e["start_page"] and e["form_code"] in detected:
-            diffs.append(detected[e["form_code"]] - e["start_page"])
-    offset = 0
-    if diffs:
-        offset = int(round(statistics.median(diffs)))
-        if abs(offset) > MAX_OFFSET_THRESHOLD:
-            print(
-                f"Computed offset {offset} > threshold ({MAX_OFFSET_THRESHOLD}) -> ignoring offset")
-            offset = 0
-    if offset != 0:
-        print(
-            f"Applying offset {offset} to index page numbers (detected vs index mismatch).")
-        # apply to all index range fields present
+    # --- Offset logic ---
+    if force_offset is not None:
+        offset = force_offset
         for e in entries:
-            if "start_page" in e and e["start_page"]:
-                e["start_page"] = e["start_page"] + offset
-            if "end_page" in e and e["end_page"]:
-                e["end_page"] = e["end_page"] + offset
+            if e.get('form_code', '').startswith('L-'):
+                if e.get('start_page'):
+                    e['start_page'] += offset
+                if e.get('end_page'):
+                    e['end_page'] += offset
+    else:
+        # Compute offset using entries that have start_page from index AND detected page
+        diffs = []
+        for e in entries:
+            if "start_page" in e and e["start_page"] and e["form_code"] in detected:
+                diffs.append(detected[e["form_code"]] - e["start_page"])
+        offset = 0
+        if diffs:
+            offset = int(round(statistics.median(diffs)))
+            if abs(offset) > MAX_OFFSET_THRESHOLD:
+                print(
+                    f"Computed offset {offset} > threshold ({MAX_OFFSET_THRESHOLD}) -> ignoring offset")
+                offset = 0
+        if offset != 0:
+            print(
+                f"Applying offset {offset} to index page numbers (detected vs index mismatch).")
+            for e in entries:
+                if e.get('start_page'):
+                    e['start_page'] = e['start_page'] + offset
+                if e.get('end_page'):
+                    e['end_page'] = e['end_page'] + offset
 
     # fill missing start_pages with detected pages
     for e in entries:
@@ -297,51 +286,148 @@ def compute_final_ranges(pdf_path: str, index_entries: List[Dict]) -> List[Dict]
 # ---------------- split and write metadata ----------------
 
 
-def split_pdf(pdf_path: str, output_dir: str = OUTPUT_DIR):
+def split_pdf(pdf_path: str, output_dir: str = OUTPUT_DIR, company_name: str = None):
     pdf_path = Path(pdf_path)
     output_dir = Path(output_dir) / pdf_path.stem
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # --- Normalize company_name for logic, keep original for metadata ---
+    pretty_company_name = company_name or pdf_path.parent.name
+    logic_company_name = (
+        company_name or pdf_path.parent.name).lower().replace(' ', '_')
+
     index_entries = extract_index_entries(
         str(pdf_path), pages_to_scan=INDEX_PAGES_TO_SCAN)
-    ranges = compute_final_ranges(str(pdf_path), index_entries)
+    index_form_codes = {e['form_code']
+                        for e in index_entries if 'form_code' in e}
+
+    # --- Company-specific offset logic ---
+    force_offset = None
+    use_text_search = False
+    if logic_company_name:
+        cname = logic_company_name
+        if 'bajaj_allianz' in cname:
+            pass  # Standard logic, no offset
+        elif 'canara_hsbc_life' in cname or 'hdfc_life' in cname:
+            l1_entries = [e for e in index_entries if e['form_code'].startswith(
+                'L-1') and e.get('start_page')]
+            if l1_entries and l1_entries[0]['start_page'] == 1:
+                force_offset = 2
+        elif 'icici_prudential' in cname:
+            # If most index entries have no start_page, use text search fallback
+            if not any(e.get('start_page') for e in index_entries):
+                use_text_search = True
+        elif 'edelweiss_life' in cname:
+            print(
+                "Applying EDELWEISS Life specific logic for end_page assignment.*******")
+            total_pages = len(PdfReader(str(pdf_path)).pages)
+            valid_entries = [e for e in index_entries if e.get('start_page')]
+            # Check if first L-1* form starts at page 1
+            l1_entries = [
+                e for e in valid_entries if e['form_code'].startswith('L-1')]
+            offset = 0
+            if l1_entries and l1_entries[0]['start_page'] == 1:
+                offset = 1
+            for i, entry in enumerate(valid_entries):
+                if i + 1 < len(valid_entries):
+                    entry['end_page'] = valid_entries[i+1]['start_page'] - 1
+                else:
+                    entry['end_page'] = total_pages
+                if offset:
+                    entry['start_page'] += offset
+                    entry['end_page'] += offset
+            # Now update index_entries with these end_pages and offset
+            start_to_entry = {e['start_page']: e for e in valid_entries}
+            for e in index_entries:
+                if e.get('start_page') and e['start_page'] in start_to_entry:
+                    e['end_page'] = start_to_entry[e['start_page']]['end_page']
+                    print(
+                        f"Set end_page for {e['form_code']} to {e['end_page']}")
+                    if offset:
+                        e['start_page'] += 0  # already offset above
+                        e['end_page'] += 0
+        else:  # Standard logic
+            l1_entries = [e for e in index_entries if e['form_code'].startswith(
+                'L-1') and e.get('start_page')]
+            if l1_entries and l1_entries[0]['start_page'] == 1:
+                force_offset = 2
+
+    if use_text_search:
+        ranges = assign_ranges_by_text_search(str(pdf_path), index_entries)
+    else:
+        ranges = compute_final_ranges(
+            str(pdf_path), index_entries, force_offset=force_offset)
 
     reader = PdfReader(str(pdf_path))
     split_files = []
+    valid_ranges = []
+
+    # For ICICI Prudential and similar, do NOT skip forms with missing start_page/end_page
+    skip_incomplete = not (
+        logic_company_name and 'icici_prudential' in logic_company_name)
 
     for r in ranges:
-        if not r.get("start_page"):
-            print(f"Skipping {r.get('form_code')} — no start page detected.")
+        # Clamp start_page and end_page to valid range
+        try:
+            start_page = int(r.get("start_page", 1))
+            end_page = int(r.get("end_page", 1))
+        except Exception as e:
+            print(f"Invalid page numbers for {r.get('form_code')}: {e}")
             continue
-        writer = PdfWriter()
-        for p in range(r["start_page"] - 1, r["end_page"]):
-            if 0 <= p < len(reader.pages):
-                writer.add_page(reader.pages[p])
+        start_page = max(1, min(len(reader.pages), start_page))
+        end_page = max(1, min(len(reader.pages), end_page))
+        if end_page < start_page:
+            print(
+                f"end_page < start_page for {r.get('form_code')} ({start_page} < {end_page}), fixing.")
+            end_page = start_page
+        r["start_page"] = start_page
+        r["end_page"] = end_page
+
+        if skip_incomplete and (not r.get("form_code") or not r.get("start_page") or not r.get("end_page")):
+            print(f"Skipping incomplete range: {r}")
+            continue
+        if r["start_page"] == r["end_page"] and r["form_code"] not in index_form_codes:
+            print(
+                f"Skipping possible spurious single-page form: {r['form_code']} (page {r['start_page']})")
+            continue
         safe_name = re.sub(r"[^\w\d\-_]+", "_", r["form_code"])[:80] or "form"
         filename = f"{safe_name}_{r['start_page']}_{r['end_page']}.pdf"
-        outpath = output_dir / filename
-        with open(outpath, "wb") as f:
-            writer.write(f)
-        split_files.append({
-            "filename": filename,
-            "path": str(outpath),
-            "form_name": r.get("original_form_no") or r["form_code"],
-            "form_code": r["form_code"],
-            "serial_no": r.get("serial_no", ""),
-            "start_page": r.get("start_page"),
-            "end_page": r.get("end_page"),
-            "original_form_no": r.get("original_form_no", r["form_code"])
-        })
+        writer = PdfWriter()
+        try:
+            for p in range(r["start_page"] - 1, r["end_page"]):
+                if 0 <= p < len(reader.pages):
+                    writer.add_page(reader.pages[p])
+            outpath = output_dir / filename
+            with open(outpath, "wb") as f:
+                writer.write(f)
+            split_files.append({
+                "filename": filename,
+                "path": str(outpath),
+                "form_name": r.get("original_form_no") or r["form_code"],
+                "form_code": r["form_code"],
+                "serial_no": r.get("serial_no", ""),
+                "start_page": r.get("start_page"),
+                "end_page": r.get("end_page"),
+                "original_form_no": r.get("original_form_no", r["form_code"])
+            })
+            valid_ranges.append({
+                "form_no": r["form_code"],
+                "start_page": r.get("start_page"),
+                "end_page": r.get("end_page")
+            })
+        except Exception as e:
+            print(f"Error splitting form {r.get('form_code')}: {e}")
+            continue
 
     # metadata (no user_id/upload_id)
     metadata = {
-        "company_name": pdf_path.parent.name,
+        "company_name": pretty_company_name,
         "original_filename": pdf_path.name,
         "original_path": str(pdf_path),
         "splits_folder": str(output_dir),
         "total_splits": len(split_files),
         "split_files": split_files,
-        "ranges": [{"form_no": r["form_code"], "start_page": r.get("start_page"), "end_page": r.get("end_page")} for r in ranges],
+        "ranges": valid_ranges,
         "method": "index+content",
     }
 
@@ -351,15 +437,108 @@ def split_pdf(pdf_path: str, output_dir: str = OUTPUT_DIR):
 
     print(f"\nWrote {len(split_files)} split files into: {output_dir}")
     print(f"Metadata written to: {meta_path}")
-    return split_files, ranges, metadata
+    return split_files, valid_ranges, metadata
+
+
+def assign_ranges_by_text_search(pdf_path: str, index_entries: List[Dict]) -> List[Dict]:
+    """
+    For index entries without page numbers, assign start_page/end_page by searching the PDF for form tokens.
+    Use both normalized code and full form name for matching. Assign tight, non-overlapping ranges. Output correct metadata fields.
+    """
+    reader = PdfReader(str(pdf_path))
+    total_pages = len(reader.pages)
+    # Build robust patterns for each form
+    form_patterns = []
+    for entry in index_entries:
+        code = entry['form_code']
+        orig = entry.get('original_form_no', '')
+        desc = entry.get('description', '')
+        # Build variants
+        code_base = re.sub(r'[-_ ]+', r'[-_ ]*', code)
+        orig_base = re.sub(r'[-_ ]+', r'[-_ ]*', orig.upper())
+        desc_base = re.sub(r'[-_ ]+', r'[-_ ]*', desc.upper())
+        # Accept L-1, L-1-*, FORM L-1-*, full form name, etc.
+        patterns = [
+            rf'\\b{code_base}\\b',
+            rf'\\b{code_base}[-_ ]',
+            rf'FORM[-_ ]*{code_base}\\b',
+            rf'FORM[-_ ]*{code_base}[-_ ]',
+        ]
+        if orig_base and orig_base != code_base:
+            patterns.append(rf'\\b{orig_base}\\b')
+            patterns.append(rf'FORM[-_ ]*{orig_base}\\b')
+        if desc_base and desc_base != code_base and desc_base != orig_base:
+            patterns.append(rf'\\b{desc_base}\\b')
+            patterns.append(rf'FORM[-_ ]*{desc_base}\\b')
+        # Allow for trailing words (e.g., SCHEDULE, ACCOUNT)
+        patterns = [p + r'(?:[\s\-_A-Z&]*)' for p in patterns]
+        form_patterns.append((entry, [re.compile(p, re.I) for p in patterns]))
+    # Search each page for each form
+    found_pages = {}
+    for page_num, page in enumerate(reader.pages, start=1):
+        text = (page.extract_text() or "").upper()
+        for entry, patterns in form_patterns:
+            if entry['form_code'] in found_pages:
+                continue
+            for pat in patterns:
+                if pat.search(text):
+                    found_pages[entry['form_code']] = page_num
+                    # Also try to match by original_form_no for more accuracy
+                    if entry.get('original_form_no'):
+                        found_pages[entry['original_form_no'].upper()
+                                    ] = page_num
+                    break
+    # Assign detected start_pages
+    for entry in index_entries:
+        # Prefer matching by original_form_no if possible
+        orig_key = entry.get('original_form_no', '').upper()
+        if orig_key and orig_key in found_pages:
+            entry['start_page'] = found_pages[orig_key]
+        elif entry['form_code'] in found_pages:
+            entry['start_page'] = found_pages[entry['form_code']]
+    # Now assign start/end for all, sequentially, using detected as anchors
+    # If index has page numbers, use them directly
+    for i, entry in enumerate(index_entries):
+        if entry.get('start_page') and entry.get('end_page'):
+            continue  # already has both
+        # If missing start_page, set to previous end_page+1 or 1
+        if not entry.get('start_page'):
+            if i > 0 and index_entries[i-1].get('end_page'):
+                entry['start_page'] = index_entries[i-1]['end_page'] + 1
+            else:
+                entry['start_page'] = 1
+        # If missing end_page, set to next start_page-1 or total_pages
+        if not entry.get('end_page'):
+            next_start = None
+            for j in range(i+1, len(index_entries)):
+                if index_entries[j].get('start_page') and index_entries[j]['start_page'] > entry['start_page']:
+                    next_start = index_entries[j]['start_page']
+                    break
+            if next_start:
+                entry['end_page'] = max(entry['start_page'], next_start - 1)
+            else:
+                entry['end_page'] = total_pages
+        # Clamp
+        entry['start_page'] = max(
+            1, min(total_pages, int(entry['start_page'])))
+        entry['end_page'] = max(1, min(total_pages, int(entry['end_page'])))
+        if entry['end_page'] < entry['start_page']:
+            entry['end_page'] = entry['start_page']
+    return index_entries
 
 
 # ---------------- main ----------------
 if __name__ == "__main__":
     print("INPUT:", os.path.abspath(INPUT_PDF))
     print("Exists:", os.path.exists(INPUT_PDF))
+    # Infer company_name from INPUT_PDF path
+    pdf_path_obj = Path(INPUT_PDF)
+    if pdf_path_obj.parent.name:
+        company_name = pdf_path_obj.parent.name.lower().replace(" ", "_")
+    else:
+        company_name = None
     files, ranges, metadata = split_pdf(
-        INPUT_PDF, OUTPUT_DIR)
+        INPUT_PDF, OUTPUT_DIR, company_name=company_name)
     print("\nDetected Ranges:")
     for r in ranges:
         print(r)

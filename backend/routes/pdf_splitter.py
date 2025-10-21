@@ -47,7 +47,7 @@ async def upload_and_split_pdf(
             "success": True,
             "message": f"PDF uploaded and split into {result['total_splits']} files",
             "data": {
-                "upload_id": result["upload_id"],
+                # "upload_id": result["upload_id"],
                 "company_name": result["company_name"],
                 "pdf_name": result["pdf_name"],
                 "total_splits": result["total_splits"]

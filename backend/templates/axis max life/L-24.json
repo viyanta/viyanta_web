@@ -1,0 +1,34 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "Aviva Life Insurance Company India Limited",
+  "SubTitle": "Schedules forming part of financial statements",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Headers": {
+    "Type": [
+      "Type"
+    ],
+    "Category_of_business": [
+      "Category of business"
+    ],
+    "Mathematical_Reserves_as_at_Dec_Current_Year": [
+      "Mathematical Reserves",
+      "as at Dec",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Mathematical_Reserves_as_at_Dec_Previous_Year": [
+      "Mathematical Reserves",
+      "as at Dec",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ]
+  },
+  "FlatHeaders": [
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_as_at_Dec_Current_Year",
+    "Mathematical_Reserves_as_at_Dec_Previous_Year"
+  ],
+  "Rows": []
+}

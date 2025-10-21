@@ -43,9 +43,33 @@ const PDFSplitterWorkflow = ({ user }) => {
       console.error('Failed to load companies:', error);
       // Fallback to hardcoded companies
       setCompanies([
-        'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
-        'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
+        'ACKO Life',
+        'Aditya Birla Sun Life',
+        'Ageas Federal Life',
+        'AVIVA Life',
+        'AXIS Max Life',
+        'Bajaj Allianz',
+        'Bandhan Life',
+        'Bharti AXA Life',
+        'Canara HSBC Life',
+        'CreditAccess Life',
+        'EDELWEISS Tokio Life',
+        'Future Generali India Life',
+        'GO Digit Life',
+        'HDFC Life',
+        'ICICI Prudential',
+        'IndiaFirst Life',
+        'Kotak Life',
+        'LIC of India',
+        'PNB MetLife Life',
+        'Pramerica Life',
+        'Reliance Nippon Life',
+        'SBI Life',
+        'Shriram Life',
+        'STARUNION Daichi Life',
+        'TATA Aig Life'
       ]);
+      
     } finally {
       setLoadingCompanies(false);
     }
