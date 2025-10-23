@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
-import Breadcrumb from './Breadcrumb.jsx'
 
 function Navbar({ onMenuClick }) {
   const [user, setUser] = useState(null);
@@ -87,9 +86,6 @@ function Navbar({ onMenuClick }) {
             Welcome, {user.displayName || 'User'}
           </div>
         )}
-
-        {/* Breadcrumb */}
-        <Breadcrumb />
 
         <div className="navbar__profile" ref={dropdownRef}>
           <button

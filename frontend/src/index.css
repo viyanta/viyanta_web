@@ -534,6 +534,7 @@ li {
   color: var(--text-color);
   box-shadow: var(--shadow-medium);
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  min-height: 80px;
 }
 
 .navbar--loading {
@@ -576,6 +577,7 @@ li {
   display: flex;
   align-items: center;
   gap: 1rem;
+  height: 100%;
 }
 
 .navbar__insurer-dropdown {
@@ -622,6 +624,9 @@ li {
   font-size: 0.9rem;
   color: var(--text-color);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  height: fit-content;
 }
 
 .navbar__profile {
@@ -639,6 +644,7 @@ li {
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: var(--transition);
+  height: fit-content;
 }
 
 .navbar__profile-button:hover:not(:disabled) {
@@ -735,6 +741,7 @@ li {
   font-size: 0.9rem;
   color: var(--text-color);
   font-weight: 500;
+  height: fit-content;
 }
 
 .breadcrumb__current {
