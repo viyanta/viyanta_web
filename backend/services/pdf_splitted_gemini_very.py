@@ -180,6 +180,7 @@ Your job is to analyze and correct extracted JSON data using the actual PDF cont
 
 === OBJECTIVE ===
 - Identify and correct ALL incorrect, inconsistent, or missing values.
+- Do NOT miss any data from the pdf of table. 
 - If any part of the extracted JSON is empty or missing, FILL it using the PDF content.
 - Follow the template structure and headers exactly.
 - Maintain the same keys, order, and JSON structure.
@@ -203,7 +204,28 @@ EXTRACTED DATA:
 
 "" for missing data
 
-Return ONLY JSON in this format: {{"data":[corrected_rows_here]}}"""
+Return ONLY JSON in this format: {{
+  "data": [
+    {{
+      "Form No": "",
+      "Title": "",
+      "RegistrationNumber": "",
+      "Period": "",
+      "Currency": "",
+      "PagesUsed": ,
+      "TableIndex": ,
+      "FlatHeaders": [
+      ],
+      "FlatHeadersNormalized": [
+      ],
+      "Rows": [
+        {{
+        }}
+        // ... more rows here ...
+      ]
+    }}
+  ]
+}}"""
     safe_info(
         f"Prompt created (length={len(prompt)} chars, {len(extracted_data)} rows, PDF chars: {len(pdf_text)})")
     return prompt

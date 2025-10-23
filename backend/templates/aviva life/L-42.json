@@ -1,0 +1,139 @@
+{
+  "Form No": "L-42",
+  "Title": "VALUATION BASIS (LIFE INSURANCE)",
+  "Company": "Aviva Life Insurance Company India Limited",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Business_Type": "Individual Business",
+  "Sections": [
+    {
+      "Section_Name": "Range (Minimum to Maximum) of parameters used for valuation",
+      "Headers": {
+        "Type": [
+          "Type"
+        ],
+        "Category_of_business": [
+          "Category of business"
+        ],
+        "Interest_Rate_Dec22": [
+          "Interest Rate",
+          "As at for the period Dec22"
+        ],
+        "Interest_Rate_Dec21": [
+          "Interest Rate",
+          "As at for the period Dec21"
+        ],
+        "Mortality_Rate_Dec22": [
+          "Mortality Rate*",
+          "As at for the period Dec22"
+        ],
+        "Mortality_Rate_Dec21": [
+          "Mortality Rate*",
+          "As at for the period Dec21"
+        ],
+        "Morbidity_Rate_Dec22": [
+          "Morbidity Rate*",
+          "As at for the period Dec22"
+        ],
+        "Morbidity_Rate_Dec21": [
+          "Morbidity Rate*",
+          "As at for the period Dec21"
+        ],
+        "Fixed_Expenses_Dec22": [
+          "Fixed Expenses2",
+          "As at for the period Dec22"
+        ],
+        "Fixed_Expenses_Dec21": [
+          "Fixed Expenses2",
+          "As at for the period Dec21"
+        ],
+        "Variable_Expenses_Dec22": [
+          "Variable Expenses3",
+          "As at for the period Dec22"
+        ],
+        "Variable_Expenses_Dec21": [
+          "Variable Expenses3",
+          "As at for the period Dec21"
+        ],
+        "Inflation_Rate_Dec22": [
+          "Inflation Rate",
+          "As at for the period Dec22"
+        ],
+        "Inflation_Rate_Dec21": [
+          "Inflation Rate",
+          "As at for the period Dec21"
+        ],
+        "Withdrawal_rates_Dec22": [
+          "Withdrawal rates4",
+          "As at for the period Dec22"
+        ],
+        "Withdrawal_rates_Dec21": [
+          "Withdrawal rates4",
+          "As at for the period Dec21"
+        ],
+        "Future_Bonus_Rates_Dec22": [
+          "Future Bonus Rates (Assumption)",
+          "As at for the period Dec22"
+        ],
+        "Future_Bonus_Rates_Dec21": [
+          "Future Bonus Rates (Assumption)",
+          "As at for the period Dec21"
+        ]
+      },
+      "FlatHeaders": [
+        "Type",
+        "Category of business",
+        "Interest Rate - As at for the period Dec22",
+        "Interest Rate - As at for the period Dec21",
+        "Mortality Rate* - As at for the period Dec22",
+        "Mortality Rate* - As at for the period Dec21",
+        "Morbidity Rate* - As at for the period Dec22",
+        "Morbidity Rate* - As at for the period Dec21",
+        "Fixed Expenses2 - As at for the period Dec22",
+        "Fixed Expenses2 - As at for the period Dec21",
+        "Variable Expenses3 - As at for the period Dec22",
+        "Variable Expenses3 - As at for the period Dec21",
+        "Inflation Rate - As at for the period Dec22",
+        "Inflation Rate - As at for the period Dec21",
+        "Withdrawal rates4 - As at for the period Dec22",
+        "Withdrawal rates4 - As at for the period Dec21",
+        "Future Bonus Rates (Assumption) - As at for the period Dec22",
+        "Future Bonus Rates (Assumption) - As at for the period Dec21"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

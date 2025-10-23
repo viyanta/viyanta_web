@@ -1,0 +1,160 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENTS ASSETS (LIFE INSURERS) 3A",
+  "Company": "Aviva Life Insurance Company India Limited",
+  "SubTitle": "Statement of investment assets (Life insurers)",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Business_Scope": "Business within India",
+  "Periodicity": "Quarterly",
+  "Section": "Section I",
+  "Headers": {
+    "No": [
+      "No"
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "Sch": [
+      "Sch"
+    ],
+    "Amount": [
+      "Amount"
+    ]
+  },
+  "FlatHeaders": [
+    "No",
+    "Particulars",
+    "Sch",
+    "Amount"
+  ],
+  "Section_II": {
+    "Title": "Section II",
+    "Non_Linked_Business": {
+      "A_Life_Fund": {
+        "Title": "A. LIFE FUND",
+        "Headers": {
+          "Percent_as_per_Reg": [
+            "% as per Reg."
+          ],
+          "Shareholders_Balance_a": [
+            "Shareholders' Balance (a)"
+          ],
+          "Shareholders_FRSM_b": [
+            "Shareholders' FRSM+ (b)"
+          ],
+          "UL_Non_Unit_Res_c": [
+            "UL- Non Unit Res (c)"
+          ],
+          "Policyholders_Par_d": [
+            "Policyholders' Par (d)"
+          ],
+          "Policyholders_Non_Par_e": [
+            "Policyholders' Non-Par (e)"
+          ],
+          "Book_value_SH_PH_f": [
+            "Book value (SH+PH) (f= [a+b+c+d+e])"
+          ],
+          "Actual_Percent_g": [
+            "Actual % (g) = ((f)-(a))%"
+          ],
+          "FVC_amount_h": [
+            "FVC amount (h)"
+          ],
+          "Total_fund_i": [
+            "Total fund (i) = (f+h)"
+          ],
+          "Market_value_j": [
+            "Market value (j)"
+          ]
+        },
+        "FlatHeaders": [
+          "Percent_as_per_Reg",
+          "Shareholders_Balance_a",
+          "Shareholders_FRSM_b",
+          "UL_Non_Unit_Res_c",
+          "Policyholders_Par_d",
+          "Policyholders_Non_Par_e",
+          "Book_value_SH_PH_f",
+          "Actual_Percent_g",
+          "FVC_amount_h",
+          "Total_fund_i",
+          "Market_value_j"
+        ],
+        "Rows": []
+      },
+      "B_Pension_General_Annuity_Group_Business": {
+        "Title": "B. PENSION & GENERAL ANNUITY & GROUP BUSINESS",
+        "Headers": {
+          "Percent_as_per_Reg": [
+            "% as per Reg."
+          ],
+          "Policyholders_Par_a": [
+            "Policyholders' Par (a)"
+          ],
+          "Policyholders_Non_Par_b": [
+            "Policyholders' Non-Par (b)"
+          ],
+          "Book_value_c": [
+            "Book value (c)=(a)+(b)"
+          ],
+          "Actual_Percent_d": [
+            "Actual % (d)"
+          ],
+          "FVC_amount_e": [
+            "FVC amount (e)"
+          ],
+          "Total_fund_f": [
+            "Total fund (f)=(c+e)"
+          ],
+          "Market_value_g": [
+            "Market value (g)"
+          ]
+        },
+        "FlatHeaders": [
+          "Percent_as_per_Reg",
+          "Policyholders_Par_a",
+          "Policyholders_Non_Par_b",
+          "Book_value_c",
+          "Actual_Percent_d",
+          "FVC_amount_e",
+          "Total_fund_f",
+          "Market_value_g"
+        ],
+        "Rows": []
+      }
+    },
+    "Linked_Business": {
+      "C_Linked_Funds": {
+        "Title": "C. LINKED FUNDS",
+        "Headers": {
+          "Percent_as_per_Reg": [
+            "% as per Reg."
+          ],
+          "Policyholders_Par_a": [
+            "Policyholders' Par (a)"
+          ],
+          "Policyholders_Non_Par_b": [
+            "Policyholders' Non-Par (b)"
+          ],
+          "Total_fund_c": [
+            "Total fund (c)=(a)+(b)"
+          ],
+          "Actual_Percent_d": [
+            "Actual % (d)"
+          ]
+        },
+        "FlatHeaders": [
+          "Percent_as_per_Reg",
+          "Policyholders_Par_a",
+          "Policyholders_Non_Par_b",
+          "Total_fund_c",
+          "Actual_Percent_d"
+        ],
+        "Rows": []
+      }
+    }
+  },
+  "Rows": []
+}
