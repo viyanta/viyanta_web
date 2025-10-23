@@ -2,14 +2,22 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import SideMenu from './components/SideMenu.jsx'
+import UtilityIcons from './components/UtilityIcons.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ExplorerAllUsers from './pages/ExplorerAllUsers.jsx'
 import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { NavigationProvider } from './context/NavigationContext.jsx'
 import Lform from './pages/Lform.jsx'
 import DMML2Form from './pages/DMML2Form.jsx'
+import Analytics from './pages/Analytics.jsx'
+import AnnualData from './pages/AnnualData.jsx'
+import Metrics from './pages/Metrics.jsx'
+import Documents from './pages/Documents.jsx'
+import Peers from './pages/Peers.jsx'
+import News from './pages/News.jsx'
 // import PDFExtraction from './pages/PDFExtraction.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
@@ -96,7 +104,8 @@ function App() {
             {/* Protected Routes */}
             <Route path="/*" element={
               <ProtectedRoute>
-                <div className="app-container">
+                <NavigationProvider>
+                  <div className="app-container">
                   <Navbar 
                     onMenuClick={openSidebar} 
                   />
@@ -111,6 +120,12 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
                         <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
                         <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                        <Route path="/analytics" element={<Analytics onMenuClick={openSidebar} />} />
+                        <Route path="/annual-data" element={<AnnualData onMenuClick={openSidebar} />} />
+                        <Route path="/metrics" element={<Metrics onMenuClick={openSidebar} />} />
+                        <Route path="/documents" element={<Documents onMenuClick={openSidebar} />} />
+                        <Route path="/peers" element={<Peers onMenuClick={openSidebar} />} />
+                        <Route path="/news" element={<News onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
                         <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
                         <Route path="/smart-extraction" element={
@@ -128,15 +143,18 @@ function App() {
                       </Routes>
                     </main>
                   </div>
+                  {/* Utility Icons Bar */}
+                  <UtilityIcons />
                   {/* Mobile backdrop */}
                   <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
-                </div>
+                  </div>
+                </NavigationProvider>
               </ProtectedRoute>
             } />
           </Routes>
         </Router>
-      </StatsProvider>
-    </AuthProvider>
+    </StatsProvider>
+  </AuthProvider>
   )
 }
 

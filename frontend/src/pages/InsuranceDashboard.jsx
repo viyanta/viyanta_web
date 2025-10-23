@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import BackgroundPage from './BackgroundPage';
 import { useStats } from '../context/StatsContext.jsx';
+import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api';
 import './InsuranceDashboard.css';
 
@@ -335,6 +336,7 @@ const TreemapSection = ({ title, data, colors }) => {
 
 function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
+  const { isNavItemActive } = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -350,6 +352,11 @@ function InsuranceDashboard({ onMenuClick }) {
 
   // Handle tab clicks
   const handleTabClick = (tab) => {
+    // Only allow clicks on active items
+    if (!isNavItemActive(tab)) {
+      return;
+    }
+    
     if (tab === 'Dashboard') {
       navigate('/dashboard');
     } else if (tab === 'L Forms') {
@@ -510,7 +517,7 @@ function InsuranceDashboard({ onMenuClick }) {
         alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start'
       }}>
         {/* Company Information Sidebar - Left side */}
-        <CompanyInformationSidebar />
+        {/* <CompanyInformationSidebar /> */}
 
         {/* Right Content Area */}
         <div style={{ 
@@ -611,7 +618,7 @@ function InsuranceDashboard({ onMenuClick }) {
                       <button
                         key={tab}
                         onClick={() => handleTabClick(tab)}
-                        className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+                        className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
                         style={{
                           padding: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(8px, 2vw, 12px)',
                           fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(11px, 2.5vw, 13px)',
@@ -620,16 +627,17 @@ function InsuranceDashboard({ onMenuClick }) {
                           textAlign: 'center',
                           borderRadius: '6px',
                           border: 'none',
-                          backgroundColor: 'transparent',
-                          color: activeTab === tab ? 'var(--main-color)' : '#666',
-                          cursor: 'pointer',
+                          backgroundColor: isNavItemActive(tab) ? 'var(--main-color)' : 'transparent',
+                          color: isNavItemActive(tab) ? 'white' : '#666',
+                          cursor: isNavItemActive(tab) ? 'pointer' : 'not-allowed',
                           transition: 'all 0.2s ease',
-                          fontWeight: activeTab === tab ? '600' : '400',
+                          fontWeight: isNavItemActive(tab) ? '600' : '400',
                           wordWrap: 'break-word',
                           minHeight: window.innerWidth <= 768 ? 'clamp(36px, 8vw, 44px)' : 'auto',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          opacity: isNavItemActive(tab) ? 1 : 0.5
                         }}
                       >
                         {tab}

@@ -1,14 +1,80 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ApiService from '../services/api'
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar'
+import { useNavigation } from '../context/NavigationContext'
 
 function Lform({ onMenuClick }) {
+    const navigate = useNavigate();
+    const { isNavItemActive } = useNavigation();
     const [selectedValues, setSelectedValues] = useState({
         lform: '',
         period: '',
         reportType: ''
     });
     const [selectedCompany, setSelectedCompany] = useState('');
+
+    // Navigation tabs
+    const allTabs = [
+        'Dashboard', 'Background', 'L Forms', 'Metrics', 
+        'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
+        'Define Template', 'Save Template',
+        'Screener Inputs', 'Screener Output Sheets',
+        'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    ];
+
+    // Filter to show only active tabs
+    const tabs = allTabs.filter(tab => isNavItemActive(tab));
+
+    // Handle tab clicks
+    const handleTabClick = (tab) => {
+        // Only allow clicks on active items
+        if (!isNavItemActive(tab)) {
+            return;
+        }
+        
+        if (tab === 'Dashboard') {
+            navigate('/dashboard');
+        } else if (tab === 'Background') {
+            navigate('/insurance-dashboard?tab=Background');
+        } else if (tab === 'L Forms') {
+            // Stay on current page
+            return;
+        } else if (tab === 'Metrics') {
+            navigate('/metrics');
+          } else if (tab === 'Analytics') {
+              navigate('/analytics');
+          } else if (tab === 'Annual Data') {
+              navigate('/annual-data');
+          } else if (tab === 'Documents') {
+              navigate('/documents');
+        } else if (tab === 'Peers') {
+            navigate('/peers');
+        } else if (tab === 'News') {
+            navigate('/news');
+        } else if (tab === 'Define Template') {
+            console.log('Define Template clicked');
+        } else if (tab === 'Save Template') {
+            console.log('Save Template clicked');
+        } else if (tab === 'Screener Inputs') {
+            console.log('Screener Inputs clicked');
+        } else if (tab === 'Screener Output Sheets') {
+            console.log('Screener Output Sheets clicked');
+        } else if (tab === 'Child Plans') {
+            console.log('Child Plans clicked');
+        } else if (tab === 'Investment Plans') {
+            console.log('Investment Plans clicked');
+        } else if (tab === 'Protection Plans') {
+            console.log('Protection Plans clicked');
+        } else if (tab === 'Term Plans') {
+            console.log('Term Plans clicked');
+        } else if (tab === 'New Launches') {
+            console.log('New Launches clicked');
+        } else {
+            // For other tabs, you can add navigation logic later
+            console.log(`Clicked ${tab} tab`);
+        }
+    };
 
     // L Form options from the image
     const lformOptions = [
@@ -45,10 +111,10 @@ function Lform({ onMenuClick }) {
 
 
     return (
-        <div style={{
+        <div className="lform-page" style={{
             padding: 'clamp(10px, 3vw, 20px)',
-            maxWidth: '100vw',
-            overflowX: 'hidden'
+            minHeight: '100vh',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}>
             <div style={{ 
                 display: 'flex', 
@@ -100,17 +166,24 @@ function Lform({ onMenuClick }) {
                 }}>L-Form Data Selection</h1>
             </div>
 
-            {/* Insurer Name Dropdown - Right side */}
+            {/* Insurer Name Dropdown - Aligned with other dropdowns */}
             <div style={{
                 display: 'flex',
-                justifyContent: 'flex-end',
+                justifyContent: 'flex-start',
                 marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
                 padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
             }}>
                 <div style={{
                     position: 'relative',
-                    display: 'inline-block'
+                    display: 'inline-block',
+                    minWidth: '200px'
                 }}>
+                    <h3 style={{
+                        fontSize: '16px',
+                        marginBottom: '8px',
+                        color: '#6c757d',
+                        fontWeight: '600'
+                    }}>Insurer Name</h3>
                     <select
                         value={selectedCompany || ''}
                         onChange={(e) => {
@@ -118,18 +191,18 @@ function Lform({ onMenuClick }) {
                             setSelectedCompany(value);
                         }}
                         style={{
-                            padding: '8px 12px',
+                            width: '100%',
+                            padding: '12px',
                             fontSize: '14px',
-                            border: '1px solid #ddd',
+                            border: '2px solid #28a745',
                             borderRadius: '6px',
-                            backgroundColor: '#f8f9fa',
+                            backgroundColor: 'white',
                             color: '#333',
-                            minWidth: '150px',
                             cursor: 'pointer',
                             outline: 'none'
                         }}
                     >
-                        <option value="">Insurer Name</option>
+                        <option value="">Select Insurer...</option>
                         <option value="hdfc">HDFC Life</option>
                         <option value="sbi">SBI Life</option>
                         <option value="icici">ICICI Prudential</option>
@@ -138,27 +211,86 @@ function Lform({ onMenuClick }) {
                     </select>
                 </div>
             </div>
+
+            {/* Navigation Tabs */}
+            <div className="navigation-tabs-container" style={{
+                marginBottom: 'clamp(15px, 3vw, 20px)',
+                padding: '0 clamp(10px, 3vw, 20px)'
+            }}>
+                <div className="navigation-tabs" style={{
+                    display: 'flex',
+                    gap: tabs.length <= 3 ? 'clamp(15px, 3vw, 20px)' : 'clamp(8px, 2vw, 12px)',
+                    width: '100%',
+                    overflowX: 'auto',
+                    overflowY: 'visible',
+                    paddingBottom: '5px',
+                    justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
+                }}>
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => handleTabClick(tab)}
+                            className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
+                            style={{
+                                padding: tabs.length <= 3 ? 'clamp(8px, 2vw, 10px) clamp(15px, 3vw, 18px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px)',
+                                fontSize: tabs.length <= 3 ? 'clamp(13px, 2.5vw, 15px)' : 'clamp(12px, 2.5vw, 13px)',
+                                whiteSpace: 'nowrap',
+                                textAlign: 'center',
+                                borderRadius: '6px',
+                                border: 'none',
+                                backgroundColor: isNavItemActive(tab) ? 'var(--main-color)' : 'transparent',
+                                color: isNavItemActive(tab) ? 'white' : '#666',
+                                fontWeight: isNavItemActive(tab) ? '600' : '400',
+                                cursor: isNavItemActive(tab) ? 'pointer' : 'not-allowed',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minHeight: tabs.length <= 3 ? '36px' : '32px',
+                                opacity: isNavItemActive(tab) ? 1 : 0.5
+                            }}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+            </div>
             
-            <div style={{ 
-                display: 'flex', 
-                gap: 'clamp(10px, 3vw, 20px)',
+            {/* Main Content Area with Sidebar */}
+            <div style={{
+                display: 'flex',
+                gap: 'clamp(10px, 2vw, 15px)',
+                padding: '0 clamp(10px, 3vw, 20px)',
                 flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
             }}>
-                {/* Company Information Sidebar */}
-                <CompanyInformationSidebar />
+                {/* Left Sidebar - Company Information */}
+                <div style={{
+                    flex: '0 0 clamp(200px, 25vw, 220px)',
+                    minWidth: '200px',
+                    maxWidth: '220px'
+                }}>
+                    <CompanyInformationSidebar />
+                </div>
 
-                {/* Main Content Area */}
-                <div style={{ flex: '1', minWidth: 0 }}>
+                {/* Right Content Area */}
+                <div style={{ 
+                    flex: '1', 
+                    minWidth: 0,
+                    paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
+                }}>
+                    {/* Dropdowns Section */}
                     <div style={{
                         display: 'flex',
-                        gap: '20px',
+                        gap: 'clamp(15px, 3vw, 25px)',
                         marginBottom: '30px',
-                        flexWrap: 'wrap'
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-start'
                     }}>
                         {/* Select L Form Dropdown */}
                         <div style={{
-                            minWidth: '300px',
-                            flex: '1'
+                            minWidth: '280px',
+                            flex: '1',
+                            maxWidth: '400px'
                         }}>
                             <h3 style={{
                                 fontSize: '16px',
@@ -176,7 +308,8 @@ function Lform({ onMenuClick }) {
                                     borderRadius: '6px',
                                     fontSize: '14px',
                                     backgroundColor: 'white',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    outline: 'none'
                                 }}
                             >
                                 <option value="">Select L Form...</option>
@@ -189,7 +322,8 @@ function Lform({ onMenuClick }) {
                         {/* Select Period Dropdown */}
                         <div style={{
                             minWidth: '200px',
-                            flex: '1'
+                            flex: '1',
+                            maxWidth: '300px'
                         }}>
                             <h3 style={{
                                 fontSize: '16px',
@@ -207,7 +341,8 @@ function Lform({ onMenuClick }) {
                                     borderRadius: '6px',
                                     fontSize: '14px',
                                     backgroundColor: 'white',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    outline: 'none'
                                 }}
                             >
                                 <option value="">Select Period...</option>
@@ -220,14 +355,15 @@ function Lform({ onMenuClick }) {
                         {/* Select Report Type Dropdown */}
                         <div style={{
                             minWidth: '200px',
-                            flex: '1'
+                            flex: '1',
+                            maxWidth: '300px'
                         }}>
                             <h3 style={{
                                 fontSize: '16px',
                                 marginBottom: '8px',
                                 color: '#6c757d',
                                 fontWeight: '600'
-                            }}>Select</h3>
+                            }}>Select Report Type</h3>
                             <select 
                                 value={selectedValues.reportType} 
                                 onChange={(e) => handleSelection('reportType', e.target.value)}
@@ -238,7 +374,8 @@ function Lform({ onMenuClick }) {
                                     borderRadius: '6px',
                                     fontSize: '14px',
                                     backgroundColor: 'white',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    outline: 'none'
                                 }}
                             >
                                 <option value="">Select...</option>
