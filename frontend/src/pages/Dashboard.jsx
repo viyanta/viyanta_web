@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
+import { useNavigation } from '../context/NavigationContext';
 import './Dashboard.css';
 
 const Dashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
+  const { isNavItemActive } = useNavigation();
   const [selectedFrequency, setSelectedFrequency] = useState('Quarterly');
   const [selectedType, setSelectedType] = useState('Factsheet');
   const [activeView, setActiveView] = useState('Visuals');
@@ -13,17 +15,58 @@ const Dashboard = ({ onMenuClick }) => {
   const frequencyOptions = ['Yearly', 'Quarterly', 'Monthly'];
   const typeOptions = ['Products', 'Business', 'Factsheet', 'People'];
 
-  const tabs = [
+  const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
-    'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'
+    'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
+    'Define Template', 'Save Template',
+    'Screener Inputs', 'Screener Output Sheets',
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
   ];
+
+  // Filter to show only active tabs
+  const tabs = allTabs.filter(tab => isNavItemActive(tab));
 
   // Handle tab clicks
   const handleTabClick = (tab) => {
+    // Only allow clicks on active items
+    if (!isNavItemActive(tab)) {
+      return;
+    }
+    
     if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
       navigate('/lform');
+    } else if (tab === 'Metrics') {
+      navigate('/metrics');
+      } else if (tab === 'Analytics') {
+        navigate('/analytics');
+      } else if (tab === 'Annual Data') {
+        navigate('/annual-data');
+      } else if (tab === 'Documents') {
+        navigate('/documents');
+    } else if (tab === 'Peers') {
+      navigate('/peers');
+    } else if (tab === 'News') {
+      navigate('/news');
+    } else if (tab === 'Define Template') {
+      console.log('Define Template clicked');
+    } else if (tab === 'Save Template') {
+      console.log('Save Template clicked');
+    } else if (tab === 'Screener Inputs') {
+      console.log('Screener Inputs clicked');
+    } else if (tab === 'Screener Output Sheets') {
+      console.log('Screener Output Sheets clicked');
+    } else if (tab === 'Child Plans') {
+      console.log('Child Plans clicked');
+    } else if (tab === 'Investment Plans') {
+      console.log('Investment Plans clicked');
+    } else if (tab === 'Protection Plans') {
+      console.log('Protection Plans clicked');
+    } else if (tab === 'Term Plans') {
+      console.log('Term Plans clicked');
+    } else if (tab === 'New Launches') {
+      console.log('New Launches clicked');
     } else if (tab === 'Dashboard') {
       // Stay on current page
       return;
@@ -34,52 +77,104 @@ const Dashboard = ({ onMenuClick }) => {
   };
 
     return (
-    <div className="insurance-dashboard" style={{
+    <div className="dashboard-page" style={{
       padding: 'clamp(10px, 3vw, 20px)',
-      maxWidth: '100vw',
-      overflowX: 'hidden'
+      minHeight: '100vh',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      {/* Dashboard Header - At the very top */}
+      {/* Dashboard Header */}
       <div style={{ 
-        marginBottom: 'clamp(1.5rem, 4vw, 2rem)'
+        marginBottom: 'clamp(1.5rem, 4vw, 2rem)',
+        padding: '0 clamp(10px, 3vw, 20px)'
       }}>
-      <div style={{ 
+        <div style={{ 
           marginBottom: 'clamp(15px, 3vw, 20px)'
         }}>
           {/* Dashboard Title */}
-      <div style={{ 
+          <div style={{ 
             marginBottom: 'clamp(15px, 3vw, 20px)'
           }}>
-            <h1 style={{
-              margin: '0 0 0.5rem 0',
-              color: '#36659b',
-              fontSize: 'clamp(18px, 5vw, 28px)',
-              fontWeight: '700',
-              wordBreak: 'break-word',
-              lineHeight: '1.2'
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'clamp(0.5rem, 2vw, 1rem)', 
+              marginBottom: 'clamp(0.5rem, 2vw, 1rem)',
+              flexWrap: 'wrap'
             }}>
-              Dashboard
-            </h1>
+              {/* Hamburger Menu Icon */}
+              <button
+                onClick={() => {
+                  console.log('Dashboard hamburger clicked!');
+                  if (onMenuClick) {
+                    onMenuClick();
+                  } else {
+                    console.log('onMenuClick is not defined');
+                  }
+                }}
+                style={{
+                  background: 'rgba(63, 114, 175, 0.1)',
+                  border: '1px solid rgba(63, 114, 175, 0.3)',
+                  color: 'var(--main-color)',
+                  borderRadius: '6px',
+                  padding: 'clamp(0.4rem, 2vw, 0.5rem)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 'clamp(0.9rem, 3vw, 1rem)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  minWidth: 'clamp(32px, 8vw, 36px)',
+                  minHeight: 'clamp(32px, 8vw, 36px)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(63, 114, 175, 0.2)';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(63, 114, 175, 0.1)';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                ☰
+              </button>
+              <h1 style={{
+                margin: 0,
+                fontSize: 'clamp(18px, 5vw, 28px)',
+                lineHeight: '1.2',
+                color: '#36659b',
+                fontWeight: '700',
+                wordBreak: 'break-word'
+              }}>
+                Dashboard
+              </h1>
+            </div>
             <p style={{
               margin: '0',
               color: '#666',
-              fontSize: 'clamp(14px, 3.5vw, 16px)'
+              fontSize: 'clamp(14px, 3.5vw, 16px)',
+              lineHeight: '1.4'
             }}>
               Comprehensive view of key performance indicators and market analysis
             </p>
-      </div>
+          </div>
 
-          {/* Insurer Name Dropdown - Right side */}
+          {/* Insurer Name Dropdown - Aligned with other dropdowns */}
           <div style={{
             display: 'flex',
-            justifyContent: 'flex-end',
-            marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
-            padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+            justifyContent: 'flex-start',
+            marginBottom: 'clamp(1rem, 3vw, 1.5rem)'
           }}>
             <div style={{
               position: 'relative',
-              display: 'inline-block'
+              display: 'inline-block',
+              minWidth: '200px'
             }}>
+              <h3 style={{
+                fontSize: '16px',
+                marginBottom: '8px',
+                color: '#6c757d',
+                fontWeight: '600'
+              }}>Insurer Name</h3>
               <select
                 value={selectedCompany || ''}
                 onChange={(e) => {
@@ -87,18 +182,18 @@ const Dashboard = ({ onMenuClick }) => {
                   setSelectedCompany(value);
                 }}
                 style={{
-                  padding: '8px 12px',
+                  width: '100%',
+                  padding: '12px',
                   fontSize: '14px',
-                  border: '1px solid #ddd',
+                  border: '2px solid #28a745',
                   borderRadius: '6px',
-                  backgroundColor: '#f8f9fa',
+                  backgroundColor: 'white',
                   color: '#333',
-                  minWidth: '150px',
                   cursor: 'pointer',
                   outline: 'none'
                 }}
               >
-                <option value="">Insurer Name</option>
+                <option value="">Select Insurer...</option>
                 <option value="hdfc">HDFC Life</option>
                 <option value="sbi">SBI Life</option>
                 <option value="icici">ICICI Prudential</option>
@@ -114,34 +209,37 @@ const Dashboard = ({ onMenuClick }) => {
           }}>
             {/* Navigation Tabs */}
             <div className="navigation-tabs" style={{
-              display: 'grid',
-              gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(9, auto)',
-              gap: 'clamp(8px, 2vw, 12px)',
+              display: 'flex',
+              gap: tabs.length <= 3 ? 'clamp(15px, 3vw, 20px)' : 'clamp(8px, 2vw, 12px)',
               width: '100%',
-              overflow: 'visible'
+              overflowX: 'auto',
+              overflowY: 'visible',
+              paddingBottom: '5px',
+              justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
             }}>
               {tabs.map((tab) => (
             <button
                   key={tab}
                   onClick={() => handleTabClick(tab)}
-                  className={`nav-tab ${tab === 'Dashboard' ? 'active' : ''}`}
+                  className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
               style={{
-                    padding: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(8px, 2vw, 12px)',
-                    fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(11px, 2.5vw, 13px)',
-                    whiteSpace: 'nowrap',
-                    width: window.innerWidth <= 768 ? '100%' : 'auto',
-                    textAlign: 'center',
+                padding: tabs.length <= 3 ? 'clamp(8px, 2vw, 10px) clamp(15px, 3vw, 18px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px)',
+                fontSize: tabs.length <= 3 ? 'clamp(13px, 2.5vw, 15px)' : 'clamp(12px, 2.5vw, 13px)',
+                whiteSpace: 'nowrap',
+                textAlign: 'center',
                 borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: tab === 'Dashboard' ? 'var(--main-color)' : '#666',
-                    fontWeight: tab === 'Dashboard' ? '600' : '400',
-                cursor: 'pointer',
+                border: 'none',
+                backgroundColor: isNavItemActive(tab) ? 'var(--main-color)' : 'transparent',
+                color: isNavItemActive(tab) ? 'white' : '#666',
+                fontWeight: isNavItemActive(tab) ? '600' : '400',
+                cursor: isNavItemActive(tab) ? 'pointer' : 'not-allowed',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
+                justifyContent: 'center',
+                minHeight: tabs.length <= 3 ? '36px' : '32px',
+                opacity: isNavItemActive(tab) ? 1 : 0.5
+              }}
                 >
                   {tab}
             </button>
@@ -150,17 +248,25 @@ const Dashboard = ({ onMenuClick }) => {
             </div>
 
           {/* Breadcrumb and View Toggle */}
-                  <div style={{ 
+          <div style={{ 
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            marginBottom: 'clamp(15px, 3vw, 20px)'
+            marginBottom: 'clamp(15px, 3vw, 20px)',
+            padding: '0 clamp(10px, 3vw, 20px)',
+            flexWrap: 'wrap',
+            gap: 'clamp(10px, 2vw, 15px)'
           }}>
             <div className="breadcrumb" style={{
-              textAlign: 'left'
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'clamp(6px, 1.5vw, 8px)',
+              fontSize: 'clamp(13px, 2.5vw, 14px)',
+              color: '#666',
+              flexWrap: 'wrap'
             }}>
               <span>HDFC Life</span>
-              <br />
+              <span className="breadcrumb-separator">›</span>
               <span>Dashboard</span>
               <span className="breadcrumb-separator">›</span>
               <span>Insurance</span>
@@ -168,42 +274,81 @@ const Dashboard = ({ onMenuClick }) => {
               <span>Factsheet</span>
               <span className="breadcrumb-separator">›</span>
               <span className="breadcrumb-current">Yearly</span>
-                      </div>
-            <div className="view-toggle">
+            </div>
+            <div className="view-toggle" style={{
+              display: 'flex',
+              background: '#f1f5f9',
+              borderRadius: '6px',
+              padding: '2px'
+            }}>
               <button
                 className={`toggle-btn ${activeView === 'Visuals' ? 'active' : ''}`}
                 onClick={() => setActiveView('Visuals')}
+                style={{
+                  padding: 'clamp(6px, 1.5vw, 8px) clamp(12px, 2vw, 16px)',
+                  border: 'none',
+                  background: activeView === 'Visuals' ? 'white' : 'transparent',
+                  color: activeView === 'Visuals' ? '#1e40af' : '#64748b',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontSize: 'clamp(12px, 2vw, 13px)',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeView === 'Visuals' ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none'
+                }}
               >
                 Visuals
               </button>
               <button
                 className={`toggle-btn ${activeView === 'Data' ? 'active' : ''}`}
                 onClick={() => setActiveView('Data')}
+                style={{
+                  padding: 'clamp(6px, 1.5vw, 8px) clamp(12px, 2vw, 16px)',
+                  border: 'none',
+                  background: activeView === 'Data' ? 'white' : 'transparent',
+                  color: activeView === 'Data' ? '#1e40af' : '#64748b',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontSize: 'clamp(12px, 2vw, 13px)',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeView === 'Data' ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none'
+                }}
               >
                 Data
               </button>
-                    </div>
-                    </div>
+            </div>
+          </div>
                     </div>
                         </div>
 
       {/* Main Content */}
-                <div style={{ 
+      <div style={{ 
         display: 'flex',
-        gap: 'clamp(8px, 1.5vw, 12px)',
-        alignItems: 'flex-start'
+        gap: 'clamp(15px, 3vw, 20px)',
+        alignItems: 'flex-start',
+        marginTop: 'clamp(5px, 1vw, 10px)',
+        padding: '0 clamp(10px, 3vw, 20px)',
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
       }}>
         {/* Left Sidebar - Company Information */}
-        <CompanyInformationSidebar />
+        <div style={{
+          flex: '0 0 clamp(200px, 25vw, 220px)',
+          minWidth: '200px',
+          maxWidth: '220px'
+        }}>
+          <CompanyInformationSidebar />
+        </div>
 
         {/* Right Content Area */}
         <div style={{
           flex: '1',
-          minWidth: 0
+          minWidth: 0,
+          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
         }}>
           {/* Selection Controls */}
           <div style={{
-                        display: 'flex',
+            display: 'flex',
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
             marginBottom: 'clamp(15px, 3vw, 25px)',
@@ -220,46 +365,47 @@ const Dashboard = ({ onMenuClick }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '8px',
-                minWidth: '140px'
+                minWidth: 'clamp(140px, 20vw, 180px)'
               }}>
                 <label style={{
-                  fontSize: '12px',
+                  fontSize: 'clamp(12px, 2vw, 14px)',
                   fontWeight: '600',
-                  color: '#374151',
+                  color: '#6c757d',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>Select Frequency</label>
                 <select
                   value={selectedFrequency}
                   onChange={(e) => setSelectedFrequency(e.target.value)}
-              style={{
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px',
+                  style={{
+                    width: '100%',
+                    padding: 'clamp(8px, 2vw, 12px)',
+                    border: '2px solid #28a745',
+                    borderRadius: '6px',
+                    fontSize: 'clamp(13px, 2vw, 14px)',
                     backgroundColor: 'white',
-                    color: '#374151',
+                    color: '#333',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    minWidth: '120px'
+                    outline: 'none'
                   }}
                 >
                   {frequencyOptions.map(option => (
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
-                          </div>
+              </div>
 
-                        <div style={{
+              <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '8px',
-                minWidth: '140px'
+                minWidth: 'clamp(140px, 20vw, 180px)'
               }}>
                 <label style={{
-                  fontSize: '12px',
+                  fontSize: 'clamp(12px, 2vw, 14px)',
                   fontWeight: '600',
-                  color: '#374151',
+                  color: '#6c757d',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>Select Type</label>
@@ -267,54 +413,55 @@ const Dashboard = ({ onMenuClick }) => {
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
                   style={{
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px',
+                    width: '100%',
+                    padding: 'clamp(8px, 2vw, 12px)',
+                    border: '2px solid #28a745',
+                    borderRadius: '6px',
+                    fontSize: 'clamp(13px, 2vw, 14px)',
                     backgroundColor: 'white',
-                    color: '#374151',
+                    color: '#333',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    minWidth: '120px'
+                    outline: 'none'
                   }}
                 >
                   {typeOptions.map(option => (
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
-                        </div>
-                      </div>
-
-                  </div>
+              </div>
+            </div>
+          </div>
 
           {/* Charts Section */}
           {activeView === 'Visuals' && (
             <div style={{
               background: 'white',
-              borderRadius: '8px',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              marginBottom: '20px'
+              borderRadius: '12px',
+              padding: 'clamp(15px, 3vw, 20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              marginBottom: 'clamp(15px, 3vw, 20px)'
             }}>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '20px',
-                marginBottom: '20px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(280px, 30vw, 320px), 1fr))',
+                gap: 'clamp(15px, 2vw, 20px)',
+                marginBottom: 'clamp(15px, 2vw, 20px)'
               }}>
                 {/* Scatter Plot */}
                 <div style={{ 
                   background: '#f8fafc',
                   border: '1px solid #e2e8f0',
-                  borderRadius: '6px',
-                  padding: '15px',
-                  height: '200px'
+                  borderRadius: '8px',
+                  padding: 'clamp(12px, 2vw, 15px)',
+                  height: 'clamp(180px, 25vw, 200px)',
+                  minHeight: '180px'
                 }}>
                   <h3 style={{
-                    fontSize: '14px',
+                    fontSize: 'clamp(13px, 2vw, 14px)',
                     fontWeight: '600',
                     color: '#374151',
-                    margin: '0 0 10px 0',
+                    margin: '0 0 clamp(8px, 1vw, 10px) 0',
                     textAlign: 'left'
                   }}>Revenue vs Performance</h3>
                   <div style={{
@@ -388,15 +535,16 @@ const Dashboard = ({ onMenuClick }) => {
                 <div style={{ 
                   background: '#f8fafc',
                   border: '1px solid #e2e8f0',
-                  borderRadius: '6px',
-                  padding: '15px',
-                  height: '200px'
+                  borderRadius: '8px',
+                  padding: 'clamp(12px, 2vw, 15px)',
+                  height: 'clamp(180px, 25vw, 200px)',
+                  minHeight: '180px'
                 }}>
                   <h3 style={{
-                    fontSize: '14px',
+                    fontSize: 'clamp(13px, 2vw, 14px)',
                     fontWeight: '600',
                     color: '#374151',
-                    margin: '0 0 10px 0',
+                    margin: '0 0 clamp(8px, 1vw, 10px) 0',
                     textAlign: 'left'
                   }}>Profits vs. Month</h3>
                   <div style={{ 
@@ -492,15 +640,16 @@ const Dashboard = ({ onMenuClick }) => {
                 <div style={{ 
                   background: '#f8fafc',
                   border: '1px solid #e2e8f0',
-                  borderRadius: '6px',
-                  padding: '15px',
-                  height: '200px'
+                  borderRadius: '8px',
+                  padding: 'clamp(12px, 2vw, 15px)',
+                  height: 'clamp(180px, 25vw, 200px)',
+                  minHeight: '180px'
                 }}>
                   <h3 style={{
-                    fontSize: '14px',
+                    fontSize: 'clamp(13px, 2vw, 14px)',
                     fontWeight: '600',
                     color: '#374151',
-                    margin: '0 0 10px 0',
+                    margin: '0 0 clamp(8px, 1vw, 10px) 0',
                     textAlign: 'left'
                   }}>Pie Chart</h3>
                   <div style={{
@@ -583,15 +732,15 @@ const Dashboard = ({ onMenuClick }) => {
           {activeView === 'Data' && (
             <div style={{
               background: 'white',
-              borderRadius: '8px',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              borderRadius: '12px',
+              padding: 'clamp(15px, 3vw, 20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
             }}>
               <h3 style={{
-                fontSize: '16px',
+                fontSize: 'clamp(16px, 3vw, 18px)',
                 fontWeight: '600',
                 color: '#374151',
-                marginBottom: '15px'
+                marginBottom: 'clamp(12px, 2vw, 15px)'
               }}>Premium Type Data</h3>
               <div style={{ 
                 overflowX: 'auto',
