@@ -15,6 +15,7 @@ export const useAuth = () => {
 const ADMIN_EMAILS = [
   'viyanta.insights@gmail.com',
   'vickyrathod7339@gmail.com',
+  'kolumam.karthikeyan@gmail.com'
   // Add more admin emails as needed
 ];
 

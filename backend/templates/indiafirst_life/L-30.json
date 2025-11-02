@@ -1,7 +1,7 @@
 {
   "Form No": "L-30",
   "Title": "FORM L-30: Related Party Transactions",
-  "Company": "Aviva Life Insurance Company India Limited",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
   "SubTitle": "PERIODIC DISCLOSURES",
   "Registration_Number": "116",
   "Date_of_Registration": "3 August 2001",
@@ -105,32 +105,49 @@
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl.No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Name_of_the_Related_Party": [
+      "Name of the Related Party"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Nature_of_Relationship_with_the_Company": [
+      "Nature of Relationship",
+      "with the Company"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Nature_of_Transaction": [
+      "Nature of Transaction"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Amount_of_Outstanding_Balances": [
+      "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)"
+    ],
+    "Whether_Payable_Receivable": [
+      "Whether Payable / Receivable"
+    ],
+    "Whether_Secured": [
+      "Whether Secured? If so, Nature of consideration to be provided at the time of settlement"
+    ],
+    "Details_of_Guarantees": [
+      "Details of any Guarantees given or received"
+    ],
+    "Balance_under_Provision_for_doubtful_debts": [
+      "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)"
+    ],
+    "Expenses_recognised": [
+      "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl.No.",
+    "Name of the Related Party",
+    "Nature of Relationship with the Company",
+    "Nature of Transaction",
+    "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)",
+    "Whether Payable / Receivable",
+    "Whether Secured? If so, Nature of consideration to be provided at the time of settlement",
+    "Details of any Guarantees given or received",
+    "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)",
+    "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
   ],
   "Rows": []
 }

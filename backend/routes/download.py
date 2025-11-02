@@ -14,12 +14,12 @@ def get_parquet_file_path(parquet_filename: str) -> str:
     converted_path = os.path.join(CONVERTED_DIR, parquet_filename)
     if os.path.exists(converted_path):
         return converted_path
-    
+
     # Check extracted directory as fallback
     extracted_path = os.path.join("extracted", parquet_filename)
     if os.path.exists(extracted_path):
         return extracted_path
-    
+
     # Return the converted path as default (even if it doesn't exist)
     return converted_path
 
@@ -39,8 +39,9 @@ async def view_original_file(file_id: str):
 
         # Determine the correct media type based on file extension
         original_filename = file_record['original_filename']
-        file_extension = original_filename.split('.')[-1].lower() if '.' in original_filename else ''
-        
+        file_extension = original_filename.split(
+            '.')[-1].lower() if '.' in original_filename else ''
+
         media_type_map = {
             'pdf': 'application/pdf',
             'txt': 'text/plain',
@@ -51,8 +52,9 @@ async def view_original_file(file_id: str):
             'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'doc': 'application/msword'
         }
-        
-        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+
+        media_type = media_type_map.get(
+            file_extension, 'application/octet-stream')
 
         # For PDFs, add headers to allow inline viewing
         headers = {}
@@ -86,8 +88,9 @@ async def download_original_file(file_id: str):
 
         # Determine the correct media type based on file extension
         original_filename = file_record['original_filename']
-        file_extension = original_filename.split('.')[-1].lower() if '.' in original_filename else ''
-        
+        file_extension = original_filename.split(
+            '.')[-1].lower() if '.' in original_filename else ''
+
         media_type_map = {
             'pdf': 'application/pdf',
             'txt': 'text/plain',
@@ -98,8 +101,9 @@ async def download_original_file(file_id: str):
             'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'doc': 'application/msword'
         }
-        
-        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+
+        media_type = media_type_map.get(
+            file_extension, 'application/octet-stream')
 
         return FileResponse(
             path=file_path,

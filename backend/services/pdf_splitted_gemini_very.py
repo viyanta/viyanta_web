@@ -183,6 +183,12 @@ Your job is to analyze and correct extracted JSON data using the actual PDF cont
 - Do NOT miss any data from the pdf of table. 
 - If any part of the extracted JSON is empty or missing, FILL it using the PDF content.
 - Follow the template structure and headers exactly.
+- If the template headers are **incorrect, incomplete, or mismatched**, you MUST:
+   - Detect and correct them using the actual PDF table headers.
+   - Use the **exact PDF header text** (normalized and cleaned) to replace wrong ones.
+   - Maintain the same data structure 
+   — only correct the header names and their mapped values.
+   - Keep header order similar to the PDF table order if possible.
 - Maintain the same keys, order, and JSON structure.
 - Use "" (empty string) when data is not found.
 - Return ONLY the corrected JSON output (no explanations, no markdown).
@@ -260,7 +266,7 @@ def correct_with_gemini(template_path, extracted_path, pdf_path, output_path, mo
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(corrected_json, f, indent=2, ensure_ascii=False)
     safe_info(
-        f"✅ Single-call Gemini output saved: {output_path} in {round(time.time()-start_time, 2)}s")
+        f"Single-call Gemini output saved: {output_path} in {round(time.time()-start_time, 2)}s")
 
 # ------------------ CLI ------------------
 

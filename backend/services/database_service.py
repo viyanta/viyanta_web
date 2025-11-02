@@ -178,7 +178,7 @@ def check_gemini_api_health() -> Dict[str, Any]:
 
     try:
         # Simple test request to check API availability
-        api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent"
         headers = {'Content-Type': 'application/json'}
 
         payload = {

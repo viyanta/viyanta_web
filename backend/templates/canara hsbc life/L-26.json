@@ -1,215 +1,104 @@
 {
   "Form No": "L-26",
-  "Title": "INVESTMENT ASSETS (LIFE INSURERS)-3A",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in lacs",
-  "PagesUsed": "3-6",
-  "Section_I": {
-    "Title": "Section I",
-    "Headers": {
-      "No": [
-        "No."
-      ],
-      "Particulars": [
-        "PARTICULARS"
-      ],
-      "Schedule": [
-        "SCH"
-      ],
-      "Amount": [
-        "Amount"
-      ]
-    },
-    "FlatHeaders": [
-      "No",
-      "Particulars",
-      "Schedule",
-      "Amount"
-    ],
-    "Rows": []
+  "Title": "INVESTMENTS ASSETS (LIFE INSURERS) 3A",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Statement of investment assets (Life insurers)",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Business_Scope": "Business within India",
+  "Periodicity": "Quarterly",
+  "Section": "Section I",
+  "Headers": {
+    "No": ["No"],
+    "Particulars": ["Particulars"],
+    "Sch": ["Sch"],
+    "Amount": ["Amount"]
   },
+  "FlatHeaders": [
+    "No",
+    "Particulars", 
+    "Sch",
+    "Amount"
+  ],
   "Section_II": {
     "Title": "Section II",
-    "NON_LINKED_BUSINESS": {
-      "A_LIFE_FUND": {
+    "Non_Linked_Business": {
+      "A_Life_Fund": {
         "Title": "A. LIFE FUND",
         "Headers": {
-          "Percentage_as_per_Regulation": [
-            "% as per Reg"
-          ],
-          "SH": {
-            "Balance": [
-              "SH",
-              "Balance",
-              "(a)"
-            ],
-            "FRSM_Plus": [
-              "SH",
-              "FRSM*",
-              "(b)"
-            ],
-            "UL_Non_Unit_Res": [
-              "SH",
-              "UL-Non Unit Res",
-              "(c)"
-            ]
-          },
-          "PH": {
-            "PAR": [
-              "PH",
-              "PAR",
-              "(d)"
-            ],
-            "NON_PAR": [
-              "PH",
-              "NON PAR",
-              "(e)"
-            ]
-          },
-          "Book_Value_SH_PH": [
-            "Book Value",
-            "(SH+PH)",
-            "(f)=[a+b+c+d+e]"
-          ],
-          "Actual_Percentage": [
-            "Actual %"
-          ],
-          "FVC_Amount": [
-            "FVC Amount"
-          ],
-          "Total_Fund": [
-            "Total Fund"
-          ],
-          "Market_Value": [
-            "Market Value"
-          ]
+          "Percent_as_per_Reg": ["% as per Reg."],
+          "Shareholders_Balance_a": ["Shareholders' Balance (a)"],
+          "Shareholders_FRSM_b": ["Shareholders' FRSM+ (b)"],
+          "UL_Non_Unit_Res_c": ["UL- Non Unit Res (c)"],
+          "Policyholders_Par_d": ["Policyholders' Par (d)"],
+          "Policyholders_Non_Par_e": ["Policyholders' Non-Par (e)"],
+          "Book_value_SH_PH_f": ["Book value (SH+PH) (f= [a+b+c+d+e])"],
+          "Actual_Percent_g": ["Actual % (g) = ((f)-(a))%"],
+          "FVC_amount_h": ["FVC amount (h)"],
+          "Total_fund_i": ["Total fund (i) = (f+h)"],
+          "Market_value_j": ["Market value (j)"]
         },
         "FlatHeaders": [
-          "Percentage_as_per_Regulation",
-          "SH_Balance",
-          "SH_FRSM_Plus",
-          "SH_UL_Non_Unit_Res",
-          "PH_PAR",
-          "PH_NON_PAR",
-          "Book_Value_SH_PH",
-          "Actual_Percentage",
-          "FVC_Amount",
-          "Total_Fund",
-          "Market_Value"
+          "Percent_as_per_Reg",
+          "Shareholders_Balance_a",
+          "Shareholders_FRSM_b", 
+          "UL_Non_Unit_Res_c",
+          "Policyholders_Par_d",
+          "Policyholders_Non_Par_e",
+          "Book_value_SH_PH_f",
+          "Actual_Percent_g",
+          "FVC_amount_h",
+          "Total_fund_i",
+          "Market_value_j"
         ],
         "Rows": []
       },
-      "B_PENSION_ANNUITY_AND_GROUP_BUSINESS": {
-        "Title": "B. PENSION ANNUITY AND GROUP BUSINESS",
+      "B_Pension_General_Annuity_Group_Business": {
+        "Title": "B. PENSION & GENERAL ANNUITY & GROUP BUSINESS",
         "Headers": {
-          "Percentage_as_per_Regulation": [
-            "% as per Reg"
-          ],
-          "PH": {
-            "PAR": [
-              "PH",
-              "PAR"
-            ],
-            "NON_PAR": [
-              "PH",
-              "NON PAR"
-            ]
-          },
-          "Book_Value": [
-            "Book Value"
-          ],
-          "Actual_Percentage": [
-            "Actual %"
-          ],
-          "FVC_Amount": [
-            "FVC Amount"
-          ],
-          "Total_Fund": [
-            "Total Fund"
-          ],
-          "Market_Value": [
-            "Market Value"
-          ]
+          "Percent_as_per_Reg": ["% as per Reg."],
+          "Policyholders_Par_a": ["Policyholders' Par (a)"],
+          "Policyholders_Non_Par_b": ["Policyholders' Non-Par (b)"],
+          "Book_value_c": ["Book value (c)=(a)+(b)"],
+          "Actual_Percent_d": ["Actual % (d)"],
+          "FVC_amount_e": ["FVC amount (e)"],
+          "Total_fund_f": ["Total fund (f)=(c+e)"],
+          "Market_value_g": ["Market value (g)"]
         },
         "FlatHeaders": [
-          "Percentage_as_per_Regulation",
-          "PH_PAR",
-          "PH_NON_PAR",
-          "Book_Value",
-          "Actual_Percentage",
-          "FVC_Amount",
-          "Total_Fund",
-          "Market_Value"
+          "Percent_as_per_Reg",
+          "Policyholders_Par_a",
+          "Policyholders_Non_Par_b",
+          "Book_value_c",
+          "Actual_Percent_d",
+          "FVC_amount_e",
+          "Total_fund_f",
+          "Market_value_g"
         ],
         "Rows": []
       }
     },
-    "LINKED_BUSINESS": {
-      "C_LINKED_FUNDS": {
+    "Linked_Business": {
+      "C_Linked_Funds": {
         "Title": "C. LINKED FUNDS",
         "Headers": {
-          "Percentage_as_per_Regulation": [
-            "% as per Reg"
-          ],
-          "PH": {
-            "PAR": [
-              "PH",
-              "PAR"
-            ],
-            "NON_PAR": [
-              "PH",
-              "NON PAR"
-            ]
-          },
-          "Total_Fund": [
-            "Total Fund"
-          ],
-          "Actual_Percentage": [
-            "Actual %"
-          ]
+          "Percent_as_per_Reg": ["% as per Reg."],
+          "Policyholders_Par_a": ["Policyholders' Par (a)"],
+          "Policyholders_Non_Par_b": ["Policyholders' Non-Par (b)"],
+          "Total_fund_c": ["Total fund (c)=(a)+(b)"],
+          "Actual_Percent_d": ["Actual % (d)"]
         },
         "FlatHeaders": [
-          "Percentage_as_per_Regulation",
-          "PH_PAR",
-          "PH_NON_PAR",
-          "Total_Fund",
-          "Actual_Percentage"
+          "Percent_as_per_Reg",
+          "Policyholders_Par_a",
+          "Policyholders_Non_Par_b",
+          "Total_fund_c",
+          "Actual_Percent_d"
         ],
         "Rows": []
       }
     }
   },
-  "Headers": {
-    "Particulars": [
-      "Particulars"
-    ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
-    ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
-    ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
-    ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
-    ]
-  },
-  "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
-  ],
   "Rows": []
 }

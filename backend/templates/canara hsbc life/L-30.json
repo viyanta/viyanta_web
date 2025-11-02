@@ -1,150 +1,153 @@
 {
   "Form No": "L-30",
-  "Title": "RELATED PARTY TRANSACTIONS",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
+  "Title": "FORM L-30: Related Party Transactions",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
   "Part_A": {
-    "Title": "PART-A Related Party Transactions",
+    "Title": "Part A- Related Party Transactions",
     "Headers": {
       "Sl_No": [
         "Sl.No."
       ],
-      "Name_of_Related_Party": [
+      "Name_of_the_Related_Party": [
         "Name of the Related Party"
       ],
-      "Nature_of_Relationship": [
+      "Nature_of_Relationship_with_the_Company": [
         "Nature of Relationship",
         "with the Company"
       ],
-      "Description_of_Transactions": [
-        "Description of Transactions",
-        "/ Categories"
+      "Description_of_Transactions_Categories": [
+        "Description of Transactions /",
+        "Categories"
       ],
-      "Consideration_paid_received": {
-        "For_Quarter_Current": [
-          "Consideration paid / (received)",
-          "For Quarter ended",
-          "{QUARTER_END_DATE}"
-        ],
-        "Upto_Quarter_Current": [
-          "Consideration paid / (received)",
-          "Upto Quarter ended",
-          "{QUARTER_END_DATE}"
-        ],
-        "For_Quarter_Previous": [
-          "Consideration paid / (received)",
-          "For Quarter ended",
-          "{PREVIOUS_QUARTER_END}"
-        ],
-        "Upto_Quarter_Previous": [
-          "Consideration paid / (received)",
-          "Upto Quarter ended",
-          "{PREVIOUS_QUARTER_END}"
-        ]
-      }
+      "Consideration_For_the_Quarter": [
+        "For the Quarter"
+      ],
+      "Consideration_Up_to_the_Quarter": [
+        "Up to the Quarter"
+      ],
+      "Consideration_For_the_Corresponding_Quarter_of_the_Previous_Year": [
+        "For the",
+        "Corresponding",
+        "Quarter of the",
+        "Previous Year"
+      ],
+      "Consideration_Up_to_the_Quarter_of_the_Previous_Year": [
+        "Up to the Quarter",
+        "of the Previous",
+        "Year"
+      ]
     },
     "FlatHeaders": [
-      "Sl_No",
-      "Name_of_Related_Party",
-      "Nature_of_Relationship_with_the_Company",
-      "Description_of_Transactions_Categories",
-      "Consideration_paid_received_For_Quarter_ended_QUARTER_END_DATE",
-      "Consideration_paid_received_Upto_Quarter_ended_QUARTER_END_DATE",
-      "Consideration_paid_received_For_Quarter_ended_PREVIOUS_QUARTER_END",
-      "Consideration_paid_received_Upto_Quarter_ended_PREVIOUS_QUARTER_END"
+      "Sl.No.",
+      "Name of the Related Party",
+      "Nature of Relationship with the Company",
+      "Description of Transactions / Categories",
+      "Consideration paid / received* (Rs in Lakhs) - For the Quarter",
+      "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter",
+      "Consideration paid / received* (Rs in Lakhs) - For the Corresponding Quarter of the Previous Year",
+      "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter of the Previous Year"
     ],
     "Rows": []
   },
   "Part_B": {
-    "Title": "PART-B Related Party Transaction Balances",
-    "SubTitle": "As at Quarter ended {QUARTER_END_DATE}",
+    "Title": "Part-B Related Party Transaction balances - As at the end of the Quarter December 2022",
     "Headers": {
       "Sl_No": [
         "Sl.No."
       ],
-      "Name_of_Related_Party": [
+      "Name_of_the_Related_Party": [
         "Name of the Related Party"
       ],
-      "Nature_of_Relationship": [
+      "Nature_of_Relationship_with_the_Company": [
         "Nature of Relationship",
         "with the Company"
       ],
+      "Nature_of_Transaction": [
+        "Nature of Transaction"
+      ],
       "Amount_of_Outstanding_Balances": [
-        "Amount of Outstanding Balances",
-        "including Commitments",
-        "(₹ in Lacs)"
+        "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)"
       ],
       "Whether_Payable_Receivable": [
         "Whether Payable / Receivable"
       ],
-      "Whether_Secured_Nature_of_consideration": [
-        "Whether Secured? If so,",
-        "Nature of consideration to be",
-        "provided at the time of settlement"
+      "Whether_Secured": [
+        "Whether Secured? If so, Nature of consideration to be provided at the time of settlement"
       ],
       "Details_of_Guarantees": [
-        "Details of any Guarantees",
-        "given or received"
+        "Details of any Guarantees given or received"
       ],
-      "Balance_under_Provision": [
-        "Balance under Provision for",
-        "doubtful debts relating to the",
-        "outstanding balance receivable",
-        "(₹ in Lacs)"
+      "Balance_under_Provision_for_doubtful_debts": [
+        "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)"
       ],
       "Expenses_recognised": [
-        "Expenses recognised up to the",
-        "quarter end during the year in",
-        "respect of bad or doubtful debts",
-        "due from the related party",
-        "(₹ in Lacs)"
+        "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
       ]
     },
     "FlatHeaders": [
-      "Sl_No",
-      "Name_of_Related_Party",
-      "Nature_of_Relationship_with_the_Company",
-      "Amount_of_Outstanding_Balances_including_Commitments_in_Lacs",
-      "Whether_Payable_Receivable",
-      "Whether_Secured_If_so_Nature_of_consideration_to_be_provided_at_the_time_of_settlement",
-      "Details_of_any_Guarantees_given_or_received",
-      "Balance_under_Provision_for_doubtful_debts_relating_to_the_outstanding_balance_receivable_in_Lacs",
-      "Expenses_recognised_up_to_the_quarter_end_during_the_year_in_respect_of_bad_or_doubtful_debts_due_from_the_related_party_in_Lacs"
+      "Sl.No.",
+      "Name of the Related Party",
+      "Nature of Relationship with the Company",
+      "Nature of Transaction",
+      "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)",
+      "Whether Payable / Receivable",
+      "Whether Secured? If so, Nature of consideration to be provided at the time of settlement",
+      "Details of any Guarantees given or received",
+      "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)",
+      "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
     ],
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl.No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Name_of_the_Related_Party": [
+      "Name of the Related Party"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Nature_of_Relationship_with_the_Company": [
+      "Nature of Relationship",
+      "with the Company"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Nature_of_Transaction": [
+      "Nature of Transaction"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Amount_of_Outstanding_Balances": [
+      "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)"
+    ],
+    "Whether_Payable_Receivable": [
+      "Whether Payable / Receivable"
+    ],
+    "Whether_Secured": [
+      "Whether Secured? If so, Nature of consideration to be provided at the time of settlement"
+    ],
+    "Details_of_Guarantees": [
+      "Details of any Guarantees given or received"
+    ],
+    "Balance_under_Provision_for_doubtful_debts": [
+      "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)"
+    ],
+    "Expenses_recognised": [
+      "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl.No.",
+    "Name of the Related Party",
+    "Nature of Relationship with the Company",
+    "Nature of Transaction",
+    "Amount of Outstanding Balances including Commitments (Rs. in Lakhs)",
+    "Whether Payable / Receivable",
+    "Whether Secured? If so, Nature of consideration to be provided at the time of settlement",
+    "Details of any Guarantees given or received",
+    "Balance under Provision for doubtful debts relating to the outstanding balance receivable (Rs. in Lakhs)",
+    "Expenses recognised up to the quarter end during the year in respect of bad or doubtful debts due from the related party (Rs. in Lakhs)"
   ],
   "Rows": []
 }

@@ -213,32 +213,68 @@
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sr_No": [
+      "Sr.No"
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Category_of_Investment": [
+      "Category of Investment"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Cat_Code": [
+      "Cat Code"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Current_Quarter_Investment": [
+      "Investment (Rs.)¹"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Current_Quarter_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Current_Quarter_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Current_Quarter_Net_Yield": [
+      "Net Yield (%)²"
+    ],
+    "Year_to_date_Investment": [
+      "Investment (Rs.)¹"
+    ],
+    "Year_to_date_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Year_to_date_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Year_to_date_Net_Yield": [
+      "Net Yield (%)²"
+    ],
+    "Previous_Year_Investment": [
+      "Investment (Rs.)¹"
+    ],
+    "Previous_Year_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Previous_Year_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Previous_Year_Net_Yield": [
+      "Net Yield (%)²"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sr.No",
+    "Category of Investment",
+    "Cat Code",
+    "Current Quarter - Investment (Rs.)¹",
+    "Current Quarter - Income on Investment (Rs.)",
+    "Current Quarter - Gross Yield (%)¹",
+    "Current Quarter - Net Yield (%)²",
+    "Year to date - Investment (Rs.)¹",
+    "Year to date - Income on Investment (Rs.)",
+    "Year to date - Gross Yield (%)¹",
+    "Year to date - Net Yield (%)²",
+    "Year to date (Previous Year)³ - Investment (Rs.)¹",
+    "Year to date (Previous Year)³ - Income on Investment (Rs.)",
+    "Year to date (Previous Year)³ - Gross Yield (%)¹",
+    "Year to date (Previous Year)³ - Net Yield (%)²"
   ],
   "Rows": []
 }

@@ -375,11 +375,22 @@
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl_No",
+    "State_Union_Territory",
+    "New_Business_Rural_Group_No_of_Schemes",
+    "New_Business_Rural_Group_No_of_Lives",
+    "New_Business_Rural_Group_Premium_Rs_Lakhs",
+    "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs",
+    "New_Business_Urban_Group_No_of_Schemes",
+    "New_Business_Urban_Group_No_of_Lives",
+    "New_Business_Urban_Group_Premium_Rs_Lakhs",
+    "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs",
+    "Total_New_Business_Group_No_of_Schemes",
+    "Total_New_Business_Group_No_of_Lives",
+    "Total_New_Business_Group_Premium_Rs_Lakhs",
+    "Total_New_Business_Group_Sum_Assured_Rs_Lakhs",
+    "Renewal_Premium_Rs_Lakhs",
+    "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
   ],
   "Rows": []
 }

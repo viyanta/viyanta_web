@@ -986,6 +986,114 @@ async def extract_form_data(
                     f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
             # If it's already a plain dict or other format, leave as-is
 
+        # --- Store Gemini-verified data in Companies, Reports, ReportData tables ---
+        print(f"\n🗄️ === DATABASE STORAGE DEBUG ===")
+        print(f"📊 Normalized data type: {type(normalized_data)}")
+        print(
+            f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
+
+        try:
+            from databases.models import Companies, Report, ReportData
+            from databases.database import SessionLocal
+
+            print(f"[DB] Creating database session...")
+            db = SessionLocal()
+
+            # 1. Find or create company
+            print(f"[DB] Looking for company: {company_name}")
+            company_obj = db.query(Companies).filter_by(
+                companyname=company_name).first()
+            if not company_obj:
+                print(f"[DB] Company not found, creating new entry...")
+                company_obj = Companies(companyname=company_name)
+                db.add(company_obj)
+                db.commit()
+                db.refresh(company_obj)
+                print(
+                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+            else:
+                print(
+                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+
+            # 2. Insert into Report
+            report_period = None
+            currency = None
+            registration_number = None
+            title = None
+            pages_used = None
+            flat_headers = None
+            data_rows = None
+
+            print(f"[DB] Extracting metadata from normalized_data...")
+            if isinstance(normalized_data, list) and len(normalized_data) > 0:
+                first_row = normalized_data[0]
+                report_period = first_row.get("Period")
+                currency = first_row.get("Currency")
+                registration_number = first_row.get("RegistrationNumber")
+                title = first_row.get("Title")
+                pages_used = first_row.get("PagesUsed")
+                flat_headers = first_row.get("FlatHeaders")
+                data_rows = first_row.get("Rows")
+                print(
+                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
+
+            if not report_period:
+                report_period = str(datetime.now().date())
+                print(
+                    f"[DB] No period found, using current date: {report_period}")
+
+            print(f"[DB] Creating Report entry...")
+            report_obj = Report(
+                company=company_name,
+                pdf_name=pdf_name,
+                registration_number=str(
+                    registration_number) if registration_number else None,
+                form_no=form_code,
+                title=str(title) if title else None,
+                period=str(report_period),
+                currency=str(currency) if currency else None,
+                pages_used=str(pages_used) if pages_used else None,
+                source_pdf=split_filename,
+                flat_headers=flat_headers,
+                data_rows=data_rows
+            )
+            db.add(report_obj)
+            db.commit()
+            db.refresh(report_obj)
+            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+
+            # 3. Insert each row into ReportData
+            print(
+                f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
+            inserted_count = 0
+            for idx, row in enumerate(normalized_data):
+                try:
+                    db.add(ReportData(
+                        reportid=report_obj.id,
+                        pdf_name=pdf_name,
+                        formno=row.get("Form No") or form_code,
+                        title=row.get("Title") or "",
+                        datarow=row
+                    ))
+                    inserted_count += 1
+                except Exception as row_exc:
+                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
+                    if idx == 0:  # Print first row details for debugging
+                        print(
+                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
+
+            db.commit()
+            print(
+                f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
+            db.close()
+            print(f"✅ Stored extraction in companies, reports, reportdata tables.")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+        except Exception as db_exc:
+            import traceback
+            print(f"❌ Failed to store extraction in DB: {db_exc}")
+            print(f"❌ Full traceback: {traceback.format_exc()}")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+
         return {
             "success": True,
             "extraction_id": extraction_metadata["extraction_id"],

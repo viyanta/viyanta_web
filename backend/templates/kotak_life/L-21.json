@@ -1,23 +1,15 @@
 {
   "Form No": "L-21",
   "Title": "MISCELLANEOUS EXPENDITURE SCHEDULE (TO THE EXTENT NOT WRITTEN-OFF OR ADJUSTED)",
-  "Company": "Aviva Life Insurance Company India Limited",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
   "SubTitle": "Schedules forming part of financial statements",
   "Registration_Number": "116",
   "Date_of_Registration": "3 August 2001",
   "Currency": "Rs. in Lakhs",
   "Headers": {
-    "Particulars": [
-      "Particulars"
-    ],
-    "As_at_31_December_Current_Year": [
-      "As at 31 December",
-      "{QUARTER_END_DATE_YEAR}"
-    ],
-    "As_at_31_December_Previous_Year": [
-      "As at 31 December",
-      "{PREVIOUS_QUARTER_END_YEAR}"
-    ]
+    "Particulars": ["Particulars"],
+    "As_at_31_December_Current_Year": ["As at 31 December", "{QUARTER_END_DATE_YEAR}"],
+    "As_at_31_December_Previous_Year": ["As at 31 December", "{PREVIOUS_QUARTER_END_YEAR}"]
   },
   "FlatHeaders": [
     "Particulars",

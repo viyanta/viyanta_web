@@ -1,7 +1,7 @@
 {
   "Form No": "L-45",
   "Title": "OFFICE AND OTHER INFORMATION",
-  "Company": "Aviva Life Insurance Company India Limited",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
   "SubTitle": "PERIODIC DISCLOSURES",
   "Registration_Number": "116",
   "Date_of_Registration": "3 August 2001",
@@ -31,32 +31,20 @@
     }
   ],
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl. No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Information": [
+      "Information"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
-    ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
-    ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Number": [
+      "Number"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl. No.",
+    "Information",
+    "Number"
   ],
   "Rows": []
 }

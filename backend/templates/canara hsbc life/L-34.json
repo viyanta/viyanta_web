@@ -1,51 +1,280 @@
 {
-  "Form No": "L-34-Yield on Investments-1",
-  "Title": "STATEMENT OF INVESTMENT AND INCOME ON INVESTMENT",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Name_of_Fund": "Life Fund",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
+  "Form No": "L-34",
+  "Title": "FORM-L-34-YIELD ON INVESTMENTS",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Statement of Investment and Income on Investment",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Life_Fund": {
+    "Title": "Life Fund",
+    "Headers": {
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "TITLE": [
+        "TITLE"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr.No",
+      "Category of Investment",
+      "TITLE",
+      "Current Quarter - Investment (Rs.)¹",
+      "Current Quarter - Income on Investment (Rs.)",
+      "Current Quarter - Gross Yield (%)¹",
+      "Current Quarter - Net Yield (%)²",
+      "Year to date - Investment (Rs.)¹",
+      "Year to date - Income on Investment (Rs.)",
+      "Year to date - Gross Yield (%)¹",
+      "Year to date - Net Yield (%)²",
+      "Year to date (Previous Year)³ - Investment (Rs.)¹",
+      "Year to date (Previous Year)³ - Income on Investment (Rs.)",
+      "Year to date (Previous Year)³ - Gross Yield (%)¹",
+      "Year to date (Previous Year)³ - Net Yield (%)²"
+    ],
+    "Rows": []
+  },
+  "Pension_General_Annuity_Group_Fund": {
+    "Title": "Pension & General Annuity and Group Fund",
+    "Headers": {
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Cat_Code": [
+        "Cat Code"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr.No",
+      "Category of Investment",
+      "Cat Code",
+      "Current Quarter - Investment (Rs.)¹",
+      "Current Quarter - Income on Investment (Rs.)",
+      "Current Quarter - Gross Yield (%)¹",
+      "Current Quarter - Net Yield (%)²",
+      "Year to date - Investment (Rs.)¹",
+      "Year to date - Income on Investment (Rs.)",
+      "Year to date - Gross Yield (%)¹",
+      "Year to date - Net Yield (%)²",
+      "Year to date (Previous Year)³ - Investment (Rs.)¹",
+      "Year to date (Previous Year)³ - Income on Investment (Rs.)",
+      "Year to date (Previous Year)³ - Gross Yield (%)¹",
+      "Year to date (Previous Year)³ - Net Yield (%)²"
+    ],
+    "Rows": []
+  },
+  "Unit_Linked_Funds": {
+    "Title": "Unit Linked Funds",
+    "Headers": {
+      "Sr_No": [
+        "Sr.No"
+      ],
+      "Category_of_Investment": [
+        "Category of Investment"
+      ],
+      "Cat_Code": [
+        "Cat Code"
+      ],
+      "Current_Quarter_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Current_Quarter_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Current_Quarter_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Current_Quarter_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Year_to_date_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Year_to_date_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Year_to_date_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Year_to_date_Net_Yield": [
+        "Net Yield (%)²"
+      ],
+      "Previous_Year_Investment": [
+        "Investment (Rs.)¹"
+      ],
+      "Previous_Year_Income": [
+        "Income on Investment (Rs.)"
+      ],
+      "Previous_Year_Gross_Yield": [
+        "Gross Yield (%)¹"
+      ],
+      "Previous_Year_Net_Yield": [
+        "Net Yield (%)²"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr.No",
+      "Category of Investment",
+      "Cat Code",
+      "Current Quarter - Investment (Rs.)¹",
+      "Current Quarter - Income on Investment (Rs.)",
+      "Current Quarter - Gross Yield (%)¹",
+      "Current Quarter - Net Yield (%)²",
+      "Year to date - Investment (Rs.)¹",
+      "Year to date - Income on Investment (Rs.)",
+      "Year to date - Gross Yield (%)¹",
+      "Year to date - Net Yield (%)²",
+      "Year to date (Previous Year)³ - Investment (Rs.)¹",
+      "Year to date (Previous Year)³ - Income on Investment (Rs.)",
+      "Year to date (Previous Year)³ - Gross Yield (%)¹",
+      "Year to date (Previous Year)³ - Net Yield (%)²"
+    ],
+    "Rows": []
+  },
   "Headers": {
-    "No": ["No."],
-    "Category_of_Investment": ["Category of Investment"],
-    "Current_Quarter": {
-      "Investment_Rs": ["Current Quarter", "Investment (Rs.)¹"],
-      "Income_on_Investment_Rs": ["Current Quarter", "Income on Investment (Rs.)"],
-      "Gross_Yield_Percent": ["Current Quarter", "Gross Yield (%)¹,⁷"],
-      "Net_Yield_Percent": ["Current Quarter", "Net Yield (%)²,⁷"]
-    },
-    "Year_to_Date_Current_Year": {
-      "Investment_Rs": ["Year to Date (Apr 2022 to Mar 2023)", "Investment (Rs.)¹"],
-      "Income_on_Investment_Rs": ["Year to Date (Apr 2022 to Mar 2023)", "Income on Investment (Rs.)"],
-      "Gross_Yield_Percent": ["Year to Date (Apr 2022 to Mar 2023)", "Gross Yield (%)¹,⁷"],
-      "Net_Yield_Percent": ["Year to Date (Apr 2022 to Mar 2023)", "Net Yield (%)²,⁷"]
-    },
-    "Year_to_Date_Previous_Year": {
-      "Investment_Rs": ["Year to Date (Apr 2021 to Mar 2022)³", "Investment (Rs.)¹"],
-      "Income_on_Investment_Rs": ["Year to Date (Apr 2021 to Mar 2022)³", "Income on Investment (Rs.)"],
-      "Gross_Yield_Percent": ["Year to Date (Apr 2021 to Mar 2022)³", "Gross Yield (%)¹,⁷"],
-      "Net_Yield_Percent": ["Year to Date (Apr 2021 to Mar 2022)³", "Net Yield (%)²,⁷"]
-    }
+    "Sr_No": [
+      "Sr.No"
+    ],
+    "Category_of_Investment": [
+      "Category of Investment"
+    ],
+    "Cat_Code": [
+      "Cat Code"
+    ],
+    "Current_Quarter_Investment": [
+      "Investment (Rs.)¹"
+    ],
+    "Current_Quarter_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Current_Quarter_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Current_Quarter_Net_Yield": [
+      "Net Yield (%)²"
+    ],
+    "Year_to_date_Investment": [
+      "Investment (Rs.)¹"
+    ],
+    "Year_to_date_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Year_to_date_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Year_to_date_Net_Yield": [
+      "Net Yield (%)²"
+    ],
+    "Previous_Year_Investment": [
+      "Investment (Rs.)¹"
+    ],
+    "Previous_Year_Income": [
+      "Income on Investment (Rs.)"
+    ],
+    "Previous_Year_Gross_Yield": [
+      "Gross Yield (%)¹"
+    ],
+    "Previous_Year_Net_Yield": [
+      "Net Yield (%)²"
+    ]
   },
   "FlatHeaders": [
-    "No",
-    "Category_of_Investment",
-    "Current_Quarter_Investment_Rs",
-    "Current_Quarter_Income_on_Investment_Rs",
-    "Current_Quarter_Gross_Yield_Percent",
-    "Current_Quarter_Net_Yield_Percent",
-    "Year_to_Date_Current_Year_Investment_Rs",
-    "Year_to_Date_Current_Year_Income_on_Investment_Rs",
-    "Year_to_Date_Current_Year_Gross_Yield_Percent",
-    "Year_to_Date_Current_Year_Net_Yield_Percent",
-    "Year_to_Date_Previous_Year_Investment_Rs",
-    "Year_to_Date_Previous_Year_Income_on_Investment_Rs",
-    "Year_to_Date_Previous_Year_Gross_Yield_Percent",
-    "Year_to_Date_Previous_Year_Net_Yield_Percent"
+    "Sr.No",
+    "Category of Investment",
+    "Cat Code",
+    "Current Quarter - Investment (Rs.)¹",
+    "Current Quarter - Income on Investment (Rs.)",
+    "Current Quarter - Gross Yield (%)¹",
+    "Current Quarter - Net Yield (%)²",
+    "Year to date - Investment (Rs.)¹",
+    "Year to date - Income on Investment (Rs.)",
+    "Year to date - Gross Yield (%)¹",
+    "Year to date - Net Yield (%)²",
+    "Year to date (Previous Year)³ - Investment (Rs.)¹",
+    "Year to date (Previous Year)³ - Income on Investment (Rs.)",
+    "Year to date (Previous Year)³ - Gross Yield (%)¹",
+    "Year to date (Previous Year)³ - Net Yield (%)²"
   ],
   "Rows": []
 }
