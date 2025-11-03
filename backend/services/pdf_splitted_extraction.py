@@ -825,20 +825,8 @@ def _detect_form_type(text):
 
 
 def _get_headers_for_form_type(form_type, default_headers):
-    """Get appropriate headers based on detected form type"""
-
-    form_specific_headers = {
-        "L-43": ["Meeting_Date", "Company_Name", "Meeting_Type", "Proposal", "Description", "Recommendation", "Vote", "Reason"],
-        "L-44": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-32": ["Particulars", "Amount", "Percentage"],
-        "L-1-A": ["Particulars", "Current_Quarter", "Previous_Quarter", "Current_Year", "Previous_Year"],
-        "L-3-A": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-2-A": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-4": ["Particulars", "New_Business", "Renewal", "Total"],
-        "L-5": ["Particulars", "Current_Quarter", "Previous_Quarter"],
-    }
-
-    return form_specific_headers.get(form_type, default_headers)
+    """Get appropriate headers based on detected form type. No hardcoded headers, always use default_headers."""
+    return default_headers
 
 
 if __name__ == "__main__":

@@ -1,0 +1,92 @@
+{
+  "Form No": "L-31",
+  "Title": "FORM L-31 Board of Directors & Key Management Persons",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Board_Of_Directors": {
+    "Title": "Board Of Directors",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Name_of_person": [
+        "Name of person"
+      ],
+      "Designation": [
+        "Designation"
+      ],
+      "Role_Function": [
+        "Role/Function"
+      ],
+      "Details_of_change_in_the_period": [
+        "Details of change in the period if any"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl. No.",
+      "Name of person",
+      "Designation",
+      "Role/Function",
+      "Details of change in the period if any"
+    ],
+    "Rows": []
+  },
+  "Key_Management_Persons": {
+    "Title": "Key Management Persons",
+    "Headers": {
+      "Sl_No": [
+        "Sl. No."
+      ],
+      "Name_of_person": [
+        "Name of person"
+      ],
+      "Designation": [
+        "Designation"
+      ],
+      "Role_Function": [
+        "Role/Function"
+      ],
+      "Details_of_change_in_the_period": [
+        "Details of change in the period if any"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl. No.",
+      "Name of person",
+      "Designation",
+      "Role/Function",
+      "Details of change in the period if any"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Sl_No": [
+      "Sl. No."
+    ],
+    "Name_of_person": [
+      "Name of person"
+    ],
+    "Designation": [
+      "Designation"
+    ],
+    "Role_Function": [
+      "Role/Function"
+    ],
+    "Details_of_change_in_the_period": [
+      "Details of change in the period if any"
+    ]
+  },
+  "FlatHeaders": [
+    "Sl. No.",
+    "Name of person",
+    "Designation",
+    "Role/Function",
+    "Details of change in the period if any"
+  ],
+  "Rows": []
+}

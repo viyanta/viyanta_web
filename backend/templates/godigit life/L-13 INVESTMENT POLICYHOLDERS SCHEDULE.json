@@ -9,6 +9,9 @@
   "Long_Term_Investments_Table": {
     "Title": "LONG TERM INVESTMENTS",
     "Headers": {
+      "Sr_No": [
+        "Sr. No."
+      ],
       "Particulars": [
         "Particulars"
       ],
@@ -22,6 +25,7 @@
       ]
     },
     "FlatHeaders": [
+      "Sr_No",
       "Particulars",
       "As_at_Current_Date_QUARTER_END_DATE",
       "As_at_Previous_Date_PREVIOUS_QUARTER_END"
@@ -31,6 +35,9 @@
   "Short_Term_Investments_Table": {
     "Title": "SHORT TERM INVESTMENTS",
     "Headers": {
+      "Sr_No": [
+        "Sr. No."
+      ],
       "Particulars": [
         "Particulars"
       ],
@@ -44,6 +51,7 @@
       ]
     },
     "FlatHeaders": [
+      "Sr_No",
       "Particulars",
       "As_at_Current_Date_QUARTER_END_DATE",
       "As_at_Previous_Date_PREVIOUS_QUARTER_END"
@@ -98,6 +106,9 @@
     "Rows": []
   },
   "Headers": {
+    "Sr_No": [
+      "Sr. No."
+    ],
     "Particulars": [
       "Particulars"
     ],
@@ -108,22 +119,13 @@
     "Current_Year_To_Date": [
       "Up to the period ended",
       "{QUARTER_END_DATE}"
-    ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
-    ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
     ]
   },
   "FlatHeaders": [
+    "Sr_No",
     "Particulars",
     "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Current_Year_To_Date"
   ],
   "Rows": []
 }

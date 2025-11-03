@@ -44,14 +44,16 @@ export const UserProvider = ({ children }) => {
     const adminEmails = [
       'admin@viyanta.com',
       'viyanta@viyanta.com',
-      'viyanta.insights@gmail.com', // Added user's email
+      'viyanta.insights@gmail.com',
+      'kolumam.karthikeyan@gmail.com', // Added user's email
       // Add more admin emails as needed
     ];
     
     // Example 2: Admin email domains
     const adminDomains = [
       'viyanta.com',
-      'admin.viyanta.com'
+      'admin.viyanta.com',
+      'kolumam.karthikeyan@gmail.com'
     ];
     
     // Check specific emails

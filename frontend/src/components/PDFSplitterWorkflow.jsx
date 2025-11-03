@@ -43,9 +43,33 @@ const PDFSplitterWorkflow = ({ user }) => {
       console.error('Failed to load companies:', error);
       // Fallback to hardcoded companies
       setCompanies([
-        'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
-        'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
+        'ACKO Life',
+        'Aditya Birla Sun Life',
+        'Ageas Federal Life',
+        'AVIVA Life',
+        'AXIS Max Life',
+        'Bajaj Allianz',
+        'Bandhan Life',
+        'Bharti AXA Life',
+        'Canara HSBC Life',
+        'CreditAccess Life',
+        'EDELWEISS Tokio Life',
+        'Future Generali India Life',
+        'GO Digit Life',
+        'HDFC Life',
+        'ICICI Prudential',
+        'IndiaFirst Life',
+        'Kotak Life',
+        'LIC of India',
+        'PNB MetLife Life',
+        'Pramerica Life',
+        'Reliance Nippon Life',
+        'SBI Life',
+        'Shriram Life',
+        'STARUNION Daichi Life',
+        'TATA Aig Life'
       ]);
+      
     } finally {
       setLoadingCompanies(false);
     }
@@ -663,7 +687,6 @@ const PDFSplitterWorkflow = ({ user }) => {
                   <h5 style={{ margin: '0 0 0.5rem 0', color: '#2e7d32' }}>Extraction Details:</h5>
                   <div style={{ display: 'grid', gap: '0.25rem' }}>
                     <div><strong>Form Code:</strong> {extractedData.metadata.form_code}</div>
-                    <div><strong>Extraction ID:</strong> {extractedData.metadata.extraction_id}</div>
                     <div><strong>Template Used:</strong> {extractedData.metadata.template_used?.split('/').pop()}</div>
                     <div><strong>Gemini Corrected:</strong> {extractedData.metadata.gemini_corrected ? 'Yes' : 'No'}</div>
                     <div><strong>Extracted At:</strong> {new Date(extractedData.metadata.extracted_at).toLocaleString()}</div>
