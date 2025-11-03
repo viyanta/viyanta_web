@@ -49,7 +49,7 @@ const Analytics = ({ onMenuClick }) => {
     } else if (tab === 'News') {
       navigate('/news');
     } else if (tab === 'Define Template') {
-      console.log('Define Template clicked');
+      navigate('/template');
     } else if (tab === 'Save Template') {
       console.log('Save Template clicked');
     } else if (tab === 'Screener Inputs') {
@@ -197,7 +197,9 @@ This analysis is based on current data trends and market conditions. For more sp
     <div className="analytics-page" style={{
       padding: 'clamp(10px, 3vw, 20px)',
       minHeight: '100vh',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
     }}>
       {/* Analytics Header */}
       <div style={{ 
@@ -328,17 +330,18 @@ This analysis is based on current data trends and market conditions. For more sp
       {/* Main Content */}
       <div style={{ 
         display: 'flex',
-        gap: 'clamp(15px, 3vw, 20px)',
-        alignItems: 'flex-start',
+        gap: window.innerWidth <= 768 ? 'clamp(10px, 2vw, 15px)' : 'clamp(15px, 3vw, 20px)',
+        alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start',
         marginTop: 'clamp(5px, 1vw, 10px)',
         padding: '0 clamp(10px, 3vw, 20px)',
         flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
       }}>
         {/* Left Sidebar - Company Information */}
         <div style={{
-          flex: '0 0 clamp(200px, 25vw, 220px)',
-          minWidth: '200px',
-          maxWidth: '220px'
+          flex: window.innerWidth <= 768 ? 'none' : '0 0 clamp(200px, 25vw, 220px)',
+          minWidth: window.innerWidth <= 768 ? 'auto' : '200px',
+          maxWidth: window.innerWidth <= 768 ? '100%' : '220px',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           <CompanyInformationSidebar />
         </div>
@@ -347,7 +350,8 @@ This analysis is based on current data trends and market conditions. For more sp
         <div style={{
           flex: '1',
           minWidth: 0,
-          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
+          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           {/* LLM Analysis Section */}
           <div style={{
@@ -391,10 +395,11 @@ This analysis is based on current data trends and market conditions. For more sp
               <div style={{
                 display: 'flex',
                 gap: 'clamp(12px, 2vw, 16px)',
-                alignItems: 'center',
+                alignItems: window.innerWidth <= 768 ? 'stretch' : 'center',
                 justifyContent: 'center',
                 maxWidth: '800px',
-                margin: '0 auto'
+                margin: '0 auto',
+                flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
               }}>
                 <textarea
                   value={prompt}
@@ -442,10 +447,12 @@ This analysis is based on current data trends and market conditions. For more sp
                     transition: 'all 0.2s ease',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '6px',
                     height: 'clamp(42px, 5vw, 48px)',
-                    alignSelf: 'center',
-                    minWidth: 'clamp(90px, 12vw, 110px)'
+                    alignSelf: window.innerWidth <= 768 ? 'stretch' : 'center',
+                    minWidth: window.innerWidth <= 768 ? 'auto' : 'clamp(90px, 12vw, 110px)',
+                    width: window.innerWidth <= 768 ? '100%' : 'auto'
                   }}
                   onMouseEnter={(e) => {
                     if (!e.target.disabled) {

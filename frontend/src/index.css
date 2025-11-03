@@ -906,8 +906,8 @@ li {
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 65px;
-    padding: 0.5rem 0.6rem;
+    min-width: 45px;
+    padding: 0.6rem;
   }
 }
 
@@ -927,8 +927,8 @@ li {
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 60px;
-    padding: 0.4rem 0.5rem;
+    min-width: 40px;
+    padding: 0.5rem;
   }
   
   .utility-icon__text {
@@ -952,8 +952,8 @@ li {
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 55px;
-    padding: 0.3rem 0.4rem;
+    min-width: 35px;
+    padding: 0.4rem;
   }
   
   .utility-icon__text {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api';
+import { LFORMS_LABELS } from '../data/LFORMS_DATA';
 import './Peers.css';
 
 const Peers = ({ onMenuClick }) => {
@@ -22,8 +23,9 @@ const Peers = ({ onMenuClick }) => {
 
   // L-Form and comparison state
   const [selectedLForm, setSelectedLForm] = useState('');
-  const [comparisonMode, setComparisonMode] = useState('all'); // 'all' or 'selected'
-  const [selectedCompanies, setSelectedCompanies] = useState([]);
+  const [comparisonMode, setComparisonMode] = useState('selected'); // 'selected'
+  const [selectedCompanies, setSelectedCompanies] = useState([]); // Keep for backward compatibility
+  const [selectedPDFs, setSelectedPDFs] = useState([]); // Array of {companyId, companyName, promptName} objects
   const [comparisonData, setComparisonData] = useState(null);
   const [loadingComparison, setLoadingComparison] = useState(false);
   const [comparisonError, setComparisonError] = useState(null);
@@ -39,34 +41,20 @@ const Peers = ({ onMenuClick }) => {
   // Filter to show only active tabs
   const tabs = allTabs.filter(tab => isNavItemActive(tab));
 
-  // L-Form options
-  const lformOptions = [
-    'L-1 Revenue Account',
-    'L-2 Premium Account', 
-    'L-3 Claims Account',
-    'L-4 Premium Schedule',
-    'L-5 Commission Schedule',
-    'L-6 Commission Schedule',
-    'L-7 Commission Schedule',
-    'L-8 Commission Schedule',
-    'L-9 Commission Schedule',
-    'L-10 Commission Schedule',
-    'L-11 Commission Schedule',
-    'L-12 Commission Schedule',
-    'L-13 Commission Schedule',
-    'L-14 Commission Schedule',
-    'L-15 Commission Schedule',
-    'L-16 Commission Schedule',
-    'L-17 Commission Schedule',
-    'L-18 Commission Schedule',
-    'L-19 Commission Schedule',
-    'L-20 Commission Schedule'
-  ];
+  // L-Form options from data file
+  const lformOptions = LFORMS_LABELS;
 
-  // Fetch companies from S3 when component mounts
+  // Fetch companies based on selected L-Form
   useEffect(() => {
-    fetchS3Companies();
-  }, []);
+    if (selectedLForm) {
+      fetchCompaniesByLform(selectedLForm);
+    } else {
+      // Clear companies when no L-form is selected
+      setS3Companies([]);
+      setSelectedCompanies([]);
+      setSelectedPDFs([]);
+    }
+  }, [selectedLForm]);
 
   // Fetch company data when selectedCompany changes
   useEffect(() => {
@@ -98,6 +86,27 @@ const Peers = ({ onMenuClick }) => {
     }
   };
 
+  const fetchCompaniesByLform = async (lform) => {
+    try {
+      setLoadingCompanies(true);
+      setCompaniesError(null);
+      const response = await ApiService.getCompaniesByLform(lform);
+      
+      if (response.success) {
+        setS3Companies(response.companies);
+        setSelectedCompanies([]); // Clear previous selections
+        setSelectedPDFs([]); // Clear previous PDF selections
+      } else {
+        setCompaniesError(response.error || 'Failed to fetch companies for this L-Form');
+      }
+    } catch (error) {
+      setCompaniesError(`Error: ${error.message}`);
+      console.error('Failed to fetch companies by L-Form:', error);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
   const fetchCompanyData = async (companyName) => {
     try {
       setLoadingCompanyData(true);
@@ -119,7 +128,7 @@ const Peers = ({ onMenuClick }) => {
     }
   };
 
-  // Handle company selection for comparison
+  // Handle company selection for comparison (deprecated - kept for backward compatibility)
   const handleCompanyToggle = (companyName) => {
     setSelectedCompanies(prev => {
       if (prev.includes(companyName)) {
@@ -130,6 +139,25 @@ const Peers = ({ onMenuClick }) => {
     });
   };
 
+  // Handle individual PDF selection
+  const handlePDFToggle = (companyId, companyName, pdfName) => {
+    const pdfIdentifier = `${companyId}|${pdfName}`;
+    setSelectedPDFs(prev => {
+      const exists = prev.find(pdf => `${pdf.companyId}|${pdf.pdfName}` === pdfIdentifier);
+      if (exists) {
+        return prev.filter(pdf => `${pdf.companyId}|${pdf.pdfName}` !== pdfIdentifier);
+      } else {
+        return [...prev, { companyId, companyName, pdfName }];
+      }
+    });
+  };
+
+  // Check if a PDF is selected
+  const isPDFSelected = (companyId, pdfName) => {
+    const pdfIdentifier = `${companyId}|${pdfName}`;
+    return selectedPDFs.some(pdf => `${pdf.companyId}|${pdf.pdfName}` === pdfIdentifier);
+  };
+
   // Fetch comparison data
   const fetchComparisonData = async () => {
     if (!selectedLForm) {
@@ -137,8 +165,8 @@ const Peers = ({ onMenuClick }) => {
       return;
     }
 
-    if (comparisonMode === 'selected' && selectedCompanies.length === 0) {
-      setComparisonError('Please select at least one company for comparison');
+    if (selectedPDFs.length === 0) {
+      setComparisonError('Please select at least one PDF for comparison');
       return;
     }
 
@@ -146,9 +174,7 @@ const Peers = ({ onMenuClick }) => {
     setComparisonError(null);
 
     try {
-      const companiesToCompare = comparisonMode === 'all' 
-        ? s3Companies.map(c => c.name)
-        : selectedCompanies;
+      const pdfsToCompare = selectedPDFs;
 
       // Simulate API call - replace with actual API endpoint
       const response = await fetch('/api/peers/comparison', {
@@ -158,7 +184,7 @@ const Peers = ({ onMenuClick }) => {
         },
         body: JSON.stringify({
           lform: selectedLForm,
-          companies: companiesToCompare
+          pdfs: pdfsToCompare
         })
       });
 
@@ -201,7 +227,7 @@ const Peers = ({ onMenuClick }) => {
     } else if (tab === 'News') {
       navigate('/news');
     } else if (tab === 'Define Template') {
-      console.log('Define Template clicked');
+      navigate('/template');
     } else if (tab === 'Save Template') {
       console.log('Save Template clicked');
     } else if (tab === 'Screener Inputs') {
@@ -227,7 +253,9 @@ const Peers = ({ onMenuClick }) => {
     <div className="peers-page" style={{
       padding: 'clamp(10px, 3vw, 20px)',
       minHeight: '100vh',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
     }}>
       <div style={{ 
         display: 'flex', 
@@ -324,15 +352,17 @@ const Peers = ({ onMenuClick }) => {
       {/* Main Content Area with Sidebar */}
       <div style={{
         display: 'flex',
-        gap: 'clamp(10px, 2vw, 15px)',
+        gap: window.innerWidth <= 768 ? 'clamp(10px, 2vw, 15px)' : 'clamp(15px, 3vw, 20px)',
         padding: '0 clamp(10px, 3vw, 20px)',
-        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+        alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start'
       }}>
         {/* Left Sidebar - Company Information */}
         <div style={{
-          flex: '0 0 clamp(200px, 25vw, 220px)',
-          minWidth: '200px',
-          maxWidth: '220px'
+          flex: window.innerWidth <= 768 ? 'none' : '0 0 clamp(200px, 25vw, 220px)',
+          minWidth: window.innerWidth <= 768 ? 'auto' : '200px',
+          maxWidth: window.innerWidth <= 768 ? '100%' : '220px',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           <CompanyInformationSidebar />
         </div>
@@ -341,181 +371,9 @@ const Peers = ({ onMenuClick }) => {
         <div style={{
           flex: '1',
           minWidth: 0,
-          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
+          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
-          {/* Company Selection */}
-          <div style={{
-            background: 'white',
-            borderRadius: '8px',
-            padding: 'clamp(20px, 4vw, 30px)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            marginBottom: 'clamp(15px, 3vw, 20px)'
-          }}>
-            <h3 style={{
-              fontSize: 'clamp(18px, 3vw, 20px)',
-              fontWeight: '600',
-              color: '#1f2937',
-              margin: '0 0 clamp(15px, 2vw, 20px) 0'
-            }}>
-              🏢 Select Company for Peer Analysis
-            </h3>
-
-            {/* Error Display */}
-            {companiesError && (
-              <div style={{
-                background: '#fee',
-                color: '#dc2626',
-                padding: 'clamp(12px, 2vw, 16px)',
-                borderRadius: '8px',
-                marginBottom: 'clamp(15px, 2vw, 20px)',
-                border: '1px solid #fcc',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span>⚠️</span>
-                <span>{companiesError}</span>
-                <button
-                  style={{
-                    marginLeft: 'auto',
-                    background: 'none',
-                    border: 'none',
-                    color: '#dc2626',
-                    cursor: 'pointer',
-                    fontSize: '1.2rem'
-                  }}
-                  onClick={() => setCompaniesError(null)}
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {/* Company Selection */}
-            <div style={{
-              display: 'flex',
-              gap: 'clamp(10px, 2vw, 15px)',
-              alignItems: 'flex-end',
-              flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
-            }}>
-              <div style={{
-                flex: window.innerWidth <= 768 ? 'none' : 1,
-                width: window.innerWidth <= 768 ? '100%' : 'auto'
-              }}>
-                <label style={{
-                  fontSize: 'clamp(14px, 2vw, 16px)',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: 'clamp(5px, 1vw, 8px)',
-                  display: 'block'
-                }}>
-                  Select Company
-                </label>
-                <select
-                  value={selectedCompany}
-                  onChange={(e) => setSelectedCompany(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: 'clamp(10px, 2vw, 12px)',
-                    fontSize: 'clamp(14px, 2vw, 16px)',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    backgroundColor: 'white',
-                    color: '#374151',
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
-                  disabled={loadingCompanies}
-                >
-                  <option value="">
-                    {loadingCompanies ? 'Loading companies...' : 'Select a company...'}
-                  </option>
-                  {s3Companies.map(company => (
-                    <option key={company.id} value={company.name}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Refresh Button */}
-              <button
-                onClick={fetchS3Companies}
-                style={{
-                  padding: 'clamp(10px, 2vw, 12px) clamp(16px, 2vw, 20px)',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: 'clamp(13px, 2vw, 14px)',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  minWidth: 'clamp(100px, 15vw, 120px)',
-                  justifyContent: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#2563eb';
-                  e.target.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#3b82f6';
-                  e.target.style.transform = 'translateY(0)';
-                }}
-              >
-                🔄 Refresh
-              </button>
-            </div>
-
-            {/* Selected Company Info */}
-            {selectedCompany && (
-              <div style={{
-                marginTop: 'clamp(15px, 2vw, 20px)',
-                padding: 'clamp(12px, 2vw, 16px)',
-                background: '#f0f9ff',
-                borderRadius: '8px',
-                border: '1px solid #0ea5e9'
-              }}>
-                <div style={{
-                  fontSize: 'clamp(14px, 2vw, 16px)',
-                  fontWeight: '600',
-                  color: '#0369a1',
-                  marginBottom: 'clamp(4px, 1vw, 6px)'
-                }}>
-                  ✅ Selected: {selectedCompany}
-                </div>
-                {loadingCompanyData && (
-                  <div style={{
-                    fontSize: 'clamp(12px, 2vw, 14px)',
-                    color: '#0369a1'
-                  }}>
-                    Loading company data...
-                  </div>
-                )}
-                {companyDataError && (
-                  <div style={{
-                    fontSize: 'clamp(12px, 2vw, 14px)',
-                    color: '#dc2626'
-                  }}>
-                    ⚠️ {companyDataError}
-                  </div>
-                )}
-                {companyData && (
-                  <div style={{
-                    fontSize: 'clamp(12px, 2vw, 14px)',
-                    color: '#0369a1'
-                  }}>
-                    📊 Company data loaded successfully
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           {/* L-Form Selection and Comparison Mode */}
           <div style={{
             background: 'white',
@@ -571,105 +429,11 @@ const Peers = ({ onMenuClick }) => {
               </select>
             </div>
 
-            {/* Comparison Mode Selection */}
+
+            {/* Company Selection */}
             <div style={{
               marginBottom: 'clamp(20px, 3vw, 25px)'
             }}>
-              <label style={{
-                fontSize: 'clamp(14px, 2vw, 16px)',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: 'clamp(8px, 1vw, 12px)',
-                display: 'block'
-              }}>
-                Comparison Mode
-              </label>
-              <div style={{
-                display: 'flex',
-                gap: 'clamp(10px, 2vw, 15px)',
-                flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
-              }}>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  padding: 'clamp(8px, 1vw, 10px)',
-                  borderRadius: '6px',
-                  backgroundColor: comparisonMode === 'all' ? '#f0f9ff' : 'transparent',
-                  border: comparisonMode === 'all' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                  transition: 'all 0.2s ease',
-                  flex: 1
-                }}>
-                  <input
-                    type="radio"
-                    name="comparisonMode"
-                    value="all"
-                    checked={comparisonMode === 'all'}
-                    onChange={(e) => setComparisonMode(e.target.value)}
-                    style={{ margin: 0 }}
-                  />
-                  <div>
-                    <div style={{
-                      fontSize: 'clamp(14px, 2vw, 16px)',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      🌐 All Companies
-                    </div>
-                    <div style={{
-                      fontSize: 'clamp(12px, 1.8vw, 14px)',
-                      color: '#6b7280'
-                    }}>
-                      Compare all available companies
-                    </div>
-                  </div>
-                </label>
-
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  padding: 'clamp(8px, 1vw, 10px)',
-                  borderRadius: '6px',
-                  backgroundColor: comparisonMode === 'selected' ? '#f0f9ff' : 'transparent',
-                  border: comparisonMode === 'selected' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                  transition: 'all 0.2s ease',
-                  flex: 1
-                }}>
-                  <input
-                    type="radio"
-                    name="comparisonMode"
-                    value="selected"
-                    checked={comparisonMode === 'selected'}
-                    onChange={(e) => setComparisonMode(e.target.value)}
-                    style={{ margin: 0 }}
-                  />
-                  <div>
-                    <div style={{
-                      fontSize: 'clamp(14px, 2vw, 16px)',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      🎯 Selected Companies
-                    </div>
-                    <div style={{
-                      fontSize: 'clamp(12px, 1.8vw, 14px)',
-                      color: '#6b7280'
-                    }}>
-                      Choose specific companies to compare
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* Company Selection for Selected Mode */}
-            {comparisonMode === 'selected' && (
-              <div style={{
-                marginBottom: 'clamp(20px, 3vw, 25px)'
-              }}>
                 <label style={{
                   fontSize: 'clamp(14px, 2vw, 16px)',
                   fontWeight: '600',
@@ -677,51 +441,161 @@ const Peers = ({ onMenuClick }) => {
                   marginBottom: 'clamp(8px, 1vw, 12px)',
                   display: 'block'
                 }}>
-                  Select Companies ({selectedCompanies.length} selected)
+                  Select PDFs ({selectedPDFs.length} selected)
                 </label>
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: 'clamp(8px, 1vw, 12px)',
-                  maxHeight: '200px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'clamp(12px, 2vw, 16px)',
+                  maxHeight: '400px',
                   overflowY: 'auto',
-                  padding: 'clamp(8px, 1vw, 12px)',
+                  padding: 'clamp(12px, 2vw, 16px)',
                   border: '1px solid #e5e7eb',
                   borderRadius: '6px',
-                  backgroundColor: '#f9fafb'
+                  backgroundColor: '#f9fafb',
+                  minHeight: '100px'
                 }}>
-                  {s3Companies.map(company => (
-                    <label
+                  {!selectedLForm ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: 'clamp(20px, 4vw, 40px)',
+                      color: '#6b7280',
+                      fontSize: 'clamp(13px, 2vw, 14px)'
+                    }}>
+                      👆 Please select an L-Form above to view available PDFs
+                    </div>
+                  ) : loadingCompanies ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: 'clamp(20px, 4vw, 40px)',
+                      color: '#6b7280',
+                      fontSize: 'clamp(13px, 2vw, 14px)'
+                    }}>
+                      Loading PDFs...
+                    </div>
+                  ) : s3Companies.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: 'clamp(20px, 4vw, 40px)',
+                      color: '#6b7280',
+                      fontSize: 'clamp(13px, 2vw, 14px)'
+                    }}>
+                      No PDFs found for {selectedLForm}
+                    </div>
+                  ) : (
+                    s3Companies.map(company => (
+                    <div
                       key={company.id}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        padding: 'clamp(6px, 1vw, 8px)',
-                        borderRadius: '4px',
-                        backgroundColor: selectedCompanies.includes(company.name) ? '#dbeafe' : 'white',
-                        border: selectedCompanies.includes(company.name) ? '1px solid #3b82f6' : '1px solid #e5e7eb',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: 'white',
+                        padding: 'clamp(12px, 2vw, 16px)',
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedCompanies.includes(company.name)}
-                        onChange={() => handleCompanyToggle(company.name)}
-                        style={{ margin: 0 }}
-                      />
-                      <span style={{
-                        fontSize: 'clamp(13px, 2vw, 14px)',
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: company.pdfs && company.pdfs.length > 0 ? '8px' : '0',
+                        fontSize: 'clamp(14px, 2vw, 16px)',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         {company.name}
-                      </span>
-                    </label>
-                  ))}
+                        {company.pdfs && ` (${company.pdfs.length} PDFs)`}
+                      </div>
+                      
+                      {/* Show PDFs for this company */}
+                      {company.pdfs && company.pdfs.length > 0 && (
+                        <div style={{
+                          marginLeft: '0px',
+                          marginTop: '8px',
+                          paddingLeft: '12px',
+                          borderLeft: '2px solid #d1d5db'
+                        }}>
+                          <div style={{
+                            fontSize: 'clamp(12px, 1.5vw, 13px)',
+                            color: '#6b7280',
+                            marginBottom: '6px'
+                          }}>
+                            📄 PDFs:
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}>
+                            {company.pdfs.map((pdf, idx) => {
+                              const pdfName = typeof pdf === 'string' ? pdf : pdf.name;
+                              const isSelected = isPDFSelected(company.id, pdfName);
+                              return (
+                                <label
+                                  key={idx}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: '8px',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    borderRadius: '6px',
+                                    backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                                    border: isSelected ? '1px solid #3b82f6' : '1px solid transparent',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handlePDFToggle(company.id, company.name, pdfName)}
+                                    style={{ marginTop: '2px', margin: 0 }}
+                                  />
+                                  <div style={{
+                                    flex: 1,
+                                    fontSize: 'clamp(11px, 1.5vw, 12px)',
+                                    color: '#4b5563'
+                                  }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                      {pdfName}
+                                    </div>
+                                    
+                                    {/* Show splits for this PDF if available */}
+                                    {typeof pdf === 'object' && pdf.splits && pdf.splits.length > 0 && (
+                                      <div style={{
+                                        marginLeft: '0px',
+                                        marginTop: '4px',
+                                        paddingTop: '4px',
+                                        borderTop: '1px dashed #d1d5db',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '2px'
+                                      }}>
+                                        <span style={{ fontSize: '10px', color: '#6b7280' }}>Splits:</span>
+                                        {pdf.splits.map((split, splitIdx) => (
+                                          <div key={splitIdx} style={{
+                                            fontSize: '10px',
+                                            color: '#6b7280',
+                                            paddingLeft: '8px'
+                                          }}>
+                                            ↳ {split.name} (Pages: {split.pages})
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                  )}
                 </div>
-              </div>
-            )}
+            </div>
 
             {/* Generate Comparison Button */}
             <div style={{
@@ -732,22 +606,23 @@ const Peers = ({ onMenuClick }) => {
             }}>
               <button
                 onClick={fetchComparisonData}
-                disabled={!selectedLForm || loadingComparison || (comparisonMode === 'selected' && selectedCompanies.length === 0)}
+                disabled={!selectedLForm || loadingComparison || selectedPDFs.length === 0}
                 style={{
                   padding: 'clamp(12px, 2vw, 16px) clamp(20px, 3vw, 24px)',
-                  backgroundColor: (!selectedLForm || loadingComparison || (comparisonMode === 'selected' && selectedCompanies.length === 0)) ? '#9ca3af' : '#059862',
+                  backgroundColor: (!selectedLForm || loadingComparison || selectedPDFs.length === 0) ? '#9ca3af' : '#059862',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: 'clamp(14px, 2vw, 16px)',
                   fontWeight: '600',
-                  cursor: (!selectedLForm || loadingComparison || (comparisonMode === 'selected' && selectedCompanies.length === 0)) ? 'not-allowed' : 'pointer',
+                  cursor: (!selectedLForm || loadingComparison || selectedPDFs.length === 0) ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '8px',
-                  minWidth: 'clamp(180px, 25vw, 220px)',
-                  justifyContent: 'center'
+                  minWidth: window.innerWidth <= 768 ? '100%' : 'clamp(180px, 25vw, 220px)',
+                  width: window.innerWidth <= 768 ? '100%' : 'auto'
                 }}
                 onMouseEnter={(e) => {
                   if (!e.target.disabled) {
@@ -786,6 +661,7 @@ const Peers = ({ onMenuClick }) => {
                 onClick={() => {
                   setSelectedLForm('');
                   setSelectedCompanies([]);
+                  setSelectedPDFs([]);
                   setComparisonData(null);
                   setComparisonError(null);
                 }}
@@ -801,7 +677,10 @@ const Peers = ({ onMenuClick }) => {
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  justifyContent: 'center',
+                  gap: '6px',
+                  minWidth: window.innerWidth <= 768 ? '100%' : 'auto',
+                  width: window.innerWidth <= 768 ? '100%' : 'auto'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#4b5563';
@@ -939,7 +818,7 @@ const Peers = ({ onMenuClick }) => {
                   maxWidth: '500px',
                   margin: '0 auto'
                 }}>
-                  Analyzing {selectedLForm} data for {comparisonMode === 'all' ? 'all companies' : `${selectedCompanies.length} selected companies`}...
+                  Analyzing {selectedLForm} data for {selectedPDFs.length} selected PDFs...
                 </p>
               </div>
             )}
@@ -966,7 +845,7 @@ const Peers = ({ onMenuClick }) => {
                     color: '#0369a1',
                     margin: 0
                   }}>
-                    Comparing {comparisonMode === 'all' ? 'all available companies' : `${selectedCompanies.length} selected companies`}
+                    Comparing {selectedPDFs.length} selected PDFs
                   </p>
                 </div>
 
@@ -980,7 +859,10 @@ const Peers = ({ onMenuClick }) => {
                   <table style={{
                     width: '100%',
                     borderCollapse: 'collapse',
-                    fontSize: 'clamp(13px, 2vw, 14px)'
+                    borderSpacing: '0',
+                    fontSize: '14px',
+                    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    tableLayout: 'auto'
                   }}>
                     <thead>
                       <tr style={{
@@ -988,37 +870,45 @@ const Peers = ({ onMenuClick }) => {
                         borderBottom: '2px solid #e5e7eb'
                       }}>
                         <th style={{
-                          padding: 'clamp(12px, 2vw, 16px)',
+                          padding: '12px',
                           textAlign: 'left',
                           fontWeight: '600',
                           color: '#374151',
-                          borderRight: '1px solid #e5e7eb'
+                          borderRight: '1px solid #e5e7eb',
+                          fontSize: '14px',
+                          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}>
                           Company
                         </th>
                         <th style={{
-                          padding: 'clamp(12px, 2vw, 16px)',
+                          padding: '12px',
                           textAlign: 'right',
                           fontWeight: '600',
                           color: '#374151',
-                          borderRight: '1px solid #e5e7eb'
+                          borderRight: '1px solid #e5e7eb',
+                          fontSize: '14px',
+                          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}>
                           Premium Value (₹ Cr)
                         </th>
                         <th style={{
-                          padding: 'clamp(12px, 2vw, 16px)',
+                          padding: '12px',
                           textAlign: 'right',
                           fontWeight: '600',
                           color: '#374151',
-                          borderRight: '1px solid #e5e7eb'
+                          borderRight: '1px solid #e5e7eb',
+                          fontSize: '14px',
+                          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}>
                           Sum Assured (₹ Cr)
                         </th>
                         <th style={{
-                          padding: 'clamp(12px, 2vw, 16px)',
+                          padding: '12px',
                           textAlign: 'right',
                           fontWeight: '600',
-                          color: '#374151'
+                          color: '#374151',
+                          fontSize: '14px',
+                          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                         }}>
                           Policies (Count)
                         </th>
@@ -1031,36 +921,44 @@ const Peers = ({ onMenuClick }) => {
                           backgroundColor: index % 2 === 0 ? 'white' : '#f9fafb'
                         }}>
                           <td style={{
-                            padding: 'clamp(12px, 2vw, 16px)',
+                            padding: '12px',
                             fontWeight: '600',
                             color: '#374151',
-                            borderRight: '1px solid #e5e7eb'
+                            borderRight: '1px solid #e5e7eb',
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                           }}>
                             {company.name}
                           </td>
                           <td style={{
-                            padding: 'clamp(12px, 2vw, 16px)',
+                            padding: '12px',
                             textAlign: 'right',
                             color: '#059862',
                             fontWeight: '600',
-                            borderRight: '1px solid #e5e7eb'
+                            borderRight: '1px solid #e5e7eb',
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                           }}>
                             ₹{company.premiumValue?.toLocaleString() || 'N/A'}
                           </td>
                           <td style={{
-                            padding: 'clamp(12px, 2vw, 16px)',
+                            padding: '12px',
                             textAlign: 'right',
                             color: '#3b82f6',
                             fontWeight: '600',
-                            borderRight: '1px solid #e5e7eb'
+                            borderRight: '1px solid #e5e7eb',
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                           }}>
                             ₹{company.sumAssured?.toLocaleString() || 'N/A'}
                           </td>
                           <td style={{
-                            padding: 'clamp(12px, 2vw, 16px)',
+                            padding: '12px',
                             textAlign: 'right',
                             color: '#7c3aed',
-                            fontWeight: '600'
+                            fontWeight: '600',
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                           }}>
                             {company.policies?.toLocaleString() || 'N/A'}
                           </td>

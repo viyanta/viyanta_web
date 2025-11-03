@@ -22,7 +22,9 @@ import News from './pages/News.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
+
 import UserAgreement from './components/UserAgreement.jsx'
+import Template from './pages/Template.jsx'
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { user, loading, agreementAccepted, acceptAgreement, logout } = useAuth();
@@ -124,6 +126,7 @@ function App() {
                         <Route path="/annual-data" element={<AnnualData onMenuClick={openSidebar} />} />
                         <Route path="/metrics" element={<Metrics onMenuClick={openSidebar} />} />
                         <Route path="/documents" element={<Documents onMenuClick={openSidebar} />} />
+                        <Route path="/template" element={<Template onMenuClick={openSidebar} />} />
                         <Route path="/peers" element={<Peers onMenuClick={openSidebar} />} />
                         <Route path="/news" element={<News onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />

@@ -485,7 +485,10 @@ function DMML2Form({ onMenuClick }) {
                             <table style={{
                                 width: '100%',
                                 borderCollapse: 'collapse',
-                                fontSize: 'clamp(12px, 3vw, 14px)',
+                                borderSpacing: '0',
+                                fontSize: '14px',
+                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                tableLayout: 'auto',
                                 minWidth: window.innerWidth <= 768 ? '600px' : '100%' // Ensure minimum width on mobile
                             }}>
                                 <thead style={{
@@ -498,13 +501,15 @@ function DMML2Form({ onMenuClick }) {
                                     <tr>
                                         {formData.profitLossAccount.columns.map((header, index) => (
                                             <th key={index} style={{
-                                                padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 15px)',
+                                                padding: '12px',
                                                 textAlign: index === 0 ? 'left' : index === 1 ? 'center' : 'right',
                                                 fontWeight: '600',
                                                 color: '#495057',
                                                 borderBottom: '2px solid #dee2e6',
                                                 whiteSpace: 'nowrap',
                                                 backgroundColor: '#f8f9fa',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                                 minWidth: index === 0 ? '200px' : index === 1 ? '80px' : '120px'
                                             }}>
                                                 {header}
@@ -519,11 +524,13 @@ function DMML2Form({ onMenuClick }) {
                                             borderBottom: '1px solid #dee2e6'
                                         }}>
                                             <td style={{
-                                                padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 15px)',
+                                                padding: '12px',
                                                 borderRight: '1px solid #dee2e6',
                                                 fontWeight: row.particulars.includes('Total') || row.particulars.includes('Income from Investments') ? '600' : 'normal',
                                                 color: row.particulars.includes('Total') ? '#1976d2' : '#333',
                                                 wordBreak: 'break-word',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                                 minWidth: '200px',
                                                 verticalAlign: 'top'
                                             }}>
@@ -536,9 +543,11 @@ function DMML2Form({ onMenuClick }) {
                                                 </div>
                                             </td>
                                             <td style={{
-                                                padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 15px)',
+                                                padding: '12px',
                                                 borderRight: '1px solid #dee2e6',
                                                 textAlign: 'center',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                                 minWidth: '80px',
                                                 verticalAlign: 'top'
                                             }}>
@@ -560,8 +569,10 @@ function DMML2Form({ onMenuClick }) {
                                                 />
                                             </td>
                                             <td style={{
-                                                padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 15px)',
+                                                padding: '12px',
                                                 textAlign: 'right',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                                                 minWidth: '120px',
                                                 verticalAlign: 'top'
                                             }}>

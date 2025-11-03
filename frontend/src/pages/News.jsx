@@ -244,7 +244,7 @@ const News = ({ onMenuClick }) => {
     } else if (tab === 'News') {
       return; // Stay on current page
     } else if (tab === 'Define Template') {
-      console.log('Define Template clicked');
+      navigate('/template');
     } else if (tab === 'Save Template') {
       console.log('Save Template clicked');
     } else if (tab === 'Screener Inputs') {

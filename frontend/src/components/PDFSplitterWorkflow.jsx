@@ -43,8 +43,31 @@ const PDFSplitterWorkflow = ({ user }) => {
       console.error('Failed to load companies:', error);
       // Fallback to hardcoded companies
       setCompanies([
-        'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
-        'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
+        'ACKO Life',
+        'Aditya Birla Sun Life',
+        'Ageas Federal Life',
+        'AVIVA Life',
+        'AXIS Max Life',
+        'Bajaj Allianz',
+        'Bandhan Life',
+        'Bharti AXA Life',
+        'Canara HSBC Life',
+        'CreditAccess Life',
+        'EDELWEISS Tokio Life',
+        'Future Generali India Life',
+        'GO Digit Life',
+        'HDFC Life',
+        'ICICI Prudential',
+        'IndiaFirst Life',
+        'Kotak Life',
+        'LIC of India',
+        'PNB MetLife Life',
+        'Pramerica Life',
+        'Reliance Nippon Life',
+        'SBI Life',
+        'Shriram Life',
+        'STARUNION Daichi Life',
+        'TATA Aig Life'
       ]);
     } finally {
       setLoadingCompanies(false);
@@ -688,8 +711,9 @@ const PDFSplitterWorkflow = ({ user }) => {
                     📊 Extracted Data ({extractedData.data.length} record{extractedData.data.length !== 1 ? 's' : ''})
                   </div>
                   <div style={{ 
-                    maxHeight: '400px',
-                    overflow: 'auto',
+                    maxHeight: '600px',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
                     padding: '1rem'
                   }}>
                     {extractedData.data.map((record, index) => (
@@ -723,16 +747,19 @@ const PDFSplitterWorkflow = ({ user }) => {
                           <div style={{ 
                             border: '1px solid #e0e0e0',
                             borderRadius: '4px',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            width: '100%'
                           }}>
                             <div style={{ 
-                              overflow: 'auto',
-                              maxHeight: '300px'
+                              overflowX: 'auto',
+                              overflowY: 'visible',
+                              width: '100%'
                             }}>
                               <table style={{ 
                                 width: '100%',
                                 borderCollapse: 'collapse',
-                                fontSize: '0.8rem'
+                                fontSize: '0.8rem',
+                                minWidth: '100%'
                               }}>
                                 <thead>
                                   <tr style={{ background: '#f5f5f5' }}>
