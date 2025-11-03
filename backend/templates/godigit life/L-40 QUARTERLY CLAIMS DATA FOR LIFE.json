@@ -144,15 +144,7 @@
     },
     "FlatHeaders": [
       "Sl_No",
-      "Claims_Experience_Claims_O_S_at_the_beginning_of_the_period",
-      "Claims_Experience_Claims_Booked_during_the_period",
-      "Claims_Experience_Claims_Paid_during_the_period",
-      "Claims_Experience_Unclaimed",
-      "Claims_Experience_Claims_O_S_at_End_of_the_period",
-      "Claims_Experience_Outstanding_Claims_Individual_Less_than_3months",
-      "Claims_Experience_Outstanding_Claims_Individual_3_months_and_less_than_6_months",
-      "Claims_Experience_Outstanding_Claims_Individual_6_months_and_less_than_1_year",
-      "Claims_Experience_Outstanding_Claims_Individual_1year_and_above",
+      "Claims_Experience",
       "No_of_claims_only_Maturity",
       "No_of_claims_only_Survival_Benefit",
       "No_of_claims_only_Annuities_Pension",
@@ -162,32 +154,39 @@
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl. No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Claims_Experience": [
+      "Claims Experience"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Maturity": [
+      "Maturity"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Survival_Benefit": [
+      "Survival",
+      "Benefit¹"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Annuities_Pension": [
+      "Annuities/",
+      "Pension"
+    ],
+    "Surrender": [
+      "Surrender"
+    ],
+    "Other_Benefits": [
+      "Other",
+      "Benefits²"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl_No",
+    "Claims_Experience",
+    "No_of_claims_only_Maturity",
+    "No_of_claims_only_Survival_Benefit",
+    "No_of_claims_only_Annuities_Pension",
+    "No_of_claims_only_Surrender",
+    "No_of_claims_only_Other_Benefits"
   ],
   "Rows": []
 }

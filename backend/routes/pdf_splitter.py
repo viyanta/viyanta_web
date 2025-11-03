@@ -25,7 +25,7 @@ pdf_splitter = PDFSplitterService()
 @router.post("/upload-and-split")
 async def upload_and_split_pdf(
     company_name: str = Form(...),
-    # user_id: str = Form(...),
+    user_id: str = Form(...),
     pdf_file: UploadFile = File(...)
 ):
     """
@@ -38,7 +38,7 @@ async def upload_and_split_pdf(
                 status_code=400, detail="Only PDF files are allowed")
 
         result = pdf_splitter.upload_and_split_pdf(
-            company_name, pdf_file)
+            company_name, pdf_file, user_id)
 
         if not result["success"]:
             raise HTTPException(status_code=500, detail=result["error"])
@@ -191,7 +191,7 @@ async def extract_form_data(
     company_name: str = Form(...),
     pdf_name: str = Form(...),
     split_filename: str = Form(...),
-    # user_id: str = Form(...)
+    user_id: str = Form(...)
 ):
     """
     Extract form data from a split PDF and correct it with Gemini
@@ -201,7 +201,7 @@ async def extract_form_data(
     try:
 
         print(
-            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}")
+            f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}, user={user_id}")
 
         import subprocess
         import sys
@@ -654,9 +654,9 @@ async def extract_form_data(
             # OPTIMIZED: Faster timeouts for quicker processing
             # Shorter timeouts since we're using smaller batches and multithreading
             primary_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "90")   # Reduced from 180s
+                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "300")   # Reduced from 180s
             retry_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_RETRY", "60")  # Reduced from 120s
+                "GEMINI_CORRECTION_TIMEOUT_RETRY", "200")  # Reduced from 120s
             no_timeout_mode = os.getenv(
                 "GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
             primary_timeout = None if no_timeout_mode else int(
@@ -699,18 +699,15 @@ async def extract_form_data(
             print(f"   Max workers: {max_workers}")
             print(f"   Multithreading: ENABLED")
 
-            def run_gemini(batch_size: int, timeout_seconds):
+            def run_gemini():
                 cmd = [
                     sys.executable,
                     "services/pdf_splitted_gemini_very.py",
                     "--template", str(template_path),
                     "--extracted", str(extracted_json),
                     "--pdf", split_path,
-                    "--output", str(corrected_json),
-                    "--batch-size", str(batch_size),
-                    "--workers", str(max_workers),  # Enable multithreading
-                    "--max-pages", "3",  # Limit PDF context for speed
-                    "--retries", "2"     # Reduce retries for speed
+                    "--output", str(corrected_json)
+                    # Optionally: "--model", "gemini-2.5-pro"
                 ]
                 print(f"Prompt being sent to Google Gemini : {cmd}")
                 # Enhanced Gemini command debugging
@@ -720,59 +717,21 @@ async def extract_form_data(
                 print(f"📄 Extracted JSON Exists: {extracted_json.exists()}")
                 print(f"📄 Split PDF Path: {split_path}")
                 print(f"🤖 Corrected JSON Output: {corrected_json}")
-                print(f"📊 Batch Size: {batch_size}")
-                print(
-                    f"🔧 Gemini correction command (batch={batch_size}, timeout={'NONE' if timeout_seconds is None else str(timeout_seconds)+'s'}): {' '.join(cmd)}")
                 print(f"=== END GEMINI PATHS DEBUG ===\n")
                 try:
-                    if timeout_seconds is None:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True)
-                    else:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True, timeout=timeout_seconds)
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=primary_timeout)
                     return result, None
                 except subprocess.TimeoutExpired as te:
                     print(
-                        f"⏰ Gemini correction timed out after {timeout_seconds}s (batch={batch_size})")
-                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout_seconds}s"), te
+                        f"⏰ Gemini correction timed out after {primary_timeout}s")
+                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {primary_timeout}s"), te
 
-            # First attempt (dynamic batch)
-            correction_result, primary_timeout_exc = run_gemini(
-                batch_size=initial_batch, timeout_seconds=primary_timeout)
-
+            # Only one call needed for single-call Gemini
+            correction_result, primary_timeout_exc = run_gemini()
+            # Remove all retry logic for Gemini correction (single call only)
             retry_used = False
             second_retry_used = False
-
-            # First retry on failure / timeout
-            if (correction_result.returncode != 0) and enable_retry and not corrected_json.exists():
-                print(
-                    f"♻️ Attempting Gemini correction retry with smaller batch size ({second_batch})")
-                correction_result_retry, retry_exc = run_gemini(
-                    batch_size=second_batch, timeout_seconds=retry_timeout)
-                if correction_result_retry.returncode == 0 and corrected_json.exists():
-                    print("✅ Retry succeeded with reduced batch size")
-                    correction_result = correction_result_retry
-                    retry_used = True
-                else:
-                    print(
-                        f"❌ Retry failed (code={correction_result_retry.returncode}) - will consider second retry")
-
-            # Second retry if still failing and enabled
-            if (correction_result.returncode != 0) and enable_second_retry and not corrected_json.exists():
-                print(
-                    f"🔁 Second retry with ultra small batch size ({third_batch}) and extended timeout")
-                extended_timeout = None if no_timeout_mode else int(
-                    os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", str(retry_timeout or 180)))
-                correction_result_retry2, retry2_exc = run_gemini(
-                    batch_size=third_batch, timeout_seconds=extended_timeout)
-                if correction_result_retry2.returncode == 0 and corrected_json.exists():
-                    print("✅ Second retry succeeded with ultra small batch")
-                    correction_result = correction_result_retry2
-                    second_retry_used = True
-                else:
-                    print(
-                        f"❌ Second retry failed (code={correction_result_retry2.returncode}) - proceeding with extracted data")
 
             print(
                 f"💯 Gemini correction final return code: {correction_result.returncode}")
@@ -986,8 +945,8 @@ async def extract_form_data(
 
         # Store metadata about the extraction
         extraction_metadata = {
-            # "extraction_id": str(uuid.uuid4()),
-            # "user_id": user_id,
+            "extraction_id": str(uuid.uuid4()),
+            "user_id": user_id,
             "company_name": company_name,
             "pdf_name": pdf_name,
             "split_filename": split_filename,
@@ -1027,9 +986,117 @@ async def extract_form_data(
                     f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
             # If it's already a plain dict or other format, leave as-is
 
+        # --- Store Gemini-verified data in Companies, Reports, ReportData tables ---
+        print(f"\n🗄️ === DATABASE STORAGE DEBUG ===")
+        print(f"📊 Normalized data type: {type(normalized_data)}")
+        print(
+            f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
+
+        try:
+            from databases.models import Companies, Report, ReportData
+            from databases.database import SessionLocal
+
+            print(f"[DB] Creating database session...")
+            db = SessionLocal()
+
+            # 1. Find or create company
+            print(f"[DB] Looking for company: {company_name}")
+            company_obj = db.query(Companies).filter_by(
+                companyname=company_name).first()
+            if not company_obj:
+                print(f"[DB] Company not found, creating new entry...")
+                company_obj = Companies(companyname=company_name)
+                db.add(company_obj)
+                db.commit()
+                db.refresh(company_obj)
+                print(
+                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+            else:
+                print(
+                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+
+            # 2. Insert into Report
+            report_period = None
+            currency = None
+            registration_number = None
+            title = None
+            pages_used = None
+            flat_headers = None
+            data_rows = None
+
+            print(f"[DB] Extracting metadata from normalized_data...")
+            if isinstance(normalized_data, list) and len(normalized_data) > 0:
+                first_row = normalized_data[0]
+                report_period = first_row.get("Period")
+                currency = first_row.get("Currency")
+                registration_number = first_row.get("RegistrationNumber")
+                title = first_row.get("Title")
+                pages_used = first_row.get("PagesUsed")
+                flat_headers = first_row.get("FlatHeaders")
+                data_rows = first_row.get("Rows")
+                print(
+                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
+
+            if not report_period:
+                report_period = str(datetime.now().date())
+                print(
+                    f"[DB] No period found, using current date: {report_period}")
+
+            print(f"[DB] Creating Report entry...")
+            report_obj = Report(
+                company=company_name,
+                pdf_name=pdf_name,
+                registration_number=str(
+                    registration_number) if registration_number else None,
+                form_no=form_code,
+                title=str(title) if title else None,
+                period=str(report_period),
+                currency=str(currency) if currency else None,
+                pages_used=str(pages_used) if pages_used else None,
+                source_pdf=split_filename,
+                flat_headers=flat_headers,
+                data_rows=data_rows
+            )
+            db.add(report_obj)
+            db.commit()
+            db.refresh(report_obj)
+            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+
+            # 3. Insert each row into ReportData
+            print(
+                f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
+            inserted_count = 0
+            for idx, row in enumerate(normalized_data):
+                try:
+                    db.add(ReportData(
+                        reportid=report_obj.id,
+                        pdf_name=pdf_name,
+                        formno=row.get("Form No") or form_code,
+                        title=row.get("Title") or "",
+                        datarow=row
+                    ))
+                    inserted_count += 1
+                except Exception as row_exc:
+                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
+                    if idx == 0:  # Print first row details for debugging
+                        print(
+                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
+
+            db.commit()
+            print(
+                f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
+            db.close()
+            print(f"✅ Stored extraction in companies, reports, reportdata tables.")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+        except Exception as db_exc:
+            import traceback
+            print(f"❌ Failed to store extraction in DB: {db_exc}")
+            print(f"❌ Full traceback: {traceback.format_exc()}")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+
         return {
             "success": True,
-            # "extraction_id": extraction_metadata["extraction_id"],
+            "extraction_id": extraction_metadata["extraction_id"],
             "data": normalized_data,
             "metadata": extraction_metadata
         }

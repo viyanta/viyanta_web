@@ -69,6 +69,7 @@ const PDFSplitterWorkflow = ({ user }) => {
         'STARUNION Daichi Life',
         'TATA Aig Life'
       ]);
+      
     } finally {
       setLoadingCompanies(false);
     }
@@ -686,7 +687,6 @@ const PDFSplitterWorkflow = ({ user }) => {
                   <h5 style={{ margin: '0 0 0.5rem 0', color: '#2e7d32' }}>Extraction Details:</h5>
                   <div style={{ display: 'grid', gap: '0.25rem' }}>
                     <div><strong>Form Code:</strong> {extractedData.metadata.form_code}</div>
-                    <div><strong>Extraction ID:</strong> {extractedData.metadata.extraction_id}</div>
                     <div><strong>Template Used:</strong> {extractedData.metadata.template_used?.split('/').pop()}</div>
                     <div><strong>Gemini Corrected:</strong> {extractedData.metadata.gemini_corrected ? 'Yes' : 'No'}</div>
                     <div><strong>Extracted At:</strong> {new Date(extractedData.metadata.extracted_at).toLocaleString()}</div>

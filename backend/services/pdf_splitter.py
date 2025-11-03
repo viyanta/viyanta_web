@@ -15,7 +15,7 @@ class PDFSplitterService:
         self.base_upload_dir.mkdir(exist_ok=True)
         self.base_splits_dir.mkdir(exist_ok=True)
 
-    def upload_and_split_pdf(self, company_name: str, pdf_file,) -> Dict:
+    def upload_and_split_pdf(self, company_name: str, pdf_file, *args, **kwargs) -> Dict:
         """
         Upload PDF and split it according to index extraction
         """
@@ -40,7 +40,7 @@ class PDFSplitterService:
 
             # Split the PDF using index extraction
             split_files, ranges, metadata = split_pdf(
-                str(pdf_path), str(splits_folder))
+                str(pdf_path), str(splits_folder), company_name=company_name)
 
             # Save metadata (already created by split_pdf)
             # (Optional: re-save to ensure consistency)

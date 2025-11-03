@@ -1318,7 +1318,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}>
                                 {file.has_gemini_verification ? '🤖 Gemini Verified' : 
                                  file.json_priority === 'extracted' ? '🔄 Extracted' : 
-                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'}
+                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'
+                                 }
                             </div>
                             
                             {/* Available Files Count */}

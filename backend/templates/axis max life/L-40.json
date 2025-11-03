@@ -1,0 +1,108 @@
+{
+  "Form No": "L-40",
+  "Title": "QUARTERLY CLAIMS DATA FOR LIFE (QUARTERLY)",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Sections": [
+    {
+      "Section_Name": "Death Claims",
+      "Section_Note": "No. of claims only",
+      "Headers": {
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Individual": [
+          "Individual"
+        ],
+        "Group": [
+          "Group"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl. No.",
+        "Claims Experience",
+        "Individual",
+        "Group"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "Individual Claims",
+      "Section_Note": "No. of claims only",
+      "Headers": {
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Maturity": [
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Survival Benefit"
+        ],
+        "Annuities_Pension": [
+          "Annuities/ Pension"
+        ],
+        "Surrender": [
+          "Surrender"
+        ],
+        "Other_Benefits": [
+          "Other Benefits"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl. No.",
+        "Claims Experience",
+        "Maturity",
+        "Survival Benefit",
+        "Annuities/ Pension",
+        "Surrender",
+        "Other Benefits"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Sl_No": [
+      "Sl. No."
+    ],
+    "Claims_Experience": [
+      "Claims Experience"
+    ],
+    "Maturity": [
+      "Maturity"
+    ],
+    "Survival_Benefit": [
+      "Survival Benefit"
+    ],
+    "Annuities_Pension": [
+      "Annuities/ Pension"
+    ],
+    "Surrender": [
+      "Surrender"
+    ],
+    "Other_Benefits": [
+      "Other Benefits"
+    ]
+  },
+  "FlatHeaders": [
+    "Sl. No.",
+    "Claims Experience",
+    "Maturity",
+    "Survival Benefit",
+    "Annuities/ Pension",
+    "Surrender",
+    "Other Benefits"
+  ],
+  "Rows": []
+}

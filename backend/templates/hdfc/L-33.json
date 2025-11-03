@@ -1,0 +1,209 @@
+{
+  "Form No": "L-33",
+  "Title": "FORM L-33-NPA's",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Details of Non-Performing Assets - Quarterly",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Regulation": "Read with Regulation 10",
+  "Life_Fund": {
+    "Title": "Life Fund",
+    "Headers": {
+      "No": [
+        "No"
+      ],
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "Bonds_Debentures_YTD": [
+        "YTD (As on date)"
+      ],
+      "Bonds_Debentures_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Loans_YTD": [
+        "YTD (As on date)"
+      ],
+      "Loans_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Other_Debt_instruments_YTD": [
+        "YTD (As on date)"
+      ],
+      "Other_Debt_instruments_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "All_Other_Assets_YTD": [
+        "YTD (As on date)"
+      ],
+      "All_Other_Assets_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "TOTAL_YTD": [
+        "YTD (As on date)"
+      ],
+      "TOTAL_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ]
+    },
+    "FlatHeaders": [
+      "No",
+      "PARTICULARS",
+      "Bonds/Debentures - YTD (As on date)",
+      "Bonds/Debentures - Prev. FY (As on 31 March 2022)",
+      "Loans - YTD (As on date)",
+      "Loans - Prev. FY (As on 31 March 2022)",
+      "Other Debt instruments - YTD (As on date)",
+      "Other Debt instruments - Prev. FY (As on 31 March 2022)",
+      "All Other Assets - YTD (As on date)",
+      "All Other Assets - Prev. FY (As on 31 March 2022)",
+      "TOTAL - YTD (As on date)",
+      "TOTAL - Prev. FY (As on 31 March 2022)"
+    ],
+    "Rows": []
+  },
+  "Pension_General_Annuity_Fund": {
+    "Title": "Pension & General Annuity Fund",
+    "Headers": {
+      "No": [
+        "No"
+      ],
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "Bonds_Debentures_YTD": [
+        "YTD (As on date)"
+      ],
+      "Bonds_Debentures_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Loans_YTD": [
+        "YTD (As on date)"
+      ],
+      "Loans_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Other_Debt_instruments_YTD": [
+        "YTD (As on date)"
+      ],
+      "Other_Debt_instruments_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "All_Other_Assets_YTD": [
+        "YTD (As on date)"
+      ],
+      "All_Other_Assets_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "TOTAL_YTD": [
+        "YTD (As on date)"
+      ],
+      "TOTAL_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ]
+    },
+    "FlatHeaders": [
+      "No",
+      "PARTICULARS",
+      "Bonds/Debentures - YTD (As on date)",
+      "Bonds/Debentures - Prev. FY (As on 31 March 2022)",
+      "Loans - YTD (As on date)",
+      "Loans - Prev. FY (As on 31 March 2022)",
+      "Other Debt instruments - YTD (As on date)",
+      "Other Debt instruments - Prev. FY (As on 31 March 2022)",
+      "All Other Assets - YTD (As on date)",
+      "All Other Assets - Prev. FY (As on 31 March 2022)",
+      "TOTAL - YTD (As on date)",
+      "TOTAL - Prev. FY (As on 31 March 2022)"
+    ],
+    "Rows": []
+  },
+  "Unit_Linked_Funds": {
+    "Title": "Unit Linked Funds",
+    "Headers": {
+      "No": [
+        "No"
+      ],
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "Bonds_Debentures_YTD": [
+        "YTD (As on date)"
+      ],
+      "Bonds_Debentures_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Loans_YTD": [
+        "YTD (As on date)"
+      ],
+      "Loans_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "Other_Debt_instruments_YTD": [
+        "YTD (As on date)"
+      ],
+      "Other_Debt_instruments_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "All_Other_Assets_YTD": [
+        "YTD (As on date)"
+      ],
+      "All_Other_Assets_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ],
+      "TOTAL_YTD": [
+        "YTD (As on date)"
+      ],
+      "TOTAL_Prev_FY": [
+        "Prev. FY (As on 31 March 2022)"
+      ]
+    },
+    "FlatHeaders": [
+      "No",
+      "PARTICULARS",
+      "Bonds/Debentures - YTD (As on date)",
+      "Bonds/Debentures - Prev. FY (As on 31 March 2022)",
+      "Loans - YTD (As on date)",
+      "Loans - Prev. FY (As on 31 March 2022)",
+      "Other Debt instruments - YTD (As on date)",
+      "Other Debt instruments - Prev. FY (As on 31 March 2022)",
+      "All Other Assets - YTD (As on date)",
+      "All Other Assets - Prev. FY (As on 31 March 2022)",
+      "TOTAL - YTD (As on date)",
+      "TOTAL - Prev. FY (As on 31 March 2022)"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}
