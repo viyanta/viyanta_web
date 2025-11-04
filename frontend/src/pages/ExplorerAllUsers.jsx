@@ -31,6 +31,16 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [splitPdfUrl, setSplitPdfUrl] = React.useState(null);
     const [isLoadingSplitPdf, setIsLoadingSplitPdf] = React.useState(false);
     
+    // Form visibility control state - track which forms are enabled/disabled
+    const [enabledForms, setEnabledForms] = React.useState(new Set());
+    const [showFormSelector, setShowFormSelector] = React.useState(false);
+    const [lastPreferencesUpdate, setLastPreferencesUpdate] = React.useState(null);
+    
+    // Data edits state - track cell edits for admin
+    const [dataEdits, setDataEdits] = React.useState({});
+    const [editingCell, setEditingCell] = React.useState(null); // {recordIndex, rowIndex, header}
+    const [editValue, setEditValue] = React.useState('');
+    
     // View mode state - 'pdf' or 'data'
     const [viewMode, setViewMode] = React.useState('pdf');
 
@@ -185,6 +195,66 @@ function ExplorerAllUsers({ onMenuClick }) {
 
         return () => unsubscribe();
     }, []);
+    
+    // Poll for form preference updates every 3 seconds when a file is selected
+    // This allows real-time updates when admin changes preferences
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || isLoadingSplits || !pdfSplits.length) {
+            return;
+        }
+        
+        const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+        if (!companyName) {
+            return;
+        }
+        
+        // Map company name to match backend API format
+        const companyNameMapping = {
+            'sbi': 'SBI Life',
+            'hdfc': 'HDFC Life', 
+            'icici': 'ICICI Prudential',
+            'lic': 'LIC'
+        };
+        const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+        
+        // Poll for preference updates (works for all users, including admin in other tabs)
+        const pollInterval = setInterval(async () => {
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const prefsResponse = await fetch(prefsUrl);
+                if (prefsResponse.ok) {
+                    const prefsData = await prefsResponse.json();
+                    const enabledFormsList = prefsData.data?.enabled_forms;
+                    
+                    // Check if preferences exist and have changed
+                    if (enabledFormsList !== undefined && enabledFormsList !== null) {
+                        setEnabledForms(prevEnabledForms => {
+                            const newSet = new Set(enabledFormsList);
+                            
+                            // Check if preferences have changed
+                            const hasChanged = 
+                                newSet.size !== prevEnabledForms.size ||
+                                Array.from(newSet).some(form => !prevEnabledForms.has(form)) ||
+                                Array.from(prevEnabledForms).some(form => !newSet.has(form));
+                            
+                            if (hasChanged) {
+                                console.log('🔄 Form preferences updated from server:', Array.from(newSet));
+                                setLastPreferencesUpdate(new Date());
+                                return newSet;
+                            }
+                            return prevEnabledForms; // No change, keep current state
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling form preferences:', error);
+            }
+        }, 3000); // Poll every 3 seconds
+        
+        return () => clearInterval(pollInterval);
+    }, [selectedFile?.name, selectedCompany, pdfSplits.length, isLoadingSplits, companiesData]);
 
     // Function to fetch extracted data for a split
     const fetchExtractedData = async (companyName, pdfName, splitFilename) => {
@@ -348,13 +418,26 @@ function ExplorerAllUsers({ onMenuClick }) {
                     maxWidth: '100%',
                     overflow: 'hidden'
                 }}>
-                    <div style={{ 
+                    <div style={{
                         background: '#f5f5f5',
                         padding: '0.75rem',
                         borderBottom: '1px solid #e0e0e0',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
-                        📊 Extracted Data ({records.length} record{records.length !== 1 ? 's' : ''})
+                        <span>📊 Extracted Data ({records.length} record{records.length !== 1 ? 's' : ''})</span>
+                        {isAdmin && (
+                            <span style={{
+                                fontSize: '0.75rem',
+                                color: '#667eea',
+                                fontWeight: 'normal',
+                                fontStyle: 'italic'
+                            }}>
+                                💡 Double-click any cell to edit (Admin only)
+                            </span>
+                        )}
                     </div>
                     
                     <div style={{ 
@@ -398,7 +481,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                     <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
                                         Record {recordIndex + 1} {record.FormName && `- ${record.FormName}`}
                                         {record.PagesUsed && (
-                                            <span style={{ 
+                                    <span style={{ 
                                                 marginLeft: '1rem',
                                                 padding: '2px 8px',
                                                 background: '#e3f2fd',
@@ -409,8 +492,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 border: '1px solid #bbdefb'
                                             }}>
                                                 📄 Pages Used: {record.PagesUsed}
-                                            </span>
-                                        )}
+                                    </span>
+                                )}
                                     </h6>
                                     
                                     {/* Form Metadata Display */}
@@ -430,8 +513,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 {record.RegistrationNumber && <div><strong>Registration Number:</strong> {record.RegistrationNumber}</div>}
                                                 {record.Period && <div><strong>Period:</strong> {record.Period}</div>}
                                                 {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
-                                            </div>
-                                        </div>
+                        </div>
+                    </div>
                                     )}
                                     
                                     {/* Legacy metadata for backward compatibility */}
@@ -451,7 +534,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                     )}
                                     
                                     {/* Table Data - Each record has its own table with headers */}
-                                    <div style={{ 
+                    <div style={{ 
                                         border: '1px solid #e0e0e0',
                                         borderRadius: '4px',
                                         overflow: 'hidden'
@@ -462,7 +545,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 overflowX: 'scroll',
                                                 overflowY: 'scroll',
                                                 maxHeight: '500px',
-                                                width: '100%',
+                            width: '100%',
                                                 maxWidth: '100%',
                                                 display: 'block',
                                                 boxSizing: 'border-box'
@@ -471,7 +554,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             <table style={{ 
                                                 width: 'max-content',
                                                 minWidth: '100%',
-                                                borderCollapse: 'collapse',
+                            borderCollapse: 'collapse',
                                                 fontSize: '0.8rem',
                                                 margin: 0
                                             }}>
@@ -483,71 +566,187 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                 textAlign: 'left',
                                                                 borderRight: '1px solid #e0e0e0',
                                                                 borderBottom: '1px solid #e0e0e0',
-                                                                fontWeight: '600',
+                                             fontWeight: '600',
                                                                 whiteSpace: 'nowrap',
                                                                 minWidth: '120px'
-                                                            }}>
-                                                                {header}
-                                                            </th>
-                                                        ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+                                         }}>
+                                             {header}
+                                         </th>
+                                     ))}
+                                </tr>
+                            </thead>
+                             <tbody>
                                                     {recordRows.map((row, rowIndex) => {
-                                                        // Check if row contains "total" or "subtotal" (case-insensitive)
-                                                        const checkForTotal = (cellValue) => {
-                                                            if (!cellValue) return false;
-                                                            const str = cellValue.toString().trim().toLowerCase();
-                                                            return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
-                                                        };
-                                                        
-                                                        let isTotalRow = false;
-                                                        if (Array.isArray(row)) {
-                                                            // Check all cells in the row
-                                                            isTotalRow = row.some(cell => checkForTotal(cell));
+                                    // Check if row contains "total" or "subtotal" (case-insensitive)
+                                    const checkForTotal = (cellValue) => {
+                                        if (!cellValue) return false;
+                                        const str = cellValue.toString().trim().toLowerCase();
+                                        return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                    };
+                                    
+                                    let isTotalRow = false;
+                                    if (Array.isArray(row)) {
+                                        // Check all cells in the row
+                                        isTotalRow = row.some(cell => checkForTotal(cell));
                                                         } else if (typeof row === 'object' && row !== null) {
-                                                            // For object rows, check all header values
+                                        // For object rows, check all header values
                                                             isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
-                                                        }
-                                                        
-                                                        return (
-                                                            <tr key={rowIndex} style={{ 
+                                    }
+                                    
+                                    return (
+                                        <tr key={rowIndex} style={{ 
                                                                 background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
-                                                                fontWeight: isTotalRow ? '700' : 'normal'
-                                                            }}>
+                                            fontWeight: isTotalRow ? '700' : 'normal'
+                                        }}>
                                                                 {recordHeaders.map((header, headerIndex) => {
                                                                     // Handle both array and object row formats
-                                                                    let cellValue = '';
+                                                                    let originalValue = '';
                                                                     if (Array.isArray(row)) {
-                                                                        cellValue = row[headerIndex] || '';
+                                                                        originalValue = row[headerIndex] || '';
                                                                     } else if (typeof row === 'object' && row !== null) {
-                                                                        cellValue = row[header] || '';
+                                                                        originalValue = row[header] || '';
                                                                     } else {
-                                                                        cellValue = row || '';
+                                                                        originalValue = row || '';
                                                                     }
                                                                     
-                                                                    return (
-                                                                        <td key={headerIndex} style={{ 
-                                                                            padding: '0.5rem',
-                                                                            borderRight: '1px solid #e0e0e0',
-                                                                            borderBottom: '1px solid #e0e0e0',
-                                                                            whiteSpace: 'nowrap',
-                                                                            minWidth: '120px',
-                                                                            fontWeight: isTotalRow ? '700' : 'normal'
-                                                                        }}>
-                                                                            {cellValue || '-'}
-                                                                        </td>
-                                                                    );
+                                                                    // Get form name for edit key - use selectedSplit.form_name as primary source
+                                                                    const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
+                                                                    const cellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
+                                                                    const isEditing = editingCell && 
+                                                                        editingCell.recordIndex === recordIndex && 
+                                                                        editingCell.rowIndex === rowIndex && 
+                                                                        editingCell.header === header &&
+                                                                        editingCell.formName === formName;
+                                                                    
+                                                     return (
+                                                                        <td 
+                                                                            key={headerIndex} 
+                                                                            style={{ 
+                                                                                padding: '0.5rem',
+                                                                                borderRight: '1px solid #e0e0e0',
+                                                                                borderBottom: '1px solid #e0e0e0',
+                                                                                whiteSpace: 'nowrap',
+                                                                                minWidth: '120px',
+                                                             fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                backgroundColor: isEditing ? '#fff3cd' : (dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] ? '#e7f3ff' : 'transparent'),
+                                                                                cursor: isAdmin ? 'pointer' : 'default',
+                                                                                position: 'relative'
+                                                                            }}
+                                                                            onDoubleClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (isAdmin && !isTotalRow) {
+                                                                                    const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
+                                                                                    // Get current cell value (with edits applied)
+                                                                                    const currentCellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
+                                                                                    console.log('Starting edit:', { formName, recordIndex, rowIndex, header, originalValue, currentCellValue });
+                                                                                    // Reset editing state first
+                                                                                    setEditingCell(null);
+                                                                                    setEditValue('');
+                                                                                    // Use setTimeout to ensure state is cleared before setting new edit
+                                                                                    setTimeout(() => {
+                                                                                        setEditingCell({ 
+                                                                                            recordIndex, 
+                                                                                            rowIndex, 
+                                                                                            header, 
+                                                                                            formName,
+                                                                                            initialValue: currentCellValue || '' // Store the initial value when editing starts
+                                                                                        });
+                                                                                        setEditValue(currentCellValue || '');
+                                                                                    }, 0);
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {isEditing ? (
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={editValue}
+                                                                                    onChange={(e) => {
+                                                                                        const newValue = e.target.value;
+                                                                                        console.log('Input onChange:', newValue);
+                                                                                        setEditValue(newValue);
+                                                                                    }}
+                                                                                    onBlur={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        // Small delay to allow other events to complete
+                                                                                        setTimeout(() => {
+                                                                                            const finalValue = editValue.trim();
+                                                                                            const currentFormName = editingCell?.formName || formName;
+                                                                                            // Compare against the initial value when editing started (not originalValue)
+                                                                                            const initialValue = editingCell?.initialValue || originalValue;
+                                                                                            console.log('Saving on blur:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                            if (finalValue !== initialValue) {
+                                                                                                saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
+                                                                                            }
+                                                                                            setEditingCell(null);
+                                                                                            setEditValue('');
+                                                                                        }, 100);
+                                                                                    }}
+                                                                                    onKeyDown={(e) => {
+                                                                                        if (e.key === 'Enter') {
+                                                                                            e.preventDefault();
+                                                                                            e.stopPropagation();
+                                                                                            const finalValue = editValue.trim();
+                                                                                            const currentFormName = editingCell?.formName || formName;
+                                                                                            // Compare against the initial value when editing started (not originalValue)
+                                                                                            const initialValue = editingCell?.initialValue || originalValue;
+                                                                                            console.log('Saving on Enter:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                            if (finalValue !== initialValue) {
+                                                                                                saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
+                                                                                            }
+                                                                                            // Clear editing state immediately
+                                                                                            setEditingCell(null);
+                                                                                            setEditValue('');
+                                                                                            // Blur the input to ensure it's fully closed
+                                                                                            e.target.blur();
+                                                                                        } else if (e.key === 'Escape') {
+                                                                                            e.preventDefault();
+                                                                                            e.stopPropagation();
+                                                                                            setEditingCell(null);
+                                                                                            setEditValue('');
+                                                                                            e.target.blur();
+                                                                                        }
+                                                                                    }}
+                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                    onMouseDown={(e) => e.stopPropagation()}
+                                                                                    autoFocus
+                                                                                    style={{
+                                                                                        width: 'calc(100% - 0.5rem)',
+                                                                                        padding: '0.25rem',
+                                                                                        border: '2px solid #667eea',
+                                                                                        borderRadius: '4px',
+                                                                                        fontSize: '0.8rem',
+                                                                                        outline: 'none',
+                                                                                        backgroundColor: 'white',
+                                                                                        boxSizing: 'border-box'
+                                                                                    }}
+                                                                                />
+                                                                            ) : (
+                                                                                <>
+                                                                 {cellValue || '-'}
+                                                                                    {dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] && isAdmin && (
+                                                                                        <span style={{
+                                                                                            position: 'absolute',
+                                                                                            top: '2px',
+                                                                                            right: '2px',
+                                                                                            fontSize: '0.6rem',
+                                                                                            color: '#667eea',
+                                                                                            fontWeight: 'bold'
+                                                                                        }}>✏️</span>
+                                                                                    )}
+                                                                                </>
+                                                                            )}
+                                                         </td>
+                                                     );
                                                                 })}
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
+                                         </tr>
+                                     );
+                                 })}
+                             </tbody>
+                        </table>
+                    </div>
+                    </div>
+                </div>
+            );
                         })}
                     </div>
                 </div>
@@ -556,18 +755,18 @@ function ExplorerAllUsers({ onMenuClick }) {
         
         return (
             <div style={{
-                textAlign: 'center', 
-                padding: '2rem', 
-                color: '#6b7280',
-                background: '#f9fafb',
+                    textAlign: 'center', 
+                    padding: '2rem', 
+                    color: '#6b7280',
+                    background: '#f9fafb',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb'
-            }}>
-                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                    No extracted data found for this split
-                </p>
+                    border: '1px solid #e5e7eb'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                        No extracted data found for this split
+                    </p>
             </div>
         );
     };
@@ -738,19 +937,395 @@ function ExplorerAllUsers({ onMenuClick }) {
             if (response.ok) {
                 const data = await response.json();
                 console.log('PDF splits response:', data);
-                setPdfSplits(data.splits || []);
+                const splits = data.splits || [];
+                setPdfSplits(splits);
+                
+                // Initialize enabled forms - load from backend API (shared across all users and browsers)
+                try {
+                    // Map company name to match backend API format
+                    const companyNameMapping = {
+                        'sbi': 'SBI Life',
+                        'hdfc': 'HDFC Life', 
+                        'icici': 'ICICI Prudential',
+                        'lic': 'LIC'
+                    };
+                    const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                    
+                    const apiBase = 'http://localhost:8000/api';
+                    const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/form-preferences`;
+                    
+                    const prefsResponse = await fetch(prefsUrl);
+                    if (prefsResponse.ok) {
+                        const prefsData = await prefsResponse.json();
+                        const enabledFormsList = prefsData.data?.enabled_forms;
+                        
+                        // Check if preferences exist (null/undefined means no preferences saved yet)
+                        if (enabledFormsList !== undefined && enabledFormsList !== null) {
+                            // Preferences exist (even if empty array - admin explicitly set it)
+                            const savedSet = new Set(enabledFormsList);
+                            setEnabledForms(savedSet);
+                            console.log(`Loaded form preferences from API: ${savedSet.size} forms enabled for ${mappedCompanyName}/${pdfName}`, Array.from(savedSet));
+                        } else {
+                            // No preferences saved yet, enable all forms by default (first time)
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.log(`No preferences found in API (first time), enabling all ${allFormNames.size} forms by default for ${mappedCompanyName}/${pdfName}`);
+                        }
+                    } else {
+                        // API call failed (404 means no preferences yet), enable all forms by default
+                        if (prefsResponse.status === 404) {
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.log(`No preferences found (404), enabling all ${allFormNames.size} forms by default for ${companyName}/${pdfName}`);
+                        } else {
+                            // Other error, enable all forms by default
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.error(`API call failed with status ${prefsResponse.status}, enabling all forms by default`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading form preferences from API:', error);
+                    // On error, enable all forms by default
+                    const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                    setEnabledForms(allFormNames);
+                }
             } else {
                 const errorData = await response.json();
                 console.log('Failed to load PDF splits:', errorData);
                 setPdfSplits([]);
+                setEnabledForms(new Set());
             }
         } catch (error) {
             console.error('Failed to load PDF splits:', error);
             setPdfSplits([]);
+            setEnabledForms(new Set());
         } finally {
             setIsLoadingSplits(false);
         }
     };
+    
+    // Check if current user is admin (viyanta.insights@gmail.com)
+    // This will be recalculated whenever user changes
+    const isAdmin = React.useMemo(() => {
+        return user?.email === 'viyanta.insights@gmail.com';
+    }, [user?.email]);
+    
+    // Load data edits when extracted data is loaded
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || !extractedData) {
+            return;
+        }
+        
+        const loadEdits = async () => {
+            try {
+                const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+                const companyNameMapping = {
+                    'sbi': 'SBI Life',
+                    'hdfc': 'HDFC Life', 
+                    'icici': 'ICICI Prudential',
+                    'lic': 'LIC'
+                };
+                const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                
+                const apiBase = 'http://localhost:8000/api';
+                const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+                
+                const response = await fetch(editsUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    const edits = data.data?.edits || {};
+                    setDataEdits(edits);
+                    console.log('Loaded data edits:', edits);
+                }
+            } catch (error) {
+                console.error('Error loading data edits:', error);
+            }
+        };
+        
+        loadEdits();
+    }, [selectedFile, selectedCompany, extractedData, companiesData]);
+    
+    // Poll for data edit updates (every 3 seconds)
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || !extractedData) {
+            return;
+        }
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+                const companyNameMapping = {
+                    'sbi': 'SBI Life',
+                    'hdfc': 'HDFC Life', 
+                    'icici': 'ICICI Prudential',
+                    'lic': 'LIC'
+                };
+                const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                
+                const apiBase = 'http://localhost:8000/api';
+                const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+                
+                const response = await fetch(editsUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    const edits = data.data?.edits || {};
+                    
+                    // Check if edits have changed
+                    const editsString = JSON.stringify(edits);
+                    const currentEditsString = JSON.stringify(dataEdits);
+                    if (editsString !== currentEditsString) {
+                        console.log('🔄 Data edits updated from server');
+                        setDataEdits(edits);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling data edits:', error);
+            }
+        }, 3000);
+        
+        return () => clearInterval(pollInterval);
+    }, [selectedFile, selectedCompany, extractedData, dataEdits, companiesData]);
+    
+    // Save cell edit (admin only)
+    const saveCellEdit = async (formName, recordIndex, rowIndex, header, value) => {
+        if (!isAdmin) {
+            console.log('Not admin, cannot save');
+            return;
+        }
+        
+        if (!selectedFile || !selectedCompany) {
+            console.error('Missing selectedFile or selectedCompany');
+            return;
+        }
+        
+        try {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            if (!companyName) {
+                console.error('Company name not found');
+                return;
+            }
+            
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            
+            const apiBase = 'http://localhost:8000/api';
+            const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+            
+            const editPayload = {
+                form_name: formName,
+                record_index: recordIndex,
+                row_index: rowIndex,
+                header: header,
+                value: value
+            };
+            
+            console.log('Saving cell edit:', editPayload);
+            console.log('Edit URL:', editsUrl);
+            
+            const response = await fetch(editsUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(editPayload)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Cell edit saved successfully:', result);
+                
+                // Update local state immediately
+                const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
+                setDataEdits(prev => ({
+                    ...prev,
+                    [editKey]: {
+                        form_name: formName,
+                        record_index: recordIndex,
+                        row_index: rowIndex,
+                        header: header,
+                        value: value,
+                        edited_at: new Date().toISOString()
+                    }
+                }));
+                
+                // Also reload from server to ensure sync
+                const editsResponse = await fetch(editsUrl);
+                if (editsResponse.ok) {
+                    const data = await editsResponse.json();
+                    setDataEdits(data.data?.edits || {});
+                }
+            } else {
+                const errorText = await response.text();
+                console.error('❌ Failed to save cell edit:', response.status, errorText);
+            }
+        } catch (error) {
+            console.error('❌ Error saving cell edit:', error);
+        }
+    };
+    
+    // Get cell value (with edits applied)
+    const getCellValue = (formName, recordIndex, rowIndex, header, originalValue) => {
+        const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
+        console.log('getCellValue:', { editKey, hasEdit: !!dataEdits[editKey], dataEdits: Object.keys(dataEdits) });
+        if (dataEdits[editKey]) {
+            return dataEdits[editKey].value;
+        }
+        return originalValue;
+    };
+    
+    // Toggle form visibility (only admin can do this)
+    const toggleFormVisibility = async (formName) => {
+        if (!isAdmin) return; // Only admin can toggle
+        
+        const newEnabledForms = new Set(enabledForms);
+        if (newEnabledForms.has(formName)) {
+            newEnabledForms.delete(formName);
+            console.log(`Admin disabled form: ${formName}`);
+        } else {
+            newEnabledForms.add(formName);
+            console.log(`Admin enabled form: ${formName}`);
+        }
+        setEnabledForms(newEnabledForms);
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            const formsArray = Array.from(newEnabledForms);
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: formsArray
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: ${formsArray.length} forms enabled for ${mappedCompanyName}/${selectedFile.name}`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Select all forms (only admin can do this)
+    const selectAllForms = async () => {
+        if (!isAdmin) return; // Only admin can do this
+        
+        const allFormNames = new Set(pdfSplits.map(s => s.form_name || s.filename));
+        setEnabledForms(allFormNames);
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            const formsArray = Array.from(allFormNames);
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: formsArray
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: All ${formsArray.length} forms enabled`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Deselect all forms (only admin can do this)
+    const deselectAllForms = async () => {
+        if (!isAdmin) return; // Only admin can do this
+        
+        setEnabledForms(new Set());
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: []
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: All forms disabled`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Get filtered splits based on enabled forms
+    const filteredPdfSplits = React.useMemo(() => {
+        return pdfSplits.filter(split => {
+            const formName = split.form_name || split.filename;
+            return enabledForms.has(formName);
+        });
+    }, [pdfSplits, enabledForms]);
 
     // Select a PDF split and load its PDF content
     const selectPDFSplit = async (split) => {
@@ -842,6 +1417,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         setSelectedFile(file);
         setJsonData(null);
         setJsonLoading(true);
+        setShowFormSelector(false); // Reset form selector visibility when switching files
         
         // Load PDF splits for the selected file
         const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
@@ -1353,25 +1929,182 @@ function ExplorerAllUsers({ onMenuClick }) {
                             </div>
                         ) : pdfSplits.length > 0 ? (
                             <div>
+                                {/* Form Visibility Control Header */}
                                 <div style={{ 
                                     marginBottom: '1.5rem',
                                     padding: '1rem',
-                                    backgroundColor: 'rgba(40, 167, 69, 0.08)',
-                                    border: '1px solid rgba(40, 167, 69, 0.2)',
+                                    backgroundColor: 'rgba(63, 114, 175, 0.08)',
+                                    border: '1px solid rgba(63, 114, 175, 0.2)',
                                     borderRadius: '8px',
-                                    color: '#155724',
-                                    fontSize: '0.9rem'
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    gap: '1rem'
                                 }}>
+                                    <div style={{ color: '#155724', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                     ✅ <strong>{pdfSplits.length}</strong> PDF splits available
+                                        {filteredPdfSplits.length !== pdfSplits.length && (
+                                            <span style={{ color: '#856404', fontSize: '0.85rem' }}>
+                                                ({filteredPdfSplits.length} enabled)
+                                            </span>
+                                        )}
+                                        {lastPreferencesUpdate && (
+                                            <span style={{ color: '#6c757d', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                                                • Last updated: {lastPreferencesUpdate.toLocaleTimeString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => setShowFormSelector(!showFormSelector)}
+                                            style={{
+                                                padding: '0.5rem 1rem',
+                                                backgroundColor: showFormSelector ? '#667eea' : 'white',
+                                                color: showFormSelector ? 'white' : '#667eea',
+                                                border: '1px solid #667eea',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (!showFormSelector) {
+                                                    e.currentTarget.style.backgroundColor = '#f0f4ff';
+                                                }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!showFormSelector) {
+                                                    e.currentTarget.style.backgroundColor = 'white';
+                                                }
+                                            }}
+                                        >
+                                            ⚙️ {showFormSelector ? 'Hide' : 'Show'} Form Selector
+                                        </button>
+                                    )}
                                 </div>
                                 
+                                {/* Form Selector Panel - Only visible to admin */}
+                                {showFormSelector && isAdmin && (
+                                    <div style={{
+                                        marginBottom: '1.5rem',
+                                        padding: '1.5rem',
+                                        backgroundColor: '#f8f9fa',
+                                        border: '1px solid #e9ecef',
+                                        borderRadius: '8px'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <h5 style={{ margin: 0, color: '#495057', fontSize: '1rem', fontWeight: '600' }}>
+                                                📋 Select Forms to Display
+                                            </h5>
+                                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                <button
+                                                    onClick={selectAllForms}
+                                                    style={{
+                                                        padding: '0.25rem 0.6rem',
+                                                        backgroundColor: '#28a745',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: '600'
+                                                    }}
+                                                >
+                                                    ✓ Select All
+                                                </button>
+                                                <button
+                                                    onClick={deselectAllForms}
+                                                    style={{
+                                                        padding: '0.25rem 0.6rem',
+                                                        backgroundColor: '#dc3545',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: '600'
+                                                    }}
+                                                >
+                                                    ✗ Deselect All
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                            gap: '0.75rem',
+                                            maxHeight: '300px',
+                                            overflowY: 'auto',
+                                            padding: '0.5rem'
+                                        }}>
+                                            {pdfSplits.map((split, index) => {
+                                                const formName = split.form_name || split.filename;
+                                                const isEnabled = enabledForms.has(formName);
+                                                return (
+                                                    <label
+                                                        key={index}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem',
+                                                            padding: '0.5rem',
+                                                            backgroundColor: isEnabled ? 'white' : '#f8f9fa',
+                                                            border: `1px solid ${isEnabled ? '#28a745' : '#dee2e6'}`,
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = isEnabled ? '#f0f8f0' : '#e9ecef';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = isEnabled ? 'white' : '#f8f9fa';
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isEnabled}
+                                                            onChange={() => toggleFormVisibility(formName)}
+                                                            style={{
+                                                                width: '18px',
+                                                                height: '18px',
+                                                                cursor: 'pointer',
+                                                                accentColor: '#28a745'
+                                                            }}
+                                                        />
+                                                        <span style={{
+                                                            fontWeight: isEnabled ? '600' : 'normal',
+                                                            color: isEnabled ? '#155724' : '#6c757d',
+                                                            flex: 1
+                                                        }}>
+                                                            {formName}
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* PDF Splits Grid - Card Layout */}
+                                {filteredPdfSplits.length > 0 ? (
                                 <div style={{
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                                     gap: '1.25rem'
                                 }}>
-                                    {pdfSplits.map((split, index) => (
+                                        {filteredPdfSplits.map((split, index) => (
                                         <div
                                             key={index}
                                             onClick={() => selectPDFSplit(split)}
@@ -1455,6 +2188,22 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         </div>
                                     ))}
                                 </div>
+                                ) : (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '2rem',
+                                        backgroundColor: '#fff3cd',
+                                        border: '1px solid #ffc107',
+                                        borderRadius: '8px',
+                                        color: '#856404'
+                                    }}>
+                                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
+                                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#856404' }}>No Forms Enabled</h4>
+                                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                            Please enable at least one form using the "Show Form Selector" button above to display forms.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-color-light)' }}>
@@ -1785,10 +2534,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 borderRadius: '4px',
                                                 overflow: 'hidden'
                                             }}>
-                                                <div style={{ 
+                                                <div 
+                                                    className="table-scroll-container"
+                                                    style={{ 
                                                     overflow: 'auto',
-                                                    maxHeight: '300px'
-                                                }}>
+                                                        maxHeight: '500px'
+                                                    }}
+                                                >
                                                     <table style={{ 
                                                         width: '100%',
                                                         borderCollapse: 'collapse',
@@ -1802,7 +2554,9 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         textAlign: 'left',
                                                                         borderRight: '1px solid #e0e0e0',
                                                                         borderBottom: '1px solid #e0e0e0',
-                                                                        fontWeight: '600'
+                                                                        fontWeight: '600',
+                                                                        whiteSpace: 'nowrap',
+                                                                        minWidth: '120px'
                                                                     }}>
                                                                         {header}
                                                                     </th>
@@ -1810,21 +2564,153 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {record.Rows.map((row, rowIndex) => (
+                                                            {record.Rows.map((row, rowIndex) => {
+                                                                // Check if row contains "total" or "subtotal"
+                                                                const checkForTotal = (cellValue) => {
+                                                                    if (!cellValue) return false;
+                                                                    const str = cellValue.toString().trim().toLowerCase();
+                                                                    return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                                                };
+                                                                
+                                                                const isTotalRow = record.FlatHeaders?.some(header => checkForTotal(row[header]));
+                                                                
+                                                                return (
                                                                 <tr key={rowIndex} style={{ 
-                                                                    background: rowIndex % 2 === 0 ? 'white' : '#fafafa'
-                                                                }}>
-                                                                    {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => (
-                                                                        <td key={headerIndex} style={{ 
+                                                                        background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
+                                                                        fontWeight: isTotalRow ? '700' : 'normal'
+                                                                    }}>
+                                                                        {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => {
+                                                                            const originalValue = row[header] || '';
+                                                                            const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || 'Unknown';
+                                                                            const cellValue = getCellValue(formName, index, rowIndex, header, originalValue);
+                                                                            const isEditing = editingCell && 
+                                                                                editingCell.recordIndex === index && 
+                                                                                editingCell.rowIndex === rowIndex && 
+                                                                                editingCell.header === header &&
+                                                                                editingCell.formName === formName;
+                                                                            
+                                                                            return (
+                                                                                <td 
+                                                                                    key={headerIndex} 
+                                                                                    style={{ 
                                                                             padding: '0.5rem',
                                                                             borderRight: '1px solid #e0e0e0',
-                                                                            borderBottom: '1px solid #e0e0e0'
-                                                                        }}>
-                                                                            {row[header] || '-'}
+                                                                                        borderBottom: '1px solid #e0e0e0',
+                                                                                        whiteSpace: 'nowrap',
+                                                                                        minWidth: '120px',
+                                                                                        fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                        backgroundColor: isEditing ? '#fff3cd' : (dataEdits[`${formName}_${index}_${rowIndex}_${header}`] ? '#e7f3ff' : 'transparent'),
+                                                                                        cursor: isAdmin ? 'pointer' : 'default',
+                                                                                        position: 'relative'
+                                                                                    }}
+                                                                                    onDoubleClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        if (isAdmin && !isTotalRow) {
+                                                                                            // Get current cell value (with edits applied)
+                                                                                            const currentCellValue = getCellValue(formName, index, rowIndex, header, originalValue);
+                                                                                            console.log('Starting edit (data path):', { formName, recordIndex: index, rowIndex, header, originalValue, currentCellValue });
+                                                                                            // Reset editing state first
+                                                                                            setEditingCell(null);
+                                                                                            setEditValue('');
+                                                                                            // Use setTimeout to ensure state is cleared before setting new edit
+                                                                                            setTimeout(() => {
+                                                                                                setEditingCell({ 
+                                                                                                    recordIndex: index, 
+                                                                                                    rowIndex, 
+                                                                                                    header, 
+                                                                                                    formName,
+                                                                                                    initialValue: currentCellValue || '' // Store the initial value when editing starts
+                                                                                                });
+                                                                                                setEditValue(currentCellValue || '');
+                                                                                            }, 0);
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    {isEditing ? (
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={editValue}
+                                                                                            onChange={(e) => {
+                                                                                                const newValue = e.target.value;
+                                                                                                console.log('Input onChange (data path):', newValue);
+                                                                                                setEditValue(newValue);
+                                                                                            }}
+                                                                                            onBlur={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                // Small delay to allow other events to complete
+                                                                                                setTimeout(() => {
+                                                                                                    const finalValue = editValue.trim();
+                                                                                                    const currentFormName = editingCell?.formName || formName;
+                                                                                                    // Compare against the initial value when editing started (not originalValue)
+                                                                                                    const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                    console.log('Saving on blur (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                    if (finalValue !== initialValue) {
+                                                                                                        saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
+                                                                                                    }
+                                                                                                    setEditingCell(null);
+                                                                                                    setEditValue('');
+                                                                                                }, 100);
+                                                                                            }}
+                                                                                            onKeyDown={(e) => {
+                                                                                                if (e.key === 'Enter') {
+                                                                                                    e.preventDefault();
+                                                                                                    e.stopPropagation();
+                                                                                                    const finalValue = editValue.trim();
+                                                                                                    const currentFormName = editingCell?.formName || formName;
+                                                                                                    // Compare against the initial value when editing started (not originalValue)
+                                                                                                    const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                    console.log('Saving on Enter (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                    if (finalValue !== initialValue) {
+                                                                                                        saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
+                                                                                                    }
+                                                                                                    // Clear editing state immediately
+                                                                                                    setEditingCell(null);
+                                                                                                    setEditValue('');
+                                                                                                    // Blur the input to ensure it's fully closed
+                                                                                                    e.target.blur();
+                                                                                                } else if (e.key === 'Escape') {
+                                                                                                    e.preventDefault();
+                                                                                                    e.stopPropagation();
+                                                                                                    setEditingCell(null);
+                                                                                                    setEditValue('');
+                                                                                                    e.target.blur();
+                                                                                                }
+                                                                                            }}
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                            onMouseDown={(e) => e.stopPropagation()}
+                                                                                            autoFocus
+                                                                                            style={{
+                                                                                                width: 'calc(100% - 0.5rem)',
+                                                                                                padding: '0.25rem',
+                                                                                                border: '2px solid #667eea',
+                                                                                                borderRadius: '4px',
+                                                                                                fontSize: '0.8rem',
+                                                                                                outline: 'none',
+                                                                                                backgroundColor: 'white',
+                                                                                                boxSizing: 'border-box'
+                                                                                            }}
+                                                                                        />
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            {cellValue || '-'}
+                                                                                            {dataEdits[`${formName}_${index}_${rowIndex}_${header}`] && isAdmin && (
+                                                                                                <span style={{
+                                                                                                    position: 'absolute',
+                                                                                                    top: '2px',
+                                                                                                    right: '2px',
+                                                                                                    fontSize: '0.6rem',
+                                                                                                    color: '#667eea',
+                                                                                                    fontWeight: 'bold'
+                                                                                                }}>✏️</span>
+                                                                                            )}
+                                                                                        </>
+                                                                                    )}
                                                                         </td>
-                                                                    ))}
+                                                                            );
+                                                                        })}
                                                                 </tr>
-                                                            ))}
+                                                                );
+                                                            })}
                                                         </tbody>
                                                     </table>
                                                 </div>
