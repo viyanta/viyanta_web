@@ -63,16 +63,6 @@ function Navbar({ onMenuClick }) {
     <nav className="navbar">
       {/* Left group: menu + brand */}
       <div className="navbar__left">
-        {/* {onMenuClick && (
-          <button
-            className="navbar__menu-button"
-            type="button"
-            aria-label="Toggle sidebar"
-            onClick={onMenuClick}
-          >
-            ☰
-          </button>
-        )} */}
         <div className="navbar__logo">
           <div className="navbar__logo-icon">📊</div>
           <h1 className="navbar__brand">AssureLife v0.1</h1>

@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { loginWithGoogle, subscribeToAuthChanges } from "../firebase/auth";
 import Button from "../utils/Button.jsx";
 
 function Login() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showRejectionMessage, setShowRejectionMessage] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // Check if user came from agreement rejection
+    if (location.state?.fromAgreementRejection) {
+      setShowRejectionMessage(true);
+    }
+
     const unsubscribe = subscribeToAuthChanges((user) => {
       setUser(user);
       if (user) {
@@ -17,10 +24,11 @@ function Login() {
       }
     });
     return unsubscribe;
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setShowRejectionMessage(false); // Clear rejection message when starting new login
     try {
       await loginWithGoogle();
     } catch (error) {
@@ -62,8 +70,22 @@ function Login() {
             color: 'var(--text-color-light)',
             fontSize: '1.0rem'
           }}>
-            Insurance Insights. Data Foretold Visually. 
+            Insurance Insights. Data Foretold Visually. 
           </p>
+          
+          {showRejectionMessage && (
+            <div style={{
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: '4px',
+              padding: '12px',
+              marginTop: '16px',
+              color: '#856404',
+              fontSize: '14px'
+            }}>
+              <strong>Agreement Required:</strong> You must accept the User License Agreement to access the application. Please sign in again and accept the terms.
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: '2rem' }}>

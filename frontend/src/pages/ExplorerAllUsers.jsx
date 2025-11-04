@@ -31,6 +31,8 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [splitPdfUrl, setSplitPdfUrl] = React.useState(null);
     const [isLoadingSplitPdf, setIsLoadingSplitPdf] = React.useState(false);
     
+    // View mode state - 'pdf' or 'data'
+    const [viewMode, setViewMode] = React.useState('pdf');
 
     // Extracted data state
     const [extractedData, setExtractedData] = React.useState(null);
@@ -331,221 +333,243 @@ function ExplorerAllUsers({ onMenuClick }) {
     }, [selectedSplit, selectedFile, selectedCompany, companiesData]);
     
     // Function to render extracted data in table format (matching Smart Extraction UI)
+    // Each record gets its own table with headers
     const renderExtractedDataTable = () => {
-        const { headers, allRowsData, records, hasData } = processedExtractedData;
+        const { records, hasData } = processedExtractedData;
         
-        // If we have table data, render it with custom scrolling
-        if (hasData) {
+        // If we have table data, render each record separately with its own headers
+        if (hasData && records.length > 0) {
             return (
                 <div style={{ 
                     background: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    overflow: 'hidden',
                     width: '100%',
                     maxWidth: '100%',
-                    height: '100%',
+                    overflow: 'hidden'
                 }}>
-                    {/* Header Section */}
-                    <div style={{
-                        background: '#f9fafb',
-                        borderBottom: '1px solid #e5e7eb',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px'
-                    }}>
-                        <div>
-                            <h3 style={{ 
-                                margin: 0, 
-                                fontSize: '16px', 
-                                fontWeight: '600',
-                                color: '#111827'
-                            }}>
-                                📊 Extracted Data ({allRowsData.length} records)
-                            </h3>
-                            <p style={{ 
-                                margin: '4px 0 0 0', 
-                                fontSize: '14px', 
-                                color: '#6b7280' 
-                            }}>
-                                {selectedSplit?.form_name || 'Extracted Data'} • Pages: {selectedSplit?.start_page || 1}-{selectedSplit?.end_page || 1}
-                                {extractedData && extractedData.length > 0 && extractedData[0].metadata && (
-                                    <span style={{ 
-                                        marginLeft: '8px',
-                                        padding: '2px 6px',
-                                        background: extractedData[0].metadata.gemini_corrected ? '#28a745' : '#ffc107',
-                                        color: 'white',
-                                        borderRadius: '10px',
-                                        fontSize: '12px',
-                                        fontWeight: '600'
-                                    }}>
-                                        {extractedData[0].metadata.gemini_corrected ? '🤖 AI Verified' : '🔄 Extracted'}
-                                    </span>
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
-
-
-                    {/* Scrollable Table Container */}
                     <div style={{ 
-                        overflowX: 'scroll', 
-                        overflowY: 'auto',
-                        maxHeight: 'calc(100vh - 200px)',
-                        height: 'calc(100vh - 200px)',
-                        width: '100%',
-                        maxWidth: '800px',
-                        border: '1px solid #e5e7eb',
-                        position: 'relative',
-                        backgroundColor: '#f8f9fa'
+                        background: '#f5f5f5',
+                        padding: '0.75rem',
+                        borderBottom: '1px solid #e0e0e0',
+                        fontWeight: '600'
                     }}>
-                        <table style={{ 
-                            width: '800px',
-                            minWidth: '800px',
-                            height: '100%',
-                            borderCollapse: 'separate',
-                            borderSpacing: '0',
-                            fontSize: '14px',
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                            tableLayout: 'fixed'
-                        }}>
-                            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                                <tr style={{ backgroundColor: '#667eea' }}>
-                                     {headers.map((header, index) => (
-                                         <th key={index} style={{ 
-                                             padding: '12px 8px',
-                                             textAlign: 'left',
-                                             fontWeight: '600',
-                                             color: 'white',
-                                             borderBottom: '2px solid #667eea',
-                                             width: index === 0 ? '300px' : '200px',
-                                             minWidth: index === 0 ? '300px' : '200px',
-                                             whiteSpace: 'normal',
-                                             wordWrap: 'break-word',
-                                             lineHeight: '1.3'
-                                         }}>
-                                             {header}
-                                         </th>
-                                     ))}
-                                </tr>
-                            </thead>
-                             <tbody>
-                                 {allRowsData.map((row, rowIndex) => {
-                                    const isFormMetadataRow = Array.isArray(row) && row[0] && typeof row[0] === 'string' && row[0].startsWith('FORM_METADATA_');
-                                    
-                                    return (
-                                        <tr key={rowIndex} style={{ 
-                                            backgroundColor: isFormMetadataRow ? '#f8f9fa' :
-                                                           (rowIndex % 2 === 0 ? 'white' : '#f8f9fa'),
-                                            borderTop: isFormMetadataRow ? '2px solid #1976d2' : 'none'
-                                        }}>
-                                             {Array.isArray(row) ? (
-                                                 row.map((cell, cellIndex) => (
-                                                     <td key={cellIndex} style={{ 
-                                                         padding: isFormMetadataRow ? '12px 16px' : '12px 8px',
-                                                         borderBottom: '1px solid #e9ecef',
-                                                         width: cellIndex === 0 ? '300px' : '200px',
-                                                         minWidth: cellIndex === 0 ? '300px' : '200px',
-                                                         whiteSpace: isFormMetadataRow ? 'normal' : 'normal',
-                                                         wordWrap: 'break-word',
-                                                         lineHeight: isFormMetadataRow ? '1.5' : '1.3',
-                                                         fontWeight: isFormMetadataRow ? '600' : 'normal',
-                                                         color: isFormMetadataRow ? '#495057' : 'inherit',
-                                                         background: isFormMetadataRow ? '#f1f3f4' : 'transparent',
-                                                         fontSize: isFormMetadataRow ? '12px' : '14px',
-                                                         textAlign: isFormMetadataRow ? 'left' : 'inherit'
-                                                     }}>
-                                                         {cellIndex === 0 && isFormMetadataRow ? (
-                                                             <div style={{ 
-                                                                 display: 'flex', 
-                                                                 flexDirection: 'column', 
-                                                                 gap: '4px',
-                                                                 lineHeight: '1.4'
-                                                             }}>
-                                                                 <div style={{ 
-                                                                     fontWeight: '600', 
-                                                                     color: '#1976d2',
-                                                                     marginBottom: '4px'
-                                                                 }}>
-                                                                     📋 Form Information
-                                                                 </div>
-                                                                 <div style={{ 
-                                                                     fontSize: '11px',
-                                                                     color: '#495057',
-                                                                     lineHeight: '1.3',
-                                                                     whiteSpace: 'pre-line'
-                                                                 }}>
-                                                                     {(row[1] || '').replace(/\s*\|\s*/g, '\n')}
-                                                                 </div>
-                                                             </div>
-                                                         ) : isFormMetadataRow ? '' : cellIndex === 0 ? '' : (cell || '-')}
-                                                     </td>
-                                                 ))
-                                             ) : (
-                                                 headers.map((header, cellIndex) => (
-                                                     <td key={cellIndex} style={{ 
-                                                         padding: '12px 8px',
-                                                         borderBottom: '1px solid #e9ecef',
-                                                         width: '200px',
-                                                         minWidth: '200px',
-                                                         whiteSpace: 'normal',
-                                                         wordWrap: 'break-word',
-                                                         lineHeight: '1.3'
-                                                     }}>
-                                                         {row[header] || '-'}
-                                                     </td>
-                                                 ))
-                                             )}
-                                         </tr>
-                                     );
-                                 })}
-                             </tbody>
-                        </table>
+                        📊 Extracted Data ({records.length} record{records.length !== 1 ? 's' : ''})
                     </div>
-
-                    {/* Footer with data info */}
-                    <div style={{
-                        background: '#f9fafb',
-                        borderTop: '1px solid #e5e7eb',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        color: '#6b7280',
-                        textAlign: 'center',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
+                    
+                    <div style={{ 
+                        maxHeight: '600px',
+                        overflow: 'auto',
+                        padding: '1rem'
                     }}>
-                        <span>Showing {allRowsData.length} records • {headers.length} columns</span>
-                        <span style={{ 
-                            fontSize: '12px', 
-                            color: '#9ca3af',
-                            fontStyle: 'italic'
-                        }}>
-                            ← Scroll horizontally to see all columns →
-                        </span>
+                        {records.map((record, recordIndex) => {
+                            // Get headers and rows for this record
+                            let recordHeaders = [];
+                            let recordRows = [];
+                            
+                            // Check for SmartTableViewer format
+                            if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
+                                const table = record.tables[0];
+                                recordHeaders = table.headers || [];
+                                recordRows = table.data || [];
+                            }
+                            // Check for FlatHeaders and Rows format
+                            else if (record?.FlatHeaders && Array.isArray(record.FlatHeaders)) {
+                                recordHeaders = record.FlatHeaders;
+                                recordRows = record.Rows || record.TableData || [];
+                            }
+                            // Check for direct headers and data format
+                            else if (record?.headers && record?.data) {
+                                recordHeaders = record.headers;
+                                recordRows = record.data;
+                            }
+                            
+                            if (recordHeaders.length === 0 || recordRows.length === 0) {
+                                return null;
+                            }
+                            
+                            return (
+                                <div key={recordIndex} style={{ 
+                                    marginBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    paddingBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    borderBottom: recordIndex < records.length - 1 ? '1px solid #f0f0f0' : 'none'
+                                }}>
+                                    {/* Record Header */}
+                                    <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
+                                        Record {recordIndex + 1} {record.FormName && `- ${record.FormName}`}
+                                        {record.PagesUsed && (
+                                            <span style={{ 
+                                                marginLeft: '1rem',
+                                                padding: '2px 8px',
+                                                background: '#e3f2fd',
+                                                color: '#1976d2',
+                                                borderRadius: '12px',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600',
+                                                border: '1px solid #bbdefb'
+                                            }}>
+                                                📄 Pages Used: {record.PagesUsed}
+                                            </span>
+                                        )}
+                                    </h6>
+                                    
+                                    {/* Form Metadata Display */}
+                                    {(record["Form No"] || record.Title || record.RegistrationNumber || record.Period || record.Currency) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.75rem',
+                                            borderRadius: '6px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.9rem',
+                                            border: '1px solid #e9ecef'
+                                        }}>
+                                            <h6 style={{ margin: '0 0 0.5rem 0', color: '#495057', fontWeight: '600' }}>📋 Form Information</h6>
+                                            <div style={{ display: 'grid', gap: '0.3rem' }}>
+                                                {record["Form No"] && <div><strong>Form No:</strong> {record["Form No"]}</div>}
+                                                {record.Title && <div><strong>Title:</strong> {record.Title}</div>}
+                                                {record.RegistrationNumber && <div><strong>Registration Number:</strong> {record.RegistrationNumber}</div>}
+                                                {record.Period && <div><strong>Period:</strong> {record.Period}</div>}
+                                                {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Legacy metadata for backward compatibility */}
+                                    {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.5rem',
+                                            borderRadius: '4px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.85rem'
+                                        }}>
+                                            {record.FormName && <div><strong>Form:</strong> {record.FormName}</div>}
+                                            {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
+                                            {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
+                                            {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Table Data - Each record has its own table with headers */}
+                                    <div style={{ 
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '4px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div 
+                                            className="table-scroll-container"
+                                            style={{ 
+                                                overflowX: 'scroll',
+                                                overflowY: 'scroll',
+                                                maxHeight: '500px',
+                                                width: '100%',
+                                                maxWidth: '100%',
+                                                display: 'block',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        >
+                                            <table style={{ 
+                                                width: 'max-content',
+                                                minWidth: '100%',
+                                                borderCollapse: 'collapse',
+                                                fontSize: '0.8rem',
+                                                margin: 0
+                                            }}>
+                                                <thead>
+                                                    <tr style={{ background: '#f5f5f5' }}>
+                                                        {recordHeaders.map((header, headerIndex) => (
+                                                            <th key={headerIndex} style={{ 
+                                                                padding: '0.5rem',
+                                                                textAlign: 'left',
+                                                                borderRight: '1px solid #e0e0e0',
+                                                                borderBottom: '1px solid #e0e0e0',
+                                                                fontWeight: '600',
+                                                                whiteSpace: 'nowrap',
+                                                                minWidth: '120px'
+                                                            }}>
+                                                                {header}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {recordRows.map((row, rowIndex) => {
+                                                        // Check if row contains "total" or "subtotal" (case-insensitive)
+                                                        const checkForTotal = (cellValue) => {
+                                                            if (!cellValue) return false;
+                                                            const str = cellValue.toString().trim().toLowerCase();
+                                                            return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                                        };
+                                                        
+                                                        let isTotalRow = false;
+                                                        if (Array.isArray(row)) {
+                                                            // Check all cells in the row
+                                                            isTotalRow = row.some(cell => checkForTotal(cell));
+                                                        } else if (typeof row === 'object' && row !== null) {
+                                                            // For object rows, check all header values
+                                                            isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
+                                                        }
+                                                        
+                                                        return (
+                                                            <tr key={rowIndex} style={{ 
+                                                                background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
+                                                                fontWeight: isTotalRow ? '700' : 'normal'
+                                                            }}>
+                                                                {recordHeaders.map((header, headerIndex) => {
+                                                                    // Handle both array and object row formats
+                                                                    let cellValue = '';
+                                                                    if (Array.isArray(row)) {
+                                                                        cellValue = row[headerIndex] || '';
+                                                                    } else if (typeof row === 'object' && row !== null) {
+                                                                        cellValue = row[header] || '';
+                                                                    } else {
+                                                                        cellValue = row || '';
+                                                                    }
+                                                                    
+                                                                    return (
+                                                                        <td key={headerIndex} style={{ 
+                                                                            padding: '0.5rem',
+                                                                            borderRight: '1px solid #e0e0e0',
+                                                                            borderBottom: '1px solid #e0e0e0',
+                                                                            whiteSpace: 'nowrap',
+                                                                            minWidth: '120px',
+                                                                            fontWeight: isTotalRow ? '700' : 'normal'
+                                                                        }}>
+                                                                            {cellValue || '-'}
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             );
-        } else {
+        }
+        
         return (
             <div style={{
-                    textAlign: 'center', 
-                    padding: '2rem', 
-                    color: '#6b7280',
-                    background: '#f9fafb',
+                textAlign: 'center', 
+                padding: '2rem', 
+                color: '#6b7280',
+                background: '#f9fafb',
                 borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
-                }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
-                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                        No extracted data found for this split
-                    </p>
+                border: '1px solid #e5e7eb'
+            }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                    No extracted data found for this split
+                </p>
             </div>
         );
-        }
     };
 
     // Load companies data using API
@@ -741,6 +765,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         }
 
         setSelectedSplit(split);
+        setViewMode('pdf'); // Reset to PDF view when selecting a new split
         setIsLoadingSplitPdf(true);
         setError(null);
         
@@ -1204,8 +1229,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Files Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(150px, 1fr))' : 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(160px, 1fr))' : 'repeat(auto-fill, minmax(220px, 1fr))',
+                    gap: window.innerWidth <= 768 ? '1rem' : '1.5rem',
                     marginBottom: '2rem'
                 }}>
                     {folderFiles.map((file, index) => (
@@ -1215,7 +1240,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
-                                padding: window.innerWidth <= 768 ? '0.75rem' : '1rem',
+                                padding: window.innerWidth <= 768 ? '1rem' : '1.25rem',
                                 cursor: 'pointer',
                                 background: selectedFile === file ? 'var(--sub-color)' : 'white',
                                 color: selectedFile === file ? 'white' : 'var(--text-color-dark)',
@@ -1311,13 +1336,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                     }}>
                         <h4 style={{ 
                             color: 'var(--main-color)', 
-                            marginBottom: '1rem',
+                            marginBottom: '1.5rem',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem'
+                            gap: '0.5rem',
+                            fontWeight: '600',
+                            fontSize: '1.1rem'
                         }}>
                             📄 PDF Splits
-                            {isLoadingSplits && <span style={{ fontSize: '0.8rem', color: 'var(--text-color-light)' }}>(Loading...)</span>}
+                            {isLoadingSplits && <span style={{ fontSize: '0.8rem', color: 'var(--text-color-light)', marginLeft: '0.5rem' }}>(Loading...)</span>}
                         </h4>
                         
                         {isLoadingSplits ? (
@@ -1327,21 +1354,22 @@ function ExplorerAllUsers({ onMenuClick }) {
                         ) : pdfSplits.length > 0 ? (
                             <div>
                                 <div style={{ 
-                                    marginBottom: '1rem',
-                                    padding: '0.75rem',
-                                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                                    border: '1px solid rgba(40, 167, 69, 0.3)',
-                                    borderRadius: '6px',
-                                    color: '#155724'
+                                    marginBottom: '1.5rem',
+                                    padding: '1rem',
+                                    backgroundColor: 'rgba(40, 167, 69, 0.08)',
+                                    border: '1px solid rgba(40, 167, 69, 0.2)',
+                                    borderRadius: '8px',
+                                    color: '#155724',
+                                    fontSize: '0.9rem'
                                 }}>
-                                    ✅ {selectedFile.name || selectedFile.base_name || selectedFile.filename} - {pdfSplits.length} splits available
+                                    ✅ <strong>{pdfSplits.length}</strong> PDF splits available
                                 </div>
                                 
                                 {/* PDF Splits Grid - Card Layout */}
                                 <div style={{
                                     display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                                    gap: '1rem'
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                    gap: '1.25rem'
                                 }}>
                                     {pdfSplits.map((split, index) => (
                                         <div
@@ -1349,8 +1377,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             onClick={() => selectPDFSplit(split)}
                                             style={{
                                                 border: selectedSplit === split ? '2px solid var(--main-color)' : '1px solid #e9ecef',
-                                                borderRadius: '8px',
-                                                padding: '1rem',
+                                                borderRadius: '10px',
+                                                padding: '1.25rem',
                                                 cursor: 'pointer',
                                                 background: selectedSplit === split ? 'rgba(63, 114, 175, 0.1)' : 'white',
                                                 transition: 'all 0.2s ease',
@@ -1481,63 +1509,115 @@ function ExplorerAllUsers({ onMenuClick }) {
         return (
             <div>
                 {/* Split Info Header */}
-                <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
-                        📄 {selectedSplit.form_name}
-                    </h4>
-                    <div style={{ 
-                        fontSize: '0.9rem', 
-                        color: 'var(--text-color-light)',
-                        background: 'var(--background-color)',
-                        padding: '0.5rem',
-                        borderRadius: '4px',
+                <div style={{ 
+                    marginBottom: '1.25rem',
+                    paddingBottom: '1rem',
+                    borderBottom: '2px solid #f3f4f6'
+                }}>
+                    <div style={{
                         display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: '1rem',
                         flexWrap: 'wrap',
                         gap: '1rem'
                     }}>
-                        <span>📋 Form: {selectedSplit.form_code}</span>
-                        <span>📄 Pages: {selectedSplit.start_page}-{selectedSplit.end_page}</span>
-                        <span>📁 File: {selectedSplit.filename}</span>
+                        <div>
+                            <h4 style={{ 
+                                margin: '0 0 0.5rem 0', 
+                                color: '#1f2937',
+                                fontSize: '1.1rem',
+                                fontWeight: '600'
+                            }}>
+                                📄 {selectedSplit.form_name}
+                            </h4>
+                            <div style={{ 
+                                fontSize: '0.875rem', 
+                                color: '#6b7280',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '1rem'
+                            }}>
+                                <span>📋 Form: <strong>{selectedSplit.form_code}</strong></span>
+                                <span>📄 Pages: <strong>{selectedSplit.start_page}-{selectedSplit.end_page}</strong></span>
+                            </div>
+                        </div>
                         {splitPdfUrl && (
-                            <span>
-                                🔗 <a href={splitPdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--main-color)', textDecoration: 'underline' }}>
-                                    Open PDF in new tab
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <a 
+                                    href={splitPdfUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    style={{ 
+                                        padding: '0.5rem 1rem',
+                                        background: '#3b82f6',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease',
+                                        display: 'inline-block'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#2563eb';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#3b82f6';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    🔗 Open in New Tab
                                 </a>
-                            </span>
-                        )}
-                        {splitPdfUrl && (
-                            <button
-                                onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = splitPdfUrl;
-                                    link.download = selectedSplit.filename;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                }}
-                                style={{
-                                    padding: '6px 12px',
-                                    background: 'var(--main-color)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem',
-                                    marginLeft: '8px'
-                                }}
-                            >
-                                📥 Download PDF
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = splitPdfUrl;
+                                        link.download = selectedSplit.filename;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        background: '#059669',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#047857';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#059669';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    📥 Download
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* PDF Viewer */}
                 <div style={{
-                    border: '1px solid #e9ecef',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    height: '70vh'
+                    height: 'calc(100vh - 280px)',
+                    background: '#f9fafb',
+                    minHeight: '500px'
                 }}>
                     {/* Try iframe first */}
                     <iframe
@@ -2049,7 +2129,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     color: 'var(--text-color-light)', 
                     marginBottom: '0' 
                 }}>
-                    Browse all companies and view their uploaded files and extracted JSON data
+                    Browse companies, files, and extracted data
                 </p>
             </div>
 
@@ -2088,67 +2168,103 @@ function ExplorerAllUsers({ onMenuClick }) {
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: selectedSplit ? 
-                    (window.innerWidth <= 768 ? '1fr' : '1fr 1fr') : 
-                    (window.innerWidth <= 768 ? '1fr' : '1fr 1fr'),
-                gap: window.innerWidth <= 768 ? '1rem' : '2rem',
-                minHeight: 'calc(100vh - 100px)',
-                height: 'calc(100vh - 100px)'
+                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr') : 
+                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr'),
+                gap: window.innerWidth <= 768 ? '1.25rem' : '2rem',
+                minHeight: 'calc(100vh - 140px)',
+                height: 'calc(100vh - 140px)',
+                alignItems: 'stretch'
             }}>
                 {/* Left Panel - Users, Folders and Files OR PDF Viewer */}
                 <div style={{
-                    background: 'white',
-                    borderRadius: 'var(--border-radius)',
-                    border: '1px solid #e9ecef',
-                    boxShadow: 'var(--shadow-light)',
-                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 1 : 0 // Show first on mobile
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 1 : 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
                 }}>
                     {/* Navigation Header */}
                     <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
-                        marginBottom: '1rem',
+                        marginBottom: '1.5rem',
+                        paddingBottom: '1.25rem',
+                        borderBottom: '2px solid #f3f4f6',
                         flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
-                        gap: window.innerWidth <= 768 ? '0.5rem' : '0'
+                        gap: window.innerWidth <= 768 ? '0.75rem' : '0',
+                        flexShrink: 0
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {selectedSplit && (
                                 <button
-                                    onClick={() => setSelectedSplit(null)}
+                                    onClick={() => {
+                                        setSelectedSplit(null);
+                                        setViewMode('pdf');
+                                    }}
                                     style={{
                                         background: 'rgba(108, 117, 125, 0.1)',
                                         border: '1px solid rgba(108, 117, 125, 0.3)',
                                         color: '#6c757d',
                                         borderRadius: '6px',
-                                        padding: '0.25rem 0.5rem',
+                                        padding: '0.5rem 0.75rem',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.875rem',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
-                                        minWidth: '36px',
-                                        minHeight: '36px'
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = 'rgba(108, 117, 125, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = 'rgba(108, 117, 125, 0.1)';
                                     }}
                                 >
-                                    ←
+                                    ← Back to Files
                                 </button>
                             )}
-                            <h3 style={{ 
-                                margin: 0, 
-                                color: 'var(--main-color)',
-                                fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)'
-                            }}>
-                                {selectedSplit ? 
-                                    `📄 ${selectedSplit.form_name}` :
-                                    view === 'companies' ? 
-                                    `🏢 All Companies (${companiesData.length})` :
-                                    view === 'folders' ?
-                                    `📁 ${selectedCompany}'s Folders` :
-                                    `📄 Files in ${selectedFolder} (${folderFiles.length})`
-                                }
-                            </h3>
+                            {view === 'files' ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                    <div style={{ 
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        color: '#1f2937',
+                                        lineHeight: '1.3',
+                                        textAlign: 'center'
+                                    }}>
+                                        📄 Files in {selectedFolder}
+                                    </div>
+                                    <div style={{ 
+                                        fontSize: '12px',
+                                        fontWeight: '500',
+                                        color: '#6b7280',
+                                        lineHeight: '1.2',
+                                        textAlign: 'center'
+                                    }}>
+                                        ({folderFiles.length} files)
+                                    </div>
+                                </div>
+                            ) : (
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    color: '#1f2937',
+                                    fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                                    fontWeight: '600',
+                                    lineHeight: '1.4'
+                                }}>
+                                    {view === 'companies' ? 
+                                        `🏢 All Companies (${companiesData.length})` :
+                                        `📁 ${selectedCompany}'s Folders`
+                                    }
+                                </h3>
+                            )}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
@@ -2172,7 +2288,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     </div>
 
                     {/* Breadcrumb Navigation */}
-                    {view !== 'companies' && (
+                    {view !== 'companies' && !selectedSplit && (
                         <div style={{ 
                             marginBottom: '1rem', 
                             padding: '0.5rem 0',
@@ -2224,85 +2340,121 @@ function ExplorerAllUsers({ onMenuClick }) {
                         </div>
                     )}
 
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <div>Loading...</div>
-                        </div>
-                    ) : selectedSplit ? (
-                        <PDFViewer />
-                    ) : (
-                        view === 'companies' ? <AllCompaniesView /> : 
-                        view === 'folders' ? <CompanyFoldersView /> : <FilesView />
-                    )}
+                    <div style={{
+                        flex: 1,
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        paddingRight: '0.5rem'
+                    }}>
+                        {loading ? (
+                            <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                <div>Loading...</div>
+                            </div>
+                        ) : (
+                            view === 'companies' ? <AllCompaniesView /> : 
+                            view === 'folders' ? <CompanyFoldersView /> : <FilesView />
+                        )}
+                    </div>
                 </div>
 
                 {/* Right Panel - JSON Data Viewer OR Split Info */}
                 <div style={{
-                    background: 'white',
-                    borderRadius: 'var(--border-radius)',
-                    border: '1px solid #e9ecef',
-                    boxShadow: 'var(--shadow-light)',
-                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 2 : 0, // Show second on mobile
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 2 : 0,
                     height: '100%',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    overflow: 'hidden'
                 }}>
-                    <h3 style={{ 
-                        margin: '0 0 1rem 0', 
-                        color: 'var(--main-color)',
-                        fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
-                        textAlign: window.innerWidth <= 768 ? 'center' : 'left'
-                    }}>
-                        {selectedSplit ? '📋 Split Details' : '📊 Extracted Data'}
-                    </h3>
+                    {selectedSplit && (
+                        <div style={{
+                            marginBottom: '1rem',
+                            flexShrink: 0
+                        }}>
+                            {/* Tabs for switching between PDF and Data views */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                borderBottom: '2px solid #e5e7eb',
+                                marginBottom: '1rem'
+                            }}>
+                                <button
+                                    onClick={() => setViewMode('pdf')}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: viewMode === 'pdf' ? '#3b82f6' : 'transparent',
+                                        color: viewMode === 'pdf' ? 'white' : '#6b7280',
+                                        border: 'none',
+                                        borderBottom: viewMode === 'pdf' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '6px 6px 0 0',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: viewMode === 'pdf' ? '600' : '500',
+                                        transition: 'all 0.2s ease',
+                                        marginBottom: '-2px'
+                                    }}
+                                >
+                                    📄 PDF
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('data')}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: viewMode === 'data' ? '#3b82f6' : 'transparent',
+                                        color: viewMode === 'data' ? 'white' : '#6b7280',
+                                        border: 'none',
+                                        borderBottom: viewMode === 'data' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '6px 6px 0 0',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: viewMode === 'data' ? '600' : '500',
+                                        transition: 'all 0.2s ease',
+                                        marginBottom: '-2px'
+                                    }}
+                                >
+                                    📊 Data
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {!selectedSplit && (
+                        <div style={{
+                            marginBottom: '1.25rem',
+                            paddingBottom: '1rem',
+                            borderBottom: '2px solid #f3f4f6',
+                            flexShrink: 0
+                        }}>
+                            <h3 style={{ 
+                                margin: 0, 
+                                color: '#1f2937',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                                fontWeight: '600',
+                                textAlign: window.innerWidth <= 768 ? 'center' : 'left',
+                                lineHeight: '1.4'
+                            }}>
+                                📊 Extracted Data
+                            </h3>
+                        </div>
+                    )}
                     <div style={{ 
                         flex: 1,
-                        overflow: 'auto' 
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        paddingRight: '0.5rem',
+                        minHeight: 0
                     }}>
                         {selectedSplit ? (
-                            <div>
-                                {/* Split Information */}
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <h4 style={{ color: 'var(--main-color)', marginBottom: '0.5rem' }}>
-                                        {selectedSplit.form_name}
-                                    </h4>
-                                    <div style={{ 
-                                        background: 'var(--background-color)',
-                                        padding: '1rem',
-                                        borderRadius: '6px',
-                                        marginBottom: '1rem'
-                                    }}>
-                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                            <div><strong>Form Code:</strong> {selectedSplit.form_code}</div>
-                                            <div><strong>Pages:</strong> {selectedSplit.start_page} - {selectedSplit.end_page}</div>
-                                            <div><strong>File:</strong> {selectedSplit.filename}</div>
-                                            <div><strong>Status:</strong> <span style={{ color: '#28a745', fontWeight: '600' }}>✓ Available</span></div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Action Buttons */}
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <button
-                                            onClick={() => setSelectedSplit(null)}
-                                            style={{
-                                                padding: '0.5rem 1rem',
-                                                background: '#6c757d',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                fontSize: '0.9rem'
-                                            }}
-                                        >
-                                            ← Back to Files
-                                        </button>
-                                    </div>
-
-                                </div>
-                                
-                                {/* Extracted data display */}
-                                {!extractedData ? (
+                            viewMode === 'pdf' ? (
+                                <PDFViewer />
+                            ) : (
+                                <div>
+                                    {/* Extracted Data Mode - Clean View */}
+                                    {!extractedData ? (
                                     <div style={{
                                         padding: '1rem',
                                         background: 'rgba(63, 114, 175, 0.1)',
@@ -2337,12 +2489,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             </div>
                                         )}
                                     </div>
-        ) : (
-            <div style={{ padding: '0' }}>
-                {renderExtractedDataTable()}
-            </div>
-        )}
-                            </div>
+                                    ) : (
+                                        <div style={{ padding: '0' }}>
+                                            {renderExtractedDataTable()}
+                                        </div>
+                                    )}
+                                </div>
+                            )
                         ) : (
                             <JsonViewer />
                         )}
