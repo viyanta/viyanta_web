@@ -108,6 +108,9 @@
     "Sl_No": [
       "Sl. No"
     ],
+    "sr_No": [
+      "sr. no"
+    ],
     "Particulars": [
       "Particulars"
     ],
@@ -178,6 +181,7 @@
   },
   "FlatHeaders": [
     "Sl. No",
+    "sr. no",
     "Particulars",
     "For the Quarter - Current Year - Premium (Rs. In Lakhs)",
     "For the Quarter - Current Year - No. of Policies",

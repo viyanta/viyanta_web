@@ -707,7 +707,7 @@ async def extract_form_data(
                     "--extracted", str(extracted_json),
                     "--pdf", split_path,
                     "--output", str(corrected_json)
-                    # Optionally: "--model", "gemini-2.5-pro"
+                    # Optionally: "--model", "gemini-2.5-flash"
                 ]
                 print(f"Prompt being sent to Google Gemini : {cmd}")
                 # Enhanced Gemini command debugging
