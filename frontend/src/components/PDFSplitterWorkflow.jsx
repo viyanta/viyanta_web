@@ -277,7 +277,11 @@ const PDFSplitterWorkflow = ({ user }) => {
     padding: '1.5rem',
     boxShadow: 'var(--shadow)',
     border: '1px solid var(--border-color)',
-    marginBottom: '1.5rem'
+    marginBottom: '1.5rem',
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    overflow: 'visible'
   };
 
   const stepStyle = {
@@ -285,7 +289,11 @@ const PDFSplitterWorkflow = ({ user }) => {
     borderRadius: '12px',
     padding: '1rem',
     marginBottom: '1rem',
-    border: '1px solid var(--border-color)'
+    border: '1px solid var(--border-color)',
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    overflow: 'visible'
   };
 
   const buttonStyle = {
@@ -699,8 +707,10 @@ const PDFSplitterWorkflow = ({ user }) => {
                 <div style={{ 
                   background: 'white',
                   borderRadius: '6px',
-                  overflow: 'hidden',
-                  border: '1px solid #e0e0e0'
+                  border: '1px solid #e0e0e0',
+                  width: '100%',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box'
                 }}>
                   <div style={{ 
                     background: '#f5f5f5',
@@ -714,13 +724,17 @@ const PDFSplitterWorkflow = ({ user }) => {
                     maxHeight: '600px',
                     overflowY: 'auto',
                     overflowX: 'hidden',
-                    padding: '1rem'
+                    padding: '1rem',
+                    width: '100%',
+                    boxSizing: 'border-box'
                   }}>
                     {extractedData.data.map((record, index) => (
                       <div key={index} style={{ 
                         marginBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
                         paddingBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
-                        borderBottom: index < extractedData.data.length - 1 ? '1px solid #f0f0f0' : 'none'
+                        borderBottom: index < extractedData.data.length - 1 ? '1px solid #f0f0f0' : 'none',
+                        width: '100%',
+                        boxSizing: 'border-box'
                       }}>
                         <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
                           Record {index + 1} {record.FormName && `- ${record.FormName}`}
@@ -747,19 +761,29 @@ const PDFSplitterWorkflow = ({ user }) => {
                           <div style={{ 
                             border: '1px solid #e0e0e0',
                             borderRadius: '4px',
+                            width: '100%',
+                            maxWidth: '100%',
                             overflow: 'hidden',
-                            width: '100%'
+                            boxSizing: 'border-box'
                           }}>
-                            <div style={{ 
-                              overflowX: 'auto',
-                              overflowY: 'visible',
-                              width: '100%'
-                            }}>
-                              <table style={{ 
+                            <div 
+                              className="table-scroll-container"
+                              style={{ 
+                                overflowX: 'scroll',
+                                overflowY: 'scroll',
+                                maxHeight: '500px',
                                 width: '100%',
+                                maxWidth: '100%',
+                                display: 'block',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <table style={{ 
+                                width: 'max-content',
+                                minWidth: '100%',
                                 borderCollapse: 'collapse',
                                 fontSize: '0.8rem',
-                                minWidth: '100%'
+                                margin: 0
                               }}>
                                 <thead>
                                   <tr style={{ background: '#f5f5f5' }}>
@@ -769,7 +793,9 @@ const PDFSplitterWorkflow = ({ user }) => {
                                         textAlign: 'left',
                                         borderRight: '1px solid #e0e0e0',
                                         borderBottom: '1px solid #e0e0e0',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
+                                        whiteSpace: 'nowrap',
+                                        minWidth: '120px'
                                       }}>
                                         {header}
                                       </th>
@@ -785,7 +811,9 @@ const PDFSplitterWorkflow = ({ user }) => {
                                         <td key={headerIndex} style={{ 
                                           padding: '0.5rem',
                                           borderRight: '1px solid #e0e0e0',
-                                          borderBottom: '1px solid #e0e0e0'
+                                          borderBottom: '1px solid #e0e0e0',
+                                          whiteSpace: 'nowrap',
+                                          minWidth: '120px'
                                         }}>
                                           {row[header] || '-'}
                                         </td>

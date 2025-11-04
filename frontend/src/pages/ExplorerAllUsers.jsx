@@ -333,11 +333,12 @@ function ExplorerAllUsers({ onMenuClick }) {
     }, [selectedSplit, selectedFile, selectedCompany, companiesData]);
     
     // Function to render extracted data in table format (matching Smart Extraction UI)
+    // Each record gets its own table with headers
     const renderExtractedDataTable = () => {
-        const { headers, allRowsData, records, hasData } = processedExtractedData;
+        const { records, hasData } = processedExtractedData;
         
-        // If we have table data, render it with custom scrolling
-        if (hasData) {
+        // If we have table data, render each record separately with its own headers
+        if (hasData && records.length > 0) {
             return (
                 <div style={{ 
                     background: 'white',
@@ -345,241 +346,230 @@ function ExplorerAllUsers({ onMenuClick }) {
                     borderRadius: '8px',
                     width: '100%',
                     maxWidth: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                    minHeight: 0
+                    overflow: 'hidden'
                 }}>
-                    {/* Header Section */}
-                    <div style={{
-                        background: '#f9fafb',
-                        borderBottom: '1px solid #e5e7eb',
-                        padding: '20px 24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        flexShrink: 0
-                    }}>
-                        <div>
-                            <h3 style={{ 
-                                margin: 0, 
-                                fontSize: '17px', 
-                                fontWeight: '600',
-                                color: '#111827'
-                            }}>
-                                📊 Extracted Data ({allRowsData.length} records)
-                            </h3>
-                            <p style={{ 
-                                margin: '6px 0 0 0', 
-                                fontSize: '13px', 
-                                color: '#6b7280' 
-                            }}>
-                                {selectedSplit?.form_name || 'Extracted Data'} • Pages: {selectedSplit?.start_page || 1}-{selectedSplit?.end_page || 1}
-                                {extractedData && extractedData.length > 0 && extractedData[0].metadata && (
-                                    <span style={{ 
-                                        marginLeft: '8px',
-                                        padding: '2px 6px',
-                                        background: extractedData[0].metadata.gemini_corrected ? '#28a745' : '#ffc107',
-                                        color: 'white',
-                                        borderRadius: '10px',
-                                        fontSize: '12px',
-                                        fontWeight: '600'
-                                    }}>
-                                        {extractedData[0].metadata.gemini_corrected ? '🤖 AI Verified' : '🔄 Extracted'}
-                                    </span>
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
-
-
-                    {/* Table Container - Only horizontal scroll, vertical handled by parent */}
                     <div style={{ 
-                        overflowX: 'auto', 
-                        overflowY: 'visible',
-                        width: '100%',
-                        backgroundColor: '#ffffff',
-                        flex: 1,
-                        minHeight: 0
+                        background: '#f5f5f5',
+                        padding: '0.75rem',
+                        borderBottom: '1px solid #e0e0e0',
+                        fontWeight: '600'
                     }}>
-                        <table style={{ 
-                            width: '100%',
-                            minWidth: '800px',
-                            borderCollapse: 'collapse',
-                            borderSpacing: '0',
-                            fontSize: '14px',
-                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                            tableLayout: 'auto'
-                        }}>
-                            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                                <tr style={{ backgroundColor: '#667eea' }}>
-                                     {headers.map((header, index) => (
-                                         <th key={index} style={{ 
-                                             padding: '12px 8px',
-                                             textAlign: 'center',
-                                             fontWeight: '600',
-                                             color: 'white',
-                                             borderBottom: '2px solid #667eea',
-                                             whiteSpace: 'normal',
-                                             wordWrap: 'break-word',
-                                             wordBreak: 'break-word',
-                                             lineHeight: '1.3',
-                                             maxWidth: index === 0 ? '300px' : '250px'
-                                         }}>
-                                             {header}
-                                         </th>
-                                     ))}
-                                </tr>
-                            </thead>
-                             <tbody>
-                                 {allRowsData.map((row, rowIndex) => {
-                                    const isFormMetadataRow = Array.isArray(row) && row[0] && typeof row[0] === 'string' && row[0].startsWith('FORM_METADATA_');
-                                    
-                                    // Check if row contains "total" or "subtotal" (case-insensitive)
-                                    const checkForTotal = (cellValue) => {
-                                        if (!cellValue) return false;
-                                        const str = cellValue.toString().trim().toLowerCase();
-                                        return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
-                                    };
-                                    
-                                    let isTotalRow = false;
-                                    if (Array.isArray(row)) {
-                                        // Check all cells in the row
-                                        isTotalRow = row.some(cell => checkForTotal(cell));
-                                    } else {
-                                        // For object rows, check all header values
-                                        isTotalRow = headers.some(header => checkForTotal(row[header]));
-                                    }
-                                    
-                                    return (
-                                        <tr key={rowIndex} style={{ 
-                                            backgroundColor: isFormMetadataRow ? '#f8f9fa' :
-                                                           (rowIndex % 2 === 0 ? 'white' : '#f8f9fa'),
-                                            borderTop: isFormMetadataRow ? '2px solid #1976d2' : 'none',
-                                            fontWeight: isTotalRow ? '700' : 'normal'
-                                        }}>
-                                             {Array.isArray(row) ? (
-                                                 row.map((cell, cellIndex) => (
-                                                     <td key={cellIndex} style={{ 
-                                                         padding: isFormMetadataRow ? '12px' : (isTotalRow && cellIndex === 0 ? '12px 12px 12px 24px' : '12px'),
-                                                         paddingLeft: isTotalRow && cellIndex === 0 ? '24px' : undefined,
-                                                         borderBottom: '1px solid #e9ecef',
-                                                         width: cellIndex === 0 ? '300px' : '200px',
-                                                         minWidth: cellIndex === 0 ? '300px' : '200px',
-                                                         whiteSpace: isFormMetadataRow ? 'normal' : 'normal',
-                                                         wordWrap: 'break-word',
-                                                         lineHeight: isFormMetadataRow ? '1.5' : '1.3',
-                                                         fontWeight: isTotalRow ? '700' : (isFormMetadataRow ? '600' : 'normal'),
-                                                         color: isFormMetadataRow ? '#495057' : 'inherit',
-                                                         background: isFormMetadataRow ? '#f1f3f4' : 'transparent',
-                                                         fontSize: '14px',
-                                                         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                                         textAlign: isFormMetadataRow ? 'left' : (cellIndex === 0 ? 'left' : 'right')
-                                                     }}>
-                                                         {cellIndex === 0 && isFormMetadataRow ? (
-                                                             <div style={{ 
-                                                                 display: 'flex', 
-                                                                 flexDirection: 'column', 
-                                                                 gap: '4px',
-                                                                 lineHeight: '1.4'
-                                                             }}>
-                                                                 <div style={{ 
-                                                                     fontWeight: '600', 
-                                                                     color: '#1976d2',
-                                                                     marginBottom: '4px'
-                                                                 }}>
-                                                                     📋 Form Information
-                                                                 </div>
-                                                                 <div style={{ 
-                                                                     fontSize: '11px',
-                                                                     color: '#495057',
-                                                                     lineHeight: '1.3',
-                                                                     whiteSpace: 'pre-line'
-                                                                 }}>
-                                                                     {(row[1] || '').replace(/\s*\|\s*/g, '\n')}
-                                                                 </div>
-                                                             </div>
-                                                         ) : isFormMetadataRow ? '' : (
-                                                             <span style={{ fontWeight: isTotalRow ? '700' : 'inherit' }}>
-                                                                 {cell || '-'}
-                                                             </span>
-                                                         )}
-                                                     </td>
-                                                 ))
-                                             ) : (
-                                                 headers.map((header, cellIndex) => {
-                                                     const cellValue = row[header];
-                                                     return (
-                                                         <td key={cellIndex} style={{ 
-                                                             padding: isTotalRow && cellIndex === 0 ? '12px 12px 12px 24px' : '12px',
-                                                             paddingLeft: isTotalRow && cellIndex === 0 ? '24px' : undefined,
-                                                             borderBottom: '1px solid #e9ecef',
-                                                             width: '200px',
-                                                             minWidth: '200px',
-                                                             whiteSpace: 'normal',
-                                                             wordWrap: 'break-word',
-                                                             lineHeight: '1.3',
-                                                             fontWeight: isTotalRow ? '700' : 'normal',
-                                                             fontSize: '14px',
-                                                             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                                             textAlign: cellIndex === 0 ? 'left' : 'right'
-                                                         }}>
-                                                             <span style={{ fontWeight: isTotalRow ? '700' : 'inherit' }}>
-                                                                 {cellValue || '-'}
-                                                             </span>
-                                                         </td>
-                                                     );
-                                                 })
-                                             )}
-                                         </tr>
-                                     );
-                                 })}
-                             </tbody>
-                        </table>
+                        📊 Extracted Data ({records.length} record{records.length !== 1 ? 's' : ''})
                     </div>
-
-                    {/* Footer with data info */}
-                    <div style={{
-                        background: '#f9fafb',
-                        borderTop: '1px solid #e5e7eb',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        color: '#6b7280',
-                        textAlign: 'center',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
+                    
+                    <div style={{ 
+                        maxHeight: '600px',
+                        overflow: 'auto',
+                        padding: '1rem'
                     }}>
-                        <span>Showing {allRowsData.length} records • {headers.length} columns</span>
-                        <span style={{ 
-                            fontSize: '12px', 
-                            color: '#9ca3af',
-                            fontStyle: 'italic'
-                        }}>
-                            ← Scroll horizontally to see all columns →
-                        </span>
+                        {records.map((record, recordIndex) => {
+                            // Get headers and rows for this record
+                            let recordHeaders = [];
+                            let recordRows = [];
+                            
+                            // Check for SmartTableViewer format
+                            if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
+                                const table = record.tables[0];
+                                recordHeaders = table.headers || [];
+                                recordRows = table.data || [];
+                            }
+                            // Check for FlatHeaders and Rows format
+                            else if (record?.FlatHeaders && Array.isArray(record.FlatHeaders)) {
+                                recordHeaders = record.FlatHeaders;
+                                recordRows = record.Rows || record.TableData || [];
+                            }
+                            // Check for direct headers and data format
+                            else if (record?.headers && record?.data) {
+                                recordHeaders = record.headers;
+                                recordRows = record.data;
+                            }
+                            
+                            if (recordHeaders.length === 0 || recordRows.length === 0) {
+                                return null;
+                            }
+                            
+                            return (
+                                <div key={recordIndex} style={{ 
+                                    marginBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    paddingBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    borderBottom: recordIndex < records.length - 1 ? '1px solid #f0f0f0' : 'none'
+                                }}>
+                                    {/* Record Header */}
+                                    <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
+                                        Record {recordIndex + 1} {record.FormName && `- ${record.FormName}`}
+                                        {record.PagesUsed && (
+                                            <span style={{ 
+                                                marginLeft: '1rem',
+                                                padding: '2px 8px',
+                                                background: '#e3f2fd',
+                                                color: '#1976d2',
+                                                borderRadius: '12px',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600',
+                                                border: '1px solid #bbdefb'
+                                            }}>
+                                                📄 Pages Used: {record.PagesUsed}
+                                            </span>
+                                        )}
+                                    </h6>
+                                    
+                                    {/* Form Metadata Display */}
+                                    {(record["Form No"] || record.Title || record.RegistrationNumber || record.Period || record.Currency) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.75rem',
+                                            borderRadius: '6px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.9rem',
+                                            border: '1px solid #e9ecef'
+                                        }}>
+                                            <h6 style={{ margin: '0 0 0.5rem 0', color: '#495057', fontWeight: '600' }}>📋 Form Information</h6>
+                                            <div style={{ display: 'grid', gap: '0.3rem' }}>
+                                                {record["Form No"] && <div><strong>Form No:</strong> {record["Form No"]}</div>}
+                                                {record.Title && <div><strong>Title:</strong> {record.Title}</div>}
+                                                {record.RegistrationNumber && <div><strong>Registration Number:</strong> {record.RegistrationNumber}</div>}
+                                                {record.Period && <div><strong>Period:</strong> {record.Period}</div>}
+                                                {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Legacy metadata for backward compatibility */}
+                                    {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.5rem',
+                                            borderRadius: '4px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.85rem'
+                                        }}>
+                                            {record.FormName && <div><strong>Form:</strong> {record.FormName}</div>}
+                                            {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
+                                            {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
+                                            {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Table Data - Each record has its own table with headers */}
+                                    <div style={{ 
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '4px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div 
+                                            className="table-scroll-container"
+                                            style={{ 
+                                                overflowX: 'scroll',
+                                                overflowY: 'scroll',
+                                                maxHeight: '500px',
+                                                width: '100%',
+                                                maxWidth: '100%',
+                                                display: 'block',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        >
+                                            <table style={{ 
+                                                width: 'max-content',
+                                                minWidth: '100%',
+                                                borderCollapse: 'collapse',
+                                                fontSize: '0.8rem',
+                                                margin: 0
+                                            }}>
+                                                <thead>
+                                                    <tr style={{ background: '#f5f5f5' }}>
+                                                        {recordHeaders.map((header, headerIndex) => (
+                                                            <th key={headerIndex} style={{ 
+                                                                padding: '0.5rem',
+                                                                textAlign: 'left',
+                                                                borderRight: '1px solid #e0e0e0',
+                                                                borderBottom: '1px solid #e0e0e0',
+                                                                fontWeight: '600',
+                                                                whiteSpace: 'nowrap',
+                                                                minWidth: '120px'
+                                                            }}>
+                                                                {header}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {recordRows.map((row, rowIndex) => {
+                                                        // Check if row contains "total" or "subtotal" (case-insensitive)
+                                                        const checkForTotal = (cellValue) => {
+                                                            if (!cellValue) return false;
+                                                            const str = cellValue.toString().trim().toLowerCase();
+                                                            return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                                        };
+                                                        
+                                                        let isTotalRow = false;
+                                                        if (Array.isArray(row)) {
+                                                            // Check all cells in the row
+                                                            isTotalRow = row.some(cell => checkForTotal(cell));
+                                                        } else if (typeof row === 'object' && row !== null) {
+                                                            // For object rows, check all header values
+                                                            isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
+                                                        }
+                                                        
+                                                        return (
+                                                            <tr key={rowIndex} style={{ 
+                                                                background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
+                                                                fontWeight: isTotalRow ? '700' : 'normal'
+                                                            }}>
+                                                                {recordHeaders.map((header, headerIndex) => {
+                                                                    // Handle both array and object row formats
+                                                                    let cellValue = '';
+                                                                    if (Array.isArray(row)) {
+                                                                        cellValue = row[headerIndex] || '';
+                                                                    } else if (typeof row === 'object' && row !== null) {
+                                                                        cellValue = row[header] || '';
+                                                                    } else {
+                                                                        cellValue = row || '';
+                                                                    }
+                                                                    
+                                                                    return (
+                                                                        <td key={headerIndex} style={{ 
+                                                                            padding: '0.5rem',
+                                                                            borderRight: '1px solid #e0e0e0',
+                                                                            borderBottom: '1px solid #e0e0e0',
+                                                                            whiteSpace: 'nowrap',
+                                                                            minWidth: '120px',
+                                                                            fontWeight: isTotalRow ? '700' : 'normal'
+                                                                        }}>
+                                                                            {cellValue || '-'}
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             );
-        } else {
+        }
+        
         return (
             <div style={{
-                    textAlign: 'center', 
-                    padding: '2rem', 
-                    color: '#6b7280',
-                    background: '#f9fafb',
+                textAlign: 'center', 
+                padding: '2rem', 
+                color: '#6b7280',
+                background: '#f9fafb',
                 borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
-                }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
-                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                        No extracted data found for this split
-                    </p>
+                border: '1px solid #e5e7eb'
+            }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                    No extracted data found for this split
+                </p>
             </div>
         );
-        }
     };
 
     // Load companies data using API

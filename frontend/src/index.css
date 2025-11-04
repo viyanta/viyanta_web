@@ -1272,3 +1272,77 @@ li {
     --border-color: #dee2e6;
     --bg-color-light: #f8f9fa;
 }
+
+/* Table scroll container styles - ensure scrollbars are visible */
+.table-scroll-container {
+    /* ALWAYS show BOTH horizontal and vertical scrollbars */
+    overflow-x: scroll !important;
+    overflow-y: scroll !important;
+    /* Ensure container has dimensions and is constrained */
+    min-height: 100px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    /* Force scrollbar visibility for all browsers */
+    -ms-overflow-style: scrollbar !important;
+    scrollbar-width: auto !important;
+    /* Override any parent styles */
+    display: block !important;
+    position: relative !important;
+}
+
+/* Webkit browsers - All scrollbars */
+.table-scroll-container::-webkit-scrollbar {
+    width: 14px !important;
+    height: 20px !important;
+    -webkit-appearance: none !important;
+    background-color: #e0e0e0 !important;
+    display: block !important;
+}
+
+/* Webkit browsers - Horizontal Scrollbar (bottom) - Make it more visible */
+.table-scroll-container::-webkit-scrollbar:horizontal {
+    height: 20px !important;
+    display: block !important;
+    background-color: #d0d0d0 !important;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: #e8e8e8 !important;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+}
+
+.table-scroll-container::-webkit-scrollbar-track:horizontal {
+    background: #e8e8e8 !important;
+    border-top: 2px solid #ccc;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: #555 !important;
+    border-radius: 10px;
+    border: 2px solid #e8e8e8;
+    min-height: 30px;
+    min-width: 30px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:horizontal {
+    background: #555 !important;
+    min-width: 50px;
+    border-top: 2px solid #e8e8e8;
+    border-bottom: 2px solid #e8e8e8;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #333 !important;
+}
+
+.table-scroll-container::-webkit-scrollbar-corner {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+/* Firefox - Make scrollbar more visible */
+.table-scroll-container {
+    scrollbar-width: thin !important;
+    scrollbar-color: #555 #e8e8e8 !important;
+}

@@ -100,13 +100,19 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const containerStyle = {
     minHeight: '100vh',
     background: 'var(--bg-gradient)',
-    padding: '1rem'
+    padding: '1rem',
+    paddingTop: '1.5rem',
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    overflow: 'visible'
   };
 
   const headerStyle = {
     marginBottom: '1.5rem',
     textAlign: 'left',
     color: 'var(--text-color-dark)',
+    marginTop: '0'
   };
 
   const tabsWrapperStyle = {
@@ -160,7 +166,11 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
     padding: '1.5rem',
     boxShadow: 'var(--shadow)',
     border: '1px solid var(--border-color)',
-    maxWidth: '100%'
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    overflow: 'visible',
+    minHeight: '400px'
   };
 
   const errorStyle = {
@@ -213,7 +223,8 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
           <h1 style={{ 
             margin: 0,
             fontSize: 'clamp(18px, 5vw, 28px)',
-            lineHeight: '1.2'
+            lineHeight: '1.3',
+            paddingTop: '0'
           }}>Smart PDF Table Extraction (Admin Only)</h1>
         </div>
         <p style={{ color: 'var(--text-color-light)', marginTop: '0.25rem' }}>
