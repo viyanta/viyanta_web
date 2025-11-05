@@ -1,6 +1,6 @@
 import React from 'react'
 import Button from '../utils/Button.jsx'
-import ApiService from '../services/api.js'
+import ApiService, { API_BASE_URL } from '../services/api.js'
 import { useStats } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
@@ -220,7 +220,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         // Poll for preference updates (works for all users, including admin in other tabs)
         const pollInterval = setInterval(async () => {
             try {
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
                 
                 const prefsResponse = await fetch(prefsUrl);
@@ -956,7 +956,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             
-            const apiBase = 'http://localhost:8000/api';
+            const apiBase = API_BASE_URL;
             const url = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/splits`;
             
             console.log('Loading PDF splits from URL:', url);
@@ -979,7 +979,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     };
                     const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
                     
-                    const apiBase = 'http://localhost:8000/api';
+                    const apiBase = API_BASE_URL;
                     const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/form-preferences`;
                     
                     const prefsResponse = await fetch(prefsUrl);
@@ -1056,7 +1056,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                 };
                 const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
                 
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
                 
                 const response = await fetch(editsUrl);
@@ -1091,7 +1091,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                 };
                 const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
                 
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
                 
                 const response = await fetch(editsUrl);
@@ -1142,7 +1142,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             };
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             
-            const apiBase = 'http://localhost:8000/api';
+            const apiBase = API_BASE_URL;
             const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
             
             const editPayload = {
@@ -1235,7 +1235,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             const formsArray = Array.from(newEnabledForms);
             
             try {
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
                 
                 const response = await fetch(prefsUrl, {
@@ -1280,7 +1280,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             const formsArray = Array.from(allFormNames);
             
             try {
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
                 
                 const response = await fetch(prefsUrl, {
@@ -1323,7 +1323,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             
             try {
-                const apiBase = 'http://localhost:8000/api';
+                const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
                 
                 const response = await fetch(prefsUrl, {
@@ -1392,7 +1392,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             
             // Create download URL for the split PDF
-            const apiBase = 'http://localhost:8000/api';
+            const apiBase = API_BASE_URL;
             const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/splits/${encodeURIComponent(split.filename)}/download`;
             
             console.log('Downloading split PDF from URL:', downloadUrl);
