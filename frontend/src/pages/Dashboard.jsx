@@ -50,7 +50,7 @@ const Dashboard = ({ onMenuClick }) => {
     } else if (tab === 'News') {
       navigate('/news');
     } else if (tab === 'Define Template') {
-      console.log('Define Template clicked');
+      navigate('/template');
     } else if (tab === 'Save Template') {
       console.log('Save Template clicked');
     } else if (tab === 'Screener Inputs') {
@@ -80,7 +80,9 @@ const Dashboard = ({ onMenuClick }) => {
     <div className="dashboard-page" style={{
       padding: 'clamp(10px, 3vw, 20px)',
       minHeight: '100vh',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
     }}>
       {/* Dashboard Header */}
       <div style={{ 
@@ -325,17 +327,18 @@ const Dashboard = ({ onMenuClick }) => {
       {/* Main Content */}
       <div style={{ 
         display: 'flex',
-        gap: 'clamp(15px, 3vw, 20px)',
-        alignItems: 'flex-start',
+        gap: window.innerWidth <= 768 ? 'clamp(10px, 2vw, 15px)' : 'clamp(15px, 3vw, 20px)',
+        alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start',
         marginTop: 'clamp(5px, 1vw, 10px)',
         padding: '0 clamp(10px, 3vw, 20px)',
         flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
       }}>
         {/* Left Sidebar - Company Information */}
         <div style={{
-          flex: '0 0 clamp(200px, 25vw, 220px)',
-          minWidth: '200px',
-          maxWidth: '220px'
+          flex: window.innerWidth <= 768 ? 'none' : '0 0 clamp(200px, 25vw, 220px)',
+          minWidth: window.innerWidth <= 768 ? 'auto' : '200px',
+          maxWidth: window.innerWidth <= 768 ? '100%' : '220px',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           <CompanyInformationSidebar />
         </div>
@@ -344,7 +347,8 @@ const Dashboard = ({ onMenuClick }) => {
         <div style={{
           flex: '1',
           minWidth: 0,
-          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
+          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           {/* Selection Controls */}
           <div style={{
@@ -353,19 +357,22 @@ const Dashboard = ({ onMenuClick }) => {
             alignItems: 'flex-start',
             marginBottom: 'clamp(15px, 3vw, 25px)',
             gap: 'clamp(15px, 3vw, 25px)',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
           }}>
             <div style={{
               display: 'flex',
               gap: 'clamp(15px, 3vw, 25px)',
               alignItems: 'flex-end',
-              flexWrap: 'wrap'
+              flexWrap: 'wrap',
+              width: window.innerWidth <= 768 ? '100%' : 'auto'
             }}>
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '8px',
-                minWidth: 'clamp(140px, 20vw, 180px)'
+                minWidth: window.innerWidth <= 768 ? '100%' : 'clamp(140px, 20vw, 180px)',
+                width: window.innerWidth <= 768 ? '100%' : 'auto'
               }}>
                 <label style={{
                   fontSize: 'clamp(12px, 2vw, 14px)',
@@ -387,7 +394,8 @@ const Dashboard = ({ onMenuClick }) => {
                     color: '#333',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    outline: 'none'
+                    outline: 'none',
+                    minHeight: window.innerWidth <= 768 ? '44px' : 'auto'
                   }}
                 >
                   {frequencyOptions.map(option => (
@@ -444,7 +452,7 @@ const Dashboard = ({ onMenuClick }) => {
             }}>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(280px, 30vw, 320px), 1fr))',
+                gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(auto-fit, minmax(clamp(280px, 30vw, 320px), 1fr))',
                 gap: 'clamp(15px, 2vw, 20px)',
                 marginBottom: 'clamp(15px, 2vw, 20px)'
               }}>
@@ -745,12 +753,17 @@ const Dashboard = ({ onMenuClick }) => {
               <div style={{ 
                 overflowX: 'auto',
                 border: '1px solid #e5e7eb',
-                borderRadius: '6px'
+                borderRadius: '6px',
+                maxWidth: '100%'
               }}>
                 <table style={{
                   width: '100%',
                   borderCollapse: 'collapse',
-                  fontSize: '14px'
+                  borderSpacing: '0',
+                  fontSize: '14px',
+                  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  tableLayout: 'auto',
+                  minWidth: window.innerWidth <= 768 ? '600px' : 'auto'
                 }}>
                   <thead>
                     <tr>
@@ -761,7 +774,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Particulars</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -770,7 +785,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Units</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -779,7 +796,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Period</th>
                       <th colSpan="5" style={{
                         background: '#f3f4f6',
@@ -787,7 +806,9 @@ const Dashboard = ({ onMenuClick }) => {
                         textAlign: 'center',
                         fontWeight: '600',
                         color: '#374151',
-                        border: '1px solid #d1d5db'
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Premium Type</th>
                     </tr>
                     <tr>
@@ -798,7 +819,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}></th>
                       <th style={{
                         background: '#f3f4f6',
@@ -807,7 +830,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}></th>
                       <th style={{
                         background: '#f3f4f6',
@@ -816,7 +841,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}></th>
                       <th style={{
                         background: '#f3f4f6',
@@ -825,7 +852,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Group Non-Single Premium</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -834,7 +863,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Individual Single Premium</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -843,7 +874,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Individual Non-Single Premium</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -852,7 +885,9 @@ const Dashboard = ({ onMenuClick }) => {
                         fontWeight: '600',
                         color: '#374151',
                         border: '1px solid #d1d5db',
-                        borderRight: '1px solid #d1d5db'
+                        borderRight: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Group Yearly Renewable Premium</th>
                       <th style={{
                         background: '#f3f4f6',
@@ -860,7 +895,9 @@ const Dashboard = ({ onMenuClick }) => {
                         textAlign: 'center',
                         fontWeight: '600',
                         color: '#374151',
-                        border: '1px solid #d1d5db'
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Group Single Premium</th>
                     </tr>
                   </thead>
@@ -871,53 +908,69 @@ const Dashboard = ({ onMenuClick }) => {
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>First Year Premium</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>In Crs</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Nov 24</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>124.20</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>124.20</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>124.20</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>124.20</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         color: '#374151',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>124.20</td>
                     </tr>
                     <tr>
@@ -926,19 +979,25 @@ const Dashboard = ({ onMenuClick }) => {
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>No of Policies / Schemes</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>In Nos</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Nov 24</td>
                       <td style={{
                         padding: '12px',
@@ -981,19 +1040,25 @@ const Dashboard = ({ onMenuClick }) => {
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>No. of lives covered under Group Schemes</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>In Nos</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Nov 24</td>
                       <td style={{
                         padding: '12px',
@@ -1036,19 +1101,25 @@ const Dashboard = ({ onMenuClick }) => {
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
                         color: '#374151',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Sum Assured</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>In Crs</td>
                       <td style={{
                         padding: '12px',
                         border: '1px solid #d1d5db',
                         borderRight: '1px solid #d1d5db',
-                        color: '#6b7280'
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}>Nov 24</td>
                       <td style={{
                         padding: '12px',

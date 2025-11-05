@@ -1,60 +1,200 @@
 {
   "Form No": "L-36",
   "Title": "PREMIUM AND NUMBER OF LIVES COVERED BY POLICY TYPE",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
-  "Headers": {
-    "Sl_No": ["Sl. No"],
-    "Particulars": ["Particulars"],
-    "For_Quarter_ended_Current_Year": {
-      "Premium_Lacs": ["For Quarter ended", "{QUARTER_END_DATE}", "Premium (₹ in Lacs)"],
-      "No_of_Policies": ["For Quarter ended", "{QUARTER_END_DATE}", "No. of Policies"],
-      "No_of_Lives": ["For Quarter ended", "{QUARTER_END_DATE}", "No. of Lives"],
-      "Sum_Insured_Lacs": ["For Quarter ended", "{QUARTER_END_DATE}", "Sum Insured, Wherever applicable (₹ in Lacs)"]
-    },
-    "For_Quarter_ended_Previous_Year": {
-      "Premium_Lacs": ["For Quarter ended", "{PREVIOUS_QUARTER_END}", "Premium (₹ in Lacs)"],
-      "No_of_Policies": ["For Quarter ended", "{PREVIOUS_QUARTER_END}", "No. of Policies"],
-      "No_of_Lives": ["For Quarter ended", "{PREVIOUS_QUARTER_END}", "No. of Lives"],
-      "Sum_Insured_Lacs": ["For Quarter ended", "{PREVIOUS_QUARTER_END}", "Sum Insured, Wherever applicable (₹ in Lacs)"]
-    },
-    "Upto_Quarter_ended_Current_Year": {
-      "Premium_Lacs": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Premium (₹ in Lacs)"],
-      "No_of_Policies": ["Upto Quarter ended", "{QUARTER_END_DATE}", "No. of Policies"],
-      "No_of_Lives": ["Upto Quarter ended", "{QUARTER_END_DATE}", "No. of Lives"],
-      "Sum_Insured_Lacs": ["Upto Quarter ended", "{QUARTER_END_DATE}", "Sum Insured, Wherever applicable (₹ in Lacs)"]
-    },
-    "Upto_Quarter_ended_Previous_Year": {
-      "Premium_Lacs": ["Upto Quarter ended", "{PREVIOUS_QUARTER_END}", "Premium (₹ in Lacs)"],
-      "No_of_Policies": ["Upto Quarter ended", "{PREVIOUS_QUARTER_END}", "No. of Policies"],
-      "No_of_Lives": ["Upto Quarter ended", "{PREVIOUS_QUARTER_END}", "No. of Lives"],
-      "Sum_Insured_Lacs": ["Upto Quarter ended", "{PREVIOUS_QUARTER_END}", "Sum Insured, Wherever applicable (₹ in Lacs)"]
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Sections": [
+    {
+      "Section_Name": "Premium and Number of Lives Covered by Policy Type",
+      "Headers": {
+        "Sl_No": [
+          "Sl. No"
+        ],
+        "Particulars": [
+          "Particulars"
+        ],
+        "Current_Quarter_Premium": [
+          "For the Quarter - Current Year",
+          "Premium (Rs. In Lakhs)"
+        ],
+        "Current_Quarter_No_of_Policies": [
+          "For the Quarter - Current Year",
+          "No. of Policies"
+        ],
+        "Current_Quarter_No_of_Lives": [
+          "For the Quarter - Current Year",
+          "No. of Lives"
+        ],
+        "Current_Quarter_Sum_Insured": [
+          "For the Quarter - Current Year",
+          "Sum Insured, Wherever applicable (Rs.Lakhs)"
+        ],
+        "Previous_Quarter_Premium": [
+          "For the Quarter - Previous Year",
+          "Premium (Rs. In Lakhs)"
+        ],
+        "Previous_Quarter_No_of_Policies": [
+          "For the Quarter - Previous Year",
+          "No. of Policies"
+        ],
+        "Previous_Quarter_No_of_Lives": [
+          "For the Quarter - Previous Year",
+          "No. of Lives"
+        ],
+        "Previous_Quarter_Sum_Insured": [
+          "For the Quarter - Previous Year",
+          "Sum Insured, Wherever applicable (Rs.Lakhs)"
+        ],
+        "Current_YTD_Premium": [
+          "Up to the Quarter - Current Year",
+          "Premium (Rs. In Lakhs)"
+        ],
+        "Current_YTD_No_of_Policies": [
+          "Up to the Quarter - Current Year",
+          "No. of Policies"
+        ],
+        "Current_YTD_No_of_Lives": [
+          "Up to the Quarter - Current Year",
+          "No. of Lives"
+        ],
+        "Current_YTD_Sum_Insured": [
+          "Up to the Quarter - Current Year",
+          "Sum Insured, Wherever applicable (Rs.Lakhs)"
+        ],
+        "Previous_YTD_Premium": [
+          "Up to the Quarter - Previous Year",
+          "Premium (Rs. In Lakhs)"
+        ],
+        "Previous_YTD_No_of_Policies": [
+          "Up to the Quarter - Previous Year",
+          "No. of Policies"
+        ],
+        "Previous_YTD_No_of_Lives": [
+          "Up to the Quarter - Previous Year",
+          "No. of Lives"
+        ],
+        "Previous_YTD_Sum_Insured": [
+          "Up to the Quarter - Previous Year",
+          "Sum Insured, Wherever applicable (Rs.Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl. No",
+        "Particulars",
+        "For the Quarter - Current Year - Premium (Rs. In Lakhs)",
+        "For the Quarter - Current Year - No. of Policies",
+        "For the Quarter - Current Year - No. of Lives",
+        "For the Quarter - Current Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+        "For the Quarter - Previous Year - Premium (Rs. In Lakhs)",
+        "For the Quarter - Previous Year - No. of Policies",
+        "For the Quarter - Previous Year - No. of Lives",
+        "For the Quarter - Previous Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+        "Up to the Quarter - Current Year - Premium (Rs. In Lakhs)",
+        "Up to the Quarter - Current Year - No. of Policies",
+        "Up to the Quarter - Current Year - No. of Lives",
+        "Up to the Quarter - Current Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+        "Up to the Quarter - Previous Year - Premium (Rs. In Lakhs)",
+        "Up to the Quarter - Previous Year - No. of Policies",
+        "Up to the Quarter - Previous Year - No. of Lives",
+        "Up to the Quarter - Previous Year - Sum Insured, Wherever applicable (Rs.Lakhs)"
+      ],
+      "Rows": []
     }
+  ],
+  "Headers": {
+    "Sl_No": [
+      "Sl. No"
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter_Premium": [
+      "For the Quarter - Current Year",
+      "Premium (Rs. In Lakhs)"
+    ],
+    "Current_Quarter_No_of_Policies": [
+      "For the Quarter - Current Year",
+      "No. of Policies"
+    ],
+    "Current_Quarter_No_of_Lives": [
+      "For the Quarter - Current Year",
+      "No. of Lives"
+    ],
+    "Current_Quarter_Sum_Insured": [
+      "For the Quarter - Current Year",
+      "Sum Insured, Wherever applicable (Rs.Lakhs)"
+    ],
+    "Previous_Quarter_Premium": [
+      "For the Quarter - Previous Year",
+      "Premium (Rs. In Lakhs)"
+    ],
+    "Previous_Quarter_No_of_Policies": [
+      "For the Quarter - Previous Year",
+      "No. of Policies"
+    ],
+    "Previous_Quarter_No_of_Lives": [
+      "For the Quarter - Previous Year",
+      "No. of Lives"
+    ],
+    "Previous_Quarter_Sum_Insured": [
+      "For the Quarter - Previous Year",
+      "Sum Insured, Wherever applicable (Rs.Lakhs)"
+    ],
+    "Current_YTD_Premium": [
+      "Up to the Quarter - Current Year",
+      "Premium (Rs. In Lakhs)"
+    ],
+    "Current_YTD_No_of_Policies": [
+      "Up to the Quarter - Current Year",
+      "No. of Policies"
+    ],
+    "Current_YTD_No_of_Lives": [
+      "Up to the Quarter - Current Year",
+      "No. of Lives"
+    ],
+    "Current_YTD_Sum_Insured": [
+      "Up to the Quarter - Current Year",
+      "Sum Insured, Wherever applicable (Rs.Lakhs)"
+    ],
+    "Previous_YTD_Premium": [
+      "Up to the Quarter - Previous Year",
+      "Premium (Rs. In Lakhs)"
+    ],
+    "Previous_YTD_No_of_Policies": [
+      "Up to the Quarter - Previous Year",
+      "No. of Policies"
+    ],
+    "Previous_YTD_No_of_Lives": [
+      "Up to the Quarter - Previous Year",
+      "No. of Lives"
+    ],
+    "Previous_YTD_Sum_Insured": [
+      "Up to the Quarter - Previous Year",
+      "Sum Insured, Wherever applicable (Rs.Lakhs)"
+    ]
   },
   "FlatHeaders": [
-    "Sl_No",
+    "Sl. No",
     "Particulars",
-    "For_Quarter_ended_Current_Year_Premium_Lacs",
-    "For_Quarter_ended_Current_Year_No_of_Policies",
-    "For_Quarter_ended_Current_Year_No_of_Lives",
-    "For_Quarter_ended_Current_Year_Sum_Insured_Lacs",
-    "For_Quarter_ended_Previous_Year_Premium_Lacs",
-    "For_Quarter_ended_Previous_Year_No_of_Policies",
-    "For_Quarter_ended_Previous_Year_No_of_Lives",
-    "For_Quarter_ended_Previous_Year_Sum_Insured_Lacs",
-    "Upto_Quarter_ended_Current_Year_Premium_Lacs",
-    "Upto_Quarter_ended_Current_Year_No_of_Policies",
-    "Upto_Quarter_ended_Current_Year_No_of_Lives",
-    "Upto_Quarter_ended_Current_Year_Sum_Insured_Lacs",
-    "Upto_Quarter_ended_Previous_Year_Premium_Lacs",
-    "Upto_Quarter_ended_Previous_Year_No_of_Policies",
-    "Upto_Quarter_ended_Previous_Year_No_of_Lives",
-    "Upto_Quarter_ended_Previous_Year_Sum_Insured_Lacs"
+    "For the Quarter - Current Year - Premium (Rs. In Lakhs)",
+    "For the Quarter - Current Year - No. of Policies",
+    "For the Quarter - Current Year - No. of Lives",
+    "For the Quarter - Current Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+    "For the Quarter - Previous Year - Premium (Rs. In Lakhs)",
+    "For the Quarter - Previous Year - No. of Policies",
+    "For the Quarter - Previous Year - No. of Lives",
+    "For the Quarter - Previous Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+    "Up to the Quarter - Current Year - Premium (Rs. In Lakhs)",
+    "Up to the Quarter - Current Year - No. of Policies",
+    "Up to the Quarter - Current Year - No. of Lives",
+    "Up to the Quarter - Current Year - Sum Insured, Wherever applicable (Rs.Lakhs)",
+    "Up to the Quarter - Previous Year - Premium (Rs. In Lakhs)",
+    "Up to the Quarter - Previous Year - No. of Policies",
+    "Up to the Quarter - Previous Year - No. of Lives",
+    "Up to the Quarter - Previous Year - Sum Insured, Wherever applicable (Rs.Lakhs)"
   ],
   "Rows": []
 }

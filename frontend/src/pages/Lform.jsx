@@ -53,7 +53,7 @@ function Lform({ onMenuClick }) {
         } else if (tab === 'News') {
             navigate('/news');
         } else if (tab === 'Define Template') {
-            console.log('Define Template clicked');
+            navigate('/template');
         } else if (tab === 'Save Template') {
             console.log('Save Template clicked');
         } else if (tab === 'Screener Inputs') {
@@ -442,7 +442,10 @@ function Lform({ onMenuClick }) {
                                 <table style={{
                                     width: '100%',
                                     borderCollapse: 'collapse',
-                                    fontSize: '14px'
+                                    borderSpacing: '0',
+                                    fontSize: '14px',
+                                    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    tableLayout: 'auto'
                                 }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#f8f9fa' }}>
@@ -450,314 +453,322 @@ function Lform({ onMenuClick }) {
                                                 padding: '12px',
                                                 textAlign: 'left',
                                                 border: '1px solid #ddd',
-                                                fontWeight: '600'
+                                                fontWeight: '600',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                                             }}>Particulars</th>
                                             <th style={{
                                                 padding: '12px',
                                                 textAlign: 'center',
                                                 border: '1px solid #ddd',
-                                                fontWeight: '600'
+                                                fontWeight: '600',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                                             }}>Schedule Ref. Form No.</th>
                                             <th style={{
                                                 padding: '12px',
                                                 textAlign: 'center',
                                                 border: '1px solid #ddd',
-                                                fontWeight: '600'
+                                                fontWeight: '600',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                                             }}>Quarter ended {selectedValues.period}</th>
                                             <th style={{
                                                 padding: '12px',
                                                 textAlign: 'center',
                                                 border: '1px solid #ddd',
-                                                fontWeight: '600'
+                                                fontWeight: '600',
+                                                fontSize: '14px',
+                                                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                                             }}>Quarter ended {selectedValues.period === 'Jun 24' ? 'Jun 23' : 'Previous Period'}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
                                                 Amounts transferred from the Policyholders Account (Technical Account)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>37,960</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>29,600</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'right', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>37,960</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'right', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>29,600</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
                                                 Income From Investments
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (a) Interest, Dividends & Rent – Gross
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>15,756</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>17,963</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>15,756</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>17,963</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (b) Profit on sale/redemption of investments
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>17,903</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>1</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>17,903</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>1</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (c) (Loss on sale/redemption of investments)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(9)</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(383)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(9)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(383)</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (d) Amortisation of Premium/Discount on Investments (Net)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(383)</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(387)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(383)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(387)</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 Other Income
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>567</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>300</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>567</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>300</td>
                                         </tr>
                                         <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 <strong>Total (A)</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>71,794</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>47,477</strong>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Expense other than those directly related to the insurance business
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>L-6A</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>804</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>399</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>L-6A</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>804</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>399</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Contribution to Policyholders' A/c
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (a) Towards Excess Expenses of Management
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>44,564</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>29,212</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>44,564</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>29,212</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (b) towards deficit funding and others
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>132</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>132</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Managerial Remuneration*
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>2,049</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>2,049</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>2,049</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>2,049</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Interest on subordinated debt
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>47</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>3</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>47</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>3</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Expenses towards CSR activities
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Penalties
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Bad debts written off
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Amount Transferred to Policyholders' Account
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Provisions (Other than taxation)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (a) For diminution in the value of investments (Net)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>3,587</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>3,587</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (b) Provision for doubtful debts
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (c) Others
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 <strong>Total (B)</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>51,051</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>31,795</strong>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Profit/ (Loss) before tax
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>20,743</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>15,682</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>20,743</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>15,682</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Provision for Taxation
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (a) Current tax credit/(charge)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(158)</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(158)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (b) Deferred tax credit/(charge)
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>34</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>(26)</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>34</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>(26)</td>
                                         </tr>
                                         <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 <strong>Profit/(Loss) after tax</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>20,619</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>15,656</strong>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 Appropriations
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (a) Balance at the beginning of the period
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>480,695</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>407,252</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>480,695</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>407,252</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (b) Interim dividend paid
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (c) Final dividend paid
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>7,906</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>7,906</td>
                                         </tr>
                                         <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingLeft: '20px' }}>
                                                 (d) Transfer to reserves/other accounts
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right' }}>-</td>
                                         </tr>
                                         <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600' }}>
                                                 <strong>Profit/Loss carried forward to Balance Sheet</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'center' }}>-</td>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>501,314</strong>
                                             </td>
-                                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: '600' }}>
+                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', textAlign: 'right', fontWeight: '600' }}>
                                                 <strong>415,002</strong>
                                             </td>
                                         </tr>

@@ -1,0 +1,29 @@
+{
+  "Form No": "L-16",
+  "Title": "Fixed Assets Schedule",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULE FORMING PART OF FINANCIAL STATEMENTS",
+  "Main_Title": "FIXED ASSETS",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Cost_Gross_Block": ["As at {FINANCIAL_YEAR_START}", "Additions", "Deductions", "As at {CURRENT_DATE}"],
+    "Depreciation": ["As at {FINANCIAL_YEAR_START}", "For the period", "On Adjustments", "On Sales", "As at {CURRENT_DATE}"],
+    "Net_Block": ["As at {CURRENT_DATE}", "As at {PREVIOUS_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Cost_Gross_Block_As_at_FINANCIAL_YEAR_START",
+    "Cost_Gross_Block_Additions",
+    "Cost_Gross_Block_Deductions",
+    "Cost_Gross_Block_As_at_CURRENT_DATE",
+    "Depreciation_As_at_FINANCIAL_YEAR_START",
+    "Depreciation_For_the_period",
+    "Depreciation_On_Adjustments",
+    "Depreciation_On_Sales",
+    "Depreciation_As_at_CURRENT_DATE",
+    "Net_Block_As_at_CURRENT_DATE",
+    "Net_Block_As_at_PREVIOUS_DATE"
+  ],
+  "Rows": []
+} 

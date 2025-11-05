@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Body
 from fastapi.responses import FileResponse
-from typing import List, Dict
+from typing import List, Dict, Optional
+from pydantic import BaseModel
 import os
 import json
 import re
@@ -20,6 +21,35 @@ router = APIRouter(tags=["PDF Splitter"])
 
 # Initialize the PDF splitter service
 pdf_splitter = PDFSplitterService()
+
+# Form preferences storage (using JSON file for simplicity)
+# Use absolute path in backend directory
+BASE_DIR = Path(__file__).parent.parent
+FORM_PREFERENCES_FILE = BASE_DIR / "form_preferences.json"
+
+# Pydantic models for form preferences
+class FormPreferencesRequest(BaseModel):
+    enabled_forms: List[str]
+
+def load_form_preferences() -> Dict:
+    """Load form preferences from JSON file"""
+    if FORM_PREFERENCES_FILE.exists():
+        try:
+            with open(FORM_PREFERENCES_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading form preferences: {e}")
+            return {}
+    return {}
+
+def save_form_preferences(prefs: Dict):
+    """Save form preferences to JSON file"""
+    try:
+        with open(FORM_PREFERENCES_FILE, 'w') as f:
+            json.dump(prefs, f, indent=2)
+    except Exception as e:
+        print(f"Error saving form preferences: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.post("/upload-and-split")
@@ -707,7 +737,7 @@ async def extract_form_data(
                     "--extracted", str(extracted_json),
                     "--pdf", split_path,
                     "--output", str(corrected_json)
-                    # Optionally: "--model", "gemini-2.5-pro"
+                    # Optionally: "--model", "gemini-2.5-flash"
                 ]
                 print(f"Prompt being sent to Google Gemini : {cmd}")
                 # Enhanced Gemini command debugging
@@ -986,6 +1016,114 @@ async def extract_form_data(
                     f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
             # If it's already a plain dict or other format, leave as-is
 
+        # --- Store Gemini-verified data in Companies, Reports, ReportData tables ---
+        print(f"\n🗄️ === DATABASE STORAGE DEBUG ===")
+        print(f"📊 Normalized data type: {type(normalized_data)}")
+        print(
+            f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
+
+        try:
+            from databases.models import Companies, Report, ReportData
+            from databases.database import SessionLocal
+
+            print(f"[DB] Creating database session...")
+            db = SessionLocal()
+
+            # 1. Find or create company
+            print(f"[DB] Looking for company: {company_name}")
+            company_obj = db.query(Companies).filter_by(
+                companyname=company_name).first()
+            if not company_obj:
+                print(f"[DB] Company not found, creating new entry...")
+                company_obj = Companies(companyname=company_name)
+                db.add(company_obj)
+                db.commit()
+                db.refresh(company_obj)
+                print(
+                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+            else:
+                print(
+                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+
+            # 2. Insert into Report
+            report_period = None
+            currency = None
+            registration_number = None
+            title = None
+            pages_used = None
+            flat_headers = None
+            data_rows = None
+
+            print(f"[DB] Extracting metadata from normalized_data...")
+            if isinstance(normalized_data, list) and len(normalized_data) > 0:
+                first_row = normalized_data[0]
+                report_period = first_row.get("Period")
+                currency = first_row.get("Currency")
+                registration_number = first_row.get("RegistrationNumber")
+                title = first_row.get("Title")
+                pages_used = first_row.get("PagesUsed")
+                flat_headers = first_row.get("FlatHeaders")
+                data_rows = first_row.get("Rows")
+                print(
+                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
+
+            if not report_period:
+                report_period = str(datetime.now().date())
+                print(
+                    f"[DB] No period found, using current date: {report_period}")
+
+            print(f"[DB] Creating Report entry...")
+            report_obj = Report(
+                company=company_name,
+                pdf_name=pdf_name,
+                registration_number=str(
+                    registration_number) if registration_number else None,
+                form_no=form_code,
+                title=str(title) if title else None,
+                period=str(report_period),
+                currency=str(currency) if currency else None,
+                pages_used=str(pages_used) if pages_used else None,
+                source_pdf=split_filename,
+                flat_headers=flat_headers,
+                data_rows=data_rows
+            )
+            db.add(report_obj)
+            db.commit()
+            db.refresh(report_obj)
+            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+
+            # 3. Insert each row into ReportData
+            print(
+                f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
+            inserted_count = 0
+            for idx, row in enumerate(normalized_data):
+                try:
+                    db.add(ReportData(
+                        reportid=report_obj.id,
+                        pdf_name=pdf_name,
+                        formno=row.get("Form No") or form_code,
+                        title=row.get("Title") or "",
+                        datarow=row
+                    ))
+                    inserted_count += 1
+                except Exception as row_exc:
+                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
+                    if idx == 0:  # Print first row details for debugging
+                        print(
+                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
+
+            db.commit()
+            print(
+                f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
+            db.close()
+            print(f"✅ Stored extraction in companies, reports, reportdata tables.")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+        except Exception as db_exc:
+            import traceback
+            print(f"❌ Failed to store extraction in DB: {db_exc}")
+            print(f"❌ Full traceback: {traceback.format_exc()}")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+
         return {
             "success": True,
             "extraction_id": extraction_metadata["extraction_id"],
@@ -1009,6 +1147,189 @@ async def extract_form_data(
         detailed_error = f"{error_msg} | Context: {context_info}"
 
         raise HTTPException(status_code=500, detail=detailed_error)
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def get_form_preferences(company_name: str, pdf_name: str):
+    """
+    Get form visibility preferences for a specific PDF (shared across all users)
+    Returns empty array if preferences don't exist (first time)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        
+        # Check if key exists in preferences (None means no preferences saved yet)
+        if key in prefs:
+            enabled_forms = prefs[key]
+            # Return the saved preferences (even if empty array)
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": enabled_forms
+                }
+            }
+        else:
+            # No preferences saved yet - return None to indicate first time
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": None
+                }
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def set_form_preferences(
+    company_name: str,
+    pdf_name: str,
+    request: FormPreferencesRequest
+):
+    """
+    Set form visibility preferences for a specific PDF (admin only, shared across all users)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        prefs[key] = request.enabled_forms
+        save_form_preferences(prefs)
+        
+        return {
+            "success": True,
+            "message": f"Form preferences saved for {company_name}/{pdf_name}",
+            "data": {
+                "enabled_forms": request.enabled_forms
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+
+
+# Data edits storage (using JSON file for simplicity)
+DATA_EDITS_FILE = BASE_DIR / "data_edits.json"
+
+# Pydantic models for data edits
+class CellEditRequest(BaseModel):
+    form_name: str
+    record_index: int
+    row_index: int
+    header: str
+    value: str
+
+class BulkEditRequest(BaseModel):
+    edits: List[CellEditRequest]
+
+def load_data_edits() -> Dict:
+    """Load data edits from JSON file"""
+    if DATA_EDITS_FILE.exists():
+        try:
+            with open(DATA_EDITS_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading data edits: {e}")
+            return {}
+    return {}
+
+def save_data_edits(edits: Dict):
+    """Save data edits to JSON file"""
+    try:
+        with open(DATA_EDITS_FILE, 'w') as f:
+            json.dump(edits, f, indent=2)
+    except Exception as e:
+        print(f"Error saving data edits: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save edits: {str(e)}")
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def get_data_edits(company_name: str, pdf_name: str):
+    """
+    Get all data edits for a specific PDF (shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        pdf_edits = edits.get(key, {})
+        
+        return {
+            "success": True,
+            "data": {
+                "edits": pdf_edits
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get edits: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def save_data_edit(
+    company_name: str,
+    pdf_name: str,
+    request: CellEditRequest
+):
+    """
+    Save a single cell edit (admin only, shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key not in edits:
+            edits[key] = {}
+        
+        # Create edit key: form_recordIndex_rowIndex_header
+        edit_key = f"{request.form_name}_{request.record_index}_{request.row_index}_{request.header}"
+        edits[key][edit_key] = {
+            "form_name": request.form_name,
+            "record_index": request.record_index,
+            "row_index": request.row_index,
+            "header": request.header,
+            "value": request.value,
+            "edited_at": datetime.now().isoformat()
+        }
+        
+        save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": f"Cell edit saved for {company_name}/{pdf_name}",
+            "data": {
+                "edit": edits[key][edit_key]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save edit: {str(e)}")
+
+
+@router.delete("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def delete_data_edit(
+    company_name: str,
+    pdf_name: str,
+    form_name: str,
+    record_index: int,
+    row_index: int,
+    header: str
+):
+    """
+    Delete a specific cell edit (admin only)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key in edits:
+            edit_key = f"{form_name}_{record_index}_{row_index}_{header}"
+            if edit_key in edits[key]:
+                del edits[key][edit_key]
+                save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": "Edit deleted successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete edit: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")

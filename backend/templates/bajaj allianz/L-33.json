@@ -178,32 +178,56 @@
     "Rows": []
   },
   "Headers": {
+    "No": [
+      "No"
+    ],
     "Particulars": [
-      "Particulars"
+      "PARTICULARS"
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Bonds_Debentures_YTD": [
+      "YTD (As on date)"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Bonds_Debentures_Prev_FY": [
+      "Prev. FY (As on 31 March 2022)"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Loans_YTD": [
+      "YTD (As on date)"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Loans_Prev_FY": [
+      "Prev. FY (As on 31 March 2022)"
+    ],
+    "Other_Debt_instruments_YTD": [
+      "YTD (As on date)"
+    ],
+    "Other_Debt_instruments_Prev_FY": [
+      "Prev. FY (As on 31 March 2022)"
+    ],
+    "All_Other_Assets_YTD": [
+      "YTD (As on date)"
+    ],
+    "All_Other_Assets_Prev_FY": [
+      "Prev. FY (As on 31 March 2022)"
+    ],
+    "TOTAL_YTD": [
+      "YTD (As on date)"
+    ],
+    "TOTAL_Prev_FY": [
+      "Prev. FY (As on 31 March 2022)"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "No",
+    "PARTICULARS",
+    "Bonds/Debentures - YTD (As on date)",
+    "Bonds/Debentures - Prev. FY (As on 31 March 2022)",
+    "Loans - YTD (As on date)",
+    "Loans - Prev. FY (As on 31 March 2022)",
+    "Other Debt instruments - YTD (As on date)",
+    "Other Debt instruments - Prev. FY (As on 31 March 2022)",
+    "All Other Assets - YTD (As on date)",
+    "All Other Assets - Prev. FY (As on 31 March 2022)",
+    "TOTAL - YTD (As on date)",
+    "TOTAL - Prev. FY (As on 31 March 2022)"
   ],
   "Rows": []
 }

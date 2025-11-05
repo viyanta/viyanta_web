@@ -255,8 +255,8 @@ def generate_metadata(company_name, pdf_path, output_dir, form_ranges, split_fil
 
 
 def main():
-    company_name = "Aditya Birla Life"
-    pdf_path = r"C:\Users\vicky\OneDrive\Desktop\Viyanta-project\viyanta_web\backend\test\Aditya Birla Life S FY2025 HY.pdf"
+    company_name = "ICICI Prudential Life"
+    pdf_path = r"C:\Users\vicky\OneDrive\Desktop\Viyanta-project\viyanta_web\backend\test\ICICI Prudential Life  C FY2023 9M.pdf"
     output_dir = os.path.splitext(pdf_path)[0]
 
     print(f"📄 Processing: {pdf_path}")

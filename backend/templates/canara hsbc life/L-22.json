@@ -1,28 +1,26 @@
 {
   "Form No": "L-22",
   "Title": "ANALYTICAL RATIOS",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "Ratio",
-  "PagesUsed": "3-6",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Analytical Ratios",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Percentages",
   "Headers": {
-    "Sr_No": ["S. No."],
-    "Ratio": ["Ratio"],
-    "For_Quarter_Ended_Current_Year": ["FOR QUARTER ENDED", "{QUARTER_END_DATE}"],
-    "Upto_Quarter_Ended_Current_Year": ["UPTO QUARTER ENDED", "{QUARTER_END_DATE}"],
-    "For_Quarter_Ended_Previous_Year": ["FOR QUARTER ENDED", "{PREVIOUS_QUARTER_END}"],
-    "Upto_Quarter_Ended_Previous_Year": ["UPTO QUARTER ENDED", "{PREVIOUS_QUARTER_END}"]
+    "Sr_No": ["Sr.", "No."],
+    "Particulars": ["Particulars"],
+    "For_the_quarter_ended_31_December_Current_Year": ["For the", "quarter ended", "31 December", "{QUARTER_END_DATE_YEAR}"],
+    "Upto_the_period_ended_31_December_Current_Year": ["Upto the", "period ended", "31 December", "{YTD_END_DATE_YEAR}"],
+    "For_the_quarter_ended_31_December_Previous_Year": ["For the", "quarter ended", "31 December", "{PREVIOUS_QUARTER_END_YEAR}"],
+    "Upto_the_period_ended_31_December_Previous_Year": ["Upto the", "period ended", "31 December", "{PREVIOUS_YTD_END_DATE_YEAR}"]
   },
   "FlatHeaders": [
     "Sr_No",
-    "Ratio",
-    "For_Quarter_Ended_Current_Year",
-    "Upto_Quarter_Ended_Current_Year",
-    "For_Quarter_Ended_Previous_Year",
-    "Upto_Quarter_Ended_Previous_Year"
+    "Particulars",
+    "For_the_quarter_ended_31_December_Current_Year",
+    "Upto_the_period_ended_31_December_Current_Year",
+    "For_the_quarter_ended_31_December_Previous_Year",
+    "Upto_the_period_ended_31_December_Previous_Year"
   ],
   "Rows": []
 }

@@ -1,36 +1,104 @@
 {
   "Form No": "L-41",
   "Title": "GRIEVANCE DISPOSAL",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "No. of complaints",
-  "PagesUsed": "3-6",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Sections": [
+    {
+      "Section_Name": "GRIEVANCE DISPOSAL FOR THE QUARTER ENDING DECEMBER 2022",
+      "Headers": {
+        "Sl_No": [
+          "Sl No."
+        ],
+        "Particulars": [
+          "Particulars"
+        ],
+        "Opening_Balance": [
+          "Opening Balance As on beginning of the quarter"
+        ],
+        "Additions_during_quarter": [
+          "Additions during the quarter"
+        ],
+        "Fully_Accepted": [
+          "Complaints Resolved/ settled during the quarter",
+          "Fully Accepted"
+        ],
+        "Partial_Accepted": [
+          "Complaints Resolved/ settled during the quarter",
+          "Partial Accepted"
+        ],
+        "Rejected": [
+          "Complaints Resolved/ settled during the quarter",
+          "Rejected"
+        ],
+        "Complaints_Pending": [
+          "Complaints Pending at the end of the quarter"
+        ],
+        "Total_Complaints_Registered": [
+          "Total complaints registered upto the quarter during the financial year"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl No.",
+        "Particulars",
+        "Opening Balance As on beginning of the quarter",
+        "Additions during the quarter",
+        "Complaints Resolved/ settled during the quarter - Fully Accepted",
+        "Complaints Resolved/ settled during the quarter - Partial Accepted",
+        "Complaints Resolved/ settled during the quarter - Rejected",
+        "Complaints Pending at the end of the quarter",
+        "Total complaints registered upto the quarter during the financial year"
+      ],
+      "Rows": []
+    }
+  ],
   "Headers": {
-    "Sl_No": ["Sl No."],
-    "Particulars": ["Particulars"],
-    "Opening_Balance_As_on_beginning_of_quarter": ["Opening Balance As on", "beginning of the quarter"],
-    "Additions_during_quarter_net_of_duplicate_complaints": ["Additions during the quarter", "(net of duplicate complaints)"],
-    "Complaints_Resolved_settled": {
-      "Fully_Accepted": ["Complaints Resolved/ settled", "Fully Accepted"],
-      "Partial_Accepted": ["Complaints Resolved/ settled", "Partial Accepted"],
-      "Rejected": ["Complaints Resolved/ settled", "Rejected"]
-    },
-    "Complaints_Pending_at_end_of_quarter": ["Complaints Pending at", "the end of the quarter"],
-    "Total_complaints_registered_upto_quarter_during_financial_year": ["Total complaints registered", "upto the quarter during", "the financial year"]
+    "Sl_No": [
+      "Sl No."
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "Opening_Balance": [
+      "Opening Balance As on beginning of the quarter"
+    ],
+    "Additions_during_quarter": [
+      "Additions during the quarter"
+    ],
+    "Fully_Accepted": [
+      "Complaints Resolved/ settled during the quarter",
+      "Fully Accepted"
+    ],
+    "Partial_Accepted": [
+      "Complaints Resolved/ settled during the quarter",
+      "Partial Accepted"
+    ],
+    "Rejected": [
+      "Complaints Resolved/ settled during the quarter",
+      "Rejected"
+    ],
+    "Complaints_Pending": [
+      "Complaints Pending at the end of the quarter"
+    ],
+    "Total_Complaints_Registered": [
+      "Total complaints registered upto the quarter during the financial year"
+    ]
   },
   "FlatHeaders": [
-    "Sl_No",
+    "Sl No.",
     "Particulars",
-    "Opening_Balance_As_on_beginning_of_quarter",
-    "Additions_during_quarter_net_of_duplicate_complaints",
-    "Complaints_Resolved_settled_Fully_Accepted",
-    "Complaints_Resolved_settled_Partial_Accepted",
-    "Complaints_Resolved_settled_Rejected",
-    "Complaints_Pending_at_end_of_quarter",
-    "Total_complaints_registered_upto_quarter_during_financial_year"
+    "Opening Balance As on beginning of the quarter",
+    "Additions during the quarter",
+    "Complaints Resolved/ settled during the quarter - Fully Accepted",
+    "Complaints Resolved/ settled during the quarter - Partial Accepted",
+    "Complaints Resolved/ settled during the quarter - Rejected",
+    "Complaints Pending at the end of the quarter",
+    "Total complaints registered upto the quarter during the financial year"
   ],
   "Rows": []
 }

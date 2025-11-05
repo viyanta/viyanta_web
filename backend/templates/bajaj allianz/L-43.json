@@ -51,32 +51,40 @@
     }
   ],
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Meeting_Date": [
+      "Meeting Date"
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Investee_Company_Name": [
+      "Investee Company Name"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Type_of_Meetings": [
+      "Type of Meetings (AGM/EGM)"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Proposal_of_Management_Shareholders": [
+      "Proposal of Management / Shareholders"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Description_of_Proposal": [
+      "Description of Proposal"
+    ],
+    "Investee_Company_Management_Recommendation": [
+      "Investee Company's Management Recommendation"
+    ],
+    "Vote": [
+      "Vote (For/Against/Abstain)"
+    ],
+    "Reason_supporting_vote_decision": [
+      "Reason supporting the vote decision"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Meeting Date",
+    "Investee Company Name",
+    "Type of Meetings (AGM/EGM)",
+    "Proposal of Management / Shareholders",
+    "Description of Proposal",
+    "Investee Company's Management Recommendation",
+    "Vote (For/Against/Abstain)",
+    "Reason supporting the vote decision"
   ],
   "Rows": []
 }

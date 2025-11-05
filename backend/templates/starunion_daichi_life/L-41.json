@@ -1,7 +1,7 @@
 {
   "Form No": "L-41",
   "Title": "GRIEVANCE DISPOSAL",
-  "Company": "Aviva Life Insurance Company India Limited",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
   "SubTitle": "PERIODIC DISCLOSURES",
   "Registration_Number": "116",
   "Date_of_Registration": "3 August 2001",
@@ -58,32 +58,47 @@
     }
   ],
   "Headers": {
+    "Sl_No": [
+      "Sl No."
+    ],
     "Particulars": [
       "Particulars"
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Opening_Balance": [
+      "Opening Balance As on beginning of the quarter"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Additions_during_quarter": [
+      "Additions during the quarter"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Fully_Accepted": [
+      "Complaints Resolved/ settled during the quarter",
+      "Fully Accepted"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Partial_Accepted": [
+      "Complaints Resolved/ settled during the quarter",
+      "Partial Accepted"
+    ],
+    "Rejected": [
+      "Complaints Resolved/ settled during the quarter",
+      "Rejected"
+    ],
+    "Complaints_Pending": [
+      "Complaints Pending at the end of the quarter"
+    ],
+    "Total_Complaints_Registered": [
+      "Total complaints registered upto the quarter during the financial year"
     ]
   },
   "FlatHeaders": [
+    "Sl No.",
     "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Opening Balance As on beginning of the quarter",
+    "Additions during the quarter",
+    "Complaints Resolved/ settled during the quarter - Fully Accepted",
+    "Complaints Resolved/ settled during the quarter - Partial Accepted",
+    "Complaints Resolved/ settled during the quarter - Rejected",
+    "Complaints Pending at the end of the quarter",
+    "Total complaints registered upto the quarter during the financial year"
   ],
   "Rows": []
 }

@@ -1,36 +1,27 @@
 {
   "Form No": "L-32",
-  "Title": "AVAILABLE SOLVENCY MARGIN AND SOLVENCY RATIO",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Form_Code": "KT-3",
+  "Title": "L-32 Available Solvency Margin and Solvency Ratio",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs.Lakhs",
+  "Statement_Date": "31st December 2022",
+  "Periodicity": "Quarterly",
   "Classification": "Total Business",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
+  "Form_Code": "KT-3",
+  "Reporting_Period": "As at Quarter ended 31st December 2022",
   "Headers": {
-    "Item": [
-      "Item"
-    ],
-    "Description": [
-      "Description"
-    ],
-    "Notes_No": [
-      "Notes No."
-    ],
-    "Adjusted_Value": [
-      "Adjusted Value",
-      "As at {QUARTER_END_DATE}",
-      "(₹ in Lacs)"
-    ]
+    "Item": ["Item"],
+    "Description": ["Description"],
+    "Notes_No": ["Notes No..."],
+    "Adjusted_Value": ["Adjusted Value (Rs.Lakhs)"]
   },
   "FlatHeaders": [
     "Item",
     "Description",
-    "Notes_No",
-    "Adjusted_Value_As_at"
+    "Notes No...",
+    "Adjusted Value (Rs.Lakhs)"
   ],
   "Rows": []
 }

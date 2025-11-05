@@ -1,38 +1,34 @@
 {
   "Form No": "L-29",
-  "Title": "DETAIL REGARDING DEBT SECURITIES FOR NON LINKED FUNDS",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
+  "Title": "FORM L-29 Detail regarding debt securities",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
   "Headers": {
-    "Description": ["Description"],
-    "Market_Value": {
-      "As_at_Current_Year": ["Market Value", "As at", "{QUARTER_END_DATE}"],
-      "As_percent_of_total_Current": ["Market Value", "as % of total for this class"],
-      "As_at_Previous_Year": ["Market Value", "As at", "{PREVIOUS_QUARTER_END}"],
-      "As_percent_of_total_Previous": ["Market Value", "as % of total for this class"]
-    },
-    "Book_Value": {
-      "As_at_Current_Year": ["Book Value", "As at", "{QUARTER_END_DATE}"],
-      "As_percent_of_total_Current": ["Book Value", "as % of total for this class"],
-      "As_at_Previous_Year": ["Book Value", "As at", "{PREVIOUS_QUARTER_END}"],
-      "As_percent_of_total_Previous": ["Book Value", "as % of total for this class"]
-    }
+    "Particulars": ["Particulars"],
+    "Market_Value_2022": ["As at 31 December 2022"],
+    "Market_Value_2022_Percent": ["As % of total for this class"],
+    "Market_Value_2021": ["As at 31 December 2021"],
+    "Market_Value_2021_Percent": ["As % of total for this class"],
+    "Book_Value_2022": ["As at 31 December 2022"],
+    "Book_Value_2022_Percent": ["As % of total for this class"],
+    "Book_Value_2021": ["As at 31 December 2021"],
+    "Book_Value_2021_Percent": ["As % of total for this class"]
   },
   "FlatHeaders": [
-    "Description",
-    "Market_Value_As_at_Current_Year",
-    "Market_Value_As_percent_of_total_Current",
-    "Market_Value_As_at_Previous_Year",
-    "Market_Value_As_percent_of_total_Previous",
-    "Book_Value_As_at_Current_Year",
-    "Book_Value_As_percent_of_total_Current",
-    "Book_Value_As_at_Previous_Year",
-    "Book_Value_As_percent_of_total_Previous"
+    "Particulars",
+    "As at 31 December 2022",
+    "As % of total for this class",
+    "As at 31 December 2021",
+    "As % of total for this class",
+    "As at 31 December 2022",
+    "As % of total for this class",
+    "As at 31 December 2021",
+    "As % of total for this class"
   ],
   "Rows": []
 }

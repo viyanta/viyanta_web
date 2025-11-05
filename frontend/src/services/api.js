@@ -269,6 +269,16 @@ class ApiService {
     return response.json();
   }
 
+  async getCompaniesByLform(lform) {
+    const response = await fetch(`${API_BASE_URL}/peers/companies-by-lform?lform=${encodeURIComponent(lform)}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch companies by L-Form');
+    }
+
+    return response.json();
+  }
+
   async generateLformReport(filters) {
     const response = await fetch(`${API_BASE_URL}/files/generate-lform-report`, {
       method: 'POST',

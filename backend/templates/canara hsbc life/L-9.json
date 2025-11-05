@@ -1,24 +1,17 @@
 {
   "Form No": "L-9",
-  "Title": "FORM L-9 Shareholding Pattern",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Certification": "As certified by the Management",
-  "Currency": "Shares",
-  "PagesUsed": "3-6",
+  "Title": "PATTERN OF SHAREHOLDING SCHEDULE",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Schedules forming part of financial statements",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Numbers",
   "Headers": {
     "Shareholder": ["Shareholder"],
-    "As_at_Current_Year": {
-      "Number_of_Shares": ["As at", "{QUARTER_END_DATE}", "Number of Shares"],
-      "Percentage_of_Holding": ["As at", "{QUARTER_END_DATE}", "% of Holding"]
-    },
-    "As_at_Previous_Year": {
-      "Number_of_Shares": ["As at", "{PREVIOUS_QUARTER_END}", "Number of Shares"],
-      "Percentage_of_Holding": ["As at", "{PREVIOUS_QUARTER_END}", "% of Holding"]
-    }
+    "As_at_Current_Year_Number_of_Shares": ["As at 31 December", "{QUARTER_END_DATE_YEAR}", "Number of", "Shares"],
+    "As_at_Current_Year_Percentage_of_Holding": ["As at 31 December", "{QUARTER_END_DATE_YEAR}", "% of", "Holding"],
+    "As_at_Previous_Year_Number_of_Shares": ["As at 31 December", "{PREVIOUS_QUARTER_END_YEAR}", "Number of", "Shares"],
+    "As_at_Previous_Year_Percentage_of_Holding": ["As at 31 December", "{PREVIOUS_QUARTER_END_YEAR}", "% of", "Holding"]
   },
   "FlatHeaders": [
     "Shareholder",

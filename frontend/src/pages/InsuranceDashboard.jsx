@@ -470,7 +470,7 @@ function InsuranceDashboard({ onMenuClick }) {
           flexWrap: 'wrap'
         }}>
           {/* Hamburger Menu Icon */}
-          <button
+          {/* <button
             className="hide-hamburger-desktop"
             onClick={() => {
               console.log('InsuranceDashboard hamburger clicked!');
@@ -505,7 +505,7 @@ function InsuranceDashboard({ onMenuClick }) {
             }}
           >
             ☰
-          </button>
+          </button> */}
         </div>
       </div>
 

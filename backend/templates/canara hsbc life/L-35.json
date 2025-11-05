@@ -1,37 +1,201 @@
 {
-  "Form No": "L-35-DOWNGRADING OF INVESTMENTS - 2",
-  "Title": "DOWNGRADING OF INVESTMENTS - 2 (Life Fund)",
-  "SubTitle": "Statement of Down Graded Investments",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Name_of_Fund": "Life Fund",
-  "Currency": "₹ in Lacs",
-  "PagesUsed": "3-6",
+  "Form No": "L-35",
+  "Title": "FORM L-35 DOWNGRADING OF INVESTMENTS 2",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Statement of downgraded investments",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Regulation": "Read with Regulation 10",
+  "Part": "PART-A",
+  "Life_Fund": {
+    "Title": "Life Fund",
+    "Headers": {
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr. No",
+      "Name of the security",
+      "COI",
+      "Amount",
+      "Date of purchase",
+      "Rating agency",
+      "Original grade",
+      "Current grade",
+      "Date of downgrade",
+      "Remarks"
+    ],
+    "Rows": []
+  },
+  "Pension_General_Annuity_Group_Fund": {
+    "Title": "Pension & General Annuity and Group Business Fund",
+    "Headers": {
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr. No",
+      "Name of the security",
+      "COI",
+      "Amount",
+      "Date of purchase",
+      "Rating agency",
+      "Original grade",
+      "Current grade",
+      "Date of downgrade",
+      "Remarks"
+    ],
+    "Rows": []
+  },
+  "Unit_Linked_Funds": {
+    "Title": "Unit Linked Funds",
+    "Headers": {
+      "Sr_No": [
+        "Sr. No"
+      ],
+      "Name_of_the_security": [
+        "Name of the security"
+      ],
+      "COI": [
+        "COI"
+      ],
+      "Amount": [
+        "Amount"
+      ],
+      "Date_of_purchase": [
+        "Date of purchase"
+      ],
+      "Rating_agency": [
+        "Rating agency"
+      ],
+      "Original_grade": [
+        "Original grade"
+      ],
+      "Current_grade": [
+        "Current grade"
+      ],
+      "Date_of_downgrade": [
+        "Date of downgrade"
+      ],
+      "Remarks": [
+        "Remarks"
+      ]
+    },
+    "FlatHeaders": [
+      "Sr. No",
+      "Name of the security",
+      "COI",
+      "Amount",
+      "Date of purchase",
+      "Rating agency",
+      "Original grade",
+      "Current grade",
+      "Date of downgrade",
+      "Remarks"
+    ],
+    "Rows": []
+  },
   "Headers": {
-    "No": ["No"],
-    "Name_of_Security": ["Name of the Security"],
-    "COI": ["COI"],
-    "Amount": ["Amount"],
-    "Date_of_Purchase": ["Date of Purchase"],
-    "Rating_Agency": ["Rating Agency"],
-    "Original_Grade": ["Original Grade"],
-    "Current_Grade": ["Current Grade"],
-    "Date_of_Downgrade": ["Date of Downgrade"],
-    "Remarks": ["Remarks"]
+    "Sr_No": [
+      "Sr. No"
+    ],
+    "Name_of_the_security": [
+      "Name of the security"
+    ],
+    "COI": [
+      "COI"
+    ],
+    "Amount": [
+      "Amount"
+    ],
+    "Date_of_purchase": [
+      "Date of purchase"
+    ],
+    "Rating_agency": [
+      "Rating agency"
+    ],
+    "Original_grade": [
+      "Original grade"
+    ],
+    "Current_grade": [
+      "Current grade"
+    ],
+    "Date_of_downgrade": [
+      "Date of downgrade"
+    ],
+    "Remarks": [
+      "Remarks"
+    ]
   },
   "FlatHeaders": [
-    "No",
-    "Name_of_Security",
+    "Sr. No",
+    "Name of the security",
     "COI",
     "Amount",
-    "Date_of_Purchase",
-    "Rating_Agency",
-    "Original_Grade",
-    "Current_Grade",
-    "Date_of_Downgrade",
+    "Date of purchase",
+    "Rating agency",
+    "Original grade",
+    "Current grade",
+    "Date of downgrade",
     "Remarks"
   ],
   "Rows": []

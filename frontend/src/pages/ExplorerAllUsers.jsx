@@ -31,6 +31,18 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [splitPdfUrl, setSplitPdfUrl] = React.useState(null);
     const [isLoadingSplitPdf, setIsLoadingSplitPdf] = React.useState(false);
     
+    // Form visibility control state - track which forms are enabled/disabled
+    const [enabledForms, setEnabledForms] = React.useState(new Set());
+    const [showFormSelector, setShowFormSelector] = React.useState(false);
+    const [lastPreferencesUpdate, setLastPreferencesUpdate] = React.useState(null);
+    
+    // Data edits state - track cell edits for admin
+    const [dataEdits, setDataEdits] = React.useState({});
+    const [editingCell, setEditingCell] = React.useState(null); // {recordIndex, rowIndex, header}
+    const [editValue, setEditValue] = React.useState('');
+    
+    // View mode state - 'pdf' or 'data'
+    const [viewMode, setViewMode] = React.useState('pdf');
 
     // Extracted data state
     const [extractedData, setExtractedData] = React.useState(null);
@@ -183,6 +195,66 @@ function ExplorerAllUsers({ onMenuClick }) {
 
         return () => unsubscribe();
     }, []);
+    
+    // Poll for form preference updates every 3 seconds when a file is selected
+    // This allows real-time updates when admin changes preferences
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || isLoadingSplits || !pdfSplits.length) {
+            return;
+        }
+        
+        const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+        if (!companyName) {
+            return;
+        }
+        
+        // Map company name to match backend API format
+        const companyNameMapping = {
+            'sbi': 'SBI Life',
+            'hdfc': 'HDFC Life', 
+            'icici': 'ICICI Prudential',
+            'lic': 'LIC'
+        };
+        const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+        
+        // Poll for preference updates (works for all users, including admin in other tabs)
+        const pollInterval = setInterval(async () => {
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const prefsResponse = await fetch(prefsUrl);
+                if (prefsResponse.ok) {
+                    const prefsData = await prefsResponse.json();
+                    const enabledFormsList = prefsData.data?.enabled_forms;
+                    
+                    // Check if preferences exist and have changed
+                    if (enabledFormsList !== undefined && enabledFormsList !== null) {
+                        setEnabledForms(prevEnabledForms => {
+                            const newSet = new Set(enabledFormsList);
+                            
+                            // Check if preferences have changed
+                            const hasChanged = 
+                                newSet.size !== prevEnabledForms.size ||
+                                Array.from(newSet).some(form => !prevEnabledForms.has(form)) ||
+                                Array.from(prevEnabledForms).some(form => !newSet.has(form));
+                            
+                            if (hasChanged) {
+                                console.log('🔄 Form preferences updated from server:', Array.from(newSet));
+                                setLastPreferencesUpdate(new Date());
+                                return newSet;
+                            }
+                            return prevEnabledForms; // No change, keep current state
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling form preferences:', error);
+            }
+        }, 3000); // Poll every 3 seconds
+        
+        return () => clearInterval(pollInterval);
+    }, [selectedFile?.name, selectedCompany, pdfSplits.length, isLoadingSplits, companiesData]);
 
     // Function to fetch extracted data for a split
     const fetchExtractedData = async (companyName, pdfName, splitFilename) => {
@@ -331,204 +403,506 @@ function ExplorerAllUsers({ onMenuClick }) {
     }, [selectedSplit, selectedFile, selectedCompany, companiesData]);
     
     // Function to render extracted data in table format (matching Smart Extraction UI)
+    // Each record gets its own table with headers
     const renderExtractedDataTable = () => {
-        const { headers, allRowsData, records, hasData } = processedExtractedData;
+        const { records, hasData } = processedExtractedData;
         
-        // If we have table data, render it with custom scrolling
-        if (hasData) {
+        // If we have table data, render each record separately with its own headers
+        if (hasData && records.length > 0) {
             return (
                 <div style={{ 
                     background: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    overflow: 'hidden',
                     width: '100%',
                     maxWidth: '100%',
-                    height: '100%',
+                    overflow: 'hidden'
                 }}>
-                    {/* Header Section */}
                     <div style={{
-                        background: '#f9fafb',
-                        borderBottom: '1px solid #e5e7eb',
-                        padding: '16px 20px',
+                        background: '#f5f5f5',
+                        padding: '0.75rem',
+                        borderBottom: '1px solid #e0e0e0',
+                        fontWeight: '600',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px'
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
-                        <div>
-                            <h3 style={{ 
-                                margin: 0, 
-                                fontSize: '16px', 
-                                fontWeight: '600',
-                                color: '#111827'
+                        <span>📊 Extracted Data ({records.length} record{records.length !== 1 ? 's' : ''})</span>
+                        {isAdmin && (
+                            <span style={{
+                                fontSize: '0.75rem',
+                                color: '#667eea',
+                                fontWeight: 'normal',
+                                fontStyle: 'italic'
                             }}>
-                                📊 Extracted Data ({allRowsData.length} records)
-                            </h3>
-                            <p style={{ 
-                                margin: '4px 0 0 0', 
-                                fontSize: '14px', 
-                                color: '#6b7280' 
-                            }}>
-                                {selectedSplit?.form_name || 'Extracted Data'} • Pages: {selectedSplit?.start_page || 1}-{selectedSplit?.end_page || 1}
-                                {extractedData && extractedData.length > 0 && extractedData[0].metadata && (
+                                💡 Double-click any cell to edit (Admin only)
+                            </span>
+                        )}
+                    </div>
+                    
+                    <div style={{ 
+                        maxHeight: '600px',
+                        overflow: 'auto',
+                        padding: '1rem'
+                    }}>
+                        {records.map((record, recordIndex) => {
+                            // Get headers and rows for this record
+                            let recordHeaders = [];
+                            let recordRows = [];
+                            
+                            // Check for SmartTableViewer format
+                            if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
+                                const table = record.tables[0];
+                                recordHeaders = table.headers || [];
+                                recordRows = table.data || [];
+                            }
+                            // Check for FlatHeaders and Rows format
+                            else if (record?.FlatHeaders && Array.isArray(record.FlatHeaders)) {
+                                recordHeaders = record.FlatHeaders;
+                                recordRows = record.Rows || record.TableData || [];
+                            }
+                            // Check for direct headers and data format
+                            else if (record?.headers && record?.data) {
+                                recordHeaders = record.headers;
+                                recordRows = record.data;
+                            }
+                            
+                            if (recordHeaders.length === 0 || recordRows.length === 0) {
+                                return null;
+                            }
+                            
+                            return (
+                                <div key={recordIndex} style={{ 
+                                    marginBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    paddingBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
+                                    borderBottom: recordIndex < records.length - 1 ? '1px solid #f0f0f0' : 'none'
+                                }}>
+                                    {/* Record Header */}
+                                    <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
+                                        Record {recordIndex + 1} {record.FormName && `- ${record.FormName}`}
+                                        {record.PagesUsed && (
                                     <span style={{ 
-                                        marginLeft: '8px',
-                                        padding: '2px 6px',
-                                        background: extractedData[0].metadata.gemini_corrected ? '#28a745' : '#ffc107',
-                                        color: 'white',
-                                        borderRadius: '10px',
-                                        fontSize: '12px',
-                                        fontWeight: '600'
-                                    }}>
-                                        {extractedData[0].metadata.gemini_corrected ? '🤖 AI Verified' : '🔄 Extracted'}
+                                                marginLeft: '1rem',
+                                                padding: '2px 8px',
+                                                background: '#e3f2fd',
+                                                color: '#1976d2',
+                                                borderRadius: '12px',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600',
+                                                border: '1px solid #bbdefb'
+                                            }}>
+                                                📄 Pages Used: {record.PagesUsed}
                                     </span>
                                 )}
-                            </p>
+                                    </h6>
+                                    
+                                    {/* Form Metadata Display */}
+                                    {(record["Form No"] || record.Title || record.RegistrationNumber || record.Period || record.Currency) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.75rem',
+                                            borderRadius: '6px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.9rem',
+                                            border: '1px solid #e9ecef'
+                                        }}>
+                                            <h6 style={{ margin: '0 0 0.5rem 0', color: '#495057', fontWeight: '600' }}>📋 Form Information</h6>
+                                            <div style={{ display: 'grid', gap: '0.3rem' }}>
+                                                {record["Form No"] && <div><strong>Form No:</strong> {record["Form No"]}</div>}
+                                                {record.Title && <div><strong>Title:</strong> {record.Title}</div>}
+                                                {record.RegistrationNumber && <div><strong>Registration Number:</strong> {record.RegistrationNumber}</div>}
+                                                {record.Period && <div><strong>Period:</strong> {record.Period}</div>}
+                                                {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
                         </div>
                     </div>
-
-
-
-                    {/* Scrollable Table Container */}
-                    <div style={{ 
-                        overflowX: 'scroll', 
-                        overflowY: 'auto',
-                        maxHeight: 'calc(100vh - 200px)',
-                        height: 'calc(100vh - 200px)',
-                        width: '100%',
-                        maxWidth: '800px',
-                        border: '1px solid #e5e7eb',
-                        position: 'relative',
-                        backgroundColor: '#f8f9fa'
-                    }}>
-                        <table style={{ 
-                            width: '800px',
-                            minWidth: '800px',
-                            height: '100%',
-                            borderCollapse: 'separate',
-                            borderSpacing: '0',
-                            fontSize: '14px',
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                            tableLayout: 'fixed'
-                        }}>
-                            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                                <tr style={{ backgroundColor: '#667eea' }}>
-                                     {headers.map((header, index) => (
-                                         <th key={index} style={{ 
-                                             padding: '12px 8px',
-                                             textAlign: 'left',
-                                             fontWeight: '600',
-                                             color: 'white',
-                                             borderBottom: '2px solid #667eea',
-                                             width: index === 0 ? '300px' : '200px',
-                                             minWidth: index === 0 ? '300px' : '200px',
-                                             whiteSpace: 'normal',
-                                             wordWrap: 'break-word',
-                                             lineHeight: '1.3'
-                                         }}>
-                                             {header}
-                                         </th>
-                                     ))}
-                                </tr>
-                            </thead>
-                             <tbody>
-                                 {allRowsData.map((row, rowIndex) => {
-                                    const isFormMetadataRow = Array.isArray(row) && row[0] && typeof row[0] === 'string' && row[0].startsWith('FORM_METADATA_');
+                                    )}
                                     
-                                    return (
-                                        <tr key={rowIndex} style={{ 
-                                            backgroundColor: isFormMetadataRow ? '#f8f9fa' :
-                                                           (rowIndex % 2 === 0 ? 'white' : '#f8f9fa'),
-                                            borderTop: isFormMetadataRow ? '2px solid #1976d2' : 'none'
+                                    {/* Legacy metadata for backward compatibility */}
+                                    {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
+                                        <div style={{ 
+                                            background: '#f8f9fa',
+                                            padding: '0.5rem',
+                                            borderRadius: '4px',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.85rem'
                                         }}>
-                                             {Array.isArray(row) ? (
-                                                 row.map((cell, cellIndex) => (
-                                                     <td key={cellIndex} style={{ 
-                                                         padding: isFormMetadataRow ? '12px 16px' : '12px 8px',
-                                                         borderBottom: '1px solid #e9ecef',
-                                                         width: cellIndex === 0 ? '300px' : '200px',
-                                                         minWidth: cellIndex === 0 ? '300px' : '200px',
-                                                         whiteSpace: isFormMetadataRow ? 'normal' : 'normal',
-                                                         wordWrap: 'break-word',
-                                                         lineHeight: isFormMetadataRow ? '1.5' : '1.3',
-                                                         fontWeight: isFormMetadataRow ? '600' : 'normal',
-                                                         color: isFormMetadataRow ? '#495057' : 'inherit',
-                                                         background: isFormMetadataRow ? '#f1f3f4' : 'transparent',
-                                                         fontSize: isFormMetadataRow ? '12px' : '14px',
-                                                         textAlign: isFormMetadataRow ? 'left' : 'inherit'
-                                                     }}>
-                                                         {cellIndex === 0 && isFormMetadataRow ? (
-                                                             <div style={{ 
-                                                                 display: 'flex', 
-                                                                 flexDirection: 'column', 
-                                                                 gap: '4px',
-                                                                 lineHeight: '1.4'
-                                                             }}>
-                                                                 <div style={{ 
-                                                                     fontWeight: '600', 
-                                                                     color: '#1976d2',
-                                                                     marginBottom: '4px'
-                                                                 }}>
-                                                                     📋 Form Information
-                                                                 </div>
-                                                                 <div style={{ 
-                                                                     fontSize: '11px',
-                                                                     color: '#495057',
-                                                                     lineHeight: '1.3',
-                                                                     whiteSpace: 'pre-line'
-                                                                 }}>
-                                                                     {(row[1] || '').replace(/\s*\|\s*/g, '\n')}
-                                                                 </div>
-                                                             </div>
-                                                         ) : isFormMetadataRow ? '' : cellIndex === 0 ? '' : (cell || '-')}
-                                                     </td>
-                                                 ))
-                                             ) : (
-                                                 headers.map((header, cellIndex) => (
-                                                     <td key={cellIndex} style={{ 
-                                                         padding: '12px 8px',
-                                                         borderBottom: '1px solid #e9ecef',
-                                                         width: '200px',
-                                                         minWidth: '200px',
-                                                         whiteSpace: 'normal',
-                                                         wordWrap: 'break-word',
-                                                         lineHeight: '1.3'
-                                                     }}>
-                                                         {row[header] || '-'}
-                                                     </td>
-                                                 ))
-                                             )}
+                                            {record.FormName && <div><strong>Form:</strong> {record.FormName}</div>}
+                                            {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
+                                            {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
+                                            {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Table Data - Each record has its own table with headers */}
+                    <div style={{ 
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '4px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div 
+                                            className="table-scroll-container"
+                                            style={{ 
+                                                overflowX: 'scroll',
+                                                overflowY: 'scroll',
+                                                maxHeight: '500px',
+                            width: '100%',
+                                                maxWidth: '100%',
+                                                display: 'block',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        >
+                                            <table style={{ 
+                                                width: 'max-content',
+                                                minWidth: '100%',
+                            borderCollapse: 'collapse',
+                                                fontSize: '0.8rem',
+                                                margin: 0
+                                            }}>
+                                                <thead>
+                                                    <tr style={{ background: '#0885f1' }}>
+                                                        {recordHeaders.map((header, headerIndex) => {
+                                                            // Function to determine alignment based on column header
+                                                            const getHeaderAlignment = (headerText) => {
+                                                                const normalizedHeader = headerText.toLowerCase().trim();
+                                                                
+                                                                // Left-aligned columns (text/description columns)
+                                                                const leftAlignedColumns = [
+                                                                    'particulars', 'information', 'category of business', 
+                                                                    'claims experience', 'types of claims', 'channels', 
+                                                                    'category of investment', 'description','designation', 'details','shareholder','shareholders', 
+                                                                    'name', 'title', 'remarks','role/function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                ];
+                                                                
+                                                                // Center-aligned columns (serial numbers)
+                                                                const centerAlignedColumns = [
+                                                                    'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
+                                                                    's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                ];
+
+                                                                const rightAlignedColumns = [
+                                                                    'for'
+                                                                ];
+                                                                
+                                                                // Check for serial number columns
+                                                                if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                    return 'center';
+                                                                }
+                                                                
+                                                                // Check for text/description columns or second column
+                                                                if (headerIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                    return 'left';
+                                                                }
+                                                                if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) return 'right';
+                                                                
+                                                                // Default: numeric columns - right align
+                                                                return 'right';
+                                                            };
+                                                            // Function to break long headers
+                                                            const formatHeader = (text) => {
+                                                                if (!text) return '';
+                                                              
+                                                                const MAX_CHUNK = 20;
+                                                                let cleanText = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); // Replace underscores with spaces
+                                                                const words = cleanText.split(' ');
+                                                                let lines = [];
+                                                                let currentLine = '';
+                                                              
+                                                                // Build up to 3 lines
+                                                                for (let i = 0; i < words.length; i++) {
+                                                                  const word = words[i];
+                                                                  if ((currentLine + ' ' + word).trim().length <= MAX_CHUNK) {
+                                                                    // If word fits in current line
+                                                                    currentLine = (currentLine + ' ' + word).trim();
+                                                                  } else {
+                                                                    // Push current line and start new one
+                                                                    lines.push(currentLine);
+                                                                    currentLine = word;
+                                                                    if (lines.length === 2) break; // stop after 2 lines; remaining goes to last
+                                                                  }
+                                                                }
+                                                              
+                                                                // Push last line (even if long)
+                                                                if (currentLine) {
+                                                                  const remainingWords = words.slice(words.indexOf(currentLine.split(' ')[0]));
+                                                                  lines.push(remainingWords.join(' '));
+                                                                }
+                                                              
+                                                                return (
+                                                                  <>
+                                                                    {lines.map((line, i) => (
+                                                                      <React.Fragment key={i}>
+                                                                        {line}
+                                                                        {i < lines.length - 1 && <br />}
+                                                                      </React.Fragment>
+                                                                    ))}
+                                                                  </>
+                                                                );
+                                                              };
+                                                              
+                                                            
+                                                            
+                                                            return (
+                                                                <th key={headerIndex} style={{ 
+                                                                    padding: '0.5rem',
+                                                                    textAlign: 'center',
+                                                                    borderRight: '1px solid #e0e0e0',
+                                                                    borderBottom: '1px solid #e0e0e0',
+                                                                    fontWeight: 'bold',
+                                                                    whiteSpace: 'nowrap',
+                                                                    minWidth: '120px'
+                                                                }}>
+                                                                    {formatHeader(header)}
+                                                                </th>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {recordRows.map((row, rowIndex) => {
+                                    // Check if row contains "total" or "subtotal" (case-insensitive)
+                                    const checkForTotal = (cellValue) => {
+                                        if (!cellValue) return false;
+                                        const str = cellValue.toString().trim().toLowerCase();
+                                        return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                    };
+                                    
+                                    let isTotalRow = false;
+                                    if (Array.isArray(row)) {
+                                        // Check all cells in the row
+                                        isTotalRow = row.some(cell => checkForTotal(cell));
+                                                        } else if (typeof row === 'object' && row !== null) {
+                                        // For object rows, check all header values
+                                                            isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
+                                                        }
+                                                        
+                                                        return (
+                                                            <tr key={rowIndex} style={{ 
+                                                                background: rowIndex % 2 === 0 ? 'white' : '#ebf7f9',
+                                                                fontWeight: isTotalRow ? '700' : 'normal'
+                                                            }}>
+                                                                {recordHeaders.map((header, headerIndex) => {
+                                                                    // Handle both array and object row formats
+                                                                    let originalValue = '';
+                                                                    if (Array.isArray(row)) {
+                                                                        originalValue = row[headerIndex] || '';
+                                                                    } else if (typeof row === 'object' && row !== null) {
+                                                                        originalValue = row[header] || '';
+                                                                    } else {
+                                                                        originalValue = row || '';
+                                                                    }
+                                                                    
+                                                                    // Function to determine cell alignment
+                                                                    const getCellAlignment = (headerText, colIndex) => {
+                                                                        const normalizedHeader = headerText.toLowerCase().trim();
+                                                                        
+                                                                        // Left-aligned columns (text/description columns)
+                                                                        const leftAlignedColumns = [
+                                                                            'particulars','particular','Designation', 'information', 'category of business', 
+                                                                            'claims experience', 'types of claims', 'channels', 
+                                                                            'category of investment', 'description','designation', 'details','shareholder','shareholders', 
+                                                                            'name', 'title', 'remarks','Role/Function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                        ];
+                                                                        
+                                                                        // Center-aligned columns (serial numbers)
+                                                                        const centerAlignedColumns = [
+                                                                            'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
+                                                                            's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                        ];
+                                                                        const rightAlignedColumns = [
+                                                                            'for'
+                                                                        ];
+                                                                        
+                                                                        // Check for serial number columns
+                                                                        if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                            return 'center';
+                                                                        }
+                                                                        if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) 
+                                                                            return 'right';
+                                                                        // Check for text/description columns or second column
+                                                                        if (colIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                            return 'left';
+                                                                        }
+                                                                        
+                                                                        
+                                                                        // Default: numeric columns - right align
+                                                                        return 'right';
+                                                                    };
+                                                                    
+                                                                    const alignment = getCellAlignment(header, headerIndex);
+                                                                    
+                                                                    // Get form name for edit key - use selectedSplit.form_name as primary source
+                                                                    const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
+                                                                    const cellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
+                                                                    const isEditing = editingCell && 
+                                                                        editingCell.recordIndex === recordIndex && 
+                                                                        editingCell.rowIndex === rowIndex && 
+                                                                        editingCell.header === header &&
+                                                                        editingCell.formName === formName;
+                                                                    
+                                                                    return (
+                                                                        <td 
+                                                                            key={headerIndex} 
+                                                                            style={{ 
+                                                                                padding: '0.5rem',
+                                                                                borderRight: '1px solid #e0e0e0',
+                                                                                borderBottom: '1px solid #e0e0e0',
+                                                                                whiteSpace: 'nowrap',
+                                                                                minWidth: '120px',
+                                                                                fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                textAlign: alignment,
+                                                                                backgroundColor: isEditing ? '#fff3cd' : (dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] ? '#e7f3ff' : 'transparent'),
+                                                                                cursor: isAdmin ? 'pointer' : 'default',
+                                                                                position: 'relative'
+                                                                            }}
+                                                                            onDoubleClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (isAdmin && !isTotalRow) {
+                                                                                    const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
+                                                                                    // Get current cell value (with edits applied)
+                                                                                    const currentCellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
+                                                                                    console.log('Starting edit:', { formName, recordIndex, rowIndex, header, originalValue, currentCellValue });
+                                                                                    // Reset editing state first
+                                                                                    setEditingCell(null);
+                                                                                    setEditValue('');
+                                                                                    // Use setTimeout to ensure state is cleared before setting new edit
+                                                                                    setTimeout(() => {
+                                                                                        setEditingCell({ 
+                                                                                            recordIndex, 
+                                                                                            rowIndex, 
+                                                                                            header, 
+                                                                                            formName,
+                                                                                            initialValue: currentCellValue || '' // Store the initial value when editing starts
+                                                                                        });
+                                                                                        setEditValue(currentCellValue || '');
+                                                                                    }, 0);
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {isEditing ? (
+                                                                                <div style={{
+                                                                                    display: 'flex',
+                                                                                    flexDirection: 'column',
+                                                                                    gap: '0.25rem',
+                                                                                    width: '100%'
+                                                                                }}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={editValue}
+                                                                                        onChange={(e) => {
+                                                                                            const newValue = e.target.value;
+                                                                                            console.log('Input onChange:', newValue);
+                                                                                            setEditValue(newValue);
+                                                                                        }}
+                                                                                        onKeyDown={(e) => {
+                                                                                            // Only allow Escape to cancel, no auto-save on Enter
+                                                                                            if (e.key === 'Escape') {
+                                                                                                e.preventDefault();
+                                                                                                e.stopPropagation();
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
+                                                                                            }
+                                                                                        }}
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                                                        autoFocus
+                                                                                        style={{
+                                                                                            width: '100%',
+                                                                                            padding: '0.25rem',
+                                                                                            border: '2px solid #667eea',
+                                                                                            borderRadius: '4px',
+                                                                                            fontSize: '0.8rem',
+                                                                                            outline: 'none',
+                                                                                            backgroundColor: 'white',
+                                                                                            boxSizing: 'border-box'
+                                                                                        }}
+                                                                                    />
+                                                                                    <div style={{
+                                                                                        display: 'flex',
+                                                                                        gap: '0.25rem',
+                                                                                        justifyContent: 'flex-end'
+                                                                                    }}>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                e.preventDefault();
+                                                                                                const finalValue = editValue.trim();
+                                                                                                const currentFormName = editingCell?.formName || formName;
+                                                                                                const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                console.log('Saving on Save button:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                if (finalValue !== initialValue) {
+                                                                                                    saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
+                                                                                                }
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
+                                                                                            }}
+                                                                                            style={{
+                                                                                                padding: '0.2rem 0.5rem',
+                                                                                                fontSize: '0.7rem',
+                                                                                                backgroundColor: '#667eea',
+                                                                                                color: 'white',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '4px',
+                                                                                                cursor: 'pointer',
+                                                                                                fontWeight: '600'
+                                                                                            }}
+                                                                                        >
+                                                                                            Save
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                e.preventDefault();
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
+                                                                                            }}
+                                                                                            style={{
+                                                                                                padding: '0.2rem 0.5rem',
+                                                                                                fontSize: '0.7rem',
+                                                                                                backgroundColor: '#ccc',
+                                                                                                color: 'white',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '4px',
+                                                                                                cursor: 'pointer',
+                                                                                                fontWeight: '600'
+                                                                                            }}
+                                                                                        >
+                                                                                            Cancel
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <>
+                                                                                    {cellValue || '-'}
+                                                                                    {dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] && isAdmin && (
+                                                                                        <span style={{
+                                                                                            position: 'absolute',
+                                                                                            top: '2px',
+                                                                                            right: '2px',
+                                                                                            fontSize: '0.6rem',
+                                                                                            color: '#667eea',
+                                                                                            fontWeight: 'bold'
+                                                                                        }}>✏️</span>
+                                                                                    )}
+                                                                                </>
+                                                                            )}
+                                                                        </td>
+                                                                    );
+                                                                })}
                                          </tr>
                                      );
                                  })}
                              </tbody>
                         </table>
                     </div>
-
-                    {/* Footer with data info */}
-                    <div style={{
-                        background: '#f9fafb',
-                        borderTop: '1px solid #e5e7eb',
-                        padding: '12px 20px',
-                        fontSize: '14px',
-                        color: '#6b7280',
-                        textAlign: 'center',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <span>Showing {allRowsData.length} records • {headers.length} columns</span>
-                        <span style={{ 
-                            fontSize: '12px', 
-                            color: '#9ca3af',
-                            fontStyle: 'italic'
-                        }}>
-                            ← Scroll horizontally to see all columns →
-                        </span>
                     </div>
                 </div>
             );
-        } else {
+                        })}
+                    </div>
+                </div>
+            );
+        }
+        
         return (
             <div style={{
                     textAlign: 'center', 
@@ -545,7 +919,6 @@ function ExplorerAllUsers({ onMenuClick }) {
                     </p>
             </div>
         );
-        }
     };
 
     // Load companies data using API
@@ -714,19 +1087,395 @@ function ExplorerAllUsers({ onMenuClick }) {
             if (response.ok) {
                 const data = await response.json();
                 console.log('PDF splits response:', data);
-                setPdfSplits(data.splits || []);
+                const splits = data.splits || [];
+                setPdfSplits(splits);
+                
+                // Initialize enabled forms - load from backend API (shared across all users and browsers)
+                try {
+                    // Map company name to match backend API format
+                    const companyNameMapping = {
+                        'sbi': 'SBI Life',
+                        'hdfc': 'HDFC Life', 
+                        'icici': 'ICICI Prudential',
+                        'lic': 'LIC'
+                    };
+                    const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                    
+                    const apiBase = 'http://localhost:8000/api';
+                    const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/form-preferences`;
+                    
+                    const prefsResponse = await fetch(prefsUrl);
+                    if (prefsResponse.ok) {
+                        const prefsData = await prefsResponse.json();
+                        const enabledFormsList = prefsData.data?.enabled_forms;
+                        
+                        // Check if preferences exist (null/undefined means no preferences saved yet)
+                        if (enabledFormsList !== undefined && enabledFormsList !== null) {
+                            // Preferences exist (even if empty array - admin explicitly set it)
+                            const savedSet = new Set(enabledFormsList);
+                            setEnabledForms(savedSet);
+                            console.log(`Loaded form preferences from API: ${savedSet.size} forms enabled for ${mappedCompanyName}/${pdfName}`, Array.from(savedSet));
+                        } else {
+                            // No preferences saved yet, enable all forms by default (first time)
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.log(`No preferences found in API (first time), enabling all ${allFormNames.size} forms by default for ${mappedCompanyName}/${pdfName}`);
+                        }
+                    } else {
+                        // API call failed (404 means no preferences yet), enable all forms by default
+                        if (prefsResponse.status === 404) {
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.log(`No preferences found (404), enabling all ${allFormNames.size} forms by default for ${companyName}/${pdfName}`);
+                        } else {
+                            // Other error, enable all forms by default
+                            const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                            setEnabledForms(allFormNames);
+                            console.error(`API call failed with status ${prefsResponse.status}, enabling all forms by default`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading form preferences from API:', error);
+                    // On error, enable all forms by default
+                    const allFormNames = new Set(splits.map(s => s.form_name || s.filename));
+                    setEnabledForms(allFormNames);
+                }
             } else {
                 const errorData = await response.json();
                 console.log('Failed to load PDF splits:', errorData);
                 setPdfSplits([]);
+                setEnabledForms(new Set());
             }
         } catch (error) {
             console.error('Failed to load PDF splits:', error);
             setPdfSplits([]);
+            setEnabledForms(new Set());
         } finally {
             setIsLoadingSplits(false);
         }
     };
+    
+    // Check if current user is admin (viyanta.insights@gmail.com)
+    // This will be recalculated whenever user changes
+    const isAdmin = React.useMemo(() => {
+        return user?.email === 'viyanta.insights@gmail.com';
+    }, [user?.email]);
+    
+    // Load data edits when extracted data is loaded
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || !extractedData) {
+            return;
+        }
+        
+        const loadEdits = async () => {
+            try {
+                const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+                const companyNameMapping = {
+                    'sbi': 'SBI Life',
+                    'hdfc': 'HDFC Life', 
+                    'icici': 'ICICI Prudential',
+                    'lic': 'LIC'
+                };
+                const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                
+                const apiBase = 'http://localhost:8000/api';
+                const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+                
+                const response = await fetch(editsUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    const edits = data.data?.edits || {};
+                    setDataEdits(edits);
+                    console.log('Loaded data edits:', edits);
+                }
+            } catch (error) {
+                console.error('Error loading data edits:', error);
+            }
+        };
+        
+        loadEdits();
+    }, [selectedFile, selectedCompany, extractedData, companiesData]);
+    
+    // Poll for data edit updates (every 3 seconds)
+    React.useEffect(() => {
+        if (!selectedFile || !selectedCompany || !extractedData) {
+            return;
+        }
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+                const companyNameMapping = {
+                    'sbi': 'SBI Life',
+                    'hdfc': 'HDFC Life', 
+                    'icici': 'ICICI Prudential',
+                    'lic': 'LIC'
+                };
+                const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+                
+                const apiBase = 'http://localhost:8000/api';
+                const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+                
+                const response = await fetch(editsUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    const edits = data.data?.edits || {};
+                    
+                    // Check if edits have changed
+                    const editsString = JSON.stringify(edits);
+                    const currentEditsString = JSON.stringify(dataEdits);
+                    if (editsString !== currentEditsString) {
+                        console.log('🔄 Data edits updated from server');
+                        setDataEdits(edits);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling data edits:', error);
+            }
+        }, 3000);
+        
+        return () => clearInterval(pollInterval);
+    }, [selectedFile, selectedCompany, extractedData, dataEdits, companiesData]);
+    
+    // Save cell edit (admin only)
+    const saveCellEdit = async (formName, recordIndex, rowIndex, header, value) => {
+        if (!isAdmin) {
+            console.log('Not admin, cannot save');
+            return;
+        }
+        
+        if (!selectedFile || !selectedCompany) {
+            console.error('Missing selectedFile or selectedCompany');
+            return;
+        }
+        
+        try {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            if (!companyName) {
+                console.error('Company name not found');
+                return;
+            }
+            
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            
+            const apiBase = 'http://localhost:8000/api';
+            const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
+            
+            const editPayload = {
+                form_name: formName,
+                record_index: recordIndex,
+                row_index: rowIndex,
+                header: header,
+                value: value
+            };
+            
+            console.log('Saving cell edit:', editPayload);
+            console.log('Edit URL:', editsUrl);
+            
+            const response = await fetch(editsUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(editPayload)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Cell edit saved successfully:', result);
+                
+                // Update local state immediately
+                const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
+                setDataEdits(prev => ({
+                    ...prev,
+                    [editKey]: {
+                        form_name: formName,
+                        record_index: recordIndex,
+                        row_index: rowIndex,
+                        header: header,
+                        value: value,
+                        edited_at: new Date().toISOString()
+                    }
+                }));
+                
+                // Also reload from server to ensure sync
+                const editsResponse = await fetch(editsUrl);
+                if (editsResponse.ok) {
+                    const data = await editsResponse.json();
+                    setDataEdits(data.data?.edits || {});
+                }
+            } else {
+                const errorText = await response.text();
+                console.error('❌ Failed to save cell edit:', response.status, errorText);
+            }
+        } catch (error) {
+            console.error('❌ Error saving cell edit:', error);
+        }
+    };
+    
+    // Get cell value (with edits applied)
+    const getCellValue = (formName, recordIndex, rowIndex, header, originalValue) => {
+        const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
+        console.log('getCellValue:', { editKey, hasEdit: !!dataEdits[editKey], dataEdits: Object.keys(dataEdits) });
+        if (dataEdits[editKey]) {
+            return dataEdits[editKey].value;
+        }
+        return originalValue;
+    };
+    
+    // Toggle form visibility (only admin can do this)
+    const toggleFormVisibility = async (formName) => {
+        if (!isAdmin) return; // Only admin can toggle
+        
+        const newEnabledForms = new Set(enabledForms);
+        if (newEnabledForms.has(formName)) {
+            newEnabledForms.delete(formName);
+            console.log(`Admin disabled form: ${formName}`);
+        } else {
+            newEnabledForms.add(formName);
+            console.log(`Admin enabled form: ${formName}`);
+        }
+        setEnabledForms(newEnabledForms);
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            const formsArray = Array.from(newEnabledForms);
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: formsArray
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: ${formsArray.length} forms enabled for ${mappedCompanyName}/${selectedFile.name}`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Select all forms (only admin can do this)
+    const selectAllForms = async () => {
+        if (!isAdmin) return; // Only admin can do this
+        
+        const allFormNames = new Set(pdfSplits.map(s => s.form_name || s.filename));
+        setEnabledForms(allFormNames);
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            const formsArray = Array.from(allFormNames);
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: formsArray
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: All ${formsArray.length} forms enabled`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Deselect all forms (only admin can do this)
+    const deselectAllForms = async () => {
+        if (!isAdmin) return; // Only admin can do this
+        
+        setEnabledForms(new Set());
+        
+        // Save to backend API (shared across all users and browsers)
+        if (selectedCompany && selectedFile) {
+            const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
+            // Map company name to match backend API format
+            const companyNameMapping = {
+                'sbi': 'SBI Life',
+                'hdfc': 'HDFC Life', 
+                'icici': 'ICICI Prudential',
+                'lic': 'LIC'
+            };
+            const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
+            
+            try {
+                const apiBase = 'http://localhost:8000/api';
+                const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
+                
+                const response = await fetch(prefsUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled_forms: []
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Saved form preferences to API: All forms disabled`);
+                } else {
+                    console.error('Failed to save form preferences to API:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving form preferences to API:', error);
+            }
+        }
+    };
+    
+    // Get filtered splits based on enabled forms
+    const filteredPdfSplits = React.useMemo(() => {
+        return pdfSplits.filter(split => {
+            const formName = split.form_name || split.filename;
+            return enabledForms.has(formName);
+        });
+    }, [pdfSplits, enabledForms]);
 
     // Select a PDF split and load its PDF content
     const selectPDFSplit = async (split) => {
@@ -741,6 +1490,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         }
 
         setSelectedSplit(split);
+        setViewMode('pdf'); // Reset to PDF view when selecting a new split
         setIsLoadingSplitPdf(true);
         setError(null);
         
@@ -817,6 +1567,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         setSelectedFile(file);
         setJsonData(null);
         setJsonLoading(true);
+        setShowFormSelector(false); // Reset form selector visibility when switching files
         
         // Load PDF splits for the selected file
         const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
@@ -1204,8 +1955,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                 {/* Files Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(150px, 1fr))' : 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(auto-fill, minmax(160px, 1fr))' : 'repeat(auto-fill, minmax(220px, 1fr))',
+                    gap: window.innerWidth <= 768 ? '1rem' : '1.5rem',
                     marginBottom: '2rem'
                 }}>
                     {folderFiles.map((file, index) => (
@@ -1215,7 +1966,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             style={{
                                 border: '1px solid #e9ecef',
                                 borderRadius: '8px',
-                                padding: window.innerWidth <= 768 ? '0.75rem' : '1rem',
+                                padding: window.innerWidth <= 768 ? '1rem' : '1.25rem',
                                 cursor: 'pointer',
                                 background: selectedFile === file ? 'var(--sub-color)' : 'white',
                                 color: selectedFile === file ? 'white' : 'var(--text-color-dark)',
@@ -1283,7 +2034,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}>
                                 {file.has_gemini_verification ? '🤖 Gemini Verified' : 
                                  file.json_priority === 'extracted' ? '🔄 Extracted' : 
-                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'}
+                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'
+                                 }
                             </div>
                             
                             {/* Available Files Count */}
@@ -1310,13 +2062,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                     }}>
                         <h4 style={{ 
                             color: 'var(--main-color)', 
-                            marginBottom: '1rem',
+                            marginBottom: '1.5rem',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem'
+                            gap: '0.5rem',
+                            fontWeight: '600',
+                            fontSize: '1.1rem'
                         }}>
                             📄 PDF Splits
-                            {isLoadingSplits && <span style={{ fontSize: '0.8rem', color: 'var(--text-color-light)' }}>(Loading...)</span>}
+                            {isLoadingSplits && <span style={{ fontSize: '0.8rem', color: 'var(--text-color-light)', marginLeft: '0.5rem' }}>(Loading...)</span>}
                         </h4>
                         
                         {isLoadingSplits ? (
@@ -1325,31 +2079,189 @@ function ExplorerAllUsers({ onMenuClick }) {
                             </div>
                         ) : pdfSplits.length > 0 ? (
                             <div>
+                                {/* Form Visibility Control Header */}
                                 <div style={{ 
-                                    marginBottom: '1rem',
-                                    padding: '0.75rem',
-                                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                                    border: '1px solid rgba(40, 167, 69, 0.3)',
-                                    borderRadius: '6px',
-                                    color: '#155724'
-                                }}>
-                                    ✅ {selectedFile.name || selectedFile.base_name || selectedFile.filename} - {pdfSplits.length} splits available
-                                </div>
-                                
-                                {/* PDF Splits Grid - Card Layout */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                    marginBottom: '1.5rem',
+                                    padding: '1rem',
+                                    backgroundColor: 'rgba(63, 114, 175, 0.08)',
+                                    border: '1px solid rgba(63, 114, 175, 0.2)',
+                                    borderRadius: '8px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
                                     gap: '1rem'
                                 }}>
-                                    {pdfSplits.map((split, index) => (
+                                    <div style={{ color: '#155724', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    ✅ <strong>{pdfSplits.length}</strong> PDF splits available
+                                        {filteredPdfSplits.length !== pdfSplits.length && (
+                                            <span style={{ color: '#856404', fontSize: '0.85rem' }}>
+                                                ({filteredPdfSplits.length} enabled)
+                                            </span>
+                                        )}
+                                        {lastPreferencesUpdate && (
+                                            <span style={{ color: '#6c757d', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                                                • Last updated: {lastPreferencesUpdate.toLocaleTimeString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => setShowFormSelector(!showFormSelector)}
+                                            style={{
+                                                padding: '0.5rem 1rem',
+                                                backgroundColor: showFormSelector ? '#667eea' : 'white',
+                                                color: showFormSelector ? 'white' : '#667eea',
+                                                border: '1px solid #667eea',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (!showFormSelector) {
+                                                    e.currentTarget.style.backgroundColor = '#f0f4ff';
+                                                }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!showFormSelector) {
+                                                    e.currentTarget.style.backgroundColor = 'white';
+                                                }
+                                            }}
+                                        >
+                                            ⚙️ {showFormSelector ? 'Hide' : 'Show'} Form Selector
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {/* Form Selector Panel - Only visible to admin */}
+                                {showFormSelector && isAdmin && (
+                                    <div style={{
+                                        marginBottom: '1.5rem',
+                                        padding: '1.5rem',
+                                        backgroundColor: '#f8f9fa',
+                                        border: '1px solid #e9ecef',
+                                        borderRadius: '8px'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <h5 style={{ margin: 0, color: '#495057', fontSize: '1rem', fontWeight: '600' }}>
+                                                📋 Select Forms to Display
+                                            </h5>
+                                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                <button
+                                                    onClick={selectAllForms}
+                                                    style={{
+                                                        padding: '0.25rem 0.6rem',
+                                                        backgroundColor: '#28a745',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: '600'
+                                                    }}
+                                                >
+                                                    ✓ Select All
+                                                </button>
+                                                <button
+                                                    onClick={deselectAllForms}
+                                                    style={{
+                                                        padding: '0.25rem 0.6rem',
+                                                        backgroundColor: '#dc3545',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: '600'
+                                                    }}
+                                                >
+                                                    ✗ Deselect All
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                            gap: '0.75rem',
+                                            maxHeight: '300px',
+                                            overflowY: 'auto',
+                                            padding: '0.5rem'
+                                        }}>
+                                            {pdfSplits.map((split, index) => {
+                                                const formName = split.form_name || split.filename;
+                                                const isEnabled = enabledForms.has(formName);
+                                                return (
+                                                    <label
+                                                        key={index}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem',
+                                                            padding: '0.5rem',
+                                                            backgroundColor: isEnabled ? 'white' : '#f8f9fa',
+                                                            border: `1px solid ${isEnabled ? '#28a745' : '#dee2e6'}`,
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = isEnabled ? '#f0f8f0' : '#e9ecef';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = isEnabled ? 'white' : '#f8f9fa';
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isEnabled}
+                                                            onChange={() => toggleFormVisibility(formName)}
+                                                            style={{
+                                                                width: '18px',
+                                                                height: '18px',
+                                                                cursor: 'pointer',
+                                                                accentColor: '#28a745'
+                                                            }}
+                                                        />
+                                                        <span style={{
+                                                            fontWeight: isEnabled ? '600' : 'normal',
+                                                            color: isEnabled ? '#155724' : '#6c757d',
+                                                            flex: 1
+                                                        }}>
+                                                            {formName}
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* PDF Splits Grid - Card Layout */}
+                                {filteredPdfSplits.length > 0 ? (
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                    gap: '1.25rem'
+                                }}>
+                                        {filteredPdfSplits.map((split, index) => (
                                         <div
                                             key={index}
                                             onClick={() => selectPDFSplit(split)}
                                             style={{
                                                 border: selectedSplit === split ? '2px solid var(--main-color)' : '1px solid #e9ecef',
-                                                borderRadius: '8px',
-                                                padding: '1rem',
+                                                borderRadius: '10px',
+                                                padding: '1.25rem',
                                                 cursor: 'pointer',
                                                 background: selectedSplit === split ? 'rgba(63, 114, 175, 0.1)' : 'white',
                                                 transition: 'all 0.2s ease',
@@ -1426,6 +2338,22 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         </div>
                                     ))}
                                 </div>
+                                ) : (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '2rem',
+                                        backgroundColor: '#fff3cd',
+                                        border: '1px solid #ffc107',
+                                        borderRadius: '8px',
+                                        color: '#856404'
+                                    }}>
+                                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
+                                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#856404' }}>No Forms Enabled</h4>
+                                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                            Please enable at least one form using the "Show Form Selector" button above to display forms.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-color-light)' }}>
@@ -1480,63 +2408,115 @@ function ExplorerAllUsers({ onMenuClick }) {
         return (
             <div>
                 {/* Split Info Header */}
-                <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
-                        📄 {selectedSplit.form_name}
-                    </h4>
-                    <div style={{ 
-                        fontSize: '0.9rem', 
-                        color: 'var(--text-color-light)',
-                        background: 'var(--background-color)',
-                        padding: '0.5rem',
-                        borderRadius: '4px',
+                <div style={{ 
+                    marginBottom: '1.25rem',
+                    paddingBottom: '1rem',
+                    borderBottom: '2px solid #f3f4f6'
+                }}>
+                    <div style={{
                         display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: '1rem',
                         flexWrap: 'wrap',
                         gap: '1rem'
                     }}>
-                        <span>📋 Form: {selectedSplit.form_code}</span>
-                        <span>📄 Pages: {selectedSplit.start_page}-{selectedSplit.end_page}</span>
-                        <span>📁 File: {selectedSplit.filename}</span>
+                        <div>
+                            <h4 style={{ 
+                                margin: '0 0 0.5rem 0', 
+                                color: '#1f2937',
+                                fontSize: '1.1rem',
+                                fontWeight: '600'
+                            }}>
+                                📄 {selectedSplit.form_name}
+                            </h4>
+                            <div style={{ 
+                                fontSize: '0.875rem', 
+                                color: '#6b7280',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '1rem'
+                            }}>
+                                <span>📋 Form: <strong>{selectedSplit.form_code}</strong></span>
+                                <span>📄 Pages: <strong>{selectedSplit.start_page}-{selectedSplit.end_page}</strong></span>
+                            </div>
+                        </div>
                         {splitPdfUrl && (
-                            <span>
-                                🔗 <a href={splitPdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--main-color)', textDecoration: 'underline' }}>
-                                    Open PDF in new tab
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <a 
+                                    href={splitPdfUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    style={{ 
+                                        padding: '0.5rem 1rem',
+                                        background: '#3b82f6',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease',
+                                        display: 'inline-block'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#2563eb';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#3b82f6';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    🔗 Open in New Tab
                                 </a>
-                            </span>
-                        )}
-                        {splitPdfUrl && (
-                            <button
-                                onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = splitPdfUrl;
-                                    link.download = selectedSplit.filename;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                }}
-                                style={{
-                                    padding: '6px 12px',
-                                    background: 'var(--main-color)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem',
-                                    marginLeft: '8px'
-                                }}
-                            >
-                                📥 Download PDF
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = splitPdfUrl;
+                                        link.download = selectedSplit.filename;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        background: '#059669',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = '#047857';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = '#059669';
+                                        e.target.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    📥 Download
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* PDF Viewer */}
                 <div style={{
-                    border: '1px solid #e9ecef',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    height: '70vh'
+                    height: 'calc(100vh - 280px)',
+                    background: '#f9fafb',
+                    minHeight: '500px'
                 }}>
                     {/* Try iframe first */}
                     <iframe
@@ -1704,10 +2684,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 borderRadius: '4px',
                                                 overflow: 'hidden'
                                             }}>
-                                                <div style={{ 
+                                                <div 
+                                                    className="table-scroll-container"
+                                                    style={{ 
                                                     overflow: 'auto',
-                                                    maxHeight: '300px'
-                                                }}>
+                                                        maxHeight: '500px'
+                                                    }}
+                                                >
                                                     <table style={{ 
                                                         width: '100%',
                                                         borderCollapse: 'collapse',
@@ -1721,7 +2704,9 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         textAlign: 'left',
                                                                         borderRight: '1px solid #e0e0e0',
                                                                         borderBottom: '1px solid #e0e0e0',
-                                                                        fontWeight: '600'
+                                                                        fontWeight: '600',
+                                                                        whiteSpace: 'nowrap',
+                                                                        minWidth: '120px'
                                                                     }}>
                                                                         {header}
                                                                     </th>
@@ -1729,21 +2714,181 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {record.Rows.map((row, rowIndex) => (
+                                                            {record.Rows.map((row, rowIndex) => {
+                                                                // Check if row contains "total" or "subtotal"
+                                                                const checkForTotal = (cellValue) => {
+                                                                    if (!cellValue) return false;
+                                                                    const str = cellValue.toString().trim().toLowerCase();
+                                                                    return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                                                };
+                                                                
+                                                                const isTotalRow = record.FlatHeaders?.some(header => checkForTotal(row[header]));
+                                                                
+                                                                return (
                                                                 <tr key={rowIndex} style={{ 
-                                                                    background: rowIndex % 2 === 0 ? 'white' : '#fafafa'
-                                                                }}>
-                                                                    {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => (
-                                                                        <td key={headerIndex} style={{ 
+                                                                        background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
+                                                                        fontWeight: isTotalRow ? '700' : 'normal'
+                                                                    }}>
+                                                                        {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => {
+                                                                            const originalValue = row[header] || '';
+                                                                            const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || 'Unknown';
+                                                                            const cellValue = getCellValue(formName, index, rowIndex, header, originalValue);
+                                                                            const isEditing = editingCell && 
+                                                                                editingCell.recordIndex === index && 
+                                                                                editingCell.rowIndex === rowIndex && 
+                                                                                editingCell.header === header &&
+                                                                                editingCell.formName === formName;
+                                                                            
+                                                                            return (
+                                                                                <td 
+                                                                                    key={headerIndex} 
+                                                                                    style={{ 
                                                                             padding: '0.5rem',
                                                                             borderRight: '1px solid #e0e0e0',
-                                                                            borderBottom: '1px solid #e0e0e0'
-                                                                        }}>
-                                                                            {row[header] || '-'}
+                                                                                        borderBottom: '1px solid #e0e0e0',
+                                                                                        whiteSpace: 'nowrap',
+                                                                                        minWidth: '120px',
+                                                                                        fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                        backgroundColor: isEditing ? '#fff3cd' : (dataEdits[`${formName}_${index}_${rowIndex}_${header}`] ? '#e7f3ff' : 'transparent'),
+                                                                                        cursor: isAdmin ? 'pointer' : 'default',
+                                                                                        position: 'relative'
+                                                                                    }}
+                                                                                    onDoubleClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        if (isAdmin && !isTotalRow) {
+                                                                                            // Get current cell value (with edits applied)
+                                                                                            const currentCellValue = getCellValue(formName, index, rowIndex, header, originalValue);
+                                                                                            console.log('Starting edit (data path):', { formName, recordIndex: index, rowIndex, header, originalValue, currentCellValue });
+                                                                                            // Reset editing state first
+                                                                                            setEditingCell(null);
+                                                                                            setEditValue('');
+                                                                                            // Use setTimeout to ensure state is cleared before setting new edit
+                                                                                            setTimeout(() => {
+                                                                                                setEditingCell({ 
+                                                                                                    recordIndex: index, 
+                                                                                                    rowIndex, 
+                                                                                                    header, 
+                                                                                                    formName,
+                                                                                                    initialValue: currentCellValue || '' // Store the initial value when editing starts
+                                                                                                });
+                                                                                                setEditValue(currentCellValue || '');
+                                                                                            }, 0);
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    {isEditing ? (
+                                                                                        <div style={{
+                                                                                            display: 'flex',
+                                                                                            flexDirection: 'column',
+                                                                                            gap: '0.25rem',
+                                                                                            width: '100%'
+                                                                                        }}>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={editValue}
+                                                                                                onChange={(e) => {
+                                                                                                    const newValue = e.target.value;
+                                                                                                    console.log('Input onChange (data path):', newValue);
+                                                                                                    setEditValue(newValue);
+                                                                                                }}
+                                                                                                onKeyDown={(e) => {
+                                                                                                    // Only allow Escape to cancel, no auto-save on Enter
+                                                                                                    if (e.key === 'Escape') {
+                                                                                                        e.preventDefault();
+                                                                                                        e.stopPropagation();
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
+                                                                                                    }
+                                                                                                }}
+                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                onMouseDown={(e) => e.stopPropagation()}
+                                                                                                autoFocus
+                                                                                                style={{
+                                                                                                    width: '100%',
+                                                                                                    padding: '0.25rem',
+                                                                                                    border: '2px solid #667eea',
+                                                                                                    borderRadius: '4px',
+                                                                                                    fontSize: '0.8rem',
+                                                                                                    outline: 'none',
+                                                                                                    backgroundColor: 'white',
+                                                                                                    boxSizing: 'border-box'
+                                                                                                }}
+                                                                                            />
+                                                                                            <div style={{
+                                                                                                display: 'flex',
+                                                                                                gap: '0.25rem',
+                                                                                                justifyContent: 'flex-end'
+                                                                                            }}>
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        e.preventDefault();
+                                                                                                        const finalValue = editValue.trim();
+                                                                                                        const currentFormName = editingCell?.formName || formName;
+                                                                                                        const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                        console.log('Saving on Save button (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                        if (finalValue !== initialValue) {
+                                                                                                            saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
+                                                                                                        }
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
+                                                                                                    }}
+                                                                                                    style={{
+                                                                                                        padding: '0.2rem 0.5rem',
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        backgroundColor: '#667eea',
+                                                                                                        color: 'white',
+                                                                                                        border: 'none',
+                                                                                                        borderRadius: '4px',
+                                                                                                        cursor: 'pointer',
+                                                                                                        fontWeight: '600'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    Save
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        e.preventDefault();
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
+                                                                                                    }}
+                                                                                                    style={{
+                                                                                                        padding: '0.2rem 0.5rem',
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        backgroundColor: '#ccc',
+                                                                                                        color: 'white',
+                                                                                                        border: 'none',
+                                                                                                        borderRadius: '4px',
+                                                                                                        cursor: 'pointer',
+                                                                                                        fontWeight: '600'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    Cancel
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            {cellValue || '-'}
+                                                                                            {dataEdits[`${formName}_${index}_${rowIndex}_${header}`] && isAdmin && (
+                                                                                                <span style={{
+                                                                                                    position: 'absolute',
+                                                                                                    top: '2px',
+                                                                                                    right: '2px',
+                                                                                                    fontSize: '0.6rem',
+                                                                                                    color: '#667eea',
+                                                                                                    fontWeight: 'bold'
+                                                                                                }}>✏️</span>
+                                                                                            )}
+                                                                                        </>
+                                                                                    )}
                                                                         </td>
-                                                                    ))}
+                                                                            );
+                                                                        })}
                                                                 </tr>
-                                                            ))}
+                                                                );
+                                                            })}
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -2048,7 +3193,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     color: 'var(--text-color-light)', 
                     marginBottom: '0' 
                 }}>
-                    Browse all companies and view their uploaded files and extracted JSON data
+                    Browse companies, files, and extracted data
                 </p>
             </div>
 
@@ -2087,67 +3232,103 @@ function ExplorerAllUsers({ onMenuClick }) {
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: selectedSplit ? 
-                    (window.innerWidth <= 768 ? '1fr' : '1fr 1fr') : 
-                    (window.innerWidth <= 768 ? '1fr' : '1fr 1fr'),
-                gap: window.innerWidth <= 768 ? '1rem' : '2rem',
-                minHeight: 'calc(100vh - 100px)',
-                height: 'calc(100vh - 100px)'
+                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr') : 
+                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr'),
+                gap: window.innerWidth <= 768 ? '1.25rem' : '2rem',
+                minHeight: 'calc(100vh - 140px)',
+                height: 'calc(100vh - 140px)',
+                alignItems: 'stretch'
             }}>
                 {/* Left Panel - Users, Folders and Files OR PDF Viewer */}
                 <div style={{
-                    background: 'white',
-                    borderRadius: 'var(--border-radius)',
-                    border: '1px solid #e9ecef',
-                    boxShadow: 'var(--shadow-light)',
-                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 1 : 0 // Show first on mobile
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 1 : 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
                 }}>
                     {/* Navigation Header */}
                     <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 
-                        marginBottom: '1rem',
+                        marginBottom: '1.5rem',
+                        paddingBottom: '1.25rem',
+                        borderBottom: '2px solid #f3f4f6',
                         flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
-                        gap: window.innerWidth <= 768 ? '0.5rem' : '0'
+                        gap: window.innerWidth <= 768 ? '0.75rem' : '0',
+                        flexShrink: 0
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {selectedSplit && (
                                 <button
-                                    onClick={() => setSelectedSplit(null)}
+                                    onClick={() => {
+                                        setSelectedSplit(null);
+                                        setViewMode('pdf');
+                                    }}
                                     style={{
                                         background: 'rgba(108, 117, 125, 0.1)',
                                         border: '1px solid rgba(108, 117, 125, 0.3)',
                                         color: '#6c757d',
                                         borderRadius: '6px',
-                                        padding: '0.25rem 0.5rem',
+                                        padding: '0.5rem 0.75rem',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.875rem',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
-                                        minWidth: '36px',
-                                        minHeight: '36px'
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = 'rgba(108, 117, 125, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = 'rgba(108, 117, 125, 0.1)';
                                     }}
                                 >
-                                    ←
+                                    ← Back to Files
                                 </button>
                             )}
-                            <h3 style={{ 
-                                margin: 0, 
-                                color: 'var(--main-color)',
-                                fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)'
-                            }}>
-                                {selectedSplit ? 
-                                    `📄 ${selectedSplit.form_name}` :
-                                    view === 'companies' ? 
-                                    `🏢 All Companies (${companiesData.length})` :
-                                    view === 'folders' ?
-                                    `📁 ${selectedCompany}'s Folders` :
-                                    `📄 Files in ${selectedFolder} (${folderFiles.length})`
-                                }
-                            </h3>
+                            {view === 'files' ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                    <div style={{ 
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        color: '#1f2937',
+                                        lineHeight: '1.3',
+                                        textAlign: 'center'
+                                    }}>
+                                        📄 Files in {selectedFolder}
+                                    </div>
+                                    <div style={{ 
+                                        fontSize: '12px',
+                                        fontWeight: '500',
+                                        color: '#6b7280',
+                                        lineHeight: '1.2',
+                                        textAlign: 'center'
+                                    }}>
+                                        ({folderFiles.length} files)
+                                    </div>
+                                </div>
+                            ) : (
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    color: '#1f2937',
+                                    fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                                    fontWeight: '600',
+                                    lineHeight: '1.4'
+                                }}>
+                                    {view === 'companies' ? 
+                                        `🏢 All Companies (${companiesData.length})` :
+                                        `📁 ${selectedCompany}'s Folders`
+                                    }
+                                </h3>
+                            )}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
@@ -2171,7 +3352,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     </div>
 
                     {/* Breadcrumb Navigation */}
-                    {view !== 'companies' && (
+                    {view !== 'companies' && !selectedSplit && (
                         <div style={{ 
                             marginBottom: '1rem', 
                             padding: '0.5rem 0',
@@ -2223,85 +3404,121 @@ function ExplorerAllUsers({ onMenuClick }) {
                         </div>
                     )}
 
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>
-                            <div>Loading...</div>
-                        </div>
-                    ) : selectedSplit ? (
-                        <PDFViewer />
-                    ) : (
-                        view === 'companies' ? <AllCompaniesView /> : 
-                        view === 'folders' ? <CompanyFoldersView /> : <FilesView />
-                    )}
+                    <div style={{
+                        flex: 1,
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        paddingRight: '0.5rem'
+                    }}>
+                        {loading ? (
+                            <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                <div>Loading...</div>
+                            </div>
+                        ) : (
+                            view === 'companies' ? <AllCompaniesView /> : 
+                            view === 'folders' ? <CompanyFoldersView /> : <FilesView />
+                        )}
+                    </div>
                 </div>
 
                 {/* Right Panel - JSON Data Viewer OR Split Info */}
                 <div style={{
-                    background: 'white',
-                    borderRadius: 'var(--border-radius)',
-                    border: '1px solid #e9ecef',
-                    boxShadow: 'var(--shadow-light)',
-                    padding: window.innerWidth <= 768 ? '1rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 2 : 0, // Show second on mobile
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                    order: window.innerWidth <= 768 ? 2 : 0,
                     height: '100%',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    overflow: 'hidden'
                 }}>
-                    <h3 style={{ 
-                        margin: '0 0 1rem 0', 
-                        color: 'var(--main-color)',
-                        fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
-                        textAlign: window.innerWidth <= 768 ? 'center' : 'left'
-                    }}>
-                        {selectedSplit ? '📋 Split Details' : '📊 Extracted Data'}
-                    </h3>
+                    {selectedSplit && (
+                        <div style={{
+                            marginBottom: '1rem',
+                            flexShrink: 0
+                        }}>
+                            {/* Tabs for switching between PDF and Data views */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                borderBottom: '2px solid #e5e7eb',
+                                marginBottom: '1rem'
+                            }}>
+                                <button
+                                    onClick={() => setViewMode('pdf')}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: viewMode === 'pdf' ? '#3b82f6' : 'transparent',
+                                        color: viewMode === 'pdf' ? 'white' : '#6b7280',
+                                        border: 'none',
+                                        borderBottom: viewMode === 'pdf' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '6px 6px 0 0',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: viewMode === 'pdf' ? '600' : '500',
+                                        transition: 'all 0.2s ease',
+                                        marginBottom: '-2px'
+                                    }}
+                                >
+                                    📄 PDF
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('data')}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: viewMode === 'data' ? '#3b82f6' : 'transparent',
+                                        color: viewMode === 'data' ? 'white' : '#6b7280',
+                                        border: 'none',
+                                        borderBottom: viewMode === 'data' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '6px 6px 0 0',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: viewMode === 'data' ? '600' : '500',
+                                        transition: 'all 0.2s ease',
+                                        marginBottom: '-2px'
+                                    }}
+                                >
+                                    📊 Data
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {!selectedSplit && (
+                        <div style={{
+                            marginBottom: '1.25rem',
+                            paddingBottom: '1rem',
+                            borderBottom: '2px solid #f3f4f6',
+                            flexShrink: 0
+                        }}>
+                            <h3 style={{ 
+                                margin: 0, 
+                                color: '#1f2937',
+                                fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                                fontWeight: '600',
+                                textAlign: window.innerWidth <= 768 ? 'center' : 'left',
+                                lineHeight: '1.4'
+                            }}>
+                                📊 Extracted Data
+                            </h3>
+                        </div>
+                    )}
                     <div style={{ 
                         flex: 1,
-                        overflow: 'auto' 
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        paddingRight: '0.5rem',
+                        minHeight: 0
                     }}>
                         {selectedSplit ? (
-                            <div>
-                                {/* Split Information */}
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <h4 style={{ color: 'var(--main-color)', marginBottom: '0.5rem' }}>
-                                        {selectedSplit.form_name}
-                                    </h4>
-                                    <div style={{ 
-                                        background: 'var(--background-color)',
-                                        padding: '1rem',
-                                        borderRadius: '6px',
-                                        marginBottom: '1rem'
-                                    }}>
-                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                            <div><strong>Form Code:</strong> {selectedSplit.form_code}</div>
-                                            <div><strong>Pages:</strong> {selectedSplit.start_page} - {selectedSplit.end_page}</div>
-                                            <div><strong>File:</strong> {selectedSplit.filename}</div>
-                                            <div><strong>Status:</strong> <span style={{ color: '#28a745', fontWeight: '600' }}>✓ Available</span></div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Action Buttons */}
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <button
-                                            onClick={() => setSelectedSplit(null)}
-                                            style={{
-                                                padding: '0.5rem 1rem',
-                                                background: '#6c757d',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                fontSize: '0.9rem'
-                                            }}
-                                        >
-                                            ← Back to Files
-                                        </button>
-                                    </div>
-
-                                </div>
-                                
-                                {/* Extracted data display */}
-                                {!extractedData ? (
+                            viewMode === 'pdf' ? (
+                                <PDFViewer />
+                            ) : (
+                                <div>
+                                    {/* Extracted Data Mode - Clean View */}
+                                    {!extractedData ? (
                                     <div style={{
                                         padding: '1rem',
                                         background: 'rgba(63, 114, 175, 0.1)',
@@ -2336,12 +3553,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             </div>
                                         )}
                                     </div>
-        ) : (
-            <div style={{ padding: '0' }}>
-                {renderExtractedDataTable()}
-            </div>
-        )}
-                            </div>
+                                    ) : (
+                                        <div style={{ padding: '0' }}>
+                                            {renderExtractedDataTable()}
+                                        </div>
+                                    )}
+                                </div>
+                            )
                         ) : (
                             <JsonViewer />
                         )}

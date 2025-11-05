@@ -1,24 +1,22 @@
 {
   "Form No": "L-24",
   "Title": "VALUATION OF NET LIABILITIES",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in lacs",
-  "PagesUsed": "3-6",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Schedules forming part of financial statements",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
   "Headers": {
     "Type": ["Type"],
-    "Category_of_Business": ["Category of Business"],
-    "Mathematical_Reserves_Current_Year": ["Mathematical Reserves as at", "{QUARTER_END_DATE}"],
-    "Mathematical_Reserves_Previous_Year": ["Mathematical Reserves as at", "{PREVIOUS_QUARTER_END}"]
+    "Category_of_business": ["Category of business"],
+    "Mathematical_Reserves_as_at_Dec_Current_Year": ["Mathematical Reserves", "as at Dec", "{QUARTER_END_DATE_YEAR}"],
+    "Mathematical_Reserves_as_at_Dec_Previous_Year": ["Mathematical Reserves", "as at Dec", "{PREVIOUS_QUARTER_END_YEAR}"]
   },
   "FlatHeaders": [
-    "Net_liabilities_Type",
-    "Net_liabilities_Category_of_Business",
-    "Net_liabilities_Mathematical_Reserves_Current_Year",
-    "Net_liabilities_Mathematical_Reserves_Previous_Year"
+    "Type",
+    "Category_of_business",
+    "Mathematical_Reserves_as_at_Dec_Current_Year",
+    "Mathematical_Reserves_as_at_Dec_Previous_Year"
   ],
   "Rows": []
 }

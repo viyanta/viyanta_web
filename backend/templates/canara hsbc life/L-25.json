@@ -1,188 +1,241 @@
 {
-  "Form No": "L-25-(ii)",
-  "Title": "GEOGRAPHICAL DISTRIBUTION OF TOTAL BUSINESS: GROUP",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Date": "As at {QUARTER_END_DATE}",
-  "Currency": "₹ in lacs",
-  "PagesUsed": "3-6",
+  "Form No": "L-25",
+  "Title": "GEOGRAPHICAL DISTRIBUTION OF TOTAL BUSINESS",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Periodic Disclosures",
+  "Date": "31 December 2022",
+  "Currency": "Rs. in Lakhs",
   "Sections": [
     {
-      "Section_Name": "UPTO QUARTER ENDED {QUARTER_END_DATE}",
+      "Section_Name": "L-25-(i) INDIVIDUALS (QUARTERLY)",
       "Headers": {
         "Sl_No": [
-          "Sl.No."
+          "Sl.",
+          "No."
         ],
         "State_Union_Territory": [
-          "State / Union Territory"
+          "State /",
+          "Union Territory"
         ],
-        "New_Business_Rural_Group": {
-          "No_of_Schemes": [
-            "New Business - Rural (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "New Business - Rural (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "New Business - Rural (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "New Business - Rural (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "New_Business_Urban_Group": {
-          "No_of_Schemes": [
-            "New Business - Urban (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "New Business - Urban (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "New Business - Urban (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "New Business - Urban (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "Total_New_Business_Group": {
-          "No_of_Schemes": [
-            "Total New Business (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "Total New Business (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "Total New Business (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "Total New Business (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "Renewal_Premium": [
+        "New_Business_Rural_Individual_No_of_Policies": [
+          "New Business - Rural (Individual)",
+          "No. of Policies"
+        ],
+        "New_Business_Rural_Individual_Premium_Rs_Lakhs": [
+          "New Business - Rural (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Rural_Individual_Sum_Assured_Rs_Lakhs": [
+          "New Business - Rural (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Individual_No_of_Policies": [
+          "New Business - Urban (Individual)",
+          "No. of Policies"
+        ],
+        "New_Business_Urban_Individual_Premium_Rs_Lakhs": [
+          "New Business - Urban (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Individual_Sum_Assured_Rs_Lakhs": [
+          "New Business - Urban (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Individual_No_of_Policies": [
+          "Total New Business (Individual)",
+          "No. of Policies"
+        ],
+        "Total_New_Business_Individual_Premium_Rs_Lakhs": [
+          "Total New Business (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Individual_Sum_Assured_Rs_Lakhs": [
+          "Total New Business (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Renewal_Premium_Rs_Lakhs": [
           "Renewal Premium",
-          "(₹ in lacs)"
+          "(Rs. Lakhs)"
         ],
-        "Total_Premium_New_Business_and_Renewal": [
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
           "Total Premium (New Business and Renewal)",
-          "(₹ in lacs)"
+          "(Rs. Lakhs)"
         ]
       },
       "FlatHeaders": [
         "Sl_No",
         "State_Union_Territory",
-        "New_Business_Rural_Group_No_of_Schemes",
-        "New_Business_Rural_Group_No_of_Lives",
-        "New_Business_Rural_Group_Premium",
-        "New_Business_Rural_Group_Sum_Assured",
-        "New_Business_Urban_Group_No_of_Schemes",
-        "New_Business_Urban_Group_No_of_Lives",
-        "New_Business_Urban_Group_Premium",
-        "New_Business_Urban_Group_Sum_Assured",
-        "Total_New_Business_Group_No_of_Schemes",
-        "Total_New_Business_Group_No_of_Lives",
-        "Total_New_Business_Group_Premium",
-        "Total_New_Business_Group_Sum_Assured",
-        "Renewal_Premium",
-        "Total_Premium_New_Business_and_Renewal"
+        "New_Business_Rural_Individual_No_of_Policies",
+        "New_Business_Rural_Individual_Premium_Rs_Lakhs",
+        "New_Business_Rural_Individual_Sum_Assured_Rs_Lakhs",
+        "New_Business_Urban_Individual_No_of_Policies",
+        "New_Business_Urban_Individual_Premium_Rs_Lakhs",
+        "New_Business_Urban_Individual_Sum_Assured_Rs_Lakhs",
+        "Total_New_Business_Individual_No_of_Policies",
+        "Total_New_Business_Individual_Premium_Rs_Lakhs",
+        "Total_New_Business_Individual_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
       ],
       "Rows": []
     },
     {
-      "Section_Name": "FOR QUARTER ENDED {QUARTER_END_DATE}",
+      "Section_Name": "L-25-(i) INDIVIDUALS (YTD)",
       "Headers": {
         "Sl_No": [
-          "Sl.No."
+          "Sl.",
+          "No."
         ],
         "State_Union_Territory": [
-          "State / Union Territory"
+          "State /",
+          "Union Territory"
         ],
-        "New_Business_Rural_Group": {
-          "No_of_Schemes": [
-            "New Business - Rural (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "New Business - Rural (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "New Business - Rural (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "New Business - Rural (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "New_Business_Urban_Group": {
-          "No_of_Schemes": [
-            "New Business - Urban (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "New Business - Urban (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "New Business - Urban (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "New Business - Urban (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "Total_New_Business_Group": {
-          "No_of_Schemes": [
-            "Total New Business (Group)",
-            "No. of Schemes"
-          ],
-          "No_of_Lives": [
-            "Total New Business (Group)",
-            "No. of Lives"
-          ],
-          "Premium": [
-            "Total New Business (Group)",
-            "Premium",
-            "(₹ in lacs)"
-          ],
-          "Sum_Assured": [
-            "Total New Business (Group)",
-            "Sum Assured",
-            "(₹ in lacs)"
-          ]
-        },
-        "Renewal_Premium": [
+        "New_Business_Rural_Individual_No_of_Policies": [
+          "New Business - Rural (Individual)",
+          "No. of Policies"
+        ],
+        "New_Business_Rural_Individual_Premium_Rs_Lakhs": [
+          "New Business - Rural (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Rural_Individual_Sum_Assured_Rs_Lakhs": [
+          "New Business - Rural (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Individual_No_of_Policies": [
+          "New Business - Urban (Individual)",
+          "No. of Policies"
+        ],
+        "New_Business_Urban_Individual_Premium_Rs_Lakhs": [
+          "New Business - Urban (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Individual_Sum_Assured_Rs_Lakhs": [
+          "New Business - Urban (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Individual_No_of_Policies": [
+          "Total New Business (Individual)",
+          "No. of Policies"
+        ],
+        "Total_New_Business_Individual_Premium_Rs_Lakhs": [
+          "Total New Business (Individual)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Individual_Sum_Assured_Rs_Lakhs": [
+          "Total New Business (Individual)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Renewal_Premium_Rs_Lakhs": [
           "Renewal Premium",
-          "(₹ in lacs)"
+          "(Rs. Lakhs)"
         ],
-        "Total_Premium_New_Business_and_Renewal": [
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
           "Total Premium (New Business and Renewal)",
-          "(₹ in lacs)"
+          "(Rs. Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Individual_No_of_Policies",
+        "New_Business_Rural_Individual_Premium_Rs_Lakhs",
+        "New_Business_Rural_Individual_Sum_Assured_Rs_Lakhs",
+        "New_Business_Urban_Individual_No_of_Policies",
+        "New_Business_Urban_Individual_Premium_Rs_Lakhs",
+        "New_Business_Urban_Individual_Sum_Assured_Rs_Lakhs",
+        "Total_New_Business_Individual_No_of_Policies",
+        "Total_New_Business_Individual_Premium_Rs_Lakhs",
+        "Total_New_Business_Individual_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "L-25-(ii) GROUP (QUARTERLY)",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "State_Union_Territory": [
+          "State /",
+          "Union Territory"
+        ],
+        "New_Business_Rural_Group_No_of_Schemes": [
+          "New Business - Rural (Group)",
+          "No. of Schemes"
+        ],
+        "New_Business_Rural_Group_No_of_Lives": [
+          "New Business - Rural (Group)",
+          "No. of Lives"
+        ],
+        "New_Business_Rural_Group_Premium_Rs_Lakhs": [
+          "New Business - Rural (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs": [
+          "New Business - Rural (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Group_No_of_Schemes": [
+          "New Business - Urban (Group)",
+          "No. of Schemes"
+        ],
+        "New_Business_Urban_Group_No_of_Lives": [
+          "New Business - Urban (Group)",
+          "No. of Lives"
+        ],
+        "New_Business_Urban_Group_Premium_Rs_Lakhs": [
+          "New Business - Urban (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs": [
+          "New Business - Urban (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Group_No_of_Schemes": [
+          "Total New Business (Group)",
+          "No. of Schemes"
+        ],
+        "Total_New_Business_Group_No_of_Lives": [
+          "Total New Business (Group)",
+          "No. of Lives"
+        ],
+        "Total_New_Business_Group_Premium_Rs_Lakhs": [
+          "Total New Business (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Group_Sum_Assured_Rs_Lakhs": [
+          "Total New Business (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Renewal_Premium_Rs_Lakhs": [
+          "Renewal Premium",
+          "(Rs. Lakhs)"
+        ],
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
+          "Total Premium (New Business and Renewal)",
+          "(Rs. Lakhs)"
         ]
       },
       "FlatHeaders": [
@@ -190,18 +243,112 @@
         "State_Union_Territory",
         "New_Business_Rural_Group_No_of_Schemes",
         "New_Business_Rural_Group_No_of_Lives",
-        "New_Business_Rural_Group_Premium",
-        "New_Business_Rural_Group_Sum_Assured",
+        "New_Business_Rural_Group_Premium_Rs_Lakhs",
+        "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs",
         "New_Business_Urban_Group_No_of_Schemes",
         "New_Business_Urban_Group_No_of_Lives",
-        "New_Business_Urban_Group_Premium",
-        "New_Business_Urban_Group_Sum_Assured",
+        "New_Business_Urban_Group_Premium_Rs_Lakhs",
+        "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs",
         "Total_New_Business_Group_No_of_Schemes",
         "Total_New_Business_Group_No_of_Lives",
-        "Total_New_Business_Group_Premium",
-        "Total_New_Business_Group_Sum_Assured",
-        "Renewal_Premium",
-        "Total_Premium_New_Business_and_Renewal"
+        "Total_New_Business_Group_Premium_Rs_Lakhs",
+        "Total_New_Business_Group_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "L-25-(ii) GROUP (YTD)",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "State_Union_Territory": [
+          "State /",
+          "Union Territory"
+        ],
+        "New_Business_Rural_Group_No_of_Schemes": [
+          "New Business - Rural (Group)",
+          "No. of Schemes"
+        ],
+        "New_Business_Rural_Group_No_of_Lives": [
+          "New Business - Rural (Group)",
+          "No. of Lives"
+        ],
+        "New_Business_Rural_Group_Premium_Rs_Lakhs": [
+          "New Business - Rural (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs": [
+          "New Business - Rural (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Group_No_of_Schemes": [
+          "New Business - Urban (Group)",
+          "No. of Schemes"
+        ],
+        "New_Business_Urban_Group_No_of_Lives": [
+          "New Business - Urban (Group)",
+          "No. of Lives"
+        ],
+        "New_Business_Urban_Group_Premium_Rs_Lakhs": [
+          "New Business - Urban (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs": [
+          "New Business - Urban (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Group_No_of_Schemes": [
+          "Total New Business (Group)",
+          "No. of Schemes"
+        ],
+        "Total_New_Business_Group_No_of_Lives": [
+          "Total New Business (Group)",
+          "No. of Lives"
+        ],
+        "Total_New_Business_Group_Premium_Rs_Lakhs": [
+          "Total New Business (Group)",
+          "Premium",
+          "(Rs Lakhs)"
+        ],
+        "Total_New_Business_Group_Sum_Assured_Rs_Lakhs": [
+          "Total New Business (Group)",
+          "Sum Assured",
+          "(Rs Lakhs)"
+        ],
+        "Renewal_Premium_Rs_Lakhs": [
+          "Renewal Premium",
+          "(Rs. Lakhs)"
+        ],
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs": [
+          "Total Premium (New Business and Renewal)",
+          "(Rs. Lakhs)"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "State_Union_Territory",
+        "New_Business_Rural_Group_No_of_Schemes",
+        "New_Business_Rural_Group_No_of_Lives",
+        "New_Business_Rural_Group_Premium_Rs_Lakhs",
+        "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs",
+        "New_Business_Urban_Group_No_of_Schemes",
+        "New_Business_Urban_Group_No_of_Lives",
+        "New_Business_Urban_Group_Premium_Rs_Lakhs",
+        "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs",
+        "Total_New_Business_Group_No_of_Schemes",
+        "Total_New_Business_Group_No_of_Lives",
+        "Total_New_Business_Group_Premium_Rs_Lakhs",
+        "Total_New_Business_Group_Sum_Assured_Rs_Lakhs",
+        "Renewal_Premium_Rs_Lakhs",
+        "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
       ],
       "Rows": []
     }
@@ -228,11 +375,22 @@
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl_No",
+    "State_Union_Territory",
+    "New_Business_Rural_Group_No_of_Schemes",
+    "New_Business_Rural_Group_No_of_Lives",
+    "New_Business_Rural_Group_Premium_Rs_Lakhs",
+    "New_Business_Rural_Group_Sum_Assured_Rs_Lakhs",
+    "New_Business_Urban_Group_No_of_Schemes",
+    "New_Business_Urban_Group_No_of_Lives",
+    "New_Business_Urban_Group_Premium_Rs_Lakhs",
+    "New_Business_Urban_Group_Sum_Assured_Rs_Lakhs",
+    "Total_New_Business_Group_No_of_Schemes",
+    "Total_New_Business_Group_No_of_Lives",
+    "Total_New_Business_Group_Premium_Rs_Lakhs",
+    "Total_New_Business_Group_Sum_Assured_Rs_Lakhs",
+    "Renewal_Premium_Rs_Lakhs",
+    "Total_Premium_New_Business_and_Renewal_Rs_Lakhs"
   ],
   "Rows": []
 }

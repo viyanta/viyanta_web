@@ -47,7 +47,7 @@ function Metrics({ onMenuClick }) {
     } else if (tab === 'News') {
       navigate('/news');
     } else if (tab === 'Define Template') {
-      console.log('Define Template clicked');
+      navigate('/template');
     } else if (tab === 'Save Template') {
       console.log('Save Template clicked');
     } else if (tab === 'Screener Inputs') {
@@ -77,7 +77,9 @@ function Metrics({ onMenuClick }) {
     <div className="metrics-page" style={{
       padding: 'clamp(10px, 3vw, 20px)',
       minHeight: '100vh',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
     }}>
       {/* Metrics Header */}
       <div style={{ 
@@ -164,7 +166,8 @@ function Metrics({ onMenuClick }) {
             <div style={{
               position: 'relative',
               display: 'inline-block',
-              minWidth: '200px'
+              minWidth: window.innerWidth <= 768 ? '100%' : '200px',
+              width: window.innerWidth <= 768 ? '100%' : 'auto'
             }}>
               <h3 style={{
                 fontSize: '16px',
@@ -180,15 +183,16 @@ function Metrics({ onMenuClick }) {
                 }}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  fontSize: '14px',
+                  padding: 'clamp(8px, 2vw, 12px)',
+                  fontSize: 'clamp(13px, 2.5vw, 14px)',
                   border: '2px solid #28a745',
                   borderRadius: '6px',
                   backgroundColor: 'white',
                   color: '#333',
                   cursor: 'pointer',
                   outline: 'none',
-                  transition: 'border-color 0.2s ease'
+                  transition: 'border-color 0.2s ease',
+                  minHeight: window.innerWidth <= 768 ? '44px' : 'auto'
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#1e7e34';
@@ -305,15 +309,17 @@ function Metrics({ onMenuClick }) {
       {/* Main Content Area with Sidebar */}
       <div style={{
         display: 'flex',
-        gap: 'clamp(10px, 2vw, 15px)',
+        gap: window.innerWidth <= 768 ? 'clamp(10px, 2vw, 15px)' : 'clamp(15px, 3vw, 20px)',
         padding: '0 clamp(10px, 3vw, 20px)',
-        flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
+        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+        alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start'
       }}>
         {/* Left Sidebar - Company Information */}
         <div style={{
-          flex: '0 0 clamp(200px, 25vw, 220px)',
-          minWidth: '200px',
-          maxWidth: '220px'
+          flex: window.innerWidth <= 768 ? 'none' : '0 0 clamp(200px, 25vw, 220px)',
+          minWidth: window.innerWidth <= 768 ? 'auto' : '200px',
+          maxWidth: window.innerWidth <= 768 ? '100%' : '220px',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           <CompanyInformationSidebar />
         </div>
@@ -322,7 +328,8 @@ function Metrics({ onMenuClick }) {
         <div style={{
           flex: '1',
           minWidth: 0,
-          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)'
+          paddingLeft: window.innerWidth <= 768 ? '0' : 'clamp(10px, 2vw, 15px)',
+          width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
           {/* Main Content */}
           <div style={{
@@ -336,7 +343,7 @@ function Metrics({ onMenuClick }) {
             {/* Selection Controls */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: 'clamp(15px, 3vw, 20px)',
               marginBottom: 'clamp(20px, 4vw, 30px)'
             }}>
@@ -512,7 +519,8 @@ function Metrics({ onMenuClick }) {
                           justifyContent: 'space-around',
                           height: 'clamp(180px, 30vw, 250px)',
                           padding: 'clamp(10px, 2vw, 15px)',
-                          position: 'relative'
+                          position: 'relative',
+                          overflowX: window.innerWidth <= 768 ? 'auto' : 'visible'
                         }}>
                           {/* Y-axis labels */}
                           <div style={{
@@ -538,10 +546,11 @@ function Metrics({ onMenuClick }) {
                           <div style={{
                             display: 'flex',
                             alignItems: 'end',
-                            justifyContent: 'space-around',
+                            justifyContent: window.innerWidth <= 768 ? 'space-between' : 'space-around',
                             width: '100%',
                             height: '100%',
-                            paddingLeft: 'clamp(40px, 6vw, 60px)'
+                            paddingLeft: 'clamp(40px, 6vw, 60px)',
+                            gap: window.innerWidth <= 768 ? 'clamp(8px, 2vw, 12px)' : '0'
                           }}>
                             {/* Q1 Bar */}
                             <div style={{
@@ -552,7 +561,7 @@ function Metrics({ onMenuClick }) {
                               justifyContent: 'end'
                             }}>
                               <div style={{
-                                width: 'clamp(30px, 4vw, 40px)',
+                                width: window.innerWidth <= 768 ? 'clamp(25px, 3vw, 35px)' : 'clamp(30px, 4vw, 40px)',
                                 height: '70%',
                                 backgroundColor: '#3b82f6',
                                 borderRadius: '4px 4px 0 0',
@@ -753,40 +762,43 @@ function Metrics({ onMenuClick }) {
                         <table style={{
                           width: '100%',
                           borderCollapse: 'collapse',
-                          fontSize: 'clamp(12px, 2vw, 14px)'
+                          borderSpacing: '0',
+                          fontSize: '14px',
+                          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                          tableLayout: 'auto'
                         }}>
                           <thead>
                             <tr style={{ backgroundColor: '#f8f9fa' }}>
-                              <th style={{ padding: 'clamp(8px, 2vw, 12px)', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600' }}>Period</th>
-                              <th style={{ padding: 'clamp(8px, 2vw, 12px)', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600' }}>Value</th>
-                              <th style={{ padding: 'clamp(8px, 2vw, 12px)', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600' }}>Change</th>
-                              <th style={{ padding: 'clamp(8px, 2vw, 12px)', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600' }}>Trend</th>
+                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Period</th>
+                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Value</th>
+                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Change</th>
+                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e9ecef', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Trend</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>Q1 2024</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>₹2,450 Cr</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef', color: '#28a745' }}>+12.5%</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>📈</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Q1 2024</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>₹2,450 Cr</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', color: '#28a745', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>+12.5%</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>📈</td>
                             </tr>
                             <tr>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>Q2 2024</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>₹2,680 Cr</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef', color: '#28a745' }}>+9.4%</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>📈</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Q2 2024</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>₹2,680 Cr</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', color: '#28a745', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>+9.4%</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>📈</td>
                             </tr>
                             <tr>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>Q3 2024</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>₹2,890 Cr</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef', color: '#28a745' }}>+7.8%</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', borderBottom: '1px solid #e9ecef' }}>📈</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Q3 2024</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>₹2,890 Cr</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', color: '#28a745', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>+7.8%</td>
+                              <td style={{ padding: '12px', borderBottom: '1px solid #e9ecef', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>📈</td>
                             </tr>
                             <tr>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)' }}>Q4 2024</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)' }}>₹3,120 Cr</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)', color: '#28a745' }}>+8.0%</td>
-                              <td style={{ padding: 'clamp(8px, 2vw, 12px)' }}>📈</td>
+                              <td style={{ padding: '12px', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>Q4 2024</td>
+                              <td style={{ padding: '12px', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>₹3,120 Cr</td>
+                              <td style={{ padding: '12px', color: '#28a745', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>+8.0%</td>
+                              <td style={{ padding: '12px', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>📈</td>
                             </tr>
                           </tbody>
                         </table>

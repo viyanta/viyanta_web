@@ -1,40 +1,35 @@
 {
   "Form No": "L-9A",
   "Title": "SHAREHOLDING PATTERN",
-  "Subtitle": "DETAILS OF EQUITY HOLDING OF INSURERS",
-  "Company": "Canara HSBC Life Insurance Company Limited",
-  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
-  "Registration No": "136",
-  "Date of Registration": "May 8, 2008",
-  "Period": "AS AT QUARTER ENDED {QUARTER_END_DATE}",
-  "PagesUsed": "3-6",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "DETAILS OF EQUITY HOLDING OF INSURERS",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "As_at_quarter_ended": "31 December {QUARTER_END_DATE_YEAR}",
+  "Currency": "Mixed (Numbers, Rs. In Lakhs)",
   "Headers": {
-    "Sl_No": ["Sl. No.", "(I)"],
-    "Category": ["Category", "(II)"],
-    "No_of_Investors": ["No. of Investors", "(III)"],
-    "No_of_shares_held": ["No. of shares held", "(IV)"],
-    "Percentage_of_shareholdings": ["% of share-holdings", "(V)"],
-    "Paid_up_equity_in_lakhs": ["Paid up equity", "(₹ In lakhs)"],
-    "Shares_pledged_or_otherwise_encumbered": {
-      "Number_of_shares_VI": ["Shares pledged or otherwise encumbered", "Number of shares (VI)"],
-      "Percentage_of_Total_Shares_held_VII": ["Shares pledged or otherwise encumbered", "As a percentage of Total Shares held (VII) = (VI)/(III)*100"]
-    },
-    "Shares_under_Lock_in_Period": {
-      "Number_of_shares_VIII": ["Shares under Lock in Period", "Number of shares (VIII)"],
-      "Percentage_of_Total_Shares_held_IX": ["Shares under Lock in Period", "As a percentage of Total Shares held (IX) = (VIII)/(III)*100"]
-    }
+    "Sl_No": ["Sl.", "No."],
+    "Category": ["Category"],
+    "No_of_Investors": ["No. of Investors"],
+    "No_of_shares_held": ["No. of shares held"],
+    "Percentage_of_share_holdings": ["% of", "share-", "holdings"],
+    "Paid_up_equity_Rs_In_lakhs": ["Paid up", "equity", "(Rs. In", "lakhs)"],
+    "Shares_pledged_Number_of_shares": ["Shares pledged or otherwise", "encumbered", "Number of", "shares"],
+    "Shares_pledged_Percentage_of_Total_Shares_held": ["Shares pledged or otherwise", "encumbered", "As a percentage", "of Total Shares", "held"],
+    "Shares_under_Lock_in_Period_Number_of_shares": ["Shares under Lock in Period", "Number", "of shares"],
+    "Shares_under_Lock_in_Period_Percentage_of_Total_Shares_held": ["Shares under Lock in Period", "As a percentage of", "Total Shares held"]
   },
   "FlatHeaders": [
     "Sl_No",
     "Category",
     "No_of_Investors",
     "No_of_shares_held",
-    "Percentage_of_shareholdings",
-    "Paid_up_equity_in_lakhs",
-    "Shares_pledged_or_otherwise_encumbered_Number_of_shares_VI",
-    "Shares_pledged_or_otherwise_encumbered_Percentage_of_Total_Shares_held_VII",
-    "Shares_under_Lock_in_Period_Number_of_shares_VIII",
-    "Shares_under_Lock_in_Period_Percentage_of_Total_Shares_held_IX"
+    "Percentage_of_share_holdings",
+    "Paid_up_equity_Rs_In_lakhs",
+    "Shares_pledged_Number_of_shares",
+    "Shares_pledged_Percentage_of_Total_Shares_held",
+    "Shares_under_Lock_in_Period_Number_of_shares",
+    "Shares_under_Lock_in_Period_Percentage_of_Total_Shares_held"
   ],
   "Rows": []
 }
