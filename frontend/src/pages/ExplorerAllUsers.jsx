@@ -559,23 +559,105 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 margin: 0
                                             }}>
                                                 <thead>
-                                                    <tr style={{ background: '#f5f5f5' }}>
-                                                        {recordHeaders.map((header, headerIndex) => (
-                                                            <th key={headerIndex} style={{ 
-                                                                padding: '0.5rem',
-                                                                textAlign: 'left',
-                                                                borderRight: '1px solid #e0e0e0',
-                                                                borderBottom: '1px solid #e0e0e0',
-                                             fontWeight: '600',
-                                                                whiteSpace: 'nowrap',
-                                                                minWidth: '120px'
-                                         }}>
-                                             {header}
-                                         </th>
-                                     ))}
-                                </tr>
-                            </thead>
-                             <tbody>
+                                                    <tr style={{ background: '#0885f1' }}>
+                                                        {recordHeaders.map((header, headerIndex) => {
+                                                            // Function to determine alignment based on column header
+                                                            const getHeaderAlignment = (headerText) => {
+                                                                const normalizedHeader = headerText.toLowerCase().trim();
+                                                                
+                                                                // Left-aligned columns (text/description columns)
+                                                                const leftAlignedColumns = [
+                                                                    'particulars', 'information', 'category of business', 
+                                                                    'claims experience', 'types of claims', 'channels', 
+                                                                    'category of investment', 'description','designation', 'details','shareholder','shareholders', 
+                                                                    'name', 'title', 'remarks','role/function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                ];
+                                                                
+                                                                // Center-aligned columns (serial numbers)
+                                                                const centerAlignedColumns = [
+                                                                    'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
+                                                                    's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                ];
+
+                                                                const rightAlignedColumns = [
+                                                                    'for'
+                                                                ];
+                                                                
+                                                                // Check for serial number columns
+                                                                if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                    return 'center';
+                                                                }
+                                                                
+                                                                // Check for text/description columns or second column
+                                                                if (headerIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                    return 'left';
+                                                                }
+                                                                if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) return 'right';
+                                                                
+                                                                // Default: numeric columns - right align
+                                                                return 'right';
+                                                            };
+                                                            // Function to break long headers
+                                                            const formatHeader = (text) => {
+                                                                if (!text) return '';
+                                                              
+                                                                const MAX_CHUNK = 20;
+                                                                let cleanText = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); // Replace underscores with spaces
+                                                                const words = cleanText.split(' ');
+                                                                let lines = [];
+                                                                let currentLine = '';
+                                                              
+                                                                // Build up to 3 lines
+                                                                for (let i = 0; i < words.length; i++) {
+                                                                  const word = words[i];
+                                                                  if ((currentLine + ' ' + word).trim().length <= MAX_CHUNK) {
+                                                                    // If word fits in current line
+                                                                    currentLine = (currentLine + ' ' + word).trim();
+                                                                  } else {
+                                                                    // Push current line and start new one
+                                                                    lines.push(currentLine);
+                                                                    currentLine = word;
+                                                                    if (lines.length === 2) break; // stop after 2 lines; remaining goes to last
+                                                                  }
+                                                                }
+                                                              
+                                                                // Push last line (even if long)
+                                                                if (currentLine) {
+                                                                  const remainingWords = words.slice(words.indexOf(currentLine.split(' ')[0]));
+                                                                  lines.push(remainingWords.join(' '));
+                                                                }
+                                                              
+                                                                return (
+                                                                  <>
+                                                                    {lines.map((line, i) => (
+                                                                      <React.Fragment key={i}>
+                                                                        {line}
+                                                                        {i < lines.length - 1 && <br />}
+                                                                      </React.Fragment>
+                                                                    ))}
+                                                                  </>
+                                                                );
+                                                              };
+                                                              
+                                                            
+                                                            
+                                                            return (
+                                                                <th key={headerIndex} style={{ 
+                                                                    padding: '0.5rem',
+                                                                    textAlign: 'center',
+                                                                    borderRight: '1px solid #e0e0e0',
+                                                                    borderBottom: '1px solid #e0e0e0',
+                                                                    fontWeight: 'bold',
+                                                                    whiteSpace: 'nowrap',
+                                                                    minWidth: '120px'
+                                                                }}>
+                                                                    {formatHeader(header)}
+                                                                </th>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     {recordRows.map((row, rowIndex) => {
                                     // Check if row contains "total" or "subtotal" (case-insensitive)
                                     const checkForTotal = (cellValue) => {
@@ -591,13 +673,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                         } else if (typeof row === 'object' && row !== null) {
                                         // For object rows, check all header values
                                                             isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
-                                    }
-                                    
-                                    return (
-                                        <tr key={rowIndex} style={{ 
-                                                                background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
-                                            fontWeight: isTotalRow ? '700' : 'normal'
-                                        }}>
+                                                        }
+                                                        
+                                                        return (
+                                                            <tr key={rowIndex} style={{ 
+                                                                background: rowIndex % 2 === 0 ? 'white' : '#ebf7f9',
+                                                                fontWeight: isTotalRow ? '700' : 'normal'
+                                                            }}>
                                                                 {recordHeaders.map((header, headerIndex) => {
                                                                     // Handle both array and object row formats
                                                                     let originalValue = '';
@@ -609,6 +691,45 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         originalValue = row || '';
                                                                     }
                                                                     
+                                                                    // Function to determine cell alignment
+                                                                    const getCellAlignment = (headerText, colIndex) => {
+                                                                        const normalizedHeader = headerText.toLowerCase().trim();
+                                                                        
+                                                                        // Left-aligned columns (text/description columns)
+                                                                        const leftAlignedColumns = [
+                                                                            'particulars','particular','Designation', 'information', 'category of business', 
+                                                                            'claims experience', 'types of claims', 'channels', 
+                                                                            'category of investment', 'description','designation', 'details','shareholder','shareholders', 
+                                                                            'name', 'title', 'remarks','Role/Function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                        ];
+                                                                        
+                                                                        // Center-aligned columns (serial numbers)
+                                                                        const centerAlignedColumns = [
+                                                                            'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
+                                                                            's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                        ];
+                                                                        const rightAlignedColumns = [
+                                                                            'for'
+                                                                        ];
+                                                                        
+                                                                        // Check for serial number columns
+                                                                        if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                            return 'center';
+                                                                        }
+                                                                        if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) 
+                                                                            return 'right';
+                                                                        // Check for text/description columns or second column
+                                                                        if (colIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
+                                                                            return 'left';
+                                                                        }
+                                                                        
+                                                                        
+                                                                        // Default: numeric columns - right align
+                                                                        return 'right';
+                                                                    };
+                                                                    
+                                                                    const alignment = getCellAlignment(header, headerIndex);
+                                                                    
                                                                     // Get form name for edit key - use selectedSplit.form_name as primary source
                                                                     const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
                                                                     const cellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
@@ -618,7 +739,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         editingCell.header === header &&
                                                                         editingCell.formName === formName;
                                                                     
-                                                     return (
+                                                                    return (
                                                                         <td 
                                                                             key={headerIndex} 
                                                                             style={{ 
@@ -627,7 +748,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                 borderBottom: '1px solid #e0e0e0',
                                                                                 whiteSpace: 'nowrap',
                                                                                 minWidth: '120px',
-                                                             fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                fontWeight: isTotalRow ? '700' : 'normal',
+                                                                                textAlign: alignment,
                                                                                 backgroundColor: isEditing ? '#fff3cd' : (dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] ? '#e7f3ff' : 'transparent'),
                                                                                 cursor: isAdmin ? 'pointer' : 'default',
                                                                                 position: 'relative'
@@ -750,7 +872,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                 </div>
                                                                             ) : (
                                                                                 <>
-                                                                 {cellValue || '-'}
+                                                                                    {cellValue || '-'}
                                                                                     {dataEdits[`${formName}_${recordIndex}_${rowIndex}_${header}`] && isAdmin && (
                                                                                         <span style={{
                                                                                             position: 'absolute',
@@ -763,8 +885,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                     )}
                                                                                 </>
                                                                             )}
-                                                         </td>
-                                                     );
+                                                                        </td>
+                                                                    );
                                                                 })}
                                          </tr>
                                      );

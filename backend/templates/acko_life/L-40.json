@@ -73,32 +73,36 @@
     }
   ],
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl. No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Claims_Experience": [
+      "Claims Experience"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Maturity": [
+      "Maturity"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Survival_Benefit": [
+      "Survival Benefit"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Annuities_Pension": [
+      "Annuities/ Pension"
+    ],
+    "Surrender": [
+      "Surrender"
+    ],
+    "Other_Benefits": [
+      "Other Benefits"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl. No.",
+    "Claims Experience",
+    "Maturity",
+    "Survival Benefit",
+    "Annuities/ Pension",
+    "Surrender",
+    "Other Benefits"
   ],
   "Rows": []
 }

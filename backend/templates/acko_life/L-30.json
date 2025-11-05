@@ -105,32 +105,47 @@
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sl_No": [
+      "Sl.No."
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Name_of_the_Related_Party": [
+      "Name of the Related Party"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "Nature_of_Relationship_with_the_Company": [
+      "Nature of Relationship",
+      "with the Company"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Description_of_Transactions_Categories": [
+      "Description of Transactions /",
+      "Categories"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Consideration_For_the_Quarter": [
+      "For the Quarter"
+    ],
+    "Consideration_Up_to_the_Quarter": [
+      "Up to the Quarter"
+    ],
+    "Consideration_For_the_Corresponding_Quarter_of_the_Previous_Year": [
+      "For the",
+      "Corresponding",
+      "Quarter of the",
+      "Previous Year"
+    ],
+    "Consideration_Up_to_the_Quarter_of_the_Previous_Year": [
+      "Up to the Quarter",
+      "of the Previous",
+      "Year"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sl.No.",
+    "Name of the Related Party",
+    "Nature of Relationship with the Company",
+    "Description of Transactions / Categories",
+    "Consideration paid / received* (Rs in Lakhs) - For the Quarter",
+    "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter",
+    "Consideration paid / received* (Rs in Lakhs) - For the Corresponding Quarter of the Previous Year",
+    "Consideration paid / received* (Rs in Lakhs) - Up to the Quarter of the Previous Year"
   ],
   "Rows": []
 }
