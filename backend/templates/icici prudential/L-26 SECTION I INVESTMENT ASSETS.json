@@ -237,7 +237,18 @@
     "Current_Quarter",
     "Current_Year_To_Date",
     "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Previous_Year_To_Date",
+    "col5",
+    "col6",
+    "col7",
+    "col8",
+    "col9",
+    "col10",
+    "col11",
+    "col12",
+    "col13",
+    "col14",
+    "col15"
   ],
   "Rows": []
 }

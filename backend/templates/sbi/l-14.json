@@ -1,0 +1,26 @@
+{
+  "Form No": "L-14A",
+  "Title": "Aggregate value of Investments other than Listed Equity Securities and Derivative Instruments",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Document_Context": "SCHEDULE FORMING PART OF FINANCIAL STATEMENTS",
+  "Currency": "Rs in Lakhs",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Shareholders": ["As at {CURRENT_DATE}", "As at {PREVIOUS_DATE}"],
+    "Policyholders": ["As at {CURRENT_DATE}", "As at {PREVIOUS_DATE}"],
+    "Assets_held_to_cover_Linked_Liabilities": ["As at {CURRENT_DATE}", "As at {PREVIOUS_DATE}"],
+    "Total": ["As at {CURRENT_DATE}", "As at {PREVIOUS_DATE}"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Shareholders_As_at_CURRENT_DATE",
+    "Shareholders_As_at_PREVIOUS_DATE",
+    "Policyholders_As_at_CURRENT_DATE",
+    "Policyholders_As_at_PREVIOUS_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_CURRENT_DATE",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_PREVIOUS_DATE",
+    "Total_As_at_CURRENT_DATE",
+    "Total_As_at_PREVIOUS_DATE"
+  ],
+  "Rows": []
+} 

@@ -1,0 +1,52 @@
+{
+  "Form No": "L-4",
+  "Title": "PREMIUM SCHEDULE",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Registration_Number": "111",
+  "Registration_Date": "29th March, 2001",
+  "Currency": "Rs in Lakhs",
+  "Period": "For the quarter ended December 31, 2022",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Unit_Linked": {
+      "Life": ["Life"],
+      "Pension": ["Pension"],
+      "Total": ["Total"]
+    },
+    "Non_Linked_Business": {
+      "Participating": {
+        "Life": ["Life"],
+        "Pension": ["Pension"],
+        "Variable_Insurance": ["Variable Insurance"],
+        "Total": ["Total"]
+      },
+      "Non_Participating": {
+        "Life": ["Life"],
+        "Annuity": ["Annuity"],
+        "Pension": ["Pension"],
+        "Health": ["Health"],
+        "Variable_Insurance": ["Variable Insurance"],
+        "Total": ["Total"]
+      }
+    },
+    "Grand_Total": ["Grand Total"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Unit_Linked_Life",
+    "Unit_Linked_Pension",
+    "Unit_Linked_Total",
+    "Non_Linked_Business_Participating_Life",
+    "Non_Linked_Business_Participating_Pension",
+    "Non_Linked_Business_Participating_Variable_Insurance",
+    "Non_Linked_Business_Participating_Total",
+    "Non_Linked_Business_Non_Participating_Life",
+    "Non_Linked_Business_Non_Participating_Annuity",
+    "Non_Linked_Business_Non_Participating_Pension",
+    "Non_Linked_Business_Non_Participating_Health",
+    "Non_Linked_Business_Non_Participating_Variable_Insurance",
+    "Non_Linked_Business_Non_Participating_Total",
+    "Grand_Total"
+  ],
+  "Rows": []
+}

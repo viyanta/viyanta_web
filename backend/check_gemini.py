@@ -40,6 +40,6 @@ if __name__ == "__main__":
     # api_key = os.getenv("GEMINI_API_KEY") or input(
     #     "Enter your API key: ").strip()
     api_key = "AIzaSyBP5Z0aFC7EvFtGP9bUB6Yq_UnkPcwTG7Y"
-    model = input("Enter model name (e.g., gemini-2.5-pro): ").strip()
+    model = input("Enter model name (e.g., gemini-2.5-flash): ").strip()
     prompt = input("Enter a test prompt: ").strip()
     check_gemini(api_key, model, prompt)

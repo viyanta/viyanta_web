@@ -1,0 +1,24 @@
+{
+  "Form No": "L-23",
+  "Title": "RECEIPT AND PAYMENTS SCHEDULE",
+  "SubTitle": "Condensed Consolidated Receipt & Payment Account",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date": "For the nine months ended {NINE_MONTHS_END_DATE}",
+  "Currency": "₹ Lakhs",
+  
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Current_Nine_Months": ["{FIRST_DATE} to {NINE_MONTHS_END_DATE}"],
+    "Previous_Financial_Year": ["{FIRST_DATE} to {SECOND_DATE}"],
+    "Previous_Nine_Months": ["{FIRST_DATE} to {THIRD_DATE}"]
+  },
+  
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Nine_Months_FIRST_DATE_to_NINE_MONTHS_END_DATE",
+    "Previous_Financial_Year_FIRST_DATE_to_SECOND_DATE",
+    "Previous_Nine_Months_FIRST_DATE_to_THIRD_DATE"
+  ],
+  
+  "Rows": []
+} 

@@ -155,32 +155,48 @@
     "Rows": []
   },
   "Headers": {
-    "Particulars": [
-      "Particulars"
+    "Sr_No": [
+      "Sr. No"
     ],
-    "Current_Quarter": [
-      "For the quarter ended",
-      "{QUARTER_END_DATE}"
+    "Name_of_the_security": [
+      "Name of the security"
     ],
-    "Current_Year_To_Date": [
-      "Up to the period ended",
-      "{QUARTER_END_DATE}"
+    "COI": [
+      "COI"
     ],
-    "Previous_Quarter": [
-      "For the quarter ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Amount": [
+      "Amount"
     ],
-    "Previous_Year_To_Date": [
-      "Up to the period ended",
-      "{PREVIOUS_QUARTER_END}"
+    "Date_of_purchase": [
+      "Date of purchase"
+    ],
+    "Rating_agency": [
+      "Rating agency"
+    ],
+    "Original_grade": [
+      "Original grade"
+    ],
+    "Current_grade": [
+      "Current grade"
+    ],
+    "Date_of_downgrade": [
+      "Date of downgrade"
+    ],
+    "Remarks": [
+      "Remarks"
     ]
   },
   "FlatHeaders": [
-    "Particulars",
-    "Current_Quarter",
-    "Current_Year_To_Date",
-    "Previous_Quarter",
-    "Previous_Year_To_Date"
+    "Sr. No",
+    "Name of the security",
+    "COI",
+    "Amount",
+    "Date of purchase",
+    "Rating agency",
+    "Original grade",
+    "Current grade",
+    "Date of downgrade",
+    "Remarks"
   ],
   "Rows": []
 }

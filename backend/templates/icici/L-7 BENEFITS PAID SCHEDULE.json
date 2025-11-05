@@ -1,0 +1,214 @@
+{
+  "Form No": "L-7",
+  "Title": "BENEFITS PAID SCHEDULE",
+  "SubTitle": "BENEFITS PAID [NET]",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Date_Quarter": "For the quarter ended {QUARTER_END_DATE}",
+  "Date_Nine_Months": "For the nine months ended {NINE_MONTHS_END_DATE}",
+  "Currency": "₹ Lakhs",
+  "FlatHeaders": [
+      "Particulars",
+      "Linked_Business_Life",
+      "Linked_Business_Pension",
+      "Linked_Business_Health",
+      "Linked_Business_Variable_Insurance",
+      "Linked_Business_Total",
+      "Non_Linked_Business_Participating_Life",
+      "Non_Linked_Business_Participating_Annuity",
+      "Non_Linked_Business_Participating_Pension",
+      "Non_Linked_Business_Participating_Health",
+      "Non_Linked_Business_Participating_Variable_Insurance",
+      "Non_Linked_Business_Participating_Total",
+      "Non_Linked_Business_Non_Participating_Life",
+      "Non_Linked_Business_Non_Participating_Annuity",
+      "Non_Linked_Business_Non_Participating_Pension",
+      "Non_Linked_Business_Non_Participating_Health",
+      "Non_Linked_Business_Non_Participating_Variable_Insurance",
+      "Non_Linked_Business_Non_Participating_Total",
+      "Grand_Total"
+    ],
+  "Quarter_Ended": {
+    "Title": "For the quarter ended {QUARTER_END_DATE}",
+    "Headers": {
+      "Particulars": [
+        "Particulars"
+      ],
+      "Linked_Business": {
+        "Life": [
+          "Life"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
+      },
+      "Non_Linked_Business": {
+        "Participating": {
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
+        },
+        "Non_Participating": {
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
+        }
+      },
+      "Grand_Total": [
+        "Grand Total"
+      ]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "Linked_Business_Life",
+      "Linked_Business_Pension",
+      "Linked_Business_Health",
+      "Linked_Business_Variable_Insurance",
+      "Linked_Business_Total",
+      "Non_Linked_Business_Participating_Life",
+      "Non_Linked_Business_Participating_Annuity",
+      "Non_Linked_Business_Participating_Pension",
+      "Non_Linked_Business_Participating_Health",
+      "Non_Linked_Business_Participating_Variable_Insurance",
+      "Non_Linked_Business_Participating_Total",
+      "Non_Linked_Business_Non_Participating_Life",
+      "Non_Linked_Business_Non_Participating_Annuity",
+      "Non_Linked_Business_Non_Participating_Pension",
+      "Non_Linked_Business_Non_Participating_Health",
+      "Non_Linked_Business_Non_Participating_Variable_Insurance",
+      "Non_Linked_Business_Non_Participating_Total",
+      "Grand_Total"
+    ],
+    "Rows": []
+  },
+  "Nine_Months_Ended": {
+    "Title": "For the nine months ended {NINE_MONTHS_END_DATE}",
+    "Headers": {
+      "Particulars": [
+        "Particulars"
+      ],
+      "Linked_Business": {
+        "Life": [
+          "Life"
+        ],
+        "Pension": [
+          "Pension"
+        ],
+        "Health": [
+          "Health"
+        ],
+        "Variable_Insurance": [
+          "Variable Insurance"
+        ],
+        "Total": [
+          "Total"
+        ]
+      },
+      "Non_Linked_Business": {
+        "Participating": {
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
+        },
+        "Non_Participating": {
+          "Life": [
+            "Life"
+          ],
+          "Annuity": [
+            "Annuity"
+          ],
+          "Pension": [
+            "Pension"
+          ],
+          "Health": [
+            "Health"
+          ],
+          "Variable_Insurance": [
+            "Variable Insurance"
+          ],
+          "Total": [
+            "Total"
+          ]
+        }
+      },
+      "Grand_Total": [
+        "Grand Total"
+      ]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "Linked_Business_Life",
+      "Linked_Business_Pension",
+      "Linked_Business_Health",
+      "Linked_Business_Variable_Insurance",
+      "Linked_Business_Total",
+      "Non_Linked_Business_Participating_Life",
+      "Non_Linked_Business_Participating_Annuity",
+      "Non_Linked_Business_Participating_Pension",
+      "Non_Linked_Business_Participating_Health",
+      "Non_Linked_Business_Participating_Variable_Insurance",
+      "Non_Linked_Business_Participating_Total",
+      "Non_Linked_Business_Non_Participating_Life",
+      "Non_Linked_Business_Non_Participating_Annuity",
+      "Non_Linked_Business_Non_Participating_Pension",
+      "Non_Linked_Business_Non_Participating_Health",
+      "Non_Linked_Business_Non_Participating_Variable_Insurance",
+      "Non_Linked_Business_Non_Participating_Total",
+      "Grand_Total"
+    ],
+    "Rows": []
+  }
+}
