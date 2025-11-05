@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Body
 from fastapi.responses import FileResponse
-from typing import List, Dict
+from typing import List, Dict, Optional
+from pydantic import BaseModel
 import os
 import json
 import re
@@ -20,6 +21,35 @@ router = APIRouter(tags=["PDF Splitter"])
 
 # Initialize the PDF splitter service
 pdf_splitter = PDFSplitterService()
+
+# Form preferences storage (using JSON file for simplicity)
+# Use absolute path in backend directory
+BASE_DIR = Path(__file__).parent.parent
+FORM_PREFERENCES_FILE = BASE_DIR / "form_preferences.json"
+
+# Pydantic models for form preferences
+class FormPreferencesRequest(BaseModel):
+    enabled_forms: List[str]
+
+def load_form_preferences() -> Dict:
+    """Load form preferences from JSON file"""
+    if FORM_PREFERENCES_FILE.exists():
+        try:
+            with open(FORM_PREFERENCES_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading form preferences: {e}")
+            return {}
+    return {}
+
+def save_form_preferences(prefs: Dict):
+    """Save form preferences to JSON file"""
+    try:
+        with open(FORM_PREFERENCES_FILE, 'w') as f:
+            json.dump(prefs, f, indent=2)
+    except Exception as e:
+        print(f"Error saving form preferences: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.post("/upload-and-split")
@@ -1117,6 +1147,189 @@ async def extract_form_data(
         detailed_error = f"{error_msg} | Context: {context_info}"
 
         raise HTTPException(status_code=500, detail=detailed_error)
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def get_form_preferences(company_name: str, pdf_name: str):
+    """
+    Get form visibility preferences for a specific PDF (shared across all users)
+    Returns empty array if preferences don't exist (first time)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        
+        # Check if key exists in preferences (None means no preferences saved yet)
+        if key in prefs:
+            enabled_forms = prefs[key]
+            # Return the saved preferences (even if empty array)
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": enabled_forms
+                }
+            }
+        else:
+            # No preferences saved yet - return None to indicate first time
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": None
+                }
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def set_form_preferences(
+    company_name: str,
+    pdf_name: str,
+    request: FormPreferencesRequest
+):
+    """
+    Set form visibility preferences for a specific PDF (admin only, shared across all users)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        prefs[key] = request.enabled_forms
+        save_form_preferences(prefs)
+        
+        return {
+            "success": True,
+            "message": f"Form preferences saved for {company_name}/{pdf_name}",
+            "data": {
+                "enabled_forms": request.enabled_forms
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+
+
+# Data edits storage (using JSON file for simplicity)
+DATA_EDITS_FILE = BASE_DIR / "data_edits.json"
+
+# Pydantic models for data edits
+class CellEditRequest(BaseModel):
+    form_name: str
+    record_index: int
+    row_index: int
+    header: str
+    value: str
+
+class BulkEditRequest(BaseModel):
+    edits: List[CellEditRequest]
+
+def load_data_edits() -> Dict:
+    """Load data edits from JSON file"""
+    if DATA_EDITS_FILE.exists():
+        try:
+            with open(DATA_EDITS_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading data edits: {e}")
+            return {}
+    return {}
+
+def save_data_edits(edits: Dict):
+    """Save data edits to JSON file"""
+    try:
+        with open(DATA_EDITS_FILE, 'w') as f:
+            json.dump(edits, f, indent=2)
+    except Exception as e:
+        print(f"Error saving data edits: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save edits: {str(e)}")
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def get_data_edits(company_name: str, pdf_name: str):
+    """
+    Get all data edits for a specific PDF (shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        pdf_edits = edits.get(key, {})
+        
+        return {
+            "success": True,
+            "data": {
+                "edits": pdf_edits
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get edits: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def save_data_edit(
+    company_name: str,
+    pdf_name: str,
+    request: CellEditRequest
+):
+    """
+    Save a single cell edit (admin only, shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key not in edits:
+            edits[key] = {}
+        
+        # Create edit key: form_recordIndex_rowIndex_header
+        edit_key = f"{request.form_name}_{request.record_index}_{request.row_index}_{request.header}"
+        edits[key][edit_key] = {
+            "form_name": request.form_name,
+            "record_index": request.record_index,
+            "row_index": request.row_index,
+            "header": request.header,
+            "value": request.value,
+            "edited_at": datetime.now().isoformat()
+        }
+        
+        save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": f"Cell edit saved for {company_name}/{pdf_name}",
+            "data": {
+                "edit": edits[key][edit_key]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save edit: {str(e)}")
+
+
+@router.delete("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def delete_data_edit(
+    company_name: str,
+    pdf_name: str,
+    form_name: str,
+    record_index: int,
+    row_index: int,
+    header: str
+):
+    """
+    Delete a specific cell edit (admin only)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key in edits:
+            edit_key = f"{form_name}_{record_index}_{row_index}_{header}"
+            if edit_key in edits[key]:
+                del edits[key][edit_key]
+                save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": "Edit deleted successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete edit: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")
