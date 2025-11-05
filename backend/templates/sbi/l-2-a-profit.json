@@ -1,0 +1,27 @@
+{
+  "Form No": "L-2-A-PL",
+  "Title": "PROFIT AND LOSS ACCOUNT FOR THE PERIOD ENDED DECEMBER 31, 2022",
+  "Insurer": "SBI LIFE INSURANCE COMPANY LIMITED",
+  "Registration_Number": "111",
+  "Registration_Date": "29th March, 2001",
+  "Account_Type": "Shareholders' Account (Non-technical Account)",
+  "Currency": "Rs in Lakhs",
+  "Period": "For the period ended December 31, 2022",
+  "Headers": {
+    "Particulars": ["Particulars"],
+    "Schedule": ["Schedule"],
+    "For_Quarter_Dec_31_2022": ["For the Quarter December 31, 2022"],
+    "Upto_Quarter_Dec_31_2022": ["Upto the Quarter December 31, 2022"],
+    "For_Quarter_Dec_31_2021": ["For the Quarter December 31, 2021"],
+    "Upto_Quarter_Dec_31_2021": ["Upto the Quarter December 31, 2021"]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "For_Quarter_Dec_31_2022",
+    "Upto_Quarter_Dec_31_2022",
+    "For_Quarter_Dec_31_2021",
+    "Upto_Quarter_Dec_31_2021"
+  ],
+  "Rows": []
+}
