@@ -1,0 +1,72 @@
+{
+  "Form No": "L-16",
+  "Title": "FIXED ASSETS SCHEDULE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Cost_Gross_Block": {
+      "As_at_Start_of_Period": [
+        "As at",
+        "{START_OF_PERIOD_DATE}"
+      ],
+      "Additions": [
+        "Additions"
+      ],
+      "Deductions": [
+        "Deductions"
+      ],
+      "As_at_Quarter_End": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ]
+    },
+    "Depreciation": {
+      "As_at_Start_of_Period": [
+        "As at",
+        "{START_OF_PERIOD_DATE}"
+      ],
+      "For_The_Period": [
+        "For The Period"
+      ],
+      "On_Sales_Adjustments": [
+        "On Sales/",
+        "Adjustments"
+      ],
+      "As_at_Quarter_End": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ]
+    },
+    "Net_Block": {
+      "As_at_Quarter_End": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Year_End": [
+        "As at",
+        "{PREVIOUS_YEAR_END_DATE}"
+      ]
+    }
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Cost_Gross_Block_As_at_Start_of_Period",
+    "Cost_Gross_Block_Additions",
+    "Cost_Gross_Block_Deductions",
+    "Cost_Gross_Block_As_at_Quarter_End",
+    "Depreciation_As_at_Start_of_Period",
+    "Depreciation_For_The_Period",
+    "Depreciation_On_Sales_Adjustments",
+    "Depreciation_As_at_Quarter_End",
+    "Net_Block_As_at_Quarter_End",
+    "Net_Block_As_at_Previous_Year_End"
+  ],
+  "Rows": [],
+  "Note": "Assets included in land, property and building above exclude Investment Properties as defined in note (e) to Form L-12."
+}

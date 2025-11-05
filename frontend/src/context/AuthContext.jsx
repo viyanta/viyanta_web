@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { subscribeToAuthChanges } from '../firebase/auth.js';
+import { subscribeToAuthChanges, logout } from '../firebase/auth.js';
 
 const AuthContext = createContext();
 
@@ -21,6 +21,7 @@ const ADMIN_EMAILS = [
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
@@ -35,8 +36,13 @@ export const AuthProvider = ({ children }) => {
         };
         setUser(userData);
         console.log('Firebase user authenticated:', userData);
+        
+        // Check if user has previously accepted the agreement
+        const hasAcceptedAgreement = localStorage.getItem(`agreement_accepted_${authUser.uid}`);
+        setAgreementAccepted(hasAcceptedAgreement === 'true');
       } else {
         setUser(null);
+        setAgreementAccepted(false);
         console.log('No user authenticated');
       }
     });
@@ -44,11 +50,31 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  const acceptAgreement = () => {
+    if (user) {
+      localStorage.setItem(`agreement_accepted_${user.id}`, 'true');
+      setAgreementAccepted(true);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+      setAgreementAccepted(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const value = {
     user,
     loading,
     isAdmin: user?.isAdmin || false,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    agreementAccepted,
+    acceptAgreement,
+    logout: handleLogout
   };
 
   return (

@@ -1,0 +1,150 @@
+{
+  "Form No": "L-30",
+  "Title": "RELATED PARTY TRANSACTIONS",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in Lacs",
+  "PagesUsed": "3-6",
+  "Part_A": {
+    "Title": "PART-A Related Party Transactions",
+    "Headers": {
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Name_of_Related_Party": [
+        "Name of the Related Party"
+      ],
+      "Nature_of_Relationship": [
+        "Nature of Relationship",
+        "with the Company"
+      ],
+      "Description_of_Transactions": [
+        "Description of Transactions",
+        "/ Categories"
+      ],
+      "Consideration_paid_received": {
+        "For_Quarter_Current": [
+          "Consideration paid / (received)",
+          "For Quarter ended",
+          "{QUARTER_END_DATE}"
+        ],
+        "Upto_Quarter_Current": [
+          "Consideration paid / (received)",
+          "Upto Quarter ended",
+          "{QUARTER_END_DATE}"
+        ],
+        "For_Quarter_Previous": [
+          "Consideration paid / (received)",
+          "For Quarter ended",
+          "{PREVIOUS_QUARTER_END}"
+        ],
+        "Upto_Quarter_Previous": [
+          "Consideration paid / (received)",
+          "Upto Quarter ended",
+          "{PREVIOUS_QUARTER_END}"
+        ]
+      }
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Name_of_Related_Party",
+      "Nature_of_Relationship_with_the_Company",
+      "Description_of_Transactions_Categories",
+      "Consideration_paid_received_For_Quarter_ended_QUARTER_END_DATE",
+      "Consideration_paid_received_Upto_Quarter_ended_QUARTER_END_DATE",
+      "Consideration_paid_received_For_Quarter_ended_PREVIOUS_QUARTER_END",
+      "Consideration_paid_received_Upto_Quarter_ended_PREVIOUS_QUARTER_END"
+    ],
+    "Rows": []
+  },
+  "Part_B": {
+    "Title": "PART-B Related Party Transaction Balances",
+    "SubTitle": "As at Quarter ended {QUARTER_END_DATE}",
+    "Headers": {
+      "Sl_No": [
+        "Sl.No."
+      ],
+      "Name_of_Related_Party": [
+        "Name of the Related Party"
+      ],
+      "Nature_of_Relationship": [
+        "Nature of Relationship",
+        "with the Company"
+      ],
+      "Amount_of_Outstanding_Balances": [
+        "Amount of Outstanding Balances",
+        "including Commitments",
+        "(₹ in Lacs)"
+      ],
+      "Whether_Payable_Receivable": [
+        "Whether Payable / Receivable"
+      ],
+      "Whether_Secured_Nature_of_consideration": [
+        "Whether Secured? If so,",
+        "Nature of consideration to be",
+        "provided at the time of settlement"
+      ],
+      "Details_of_Guarantees": [
+        "Details of any Guarantees",
+        "given or received"
+      ],
+      "Balance_under_Provision": [
+        "Balance under Provision for",
+        "doubtful debts relating to the",
+        "outstanding balance receivable",
+        "(₹ in Lacs)"
+      ],
+      "Expenses_recognised": [
+        "Expenses recognised up to the",
+        "quarter end during the year in",
+        "respect of bad or doubtful debts",
+        "due from the related party",
+        "(₹ in Lacs)"
+      ]
+    },
+    "FlatHeaders": [
+      "Sl_No",
+      "Name_of_Related_Party",
+      "Nature_of_Relationship_with_the_Company",
+      "Amount_of_Outstanding_Balances_including_Commitments_in_Lacs",
+      "Whether_Payable_Receivable",
+      "Whether_Secured_If_so_Nature_of_consideration_to_be_provided_at_the_time_of_settlement",
+      "Details_of_any_Guarantees_given_or_received",
+      "Balance_under_Provision_for_doubtful_debts_relating_to_the_outstanding_balance_receivable_in_Lacs",
+      "Expenses_recognised_up_to_the_quarter_end_during_the_year_in_respect_of_bad_or_doubtful_debts_due_from_the_related_party_in_Lacs"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

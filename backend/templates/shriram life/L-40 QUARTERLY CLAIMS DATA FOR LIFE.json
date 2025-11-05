@@ -1,0 +1,102 @@
+{
+  "Form No": "L-40",
+  "Title": "QUARTERLY CLAIMS DATA FOR LIFE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Quarterly Claims Data for Life",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "No. of claims only",
+  "Sections": [
+    {
+      "Section_Name": "DEATH CLAIMS",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Individual": [
+          "Individual"
+        ],
+        "Group": [
+          "Group"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Claims_Experience",
+        "Individual",
+        "Group"
+      ],
+      "Rows": []
+    },
+    {
+      "Section_Name": "INDIVIDUAL CLAIMS",
+      "Headers": {
+        "Sl_No": [
+          "Sl.",
+          "No."
+        ],
+        "Claims_Experience": [
+          "Claims Experience"
+        ],
+        "Maturity": [
+          "Maturity"
+        ],
+        "Survival_Benefit": [
+          "Survival Benefit¹"
+        ],
+        "Annuities_Pension": [
+          "Annuities/Pension"
+        ],
+        "Surrender": [
+          "Surrender"
+        ],
+        "Other_Benefits": [
+          "Other Benefits²"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl_No",
+        "Claims_Experience",
+        "Maturity",
+        "Survival_Benefit",
+        "Annuities_Pension",
+        "Surrender",
+        "Other_Benefits"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

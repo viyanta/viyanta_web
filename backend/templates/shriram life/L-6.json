@@ -1,0 +1,28 @@
+{
+  "Form No": "L-6",
+  "Title": "OPERATING EXPENSES SCHEDULE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "OPERATING EXPENSES RELATED TO INSURANCE BUSINESS",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Headers": {
+    "S_No": ["S.", "No."],
+    "Particulars": ["Particulars"],
+    "For_the_quarter_Current_Year": ["For the", "quarter", "{QUARTER_END_DATE}"],
+    "For_the_period_Current_Year": ["For the", "period", "{YTD_END_DATE}"],
+    "For_the_quarter_Previous_Year": ["For the", "quarter", "{PREVIOUS_QUARTER_END}"],
+    "For_the_period_Previous_Year": ["For the", "period", "{PREVIOUS_YTD_END_DATE}"]
+  },
+  
+  "FlatHeaders": [
+    "S_No",
+    "Particulars",
+    "For_the_quarter_Current_Year",
+    "For_the_period_Current_Year",
+    "For_the_quarter_Previous_Year",
+    "For_the_period_Previous_Year"
+  ],
+  
+  "Rows": []
+}

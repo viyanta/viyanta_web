@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
+import BackgroundPage from './BackgroundPage';
 import { useStats } from '../context/StatsContext.jsx';
+import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api';
 import './InsuranceDashboard.css';
 
@@ -333,7 +336,10 @@ const TreemapSection = ({ title, data, colors }) => {
 
 function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
-  const [activeTab, setActiveTab] = useState('Industry Metrics');
+  const { isNavItemActive } = useNavigation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('Dashboard');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [s3Companies, setS3Companies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
@@ -343,6 +349,22 @@ function InsuranceDashboard({ onMenuClick }) {
   const [companyData, setCompanyData] = useState(null);
   const [loadingCompanyData, setLoadingCompanyData] = useState(false);
   const [companyDataError, setCompanyDataError] = useState(null);
+
+  // Handle tab clicks
+  const handleTabClick = (tab) => {
+    // Only allow clicks on active items
+    if (!isNavItemActive(tab)) {
+      return;
+    }
+    
+    if (tab === 'Dashboard') {
+      navigate('/dashboard');
+    } else if (tab === 'L Forms') {
+      navigate('/lform');
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   // Fetch companies from S3 when component mounts
   useEffect(() => {
@@ -355,6 +377,14 @@ function InsuranceDashboard({ onMenuClick }) {
       fetchCompanyData(selectedCompany);
     }
   }, [selectedCompany]);
+
+  // Handle URL parameter for tab navigation
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const fetchS3Companies = async () => {
     try {
@@ -476,20 +506,7 @@ function InsuranceDashboard({ onMenuClick }) {
           >
             ☰
           </button>
-          <h1 className="dashboard-title" style={{ 
-            margin: 0,
-            fontSize: 'clamp(18px, 5vw, 28px)',
-            lineHeight: '1.2'
-          }}>
-            Insurance Dashboard
-          </h1>
         </div>
-        <p className="dashboard-subtitle" style={{
-          fontSize: 'clamp(14px, 3.5vw, 16px)',
-          margin: 0
-        }}>
-          Comprehensive view of key performance indicators and market analysis
-        </p>
       </div>
 
       {/* Main Layout with Sidebar and Content */}
@@ -500,7 +517,7 @@ function InsuranceDashboard({ onMenuClick }) {
         alignItems: window.innerWidth <= 768 ? 'stretch' : 'flex-start'
       }}>
         {/* Company Information Sidebar - Left side */}
-        <CompanyInformationSidebar />
+        {/* <CompanyInformationSidebar /> */}
 
         {/* Right Content Area */}
         <div style={{ 
@@ -508,55 +525,126 @@ function InsuranceDashboard({ onMenuClick }) {
           minWidth: 0,
           width: window.innerWidth <= 768 ? '100%' : 'auto'
         }}>
-
-          {/* Top Navigation Bar */}
-          <div className="top-navigation" style={{
-            marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
-            padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
-          }}>
-            {/* Navigation Tabs Only */}
-            <div className="navigation-tabs-container" style={{
-              marginBottom: 'clamp(15px, 3vw, 20px)',
-              padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1.5rem'
-            }}>
-              {/* Navigation Tabs */}
-              <div className="navigation-tabs" style={{
-                display: 'grid',
-                gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(9, auto)',
-                gap: 'clamp(8px, 2vw, 12px)',
-                width: '100%',
-                overflow: 'visible'
+          {/* Show Background Page when Background tab is active */}
+          {activeTab === 'Background' ? (
+            <BackgroundPage 
+              selectedInsurer={selectedCompany}
+              onTabChange={setActiveTab}
+              onInsurerChange={(insurer) => {
+                setSelectedCompany(insurer);
+                // You can also update the navbar selection if needed
+              }}
+            />
+          ) : (
+            <>
+              {/* Insurance Dashboard Header - Only show when not on Background tab */}
+              <div style={{ 
+                marginBottom: 'clamp(1.5rem, 4vw, 2rem)'
               }}>
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+                <h1 className="dashboard-title" style={{ 
+                  margin: 0,
+                  fontSize: 'clamp(18px, 5vw, 28px)',
+                  lineHeight: '1.2'
+                }}>
+                  Insurance Dashboard
+                </h1>
+                <p className="dashboard-subtitle" style={{
+                  fontSize: 'clamp(14px, 3.5vw, 16px)',
+                  margin: 0
+                }}>
+                  Comprehensive view of key performance indicators and market analysis
+                </p>
+              </div>
+
+              {/* Insurer Name Dropdown - Right side */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+                padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+              }}>
+                <div style={{
+                  position: 'relative',
+                  display: 'inline-block'
+                }}>
+                  <select
+                    value={selectedCompany || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedCompany(value);
+                      // You can also update the navbar selection if needed
+                    }}
                     style={{
-                      padding: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(8px, 2vw, 12px)',
-                      fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(11px, 2.5vw, 13px)',
-                      whiteSpace: 'nowrap',
-                      width: window.innerWidth <= 768 ? '100%' : 'auto',
-                      textAlign: 'center',
+                      padding: '8px 12px',
+                      fontSize: '14px',
+                      border: '1px solid #ddd',
                       borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      color: activeTab === tab ? 'var(--main-color)' : '#666',
+                      backgroundColor: '#f8f9fa',
+                      color: '#333',
+                      minWidth: '150px',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      fontWeight: activeTab === tab ? '600' : '400',
-                      wordWrap: 'break-word',
-                      minHeight: window.innerWidth <= 768 ? 'clamp(36px, 8vw, 44px)' : 'auto',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      outline: 'none'
                     }}
                   >
-                    {tab}
-                  </button>
-                ))}
+                    <option value="">Insurer Name</option>
+                    <option value="hdfc">HDFC Life</option>
+                    <option value="sbi">SBI Life</option>
+                    <option value="icici">ICICI Prudential</option>
+                    <option value="lic">LIC</option>
+                    <option value="bajaj">Bajaj Allianz</option>
+                  </select>
+                </div>
               </div>
-            </div>
+
+              {/* Top Navigation Bar */}
+              <div className="top-navigation" style={{
+                marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+                padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
+              }}>
+                {/* Navigation Tabs Only */}
+                <div className="navigation-tabs-container" style={{
+                  marginBottom: 'clamp(15px, 3vw, 20px)',
+                  padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1.5rem'
+                }}>
+                  {/* Navigation Tabs */}
+                  <div className="navigation-tabs" style={{
+                    display: 'grid',
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(9, auto)',
+                    gap: 'clamp(8px, 2vw, 12px)',
+                    width: '100%',
+                    overflow: 'visible'
+                  }}>
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => handleTabClick(tab)}
+                        className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
+                        style={{
+                          padding: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(8px, 2vw, 12px)',
+                          fontSize: window.innerWidth <= 768 ? 'clamp(10px, 2.5vw, 12px)' : 'clamp(11px, 2.5vw, 13px)',
+                          whiteSpace: 'nowrap',
+                          width: window.innerWidth <= 768 ? '100%' : 'auto',
+                          textAlign: 'center',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: isNavItemActive(tab) ? 'var(--main-color)' : 'transparent',
+                          color: isNavItemActive(tab) ? 'white' : '#666',
+                          cursor: isNavItemActive(tab) ? 'pointer' : 'not-allowed',
+                          transition: 'all 0.2s ease',
+                          fontWeight: isNavItemActive(tab) ? '600' : '400',
+                          wordWrap: 'break-word',
+                          minHeight: window.innerWidth <= 768 ? 'clamp(36px, 8vw, 44px)' : 'auto',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: isNavItemActive(tab) ? 1 : 0.5
+                        }}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
             {/* Multiple Dropdowns Section */}
             <div className="dropdowns-section" style={{
@@ -834,6 +922,8 @@ function InsuranceDashboard({ onMenuClick }) {
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

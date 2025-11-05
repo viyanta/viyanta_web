@@ -1,0 +1,33 @@
+{
+  "Form No": "L-43",
+  "Title": "VOTING ACTIVITY DISCLOSURE UNDER STEWARDSHIP CODE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Headers": {
+    "Meeting_Date": ["Meeting Date"],
+    "Investee_Company_Name": ["Investee Company Name"],
+    "Type_of_Meeting": ["Type of Meeting", "(AGM / EGM)"],
+    "Proposal_of_Management_Shareholders": ["Proposal of Management", "/ Shareholders"],
+    "Description_of_the_proposal": ["Description of the proposal"],
+    "Management_Recommendation": ["Management Recommendation"],
+    "Vote": ["Vote", "(For / Against / Abstain)"],
+    "Reason_supporting_the_vote_decision": ["Reason supporting the", "vote decision"]
+  },
+  
+  "FlatHeaders": [
+    "Meeting_Date",
+    "Investee_Company_Name",
+    "Type_of_Meeting",
+    "Proposal_of_Management_Shareholders",
+    "Description_of_the_proposal",
+    "Management_Recommendation",
+    "Vote",
+    "Reason_supporting_the_vote_decision"
+  ],
+  
+  "Rows": []
+}

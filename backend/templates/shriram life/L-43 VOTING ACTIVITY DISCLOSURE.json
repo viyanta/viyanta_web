@@ -1,0 +1,32 @@
+{
+  "Form No": "L-43",
+  "Title": "VOTING ACTIVITY DISCLOSURE UNDER STEWARDSHIP CODE",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Voting Activity Disclosure",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Quarter_Ending_Date": "Dec-2022",
+  "Disclosure_Date": "09/01/2023",
+  "Currency": "N/A",
+  "Headers": {
+    "Meeting_Date": ["Meeting", "Date"],
+    "Investee_Company_Name": ["Investee", "Company", "Name"],
+    "Type_of_Meeting_AGM_EGM": ["Type of", "Meeting (AGM", "/ EGM)"],
+    "Proposal_of_Management_Shareholders": ["Proposal of", "Management /", "Shareholders"],
+    "Description_of_the_proposal": ["Description of", "the proposal"],
+    "Management_Recommendation": ["Management", "Recommendation"],
+    "Vote_For_Against_Abstain": ["Vote (For", "/Against/", "Abstain)"],
+    "Reason_supporting_the_vote_decision": ["Reason", "supporting the", "vote decision"]
+  },
+  "FlatHeaders": [
+    "Meeting_Date",
+    "Investee_Company_Name",
+    "Type_of_Meeting_AGM_EGM",
+    "Proposal_of_Management_Shareholders",
+    "Description_of_the_proposal",
+    "Management_Recommendation",
+    "Vote_For_Against_Abstain",
+    "Reason_supporting_the_vote_decision"
+  ],
+  "Rows": []
+}

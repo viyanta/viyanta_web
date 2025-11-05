@@ -1,0 +1,28 @@
+{
+  "Form No": "L-22",
+  "Title": "ANALYTICAL RATIOS",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "Ratio",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Sr_No": ["S. No."],
+    "Ratio": ["Ratio"],
+    "For_Quarter_Ended_Current_Year": ["FOR QUARTER ENDED", "{QUARTER_END_DATE}"],
+    "Upto_Quarter_Ended_Current_Year": ["UPTO QUARTER ENDED", "{QUARTER_END_DATE}"],
+    "For_Quarter_Ended_Previous_Year": ["FOR QUARTER ENDED", "{PREVIOUS_QUARTER_END}"],
+    "Upto_Quarter_Ended_Previous_Year": ["UPTO QUARTER ENDED", "{PREVIOUS_QUARTER_END}"]
+  },
+  "FlatHeaders": [
+    "Sr_No",
+    "Ratio",
+    "For_Quarter_Ended_Current_Year",
+    "Upto_Quarter_Ended_Current_Year",
+    "For_Quarter_Ended_Previous_Year",
+    "Upto_Quarter_Ended_Previous_Year"
+  ],
+  "Rows": []
+}

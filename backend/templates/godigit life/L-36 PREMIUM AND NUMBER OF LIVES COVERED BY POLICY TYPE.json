@@ -1,0 +1,66 @@
+{
+  "Form No": "L-36",
+  "Title": "PREMIUM AND NUMBER OF LIVES COVERED BY POLICY TYPE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Quarter_End": "{QUARTER_END_DATE}",
+  "Date": "{QUARTER_END_DATE}",
+  "Currency": "₹ in Lakhs",
+  "Headers": {
+    "Sl_No": ["Sl. No."],
+    "Particulars": ["Particulars"],
+    "For_the_Quarter": {
+      "Current_Year": {
+        "Premium_Rs_In_Lakhs": ["Premium", "(Rs. In Lakhs)"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable_Rs_Lakhs": ["Sum Insured, Wherever", "applicable (Rs. Lakhs)"]
+      },
+      "Previous_Year": {
+        "Premium_Rs_In_Lakhs": ["Premium", "(Rs. In Lakhs)"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable_Rs_Lakhs": ["Sum Insured, Wherever", "applicable (Rs. Lakhs)"]
+      }
+    },
+    "Up_to_the_Quarter": {
+      "Current_Year": {
+        "Premium_Rs_In_Lakhs": ["Premium", "(Rs. In Lakhs)"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable_Rs_Lakhs": ["Sum Insured, Wherever", "applicable (Rs. Lakhs)"]
+      },
+      "Previous_Year": {
+        "Premium_Rs_In_Lakhs": ["Premium", "(Rs. In Lakhs)"],
+        "No_of_Policies": ["No. of Policies"],
+        "No_of_Lives": ["No. of Lives"],
+        "Sum_Insured_Wherever_applicable_Rs_Lakhs": ["Sum Insured, Wherever", "applicable (Rs. Lakhs)"]
+      }
+    }
+  },
+  
+  "FlatHeaders": [
+    "Sl_No",
+    "Particulars",
+    "For_the_Quarter_Current_Year_Premium_Rs_In_Lakhs",
+    "For_the_Quarter_Current_Year_No_of_Policies",
+    "For_the_Quarter_Current_Year_No_of_Lives",
+    "For_the_Quarter_Current_Year_Sum_Insured_Wherever_applicable_Rs_Lakhs",
+    "For_the_Quarter_Previous_Year_Premium_Rs_In_Lakhs",
+    "For_the_Quarter_Previous_Year_No_of_Policies",
+    "For_the_Quarter_Previous_Year_No_of_Lives",
+    "For_the_Quarter_Previous_Year_Sum_Insured_Wherever_applicable_Rs_Lakhs",
+    "Up_to_the_Quarter_Current_Year_Premium_Rs_In_Lakhs",
+    "Up_to_the_Quarter_Current_Year_No_of_Policies",
+    "Up_to_the_Quarter_Current_Year_No_of_Lives",
+    "Up_to_the_Quarter_Current_Year_Sum_Insured_Wherever_applicable_Rs_Lakhs",
+    "Up_to_the_Quarter_Previous_Year_Premium_Rs_In_Lakhs",
+    "Up_to_the_Quarter_Previous_Year_No_of_Policies",
+    "Up_to_the_Quarter_Previous_Year_No_of_Lives",
+    "Up_to_the_Quarter_Previous_Year_Sum_Insured_Wherever_applicable_Rs_Lakhs"
+  ],
+  
+  "Rows": []
+}

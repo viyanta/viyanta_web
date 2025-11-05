@@ -89,11 +89,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                 headers = ['Form Info', ...recordHeaders];
             }
             
-            // Add form information row
-            if (record.PagesUsed) {
+            // Add form information row - check for any form metadata fields
+            const hasFormMetadata = record.PagesUsed || record['Form No'] || record.Title || record.Period || record.Currency || record.RegistrationNumber || record.FormName;
+            
+            if (hasFormMetadata) {
                 // Create consolidated form metadata in single cell
                 const metadataFields = [
-                    { key: 'Form No', value: record['Form No'] },
+                    { key: 'Form No', value: record['Form No'] || record.FormName },
                     { key: 'Title', value: record.Title },
                     { key: 'Period', value: record.Period },
                     { key: 'Currency', value: record.Currency },
@@ -103,7 +105,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                 
                 // Create single row with all metadata in first cell
                 const metadataText = metadataFields.map(field => `${field.key}: ${field.value}`).join(' | ');
-                const metadataRow = [`FORM_METADATA_${record.PagesUsed}`, metadataText, ...new Array(recordHeaders.length - 1).fill('')];
+                const metadataRow = [`FORM_METADATA_${record.PagesUsed || 'INFO'}`, metadataText, ...new Array(recordHeaders.length - 1).fill('')];
                 allRowsData.push(metadataRow);
             }
             
@@ -400,8 +402,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                         backgroundColor: '#f8f9fa'
                     }}>
                         <table style={{ 
-                            width: '4000px',
-                            minWidth: '4000px',
+                            width: '800px',
+                            minWidth: '800px',
                             height: '100%',
                             borderCollapse: 'separate',
                             borderSpacing: '0',
@@ -418,8 +420,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                              fontWeight: '600',
                                              color: 'white',
                                              borderBottom: '2px solid #667eea',
-                                             width: index === 0 ? '400px' : '200px',
-                                             minWidth: index === 0 ? '400px' : '200px',
+                                             width: index === 0 ? '300px' : '200px',
+                                             minWidth: index === 0 ? '300px' : '200px',
                                              whiteSpace: 'normal',
                                              wordWrap: 'break-word',
                                              lineHeight: '1.3'
@@ -444,8 +446,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                      <td key={cellIndex} style={{ 
                                                          padding: isFormMetadataRow ? '12px 16px' : '12px 8px',
                                                          borderBottom: '1px solid #e9ecef',
-                                                         width: cellIndex === 0 ? (isFormMetadataRow ? '400px' : '150px') : '200px',
-                                                         minWidth: cellIndex === 0 ? (isFormMetadataRow ? '400px' : '150px') : '200px',
+                                                         width: cellIndex === 0 ? '300px' : '200px',
+                                                         minWidth: cellIndex === 0 ? '300px' : '200px',
                                                          whiteSpace: isFormMetadataRow ? 'normal' : 'normal',
                                                          wordWrap: 'break-word',
                                                          lineHeight: isFormMetadataRow ? '1.5' : '1.3',
@@ -455,9 +457,30 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                          fontSize: isFormMetadataRow ? '12px' : '14px',
                                                          textAlign: isFormMetadataRow ? 'left' : 'inherit'
                                                      }}>
-                                                         {cellIndex === 0 && isFormMetadataRow ? `📋 Form Information: ${row[1] || ''}` :
-                                                          isFormMetadataRow ? '' :
-                                                          cellIndex === 0 ? '' : (cell || '-')}
+                                                         {cellIndex === 0 && isFormMetadataRow ? (
+                                                             <div style={{ 
+                                                                 display: 'flex', 
+                                                                 flexDirection: 'column', 
+                                                                 gap: '4px',
+                                                                 lineHeight: '1.4'
+                                                             }}>
+                                                                 <div style={{ 
+                                                                     fontWeight: '600', 
+                                                                     color: '#1976d2',
+                                                                     marginBottom: '4px'
+                                                                 }}>
+                                                                     📋 Form Information
+                                                                 </div>
+                                                                 <div style={{ 
+                                                                     fontSize: '11px',
+                                                                     color: '#495057',
+                                                                     lineHeight: '1.3',
+                                                                     whiteSpace: 'pre-line'
+                                                                 }}>
+                                                                     {(row[1] || '').replace(/\s*\|\s*/g, '\n')}
+                                                                 </div>
+                                                             </div>
+                                                         ) : isFormMetadataRow ? '' : cellIndex === 0 ? '' : (cell || '-')}
                                                      </td>
                                                  ))
                                              ) : (

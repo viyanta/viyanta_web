@@ -47,7 +47,7 @@ async def upload_and_split_pdf(
             "success": True,
             "message": f"PDF uploaded and split into {result['total_splits']} files",
             "data": {
-                "upload_id": result["upload_id"],
+                # "upload_id": result["upload_id"],
                 "company_name": result["company_name"],
                 "pdf_name": result["pdf_name"],
                 "total_splits": result["total_splits"]
@@ -654,9 +654,9 @@ async def extract_form_data(
             # OPTIMIZED: Faster timeouts for quicker processing
             # Shorter timeouts since we're using smaller batches and multithreading
             primary_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "90")   # Reduced from 180s
+                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "300")   # Reduced from 180s
             retry_timeout_env = os.getenv(
-                "GEMINI_CORRECTION_TIMEOUT_RETRY", "60")  # Reduced from 120s
+                "GEMINI_CORRECTION_TIMEOUT_RETRY", "200")  # Reduced from 120s
             no_timeout_mode = os.getenv(
                 "GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
             primary_timeout = None if no_timeout_mode else int(
@@ -671,22 +671,22 @@ async def extract_form_data(
 
             # Smaller batches for faster parallel processing
             if dynamic_rows > 200:
-                initial_batch = 8  # Reduced from 18 for better parallelization
+                initial_batch = 25  # Reduced from 18 for better parallelization
             elif dynamic_rows > 100:
-                initial_batch = 6  # Reduced from 12
+                initial_batch = 20  # Reduced from 12
             elif dynamic_rows > 50:
-                initial_batch = 4  # Reduced from 6
+                initial_batch = 15  # Reduced from 6
             else:
-                initial_batch = 3  # Reduced from 6 for faster small datasets
+                initial_batch = 10  # Reduced from 6 for faster small datasets
 
             # Allow override via env (with better defaults)
             initial_batch = int(
                 os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", str(initial_batch)))
             second_batch = int(
                 # Faster retry
-                os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "2"))
+                os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8"))
             # Fastest final retry
-            third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "1"))
+            third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
 
             # Force enable multithreading and optimize worker count
             max_workers = min(8, max(2, dynamic_rows // 10)
@@ -699,18 +699,15 @@ async def extract_form_data(
             print(f"   Max workers: {max_workers}")
             print(f"   Multithreading: ENABLED")
 
-            def run_gemini(batch_size: int, timeout_seconds):
+            def run_gemini():
                 cmd = [
                     sys.executable,
                     "services/pdf_splitted_gemini_very.py",
                     "--template", str(template_path),
                     "--extracted", str(extracted_json),
                     "--pdf", split_path,
-                    "--output", str(corrected_json),
-                    "--batch-size", str(batch_size),
-                    "--workers", str(max_workers),  # Enable multithreading
-                    "--max-pages", "3",  # Limit PDF context for speed
-                    "--retries", "2"     # Reduce retries for speed
+                    "--output", str(corrected_json)
+                    # Optionally: "--model", "gemini-2.5-pro"
                 ]
                 print(f"Prompt being sent to Google Gemini : {cmd}")
                 # Enhanced Gemini command debugging
@@ -720,59 +717,21 @@ async def extract_form_data(
                 print(f"📄 Extracted JSON Exists: {extracted_json.exists()}")
                 print(f"📄 Split PDF Path: {split_path}")
                 print(f"🤖 Corrected JSON Output: {corrected_json}")
-                print(f"📊 Batch Size: {batch_size}")
-                print(
-                    f"🔧 Gemini correction command (batch={batch_size}, timeout={'NONE' if timeout_seconds is None else str(timeout_seconds)+'s'}): {' '.join(cmd)}")
                 print(f"=== END GEMINI PATHS DEBUG ===\n")
                 try:
-                    if timeout_seconds is None:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True)
-                    else:
-                        result = subprocess.run(
-                            cmd, capture_output=True, text=True, timeout=timeout_seconds)
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=primary_timeout)
                     return result, None
                 except subprocess.TimeoutExpired as te:
                     print(
-                        f"⏰ Gemini correction timed out after {timeout_seconds}s (batch={batch_size})")
-                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout_seconds}s"), te
+                        f"⏰ Gemini correction timed out after {primary_timeout}s")
+                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {primary_timeout}s"), te
 
-            # First attempt (dynamic batch)
-            correction_result, primary_timeout_exc = run_gemini(
-                batch_size=initial_batch, timeout_seconds=primary_timeout)
-
+            # Only one call needed for single-call Gemini
+            correction_result, primary_timeout_exc = run_gemini()
+            # Remove all retry logic for Gemini correction (single call only)
             retry_used = False
             second_retry_used = False
-
-            # First retry on failure / timeout
-            if (correction_result.returncode != 0) and enable_retry and not corrected_json.exists():
-                print(
-                    f"♻️ Attempting Gemini correction retry with smaller batch size ({second_batch})")
-                correction_result_retry, retry_exc = run_gemini(
-                    batch_size=second_batch, timeout_seconds=retry_timeout)
-                if correction_result_retry.returncode == 0 and corrected_json.exists():
-                    print("✅ Retry succeeded with reduced batch size")
-                    correction_result = correction_result_retry
-                    retry_used = True
-                else:
-                    print(
-                        f"❌ Retry failed (code={correction_result_retry.returncode}) - will consider second retry")
-
-            # Second retry if still failing and enabled
-            if (correction_result.returncode != 0) and enable_second_retry and not corrected_json.exists():
-                print(
-                    f"🔁 Second retry with ultra small batch size ({third_batch}) and extended timeout")
-                extended_timeout = None if no_timeout_mode else int(
-                    os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", str(retry_timeout or 180)))
-                correction_result_retry2, retry2_exc = run_gemini(
-                    batch_size=third_batch, timeout_seconds=extended_timeout)
-                if correction_result_retry2.returncode == 0 and corrected_json.exists():
-                    print("✅ Second retry succeeded with ultra small batch")
-                    correction_result = correction_result_retry2
-                    second_retry_used = True
-                else:
-                    print(
-                        f"❌ Second retry failed (code={correction_result_retry2.returncode}) - proceeding with extracted data")
 
             print(
                 f"💯 Gemini correction final return code: {correction_result.returncode}")
@@ -1145,7 +1104,7 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
             metadata["gemini_corrected"] = True
             print(f"🤖 Forced gemini_corrected=True for corrected source")
 
-        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (BEFORE normalization for old format)
         if isinstance(data, list) and len(data) > 0:
             for record_idx, record in enumerate(data):
                 if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
@@ -1176,6 +1135,22 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
                 print(
                     f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
             # If it's already a plain dict or other format, leave as-is
+
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (AFTER normalization for new format)
+        if isinstance(normalized_data, list) and len(normalized_data) > 0:
+            for record_idx, record in enumerate(normalized_data):
+                if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
+                    # Get actual keys from first row
+                    first_row = record["Rows"][0]
+                    if isinstance(first_row, dict):
+                        actual_keys = list(first_row.keys())
+
+                        # Update FlatHeaders to match actual data
+                        record["FlatHeaders"] = actual_keys
+                        record["FlatHeadersNormalized"] = actual_keys
+
+                        print(
+                            f"🔧 Fixed headers for normalized record {record_idx}: {actual_keys}")
 
         return {
             "success": True,
@@ -1213,9 +1188,9 @@ async def debug_gemini_config():
             "no_timeout_mode": os.getenv("GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
         },
         "batch_sizes": {
-            "initial": int(os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", "4")),
-            "second": int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "2")),
-            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "1"))
+            "initial": int(os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", "10")),
+            "second": int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8")),
+            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
         },
         "retry_settings": {
             "enable_retry": os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0",
@@ -1267,7 +1242,7 @@ async def test_extraction_performance(
 
     performance_config = {
         "dynamic_rows": extracted_row_count,
-        "initial_batch": 4 if extracted_row_count > 50 else 3,
+        "initial_batch": 10 if extracted_row_count > 50 else 3,
         "max_workers": min(8, max(2, extracted_row_count // 10)),
         "quick_mode_enabled": enable_quick_mode,
         "quick_mode_threshold": quick_mode_threshold,

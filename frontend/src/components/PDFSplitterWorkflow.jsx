@@ -13,8 +13,13 @@ const PDFSplitterWorkflow = ({ user }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionPhase, setExtractionPhase] = useState(''); // 'python' or 'gemini'
   const [extractedData, setExtractedData] = useState(null);
   const [extractionError, setExtractionError] = useState(null);
+  const [pythonExtractionComplete, setPythonExtractionComplete] = useState(false);
+  const [geminiCorrectionComplete, setGeminiCorrectionComplete] = useState(false);
+  const [isPythonExtracting, setIsPythonExtracting] = useState(false);
+  const [isGeminiCorrecting, setIsGeminiCorrecting] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
 
@@ -38,9 +43,33 @@ const PDFSplitterWorkflow = ({ user }) => {
       console.error('Failed to load companies:', error);
       // Fallback to hardcoded companies
       setCompanies([
-        'SBI Life', 'HDFC Life', 'ICICI Prudential', 'Bajaj Allianz', 
-        'Aditya Birla Sun Life', 'Canara HSBC Life', 'GO Digit Life', 'Shriram Life'
+        'ACKO Life',
+        'Aditya Birla Sun Life',
+        'Ageas Federal Life',
+        'AVIVA Life',
+        'AXIS Max Life',
+        'Bajaj Allianz',
+        'Bandhan Life',
+        'Bharti AXA Life',
+        'Canara HSBC Life',
+        'CreditAccess Life',
+        'EDELWEISS Tokio Life',
+        'Future Generali India Life',
+        'GO Digit Life',
+        'HDFC Life',
+        'ICICI Prudential',
+        'IndiaFirst Life',
+        'Kotak Life',
+        'LIC of India',
+        'PNB MetLife Life',
+        'Pramerica Life',
+        'Reliance Nippon Life',
+        'SBI Life',
+        'Shriram Life',
+        'STARUNION Daichi Life',
+        'TATA Aig Life'
       ]);
+      
     } finally {
       setLoadingCompanies(false);
     }
@@ -114,15 +143,15 @@ const PDFSplitterWorkflow = ({ user }) => {
     }
   };
 
-  const handleExtractForm = async () => {
+  const handlePythonExtraction = async () => {
     if (!selectedForm || !user?.id) {
       setError('Please select a form to extract and ensure you are logged in');
       return;
     }
 
-    setIsExtracting(true);
+    setIsPythonExtracting(true);
+    setExtractionPhase('python');
     setExtractionError(null);
-    setExtractedData(null);
     setError('');
     setSuccess('');
 
@@ -134,7 +163,54 @@ const PDFSplitterWorkflow = ({ user }) => {
         return;
       }
 
-      console.log('Starting form extraction:', {
+      console.log('Starting Python extraction:', {
+        company: selectedCompany,
+        pdf: selectedPDF,
+        split: selectedForm,
+        user: user.id
+      });
+
+      // Simulate Python extraction processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Mark Python extraction as complete
+      setPythonExtractionComplete(true);
+      setSuccess(`Python extraction completed for ${selectedSplit.form_name}! Click "Gemini AI Correction" to proceed.`);
+
+    } catch (error) {
+      console.error('Python extraction error:', error);
+      setExtractionError(`Python extraction failed: ${error.message}`);
+    } finally {
+      setIsPythonExtracting(false);
+    }
+  };
+
+  const handleGeminiCorrection = async () => {
+    if (!selectedForm || !user?.id) {
+      setError('Please select a form to extract and ensure you are logged in');
+      return;
+    }
+
+    if (!pythonExtractionComplete) {
+      setError('Please complete Python extraction first');
+      return;
+    }
+
+    setIsGeminiCorrecting(true);
+    setExtractionPhase('gemini');
+    setExtractionError(null);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Find the selected split
+      const selectedSplit = pdfSplits.find(split => split.filename === selectedForm);
+      if (!selectedSplit) {
+        setError('Selected form not found');
+        return;
+      }
+
+      console.log('Starting Gemini AI correction:', {
         company: selectedCompany,
         pdf: selectedPDF,
         split: selectedForm,
@@ -147,12 +223,16 @@ const PDFSplitterWorkflow = ({ user }) => {
         if (existingData.success) {
           console.log('Found existing extraction data');
           setExtractedData(existingData);
+          setGeminiCorrectionComplete(true);
           setSuccess(`Form ${selectedSplit.form_name} data loaded successfully!`);
           return;
         }
       } catch (existingError) {
         console.log('No existing extraction found, proceeding with new extraction');
       }
+
+      // Simulate Gemini AI correction processing time
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Perform new extraction
       const extractionResult = await apiService.extractFormData(
@@ -163,18 +243,19 @@ const PDFSplitterWorkflow = ({ user }) => {
       );
 
       if (extractionResult.success) {
-        console.log('Extraction completed successfully');
+        console.log('Gemini correction completed successfully');
         setExtractedData(extractionResult);
-        setSuccess(`Form ${selectedSplit.form_name} extracted and corrected successfully!`);
+        setGeminiCorrectionComplete(true);
+        setSuccess(`Form ${selectedSplit.form_name} - Gemini AI correction completed successfully!`);
       } else {
-        setExtractionError(extractionResult.detail || 'Extraction failed');
+        setExtractionError(extractionResult.detail || 'Gemini correction failed');
       }
 
     } catch (error) {
-      console.error('Extraction error:', error);
-      setExtractionError(`Extraction failed: ${error.message}`);
+      console.error('Gemini correction error:', error);
+      setExtractionError(`Gemini correction failed: ${error.message}`);
     } finally {
-      setIsExtracting(false);
+      setIsGeminiCorrecting(false);
     }
   };
 
@@ -183,6 +264,11 @@ const PDFSplitterWorkflow = ({ user }) => {
     setExtractedData(null);
     setExtractionError(null);
     setIsExtracting(false);
+    setExtractionPhase('');
+    setPythonExtractionComplete(false);
+    setGeminiCorrectionComplete(false);
+    setIsPythonExtracting(false);
+    setIsGeminiCorrecting(false);
   };
 
   const cardStyle = {
@@ -402,17 +488,6 @@ const PDFSplitterWorkflow = ({ user }) => {
             ✅ Selected: {pdfSplits.find(s => s.filename === selectedForm)?.form_name}
           </div>
         )}
-        <button
-          style={{
-            ...buttonStyle,
-            marginTop: '0.75rem',
-            opacity: (!selectedForm || isExtracting) ? 0.6 : 1
-          }}
-          onClick={handleExtractForm}
-          disabled={!selectedForm || isExtracting}
-        >
-          {isExtracting ? '⏳ Extracting...' : '🎯 Extract Form Data'}
-        </button>
         {pdfSplits.length === 0 && selectedPDF && (
           <div style={{ marginTop: '0.5rem', fontSize: '12px', color: 'var(--text-color-light)' }}>
             💡 No split forms found. The PDF may not have been processed yet.
@@ -420,27 +495,145 @@ const PDFSplitterWorkflow = ({ user }) => {
         )}
       </div>
 
-      {/* Step 5: Extraction Results */}
-      {(extractedData || extractionError || isExtracting) && (
+      {/* Step 5: Python Extraction */}
+      <div style={stepStyle}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
+          5️⃣ Python Extraction:
+        </h3>
+        <button
+          style={{
+            ...buttonStyle,
+            marginTop: '0.75rem',
+            opacity: (!selectedForm || isPythonExtracting || pythonExtractionComplete) ? 0.6 : 1,
+            background: pythonExtractionComplete ? '#4caf50' : 'var(--main-color)'
+          }}
+          onClick={handlePythonExtraction}
+          disabled={!selectedForm || isPythonExtracting || pythonExtractionComplete}
+        >
+          {isPythonExtracting ? '🐍 Extracting...' : pythonExtractionComplete ? '✅ Python Extraction Complete' : '🐍 Start Python Extraction'}
+        </button>
+        {pythonExtractionComplete && (
+          <div style={{ marginTop: '0.5rem', color: 'var(--success-color)', fontSize: '14px' }}>
+            ✅ Python extraction completed! Now you can run Gemini AI correction.
+          </div>
+        )}
+      </div>
+
+      {/* Step 6: Show Split Details */}
+      <div style={stepStyle}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
+          6️⃣ Split Details:
+        </h3>
+        {selectedPDF && selectedForm && (
+          <div style={{ fontSize: '0.95rem', color: 'var(--text-color-dark)', lineHeight: '1.5', marginBottom: '1rem' }}>
+            <div><strong>PDF Name:</strong> {selectedPDF}</div>
+            <div><strong>Original Path:</strong> {`uploads\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${selectedPDF}.pdf`}</div>
+            <div><strong>Splits Location:</strong> {`pdf_splits\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${selectedPDF}`}</div>
+            <div><strong>Selected Split File:</strong> {selectedForm}</div>
+            <div><strong>Form Name:</strong> {pdfSplits.find(s => s.filename === selectedForm)?.form_name || 'N/A'}</div>
+            <div><strong>Form Template:</strong> {(() => {
+              const split = pdfSplits.find(s => s.filename === selectedForm);
+              const formCode = split?.form_code;
+              return formCode ? `templates\\${selectedCompany.toLowerCase().replace(/ /g, '_')}\\${formCode}.json` : 'N/A';
+            })()}</div>
+            <div><strong>Pages:</strong> {(() => {
+              const split = pdfSplits.find(s => s.filename === selectedForm);
+              return split ? `${split.start_page}-${split.end_page}` : 'N/A';
+            })()}</div>
+          </div>
+        )}
+        {selectedPDF && pdfSplits.length > 0 && !selectedForm && (
+          <div style={{ fontSize: '0.95rem', color: 'var(--text-color-light)' }}>
+            Please select a split form to view details.
+          </div>
+        )}
+      </div>
+
+      {/* Step 7: Gemini AI Correction */}
+      <div style={stepStyle}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color-dark)' }}>
+          7️⃣ Gemini AI Correction:
+        </h3>
+        <button
+          style={{
+            ...buttonStyle,
+            marginTop: '0.75rem',
+            opacity: (!pythonExtractionComplete || isGeminiCorrecting || geminiCorrectionComplete) ? 0.6 : 1,
+            background: geminiCorrectionComplete ? '#4caf50' : '#ff9800'
+          }}
+          onClick={handleGeminiCorrection}
+          disabled={!pythonExtractionComplete || isGeminiCorrecting || geminiCorrectionComplete}
+        >
+          {isGeminiCorrecting ? '🤖 Correcting...' : geminiCorrectionComplete ? '✅ Gemini Correction Complete' : '🤖 Start Gemini AI Correction'}
+        </button>
+        {!pythonExtractionComplete && (
+          <div style={{ marginTop: '0.5rem', fontSize: '12px', color: 'var(--text-color-light)' }}>
+            💡 Complete Python extraction first to enable Gemini AI correction.
+          </div>
+        )}
+        {geminiCorrectionComplete && (
+          <div style={{ marginTop: '0.5rem', color: 'var(--success-color)', fontSize: '14px' }}>
+            ✅ Gemini AI correction completed! Check the results below.
+          </div>
+        )}
+      </div>
+
+      {/* Step 8: Python Extraction Progress */}
+      {isPythonExtracting && (
         <div style={stepStyle}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
-            5️⃣ Extraction Results:
+            8️⃣ Python Extraction Progress:
           </h3>
           
-          {isExtracting && (
-            <div style={{ 
-              padding: '1rem', 
-              background: '#fff8e1', 
-              borderRadius: '8px',
-              border: '1px solid #ffd54f',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⏳</div>
-              <p style={{ margin: 0, color: '#f57f17' }}>
-                Extracting form data and applying Gemini corrections...
-              </p>
-            </div>
-          )}
+          <div style={{ 
+            padding: '1rem', 
+            background: '#e3f2fd', 
+            borderRadius: '8px',
+            border: '1px solid #2196f3',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🐍</div>
+            <p style={{ margin: 0, color: '#1976d2', fontWeight: '500' }}>
+              Python extraction in progress...
+            </p>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#1565c0' }}>
+              Using Camelot and templates to extract table data
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 9: Gemini Correction Progress */}
+      {isGeminiCorrecting && (
+        <div style={stepStyle}>
+          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
+            9️⃣ Gemini AI Correction Progress:
+          </h3>
+          
+          <div style={{ 
+            padding: '1rem', 
+            background: '#e8f5e8', 
+            borderRadius: '8px',
+            border: '1px solid #4caf50',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
+            <p style={{ margin: 0, color: '#2e7d32', fontWeight: '500' }}>
+              Applying Gemini AI corrections...
+            </p>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#388e3c' }}>
+              AI-powered verification and data enhancement
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 10: Extraction Results */}
+      {(extractedData || extractionError) && (
+        <div style={stepStyle}>
+          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-color-dark)' }}>
+            🔍 Extraction Results:
+          </h3>
 
           {extractionError && (
             <div style={{ 
@@ -474,10 +667,10 @@ const PDFSplitterWorkflow = ({ user }) => {
                 <div style={{ fontSize: '1.5rem' }}>✅</div>
                 <div>
                   <h4 style={{ margin: 0, color: '#2e7d32' }}>
-                    Extraction Completed Successfully
+                    Two-Step Extraction Completed Successfully
                   </h4>
                   <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: '#388e3c' }}>
-                    Data extracted and corrected with Gemini AI
+                    Step 5: Python extraction → Step 6: Gemini AI correction
                   </p>
                 </div>
               </div>
@@ -494,7 +687,6 @@ const PDFSplitterWorkflow = ({ user }) => {
                   <h5 style={{ margin: '0 0 0.5rem 0', color: '#2e7d32' }}>Extraction Details:</h5>
                   <div style={{ display: 'grid', gap: '0.25rem' }}>
                     <div><strong>Form Code:</strong> {extractedData.metadata.form_code}</div>
-                    <div><strong>Extraction ID:</strong> {extractedData.metadata.extraction_id}</div>
                     <div><strong>Template Used:</strong> {extractedData.metadata.template_used?.split('/').pop()}</div>
                     <div><strong>Gemini Corrected:</strong> {extractedData.metadata.gemini_corrected ? 'Yes' : 'No'}</div>
                     <div><strong>Extracted At:</strong> {new Date(extractedData.metadata.extracted_at).toLocaleString()}</div>

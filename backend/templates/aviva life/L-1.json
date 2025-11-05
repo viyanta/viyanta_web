@@ -1,0 +1,68 @@
+{
+  "Form No": "L-1-A-RA",
+  "Title": "REVENUE ACCOUNT FOR THE QUARTER ENDED {QUARTER_END_DATE}",
+  "Subtitle": "POLICYHOLDERS' ACCOUNT (TECHNICAL ACCOUNT)",
+  "Company": "Aviva Life Insurance Company India Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "Quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs in Lakhs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule": [
+      "Schedule"
+    ],
+    "Linked_Business_Life": [
+      "Linked_Business_Life"
+    ],
+    "Linked_Business_Pension": [
+      "Linked_Business_Pension"
+    ],
+    "Non_Linked_Business_Participating_Life": [
+      "Non_Linked_Business_Participating_Life"
+    ],
+    "Non_Linked_Business_Participating_Pension": [
+      "Non_Linked_Business_Participating_Pension"
+    ],
+    "Non_Linked_Business_Non_Participating_Life": [
+      "Non_Linked_Business_Non_Participating_Life"
+    ],
+    "Non_Linked_Business_Non_Participating_Annuity": [
+      "Non_Linked_Business_Non_Participating_Annuity"
+    ],
+    "Non_Linked_Business_Non_Participating_Pension": [
+      "Non_Linked_Business_Non_Participating_Pension"
+    ],
+    "Non_Linked_Business_Non_Participating_Health": [
+      "Non_Linked_Business_Non_Participating_Health"
+    ],
+    "Non_Linked_Business_Non_Participating_Variable_Insurance": [
+      "Non_Linked_Business_Non_Participating_Variable_Insurance"
+    ],
+    "Quarter": [
+      "Q3'22-23"
+    ],
+    "AT_the_end_of_previous_quarter": [
+      "AT_the_end_of_previous_quarter"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "Linked_Business_Life",
+    "Linked_Business_Pension",
+    "Non_Linked_Business_Participating_Life",
+    "Non_Linked_Business_Participating_Pension",
+    "Non_Linked_Business_Non_Participating_Life",
+    "Non_Linked_Business_Non_Participating_Annuity",
+    "Non_Linked_Business_Non_Participating_Pension",
+    "Non_Linked_Business_Non_Participating_Health",
+    "Non_Linked_Business_Non_Participating_Variable_Insurance",
+    "Q3'22-23",
+    "AT_the_end_of_previous_quarter"
+  ],
+  "Rows": []
+}

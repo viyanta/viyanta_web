@@ -1,0 +1,85 @@
+{
+  "Form No": "L-15",
+  "Title": "LOANS SCHEDULE",
+  "Company": "Go Digit Life Insurance Limited",
+  "SubTitle": "SCHEDULES FORMING PART OF FINANCIAL STATEMENTS",
+  "Registration_Number": "165",
+  "Date_of_Registration": "9 June 2023",
+  "Currency": "₹ in Lakhs",
+  "Main_Loans_Schedule_Table": {
+    "Headers": {
+      "Particulars": [
+        "Particulars"
+      ],
+      "As_at_Current_Date": [
+        "As at",
+        "{QUARTER_END_DATE}"
+      ],
+      "As_at_Previous_Date": [
+        "As at",
+        "{PREVIOUS_QUARTER_END}"
+      ]
+    },
+    "FlatHeaders": [
+      "Particulars",
+      "As_at_Current_Date_QUARTER_END_DATE",
+      "As_at_Previous_Date_PREVIOUS_QUARTER_END"
+    ],
+    "Rows": []
+  },
+  "Notes": {
+    "a": "Short-term loans are those which are repayable within 12 months from the date of Balance Sheet. Long-term loans are those which are repayable after 12 months from the date of Balance Sheet.",
+    "b": "Provisions against non-performing loans shall be shown separately.",
+    "c": "Nature of security for long-term secured loans shall be specified. Secured loans are those which are wholly or partly secured against any asset of the company.",
+    "d": "Doubtful loans and the provision created against them shall be disclosed separately."
+  },
+  "Provisions_against_Non_performing_Loans_Table": {
+    "Title": "Provisions against Non-performing Loans",
+    "Headers": {
+      "Non_Performing_Loans": [
+        "Non-Performing Loans"
+      ],
+      "Loan_Amount_Rs_Lakhs": [
+        "Loan Amount (Rs. Lakhs)"
+      ],
+      "Provision_Rs_Lakhs": [
+        "Provision (Rs. Lakhs)"
+      ]
+    },
+    "FlatHeaders": [
+      "Non_Performing_Loans",
+      "Loan_Amount_Rs_Lakhs",
+      "Provision_Rs_Lakhs"
+    ],
+    "Rows": []
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date"
+  ],
+  "Rows": []
+}

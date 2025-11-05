@@ -5,10 +5,10 @@ import pdfplumber
 import camelot
 import string
 
-# template for L-1-A-REVENUE (adjust paths as needed)
-TEMPLATE_JSON = r"../templates/sbi/L-28.json"
-INPUT_PDF = r"../test_splits_sbi/L-28-ULIP_NAV_ULIP_NAV_52_54_54.pdf"
-OUTPUT_JSON = r"L-28_sbi-extracted.json"
+# template for L-24 VALUATION OF NET LIABILITIES (adjust paths as needed)
+TEMPLATE_JSON = r"../templates/icici/L-29 DETAIL REGARDING DEBT SECURITIES.json"
+INPUT_PDF = r"pdf_splits_auto/L-29-Detail regarding debt securities.pdf"
+OUTPUT_JSON = r"L-29_finalss-extracted.json"
 
 
 def load_template(path):

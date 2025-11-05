@@ -1,0 +1,28 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENT ASSETS (LIFE INSURERS)-3A",
+  "SubTitle": "Investment Assets (Life Insurers) - Business within India",
+  "Company": "SBI Prudential Life Insurance Company Limited",
+  "Regn_No": "105",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "Unit_Linked_Life",
+    "Unit_Linked_Pension",
+    "Unit_Linked_Total",
+    "Participating_Life",
+    "Participating_Pension",
+    "Participating_Var_Ins",
+    "Participating_Total",
+    "Non_Participating_Life",
+    "Non_Participating_Annuity",
+    "Non_Participating_Pension",
+    "Non_Participating_Health",
+    "Non_Participating_Var_Ins",
+    "Non_Participating_Total",
+    "Grand_Total"
+  ],
+  "Rows": []
+}

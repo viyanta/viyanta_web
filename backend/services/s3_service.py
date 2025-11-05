@@ -27,8 +27,11 @@ class S3Service:
         self.bucket_name = os.getenv("S3_BUCKET_NAME")
         self.region = os.getenv("S3_REGION")
 
-        if not all([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]) and any([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]):
-            raise ValueError("Missing required AWS S3 environment variables")
+        # Only initialize S3 if all required environment variables are set
+        if not all([self.aws_access_key_id, self.aws_secret_access_key, self.bucket_name, self.region]):
+            logger.warning("S3 environment variables not set. S3 service will be disabled.")
+            self.s3_client = None
+            return
 
         # Initialize S3 client
         self.s3_client = boto3.client(
@@ -43,6 +46,9 @@ class S3Service:
 
     def _verify_bucket(self):
         """Verify that the S3 bucket exists and is accessible"""
+        if self.s3_client is None:
+            return
+            
         try:
             self.s3_client.head_bucket(Bucket=self.bucket_name)
             logger.info(
@@ -120,6 +126,10 @@ class S3Service:
         Returns:
             Dict with upload results
         """
+        if self.s3_client is None:
+            logger.warning("S3 service is disabled. Cannot upload JSON extraction.")
+            return {"success": False, "error": "S3 service is disabled"}
+            
         try:
             # S3 path: vifiles/users/{user_id}/{folder_name}/json/{filename}
             s3_key = f"users/{user_id}/{folder_name}/json/{filename}"
@@ -178,6 +188,10 @@ class S3Service:
         Returns:
             S3 URL of the uploaded file
         """
+        if self.s3_client is None:
+            logger.warning("S3 service is disabled. Cannot upload file.")
+            return None
+            
         try:
             # Organize by user if user_id provided
             if user_id:
@@ -217,6 +231,10 @@ class S3Service:
         Returns:
             S3 URL of the uploaded file
         """
+        if self.s3_client is None:
+            logger.warning("S3 service is disabled. Cannot upload JSON data.")
+            return None
+            
         try:
             # Create a temporary file with JSON data
             with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
@@ -680,6 +698,10 @@ class S3Service:
         Returns:
             Dict with upload results
         """
+        if self.s3_client is None:
+            logger.warning("S3 service is disabled. Cannot upload file.")
+            return {"success": False, "error": "S3 service is disabled"}
+            
         try:
             # Determine file extension based on type
             if file_type == 'original':

@@ -1,0 +1,24 @@
+{
+  "Form No": "L-24",
+  "Title": "VALUATION OF NET LIABILITIES",
+  "Company": "Canara HSBC Life Insurance Company Limited",
+  "Former_Name": "Canara HSBC Oriental Bank of Commerce Life Insurance Company Limited",
+  "Registration No": "136",
+  "Date of Registration": "May 8, 2008",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ in lacs",
+  "PagesUsed": "3-6",
+  "Headers": {
+    "Type": ["Type"],
+    "Category_of_Business": ["Category of Business"],
+    "Mathematical_Reserves_Current_Year": ["Mathematical Reserves as at", "{QUARTER_END_DATE}"],
+    "Mathematical_Reserves_Previous_Year": ["Mathematical Reserves as at", "{PREVIOUS_QUARTER_END}"]
+  },
+  "FlatHeaders": [
+    "Net_liabilities_Type",
+    "Net_liabilities_Category_of_Business",
+    "Net_liabilities_Mathematical_Reserves_Current_Year",
+    "Net_liabilities_Mathematical_Reserves_Previous_Year"
+  ],
+  "Rows": []
+}

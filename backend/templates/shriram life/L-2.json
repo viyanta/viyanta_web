@@ -1,0 +1,43 @@
+{
+  "Form No": "L-2-A-PL",
+  "Title": "PROFIT & LOSS ACCOUNT",
+  "Company": "SHRIRAM LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Shareholders' Account (Non-technical Account)",
+  "Registration_Number": "128",
+  "Date_of_Registration": "17th November 2005",
+  "Period_Ended": "{QUARTER_END_DATE}",
+  "Currency": "Amt. in Rs. Lakhs",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Schedule": [
+      "Schedule"
+    ],
+    "For_the_quarter_Current_Year": [
+      "For the quarter",
+      "{QUARTER_END_DATE}"
+    ],
+    "For_the_period_Current_Year": [
+      "For the period",
+      "{YTD_END_DATE}"
+    ],
+    "For_the_quarter_Previous_Year": [
+      "For the quarter",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "For_the_period_Previous_Year": [
+      "For the period",
+      "{PREVIOUS_YTD_END_DATE}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Schedule",
+    "For_the_quarter_Current_Year",
+    "For_the_period_Current_Year",
+    "For_the_quarter_Previous_Year",
+    "For_the_period_Previous_Year"
+  ],
+  "Rows": []
+}
