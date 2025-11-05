@@ -43,65 +43,56 @@ function DuplicateWindowPreventer() {
     
     let broadcastChannel;
     let isPrimaryWindow = false;
-    let windowId = `window_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let checkInterval;
     let heartbeatInterval;
     let shouldClose = false;
     
-    // Check if this is a page refresh (same session) or a duplicated tab
-    const getSessionId = () => {
-      try {
-        let sessionId = sessionStorage.getItem(windowSessionKey);
-        let windowUuid = sessionStorage.getItem(`${windowSessionKey}_uuid`);
-        
-        // If UUID doesn't exist, this is a new tab/window (not a refresh)
-        if (!windowUuid) {
-          windowUuid = `uuid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          sessionStorage.setItem(`${windowSessionKey}_uuid`, windowUuid);
-        }
-        
-        // Check if sessionId exists but is very old (likely a duplicated tab)
-        if (sessionId) {
-          const sessionData = JSON.parse(sessionId);
-          const sessionAge = Date.now() - sessionData.timestamp;
-          // If session is older than 1 second, it might be from a duplicated tab
-          if (sessionAge > 1000) {
-            // This might be a duplicated tab, generate new session
-            sessionId = null;
-          }
-        }
-        
-        if (!sessionId) {
-          // Generate new session ID for this tab/window
-          sessionId = JSON.stringify({
-            id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: Date.now(),
-            uuid: windowUuid
-          });
-          sessionStorage.setItem(windowSessionKey, sessionId);
-        }
-        
-        const sessionData = JSON.parse(sessionId);
-        return {
-          sessionId: sessionData.id,
-          uuid: windowUuid,
-          timestamp: sessionData.timestamp
-        };
-      } catch (e) {
-        // Fallback if sessionStorage not available
-        const uuid = `uuid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        return {
-          sessionId: sessionId,
-          uuid: uuid,
-          timestamp: Date.now()
-        };
-      }
+    // Generate unique window identifier - ALWAYS generate new, never reuse
+    // This ensures each tab/window gets a unique ID, even when duplicated
+    const generateUniqueWindowId = () => {
+      // Use multiple sources to ensure uniqueness
+      const uniqueId = `win_${performance.now()}_${Date.now()}_${Math.random().toString(36).substr(2, 15)}_${Math.random().toString(36).substr(2, 15)}`;
+      return uniqueId;
     };
     
-    const sessionInfo = getSessionId();
-    const sessionId = sessionInfo.sessionId;
-    const windowUuid = sessionInfo.uuid;
+    const windowId = generateUniqueWindowId();
+    const now = Date.now();
+    
+    // IMMEDIATE CHECK - Check if another window is already active BEFORE we claim
+    const existingCheck = localStorage.getItem(storageKey);
+    if (existingCheck) {
+      try {
+        const data = JSON.parse(existingCheck);
+        // If another window is active (within last 2 seconds), we're a duplicate
+        if (data.userEmail === userEmail && 
+            data.windowId !== windowId && // Must be different window
+            now - data.timestamp < 2000) { // Very recent (within 2 seconds)
+          console.log('Duplicate window detected - another window is active, closing immediately...');
+          alert(`Another instance is already open for ${userEmail}. Closing this duplicate window.`);
+          window.close();
+          setTimeout(() => {
+            if (document.visibilityState !== 'hidden') {
+              window.location.href = 'about:blank';
+            }
+          }, 300);
+          return; // Exit immediately
+        }
+      } catch (e) {
+        // If parsing fails, continue (might be stale data)
+      }
+    }
+    
+    // IMMEDIATELY claim this window as active (we passed the check)
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({
+        type: 'window-exists',
+        windowId: windowId,
+        userEmail: userEmail,
+        timestamp: now
+      }));
+    } catch (e) {
+      // If we can't write, continue anyway
+    }
     
     const closeDuplicateWindow = () => {
       if (shouldClose) return;
@@ -138,17 +129,15 @@ function DuplicateWindowPreventer() {
               broadcastChannel.postMessage({
                 type: 'window-exists',
                 windowId: windowId,
-                sessionId: sessionId,
-                windowUuid: windowUuid,
                 userEmail: userEmail,
                 timestamp: Date.now()
               });
             }
           } else if (data.type === 'window-exists' && 
                      data.userEmail === userEmail) {
-            // Track active windows (excluding our own session and UUID)
-            if (data.sessionId !== sessionId && data.windowUuid !== windowUuid) {
-              activeWindows.add(data.sessionId);
+            // Track active windows (excluding our own window ID)
+            if (data.windowId !== windowId) {
+              activeWindows.add(data.windowId);
               responseReceived = true;
               if (!isPrimaryWindow) {
                 closeDuplicateWindow();
@@ -156,8 +145,8 @@ function DuplicateWindowPreventer() {
             }
           } else if (data.type === 'window-closed' && data.userEmail === userEmail) {
             // A window closed, remove it from active set
-            if (data.sessionId) {
-              activeWindows.delete(data.sessionId);
+            if (data.windowId) {
+              activeWindows.delete(data.windowId);
             }
           }
         };
@@ -166,25 +155,21 @@ function DuplicateWindowPreventer() {
         broadcastChannel.postMessage({
           type: 'window-check',
           windowId: windowId,
-          sessionId: sessionId,
-          windowUuid: windowUuid,
           userEmail: userEmail,
           timestamp: Date.now()
         });
         
-        // Wait a bit to see if we get a response
+        // Wait a bit to see if we get a response (shorter timeout for faster detection)
         setTimeout(() => {
           if (!responseReceived || activeWindows.size === 0) {
             // No other window responded, we're the primary
             isPrimaryWindow = true;
             console.log(`This window is now primary for user ${userEmail}`);
           } else {
-            // Another window responded, we should close
-            if (!isPrimaryWindow) {
-              closeDuplicateWindow();
-            }
+            // Another window responded, we should close immediately
+            closeDuplicateWindow();
           }
-        }, 1000);
+        }, 500); // Reduced from 1000ms to 500ms for faster detection
       }
       
       // Fallback: Use localStorage events (works in all browsers)
@@ -192,13 +177,12 @@ function DuplicateWindowPreventer() {
         if (e.key === storageKey && e.newValue) {
           try {
             const data = JSON.parse(e.newValue);
-            // Only react if it's from a different session or UUID (different tab/window)
-            if (data.sessionId !== sessionId && 
-                data.windowUuid !== windowUuid &&
+            // Only react if it's from a different window (different tab/window)
+            if (data.windowId !== windowId &&
                 data.type === 'window-exists' && 
                 data.userEmail === userEmail &&
-                Date.now() - data.timestamp < 5000) {
-              // Another window exists and is active for the same user (within 5 seconds)
+                Date.now() - data.timestamp < 3000) {
+              // Another window exists and is active for the same user (within 3 seconds)
               if (!isPrimaryWindow) {
                 closeDuplicateWindow();
               }
@@ -218,8 +202,6 @@ function DuplicateWindowPreventer() {
           localStorage.setItem(storageKey, JSON.stringify({
             type: 'window-exists',
             windowId: windowId,
-            sessionId: sessionId,
-            windowUuid: windowUuid,
             userEmail: userEmail,
             timestamp: Date.now()
           }));
@@ -234,12 +216,11 @@ function DuplicateWindowPreventer() {
           const lastCheck = localStorage.getItem(storageKey);
           if (lastCheck) {
             const data = JSON.parse(lastCheck);
-            // Only close if it's a different session/UUID AND recent (within 5 seconds)
-            if (data.sessionId !== sessionId && 
-                data.windowUuid !== windowUuid &&
+            // Only close if it's a different window AND recent (within 3 seconds - more aggressive)
+            if (data.windowId !== windowId &&
                 data.userEmail === userEmail && 
-                Date.now() - data.timestamp < 5000) {
-              // Another window is active (responded within 5 seconds) for the same user
+                Date.now() - data.timestamp < 3000) {
+              // Another window is active (responded within 3 seconds) for the same user
               closeDuplicateWindow();
               return;
             }
@@ -258,34 +239,34 @@ function DuplicateWindowPreventer() {
         }
       };
       
-      // Initial check after a delay (longer to allow for refresh scenarios)
-      setTimeout(checkExistingWindow, 1000);
+      // Initial check immediately and then again after a short delay
+      checkExistingWindow(); // Run immediately
+      setTimeout(checkExistingWindow, 300); // Run again after 300ms
       
-      // Send heartbeat periodically (only if we're primary)
+      // Send heartbeat more frequently (only if we're primary)
       heartbeatInterval = setInterval(() => {
         if (isPrimaryWindow && !shouldClose) {
           sendHeartbeat();
         }
-      }, 2000);
+      }, 1000); // Reduced from 2000ms to 1000ms for more frequent updates
       
       // Handle page unload - notify other windows
       const handleBeforeUnload = () => {
         if (broadcastChannel && isPrimaryWindow) {
           broadcastChannel.postMessage({
             type: 'window-closed',
-            sessionId: sessionId,
-            windowUuid: windowUuid,
+            windowId: windowId,
             userEmail: userEmail,
             timestamp: Date.now()
           });
         }
         // Clear storage on unload (but allow refresh)
         try {
-          // Only clear if it's our session and UUID (not a refresh or duplicate)
+          // Only clear if it's our window ID (not a refresh or duplicate)
           const lastCheck = localStorage.getItem(storageKey);
           if (lastCheck) {
             const data = JSON.parse(lastCheck);
-            if (data.sessionId === sessionId && data.windowUuid === windowUuid) {
+            if (data.windowId === windowId) {
               localStorage.removeItem(storageKey);
             }
           }
@@ -302,8 +283,7 @@ function DuplicateWindowPreventer() {
           if (isPrimaryWindow) {
             broadcastChannel.postMessage({
               type: 'window-closed',
-              sessionId: sessionId,
-              windowUuid: windowUuid,
+              windowId: windowId,
               userEmail: userEmail,
               timestamp: Date.now()
             });

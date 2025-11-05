@@ -657,69 +657,97 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                             }}
                                                                         >
                                                                             {isEditing ? (
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={editValue}
-                                                                                    onChange={(e) => {
-                                                                                        const newValue = e.target.value;
-                                                                                        console.log('Input onChange:', newValue);
-                                                                                        setEditValue(newValue);
-                                                                                    }}
-                                                                                    onBlur={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        // Small delay to allow other events to complete
-                                                                                        setTimeout(() => {
-                                                                                            const finalValue = editValue.trim();
-                                                                                            const currentFormName = editingCell?.formName || formName;
-                                                                                            // Compare against the initial value when editing started (not originalValue)
-                                                                                            const initialValue = editingCell?.initialValue || originalValue;
-                                                                                            console.log('Saving on blur:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
-                                                                                            if (finalValue !== initialValue) {
-                                                                                                saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
+                                                                                <div style={{
+                                                                                    display: 'flex',
+                                                                                    flexDirection: 'column',
+                                                                                    gap: '0.25rem',
+                                                                                    width: '100%'
+                                                                                }}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={editValue}
+                                                                                        onChange={(e) => {
+                                                                                            const newValue = e.target.value;
+                                                                                            console.log('Input onChange:', newValue);
+                                                                                            setEditValue(newValue);
+                                                                                        }}
+                                                                                        onKeyDown={(e) => {
+                                                                                            // Only allow Escape to cancel, no auto-save on Enter
+                                                                                            if (e.key === 'Escape') {
+                                                                                                e.preventDefault();
+                                                                                                e.stopPropagation();
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
                                                                                             }
-                                                                                            setEditingCell(null);
-                                                                                            setEditValue('');
-                                                                                        }, 100);
-                                                                                    }}
-                                                                                    onKeyDown={(e) => {
-                                                                                        if (e.key === 'Enter') {
-                                                                                            e.preventDefault();
-                                                                                            e.stopPropagation();
-                                                                                            const finalValue = editValue.trim();
-                                                                                            const currentFormName = editingCell?.formName || formName;
-                                                                                            // Compare against the initial value when editing started (not originalValue)
-                                                                                            const initialValue = editingCell?.initialValue || originalValue;
-                                                                                            console.log('Saving on Enter:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
-                                                                                            if (finalValue !== initialValue) {
-                                                                                                saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
-                                                                                            }
-                                                                                            // Clear editing state immediately
-                                                                                            setEditingCell(null);
-                                                                                            setEditValue('');
-                                                                                            // Blur the input to ensure it's fully closed
-                                                                                            e.target.blur();
-                                                                                        } else if (e.key === 'Escape') {
-                                                                                            e.preventDefault();
-                                                                                            e.stopPropagation();
-                                                                                            setEditingCell(null);
-                                                                                            setEditValue('');
-                                                                                            e.target.blur();
-                                                                                        }
-                                                                                    }}
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                    onMouseDown={(e) => e.stopPropagation()}
-                                                                                    autoFocus
-                                                                                    style={{
-                                                                                        width: 'calc(100% - 0.5rem)',
-                                                                                        padding: '0.25rem',
-                                                                                        border: '2px solid #667eea',
-                                                                                        borderRadius: '4px',
-                                                                                        fontSize: '0.8rem',
-                                                                                        outline: 'none',
-                                                                                        backgroundColor: 'white',
-                                                                                        boxSizing: 'border-box'
-                                                                                    }}
-                                                                                />
+                                                                                        }}
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                                                        autoFocus
+                                                                                        style={{
+                                                                                            width: '100%',
+                                                                                            padding: '0.25rem',
+                                                                                            border: '2px solid #667eea',
+                                                                                            borderRadius: '4px',
+                                                                                            fontSize: '0.8rem',
+                                                                                            outline: 'none',
+                                                                                            backgroundColor: 'white',
+                                                                                            boxSizing: 'border-box'
+                                                                                        }}
+                                                                                    />
+                                                                                    <div style={{
+                                                                                        display: 'flex',
+                                                                                        gap: '0.25rem',
+                                                                                        justifyContent: 'flex-end'
+                                                                                    }}>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                e.preventDefault();
+                                                                                                const finalValue = editValue.trim();
+                                                                                                const currentFormName = editingCell?.formName || formName;
+                                                                                                const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                console.log('Saving on Save button:', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                if (finalValue !== initialValue) {
+                                                                                                    saveCellEdit(currentFormName, recordIndex, rowIndex, header, finalValue);
+                                                                                                }
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
+                                                                                            }}
+                                                                                            style={{
+                                                                                                padding: '0.2rem 0.5rem',
+                                                                                                fontSize: '0.7rem',
+                                                                                                backgroundColor: '#667eea',
+                                                                                                color: 'white',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '4px',
+                                                                                                cursor: 'pointer',
+                                                                                                fontWeight: '600'
+                                                                                            }}
+                                                                                        >
+                                                                                            Save
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                e.preventDefault();
+                                                                                                setEditingCell(null);
+                                                                                                setEditValue('');
+                                                                                            }}
+                                                                                            style={{
+                                                                                                padding: '0.2rem 0.5rem',
+                                                                                                fontSize: '0.7rem',
+                                                                                                backgroundColor: '#ccc',
+                                                                                                color: 'white',
+                                                                                                border: 'none',
+                                                                                                borderRadius: '4px',
+                                                                                                cursor: 'pointer',
+                                                                                                fontWeight: '600'
+                                                                                            }}
+                                                                                        >
+                                                                                            Cancel
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
                                                                             ) : (
                                                                                 <>
                                                                  {cellValue || '-'}
@@ -2627,69 +2655,97 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                     }}
                                                                                 >
                                                                                     {isEditing ? (
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            value={editValue}
-                                                                                            onChange={(e) => {
-                                                                                                const newValue = e.target.value;
-                                                                                                console.log('Input onChange (data path):', newValue);
-                                                                                                setEditValue(newValue);
-                                                                                            }}
-                                                                                            onBlur={(e) => {
-                                                                                                e.stopPropagation();
-                                                                                                // Small delay to allow other events to complete
-                                                                                                setTimeout(() => {
-                                                                                                    const finalValue = editValue.trim();
-                                                                                                    const currentFormName = editingCell?.formName || formName;
-                                                                                                    // Compare against the initial value when editing started (not originalValue)
-                                                                                                    const initialValue = editingCell?.initialValue || originalValue;
-                                                                                                    console.log('Saving on blur (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
-                                                                                                    if (finalValue !== initialValue) {
-                                                                                                        saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
+                                                                                        <div style={{
+                                                                                            display: 'flex',
+                                                                                            flexDirection: 'column',
+                                                                                            gap: '0.25rem',
+                                                                                            width: '100%'
+                                                                                        }}>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={editValue}
+                                                                                                onChange={(e) => {
+                                                                                                    const newValue = e.target.value;
+                                                                                                    console.log('Input onChange (data path):', newValue);
+                                                                                                    setEditValue(newValue);
+                                                                                                }}
+                                                                                                onKeyDown={(e) => {
+                                                                                                    // Only allow Escape to cancel, no auto-save on Enter
+                                                                                                    if (e.key === 'Escape') {
+                                                                                                        e.preventDefault();
+                                                                                                        e.stopPropagation();
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
                                                                                                     }
-                                                                                                    setEditingCell(null);
-                                                                                                    setEditValue('');
-                                                                                                }, 100);
-                                                                                            }}
-                                                                                            onKeyDown={(e) => {
-                                                                                                if (e.key === 'Enter') {
-                                                                                                    e.preventDefault();
-                                                                                                    e.stopPropagation();
-                                                                                                    const finalValue = editValue.trim();
-                                                                                                    const currentFormName = editingCell?.formName || formName;
-                                                                                                    // Compare against the initial value when editing started (not originalValue)
-                                                                                                    const initialValue = editingCell?.initialValue || originalValue;
-                                                                                                    console.log('Saving on Enter (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
-                                                                                                    if (finalValue !== initialValue) {
-                                                                                                        saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
-                                                                                                    }
-                                                                                                    // Clear editing state immediately
-                                                                                                    setEditingCell(null);
-                                                                                                    setEditValue('');
-                                                                                                    // Blur the input to ensure it's fully closed
-                                                                                                    e.target.blur();
-                                                                                                } else if (e.key === 'Escape') {
-                                                                                                    e.preventDefault();
-                                                                                                    e.stopPropagation();
-                                                                                                    setEditingCell(null);
-                                                                                                    setEditValue('');
-                                                                                                    e.target.blur();
-                                                                                                }
-                                                                                            }}
-                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                            onMouseDown={(e) => e.stopPropagation()}
-                                                                                            autoFocus
-                                                                                            style={{
-                                                                                                width: 'calc(100% - 0.5rem)',
-                                                                                                padding: '0.25rem',
-                                                                                                border: '2px solid #667eea',
-                                                                                                borderRadius: '4px',
-                                                                                                fontSize: '0.8rem',
-                                                                                                outline: 'none',
-                                                                                                backgroundColor: 'white',
-                                                                                                boxSizing: 'border-box'
-                                                                                            }}
-                                                                                        />
+                                                                                                }}
+                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                onMouseDown={(e) => e.stopPropagation()}
+                                                                                                autoFocus
+                                                                                                style={{
+                                                                                                    width: '100%',
+                                                                                                    padding: '0.25rem',
+                                                                                                    border: '2px solid #667eea',
+                                                                                                    borderRadius: '4px',
+                                                                                                    fontSize: '0.8rem',
+                                                                                                    outline: 'none',
+                                                                                                    backgroundColor: 'white',
+                                                                                                    boxSizing: 'border-box'
+                                                                                                }}
+                                                                                            />
+                                                                                            <div style={{
+                                                                                                display: 'flex',
+                                                                                                gap: '0.25rem',
+                                                                                                justifyContent: 'flex-end'
+                                                                                            }}>
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        e.preventDefault();
+                                                                                                        const finalValue = editValue.trim();
+                                                                                                        const currentFormName = editingCell?.formName || formName;
+                                                                                                        const initialValue = editingCell?.initialValue || originalValue;
+                                                                                                        console.log('Saving on Save button (data path):', { finalValue, initialValue, originalValue, changed: finalValue !== initialValue });
+                                                                                                        if (finalValue !== initialValue) {
+                                                                                                            saveCellEdit(currentFormName, index, rowIndex, header, finalValue);
+                                                                                                        }
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
+                                                                                                    }}
+                                                                                                    style={{
+                                                                                                        padding: '0.2rem 0.5rem',
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        backgroundColor: '#667eea',
+                                                                                                        color: 'white',
+                                                                                                        border: 'none',
+                                                                                                        borderRadius: '4px',
+                                                                                                        cursor: 'pointer',
+                                                                                                        fontWeight: '600'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    Save
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        e.preventDefault();
+                                                                                                        setEditingCell(null);
+                                                                                                        setEditValue('');
+                                                                                                    }}
+                                                                                                    style={{
+                                                                                                        padding: '0.2rem 0.5rem',
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        backgroundColor: '#ccc',
+                                                                                                        color: 'white',
+                                                                                                        border: 'none',
+                                                                                                        borderRadius: '4px',
+                                                                                                        cursor: 'pointer',
+                                                                                                        fontWeight: '600'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    Cancel
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     ) : (
                                                                                         <>
                                                                                             {cellValue || '-'}
