@@ -31,6 +31,8 @@ export const NavigationProvider = ({ children }) => {
         return ['Screener Inputs', 'Screener Output Sheets'];
       case 1006: // IRDAI Monthly Data
         return ['Dashboard', 'Analytics', 'Peers', 'Documents'];
+      case 1007: // Economy
+        return ['Dashboard', 'Domestic', 'International'];
       default:
         return ['Dashboard'];
     }

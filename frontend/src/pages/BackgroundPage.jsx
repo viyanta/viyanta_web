@@ -68,6 +68,10 @@ const BackgroundPage = ({ selectedInsurer, onTabChange, onInsurerChange }) => {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       // For other tabs, you can add functionality later
       console.log(`Clicked on ${tab} tab`);

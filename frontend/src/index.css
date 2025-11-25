@@ -176,7 +176,8 @@ li {
 }
 
 .card__body {
-  /* Default body styling */
+  /* Default body styling - add specific styles as needed */
+  padding: 0;
 }
 
 .card__footer {
@@ -756,44 +757,61 @@ li {
 .utility-icons {
   position: fixed;
   top: 50%;
-  right: 0;
+  right: clamp(8px, 1.5vw, 16px);
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: clamp(1.2rem, 2.5vw, 1.8rem);
   z-index: 1000;
   background-color: transparent;
-  padding: 2rem 1rem;
+  background: none;
+  padding: 0;
   border-radius: 0;
   box-shadow: none;
   border: none;
-  min-height: 400px;
-  justify-content: center;
+  min-height: auto;
+  max-height: 90vh;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: visible;
 }
 
 .utility-icon {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #2c3e50;
+  background: none;
+  border: none;
+  color: #666;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.3rem;
-  border-radius: 6px;
+  padding: 0;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 32px;
-  height: 32px;
+  width: clamp(40px, 4.5vw, 44px);
+  height: clamp(40px, 4.5vw, 44px);
+  min-width: clamp(40px, 4.5vw, 44px);
+  min-height: clamp(40px, 4.5vw, 44px);
+  max-width: clamp(40px, 4.5vw, 44px);
+  max-height: clamp(40px, 4.5vw, 44px);
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+  flex-shrink: 0;
 }
 
 .utility-icon:hover:not(:disabled) {
-  background-color: rgba(6, 9, 14, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  background: none;
+  color: var(--main-color);
+  transform: translateY(-1px);
+  opacity: 0.8;
 }
+
+.utility-icon svg {
+  width: clamp(20px, 2.2vw, 22px);
+  height: clamp(20px, 2.2vw, 22px);
+  flex-shrink: 0;
+}
+
 
 .utility-icon:active {
   transform: translateY(0);
@@ -810,18 +828,33 @@ li {
 .utility-icon--email,
 .utility-icon--logout {
   flex-direction: column;
-  padding: 0.2rem 0.3rem;
-  min-width: 32px;
-  height: auto;
-  gap: 0.1rem;
+  padding: 0;
+  width: clamp(40px, 4.5vw, 44px);
+  height: clamp(50px, 5.5vw, 54px);
+  min-width: clamp(40px, 4.5vw, 44px);
+  min-height: clamp(50px, 5.5vw, 54px);
+  max-width: clamp(40px, 4.5vw, 44px);
+  max-height: clamp(50px, 5.5vw, 54px);
+  gap: clamp(0.2rem, 0.5vw, 0.25rem);
+  justify-content: center;
+}
+
+.utility-icon--email svg,
+.utility-icon--logout svg {
+  width: clamp(20px, 2.2vw, 22px);
+  height: clamp(20px, 2.2vw, 22px);
+  flex-shrink: 0;
 }
 
 .utility-icon__text {
-  font-size: 0.5rem;
+  font-size: clamp(0.45rem, 0.8vw, 0.5rem);
   font-weight: 600;
-  line-height: 1;
-  margin-top: 0.05rem;
+  line-height: 1.2;
+  margin-top: clamp(0.15rem, 0.3vw, 0.2rem);
   color: #2c3e50;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .utility-icon--logout {
@@ -829,7 +862,9 @@ li {
 }
 
 .utility-icon--logout:hover {
-  background-color: rgba(220, 53, 69, 0.1);
+  background: none;
+  color: #dc3545;
+  opacity: 0.8;
 }
 
 .utility-icon--logout .utility-icon__text {
@@ -837,13 +872,15 @@ li {
 }
 
 .utility-icon--excel {
-  background: transparent;
+  background: none;
   border: none;
 }
 
 .utility-icon--excel:hover {
-  background-color: rgba(33, 115, 70, 0.1);
+  background: none;
   transform: translateY(-1px);
+  color: #217346;
+  opacity: 0.8;
 }
 
 .utility-icon--excel svg {
@@ -890,74 +927,177 @@ li {
 }
 
 /* Responsive design for utility icons */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .utility-icons {
-    right: 0;
-    gap: 1.5rem;
-    padding: 1.8rem 0.8rem;
-    min-height: 350px;
+    right: clamp(6px, 1.2vw, 12px);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    padding: 0;
   }
   
   .utility-icon {
-    min-width: 45px;
-    height: 45px;
-    padding: 0.6rem;
+    width: clamp(36px, 4vw, 40px);
+    height: clamp(36px, 4vw, 40px);
+    min-width: clamp(36px, 4vw, 40px);
+    min-height: clamp(36px, 4vw, 40px);
+    max-width: clamp(36px, 4vw, 40px);
+    max-height: clamp(36px, 4vw, 40px);
+    padding: 0;
+  }
+
+  .utility-icon svg {
+    width: clamp(18px, 2vw, 20px);
+    height: clamp(18px, 2vw, 20px);
   }
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 45px;
-    padding: 0.6rem;
+    width: clamp(36px, 4vw, 40px);
+    height: clamp(48px, 5vw, 52px);
+    min-width: clamp(36px, 4vw, 40px);
+    min-height: clamp(48px, 5vw, 52px);
+    max-width: clamp(36px, 4vw, 40px);
+    max-height: clamp(48px, 5vw, 52px);
+    padding: 0;
+  }
+
+  .utility-icon--email svg,
+  .utility-icon--logout svg {
+    width: clamp(18px, 2vw, 20px);
+    height: clamp(18px, 2vw, 20px);
+  }
+}
+
+@media (max-width: 968px) {
+  .utility-icons {
+    right: clamp(4px, 1vw, 8px);
+    gap: clamp(0.9rem, 1.8vw, 1.3rem);
+    padding: 0;
+  }
+  
+  .utility-icon {
+    width: clamp(34px, 3.5vw, 38px);
+    height: clamp(34px, 3.5vw, 38px);
+    min-width: clamp(34px, 3.5vw, 38px);
+    min-height: clamp(34px, 3.5vw, 38px);
+    max-width: clamp(34px, 3.5vw, 38px);
+    max-height: clamp(34px, 3.5vw, 38px);
+    padding: 0;
+  }
+
+  .utility-icon svg {
+    width: clamp(17px, 1.8vw, 19px);
+    height: clamp(17px, 1.8vw, 19px);
+  }
+  
+  .utility-icon--email,
+  .utility-icon--logout {
+    width: clamp(34px, 3.5vw, 38px);
+    height: clamp(46px, 4.5vw, 50px);
+    min-width: clamp(34px, 3.5vw, 38px);
+    min-height: clamp(46px, 4.5vw, 50px);
+    max-width: clamp(34px, 3.5vw, 38px);
+    max-height: clamp(46px, 4.5vw, 50px);
+    padding: 0;
+  }
+
+  .utility-icon--email svg,
+  .utility-icon--logout svg {
+    width: clamp(17px, 1.8vw, 19px);
+    height: clamp(17px, 1.8vw, 19px);
+  }
+  
+  .utility-icon__text {
+    font-size: clamp(0.4rem, 0.7vw, 0.45rem);
   }
 }
 
 @media (max-width: 768px) {
   .utility-icons {
-    right: 0;
-    gap: 1.25rem;
-    padding: 1.5rem 0.6rem;
-    min-height: 320px;
+    right: clamp(4px, 0.8vw, 6px);
+    gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    padding: 0;
+    max-height: 85vh;
   }
   
   .utility-icon {
-    min-width: 40px;
-    height: 40px;
-    padding: 0.5rem;
+    width: clamp(32px, 3vw, 36px);
+    height: clamp(32px, 3vw, 36px);
+    min-width: clamp(32px, 3vw, 36px);
+    min-height: clamp(32px, 3vw, 36px);
+    max-width: clamp(32px, 3vw, 36px);
+    max-height: clamp(32px, 3vw, 36px);
+    padding: 0;
+  }
+
+  .utility-icon svg {
+    width: clamp(16px, 1.5vw, 18px);
+    height: clamp(16px, 1.5vw, 18px);
   }
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 40px;
-    padding: 0.5rem;
+    width: clamp(32px, 3vw, 36px);
+    height: clamp(44px, 4vw, 48px);
+    min-width: clamp(32px, 3vw, 36px);
+    min-height: clamp(44px, 4vw, 48px);
+    max-width: clamp(32px, 3vw, 36px);
+    max-height: clamp(44px, 4vw, 48px);
+    padding: 0;
+  }
+
+  .utility-icon--email svg,
+  .utility-icon--logout svg {
+    width: clamp(16px, 1.5vw, 18px);
+    height: clamp(16px, 1.5vw, 18px);
   }
   
   .utility-icon__text {
-    font-size: 0.6rem;
+    font-size: clamp(0.38rem, 0.65vw, 0.42rem);
   }
 }
 
 @media (max-width: 480px) {
   .utility-icons {
-    right: 0;
-    gap: 1rem;
-    padding: 1.2rem 0.4rem;
-    min-height: 300px;
+    right: clamp(2px, 0.5vw, 4px);
+    gap: clamp(0.7rem, 1.2vw, 1rem);
+    padding: 0;
+    max-height: 80vh;
   }
   
   .utility-icon {
-    min-width: 35px;
-    height: 35px;
-    padding: 0.4rem;
+    width: clamp(30px, 2.8vw, 34px);
+    height: clamp(30px, 2.8vw, 34px);
+    min-width: clamp(30px, 2.8vw, 34px);
+    min-height: clamp(30px, 2.8vw, 34px);
+    max-width: clamp(30px, 2.8vw, 34px);
+    max-height: clamp(30px, 2.8vw, 34px);
+    padding: 0;
+  }
+
+  .utility-icon svg {
+    width: clamp(15px, 1.4vw, 17px);
+    height: clamp(15px, 1.4vw, 17px);
   }
   
   .utility-icon--email,
   .utility-icon--logout {
-    min-width: 35px;
-    padding: 0.4rem;
+    width: clamp(30px, 2.8vw, 34px);
+    height: clamp(42px, 3.8vw, 46px);
+    min-width: clamp(30px, 2.8vw, 34px);
+    min-height: clamp(42px, 3.8vw, 46px);
+    max-width: clamp(30px, 2.8vw, 34px);
+    max-height: clamp(42px, 3.8vw, 46px);
+    padding: 0;
+  }
+
+  .utility-icon--email svg,
+  .utility-icon--logout svg {
+    width: clamp(15px, 1.4vw, 17px);
+    height: clamp(15px, 1.4vw, 17px);
   }
   
   .utility-icon__text {
-    font-size: 0.55rem;
+    font-size: clamp(0.35rem, 0.6vw, 0.4rem);
   }
 }
 

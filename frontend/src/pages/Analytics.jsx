@@ -6,7 +6,7 @@ import './Analytics.css';
 
 const Analytics = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, selectedSidebarItem } = useNavigation();
   const [prompt, setPrompt] = useState('');
   const [analysis, setAnalysis] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +37,13 @@ const Analytics = ({ onMenuClick }) => {
       navigate('/lform');
     } else if (tab === 'Metrics') {
       navigate('/metrics');
+    } else if (tab === 'Dashboard') {
+      // Check if Economy is selected in sidebar
+      if (selectedSidebarItem === 1007) { // Economy
+        navigate('/economy-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else if (tab === 'Analytics') {
         // Stay on current page
         return;
@@ -66,6 +73,10 @@ const Analytics = ({ onMenuClick }) => {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       // For other tabs, you can add navigation logic later
       console.log(`Clicked ${tab} tab`);

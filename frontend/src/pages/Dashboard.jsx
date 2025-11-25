@@ -6,7 +6,7 @@ import './Dashboard.css';
 
 const Dashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, selectedSidebarItem } = useNavigation();
   const [selectedFrequency, setSelectedFrequency] = useState('Quarterly');
   const [selectedType, setSelectedType] = useState('Factsheet');
   const [activeView, setActiveView] = useState('Visuals');
@@ -20,7 +20,8 @@ const Dashboard = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International'
   ];
 
   // Filter to show only active tabs
@@ -68,8 +69,17 @@ const Dashboard = ({ onMenuClick }) => {
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
     } else if (tab === 'Dashboard') {
-      // Stay on current page
-      return;
+      // Check if Economy is selected in sidebar
+      if (selectedSidebarItem === 1007) { // Economy
+        navigate('/economy-dashboard');
+      } else {
+        // Stay on current page
+        return;
+      }
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       // For other tabs, you can add navigation logic later
       console.log(`Clicked ${tab} tab`);
