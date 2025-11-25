@@ -6,7 +6,7 @@ from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
-from routes.peers import router as peers_router
+# from routes.peers import router as peers_router
 from databases.database import Base, engine, get_db
 from routes import company
 import logging
@@ -52,7 +52,7 @@ app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
-app.include_router(peers_router, prefix="/api", tags=["peers"])
+# app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
 
 

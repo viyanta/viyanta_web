@@ -1,0 +1,70 @@
+{
+  "Form No": "L-14A",
+  "Title": "AGGREGATE VALUE OF INVESTMENTS OTHER THAN LISTED EQUITY SECURITIES AND DERIVATIVE INSTRUMENTS",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Schedules forming part of financial statements",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Headers": {
+    "sl_no": [
+      "Sl. No."
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "Shareholders_As_at_31_December_Current_Year": [
+      "Shareholders",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Shareholders_As_at_31_December_Previous_Year": [
+      "Shareholders",
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ],
+    "Policyholders_As_at_31_December_Current_Year": [
+      "Policyholders",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Policyholders_As_at_31_December_Previous_Year": [
+      "Policyholders",
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ],
+    "Assets_held_to_cover_Linked_Liabilities_As_at_31_December_Current_Year": [
+      "Assets held to cover Linked Liabilities",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Assets_held_to_cover_Linked_Liabilities_As_at_31_December_Previous_Year": [
+      "Assets held to cover Linked Liabilities",
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ],
+    "Total_As_at_31_December_Current_Year": [
+      "Total",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Total_As_at_31_December_Previous_Year": [
+      "Total",
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ]
+  },
+  "FlatHeaders": [
+    "sl_no",
+    "Particulars",
+    "Shareholders_As_at_31_December_Current_Year",
+    "Shareholders_As_at_31_December_Previous_Year",
+    "Policyholders_As_at_31_December_Current_Year",
+    "Policyholders_As_at_31_December_Previous_Year",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_31_December_Current_Year",
+    "Assets_held_to_cover_Linked_Liabilities_As_at_31_December_Previous_Year",
+    "Total_As_at_31_December_Current_Year",
+    "Total_As_at_31_December_Previous_Year"
+  ],
+  "Rows": []
+}
