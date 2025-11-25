@@ -336,7 +336,7 @@ const TreemapSection = ({ title, data, colors }) => {
 
 function InsuranceDashboard({ onMenuClick }) {
   const { stats } = useStats();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, selectedSidebarItem } = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -361,6 +361,18 @@ function InsuranceDashboard({ onMenuClick }) {
       navigate('/dashboard');
     } else if (tab === 'L Forms') {
       navigate('/lform');
+    } else if (tab === 'Dashboard') {
+      // Check if Economy is selected in sidebar
+      const selectedSidebar = selectedSidebarItem;
+      if (selectedSidebar === 1007) { // Economy
+        navigate('/economy-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       setActiveTab(tab);
     }
@@ -381,7 +393,7 @@ function InsuranceDashboard({ onMenuClick }) {
   // Handle URL parameter for tab navigation
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'].includes(tabParam)) {
+    if (tabParam && ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News', 'Domestic', 'International'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -447,10 +459,14 @@ function InsuranceDashboard({ onMenuClick }) {
     }
   };
 
-  const tabs = [
+  const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
-    'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'
+    'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
+    'Domestic', 'International'
   ];
+  
+  // Filter to show only active tabs
+  const tabs = allTabs.filter(tab => isNavItemActive(tab));
 
   return (
     <div className="insurance-dashboard" style={{

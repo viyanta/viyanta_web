@@ -63,6 +63,10 @@ function AnnualData({ onMenuClick }) {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
