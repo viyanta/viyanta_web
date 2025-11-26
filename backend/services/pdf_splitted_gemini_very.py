@@ -387,6 +387,24 @@ The data should follow this JSON structure:
    - Accuracy: Are numbers copied exactly?
    - Completeness: Did you miss any columns?
 
+=== HEADINGS EXTRACTION ===
+- 
+- For each table, extract the heading or title that appears immediately above the table (if any).
+- If there is no heading above the table, set "Heading": "".
+- Insert the heading as a field just below "TableIndex" in the output JSON for each table.
+- Example:
+  {{
+    ...
+    "TableIndex": 1,
+    "Heading": "REVENUE ACCOUNT FOR THE PERIOD ENDED 31st DECEMBER, 2023.
+Policyholders’ Account (Technical Account) 
+", // PROFIT & LOSS ACCOUNT FOR THE PERIOD ENDED 31st DECEMBER, 2023.
+Shareholders’ Account (Non-technical Account),BALANCE SHEET AS AT 31st DECEMBER, 2023, ect based on what is extracted from the PDF ,CONTINGENT LIABILITIES
+,SCHEDULES FORMING PART OF FINANCIAL STATEMENTS
+and ect just above the table in the PDF
+    ...
+  }}
+
 === OUTPUT FORMAT ===
 
 Return ONLY valid JSON (no markdown, no explanations):
@@ -401,6 +419,7 @@ Return ONLY valid JSON (no markdown, no explanations):
       "Currency": "extracted currency",
       "PagesUsed": 1,
       "TableIndex": 1,
+      "Heading": "extracted heading",
       "FlatHeaders": ["Header1", "Header2", "..."],
       "FlatHeadersNormalized": ["header1", "header2", "..."],
       "Rows": [
@@ -442,79 +461,57 @@ def correct_with_gemini(template_path, extracted_path, pdf_path, output_path, mo
     else:
         extracted_data = []
 
-    # Check if extraction is empty or has minimal data
-    has_meaningful_data = False
-    if extracted_data:
-        for item in extracted_data:
-            rows = item.get("Rows", [])
-            if rows and len(rows) > 0:
-                # Check if rows have actual content
-                for row in rows:
-                    if any(str(v).strip() and str(v).strip() not in ['', '-', 'None', 'null'] for v in row.values()):
-                        has_meaningful_data = True
-                        break
-            if has_meaningful_data:
-                break
+    # Always use Gemini Vision extraction (regardless of extraction result)
+    safe_info("=" * 60)
+    safe_info("FORCED VISION-BASED EXTRACTION MODE (always use Gemini Vision)")
+    safe_info("=" * 60)
+    try:
+        # Convert PDF to images
+        pdf_images = convert_pdf_to_images(str(pdf_path), max_pages=10)
 
-    # Check if PDF has extractable text
-    pdf_has_text = check_if_pdf_has_text(str(pdf_path))
-
-    # Decision: Use Vision API if extraction failed/empty OR PDF is image-based
-    use_vision_extraction = (not has_meaningful_data) or (not pdf_has_text)
-
-    if use_vision_extraction:
-        safe_info("=" * 60)
-        safe_info("VISION-BASED EXTRACTION MODE")
-        safe_info("=" * 60)
-        safe_info(
-            f"Reason: {'Extraction failed/empty' if not has_meaningful_data else 'PDF is image-based'}")
-        safe_info("Converting PDF to images for Gemini Vision API...")
-
-        try:
-            # Convert PDF to images
-            pdf_images = convert_pdf_to_images(str(pdf_path), max_pages=10)
-
-            if not pdf_images:
-                safe_error(
-                    "Failed to convert PDF to images, falling back to text-based correction")
-                use_vision_extraction = False
-            else:
-                # Create vision extraction prompt
-                vision_prompt = create_vision_extraction_prompt(
-                    template, str(pdf_path))
-
-                # Prepare content for Gemini Vision (text + images)
-                safe_info(
-                    f"Sending {len(pdf_images)} images to Gemini Vision API...")
-                content_parts = [vision_prompt]
-                content_parts.extend(pdf_images)
-
-                # Send to Gemini with images
-                try:
-                    response = get_gemini_model(
-                        model).generate_content(content_parts)
-                    corrected_json = parse_json_safely(
-                        response.text if response.text else "")
-
-                    if not corrected_json or not corrected_json.get("data"):
-                        safe_warning("Vision extraction returned empty data")
-                        corrected_json = {"data": []}
-                    else:
-                        safe_info(
-                            f"✅ Vision extraction successful: {len(corrected_json.get('data', []))} tables extracted")
-
-                except Exception as vision_err:
-                    safe_error(f"Gemini Vision API error: {vision_err}")
-                    safe_info("Falling back to text-based correction...")
-                    use_vision_extraction = False
-
-        except Exception as img_err:
-            safe_error(f"Image conversion failed: {img_err}")
-            safe_info("Falling back to text-based correction...")
+        if not pdf_images:
+            safe_error(
+                "Failed to convert PDF to images, falling back to text-based correction")
             use_vision_extraction = False
+        else:
+            # Create vision extraction prompt
+            vision_prompt = create_vision_extraction_prompt(
+                template, str(pdf_path))
 
-    # Fallback: Use standard text-based correction if vision failed or not needed
-    if not use_vision_extraction:
+            # Prepare content for Gemini Vision (text + images)
+            safe_info(
+                f"Sending {len(pdf_images)} images to Gemini Vision API...")
+            content_parts = [vision_prompt]
+            content_parts.extend(pdf_images)
+
+            # Send to Gemini with images
+            try:
+                response = get_gemini_model(
+                    model).generate_content(content_parts)
+                corrected_json = parse_json_safely(
+                    response.text if response.text else "")
+
+                if not corrected_json or not corrected_json.get("data"):
+                    safe_warning("Vision extraction returned empty data")
+                    corrected_json = {"data": []}
+                else:
+                    safe_info(
+                        f"✅ Vision extraction successful: {len(corrected_json.get('data', []))} tables extracted")
+
+            except Exception as vision_err:
+                safe_error(f"Gemini Vision API error: {vision_err}")
+                safe_info("Falling back to text-based correction...")
+                use_vision_extraction = False
+                corrected_json = None
+
+    except Exception as img_err:
+        safe_error(f"Image conversion failed: {img_err}")
+        safe_info("Falling back to text-based correction...")
+        use_vision_extraction = False
+        corrected_json = None
+
+    # Fallback: Use standard text-based correction if vision failed
+    if corrected_json is None or not corrected_json.get("data"):
         safe_info("Using standard text-based correction mode")
         pdf_text = extract_pdf_context(str(pdf_path))
         prompt = create_single_call_prompt(template, extracted, pdf_text)

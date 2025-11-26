@@ -1,0 +1,50 @@
+{
+  "Form No": "L-45",
+  "Title": "OFFICE AND OTHER INFORMATION",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs. in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Sections": [
+    {
+      "Section_Name": "Office and Other information",
+      "Headers": {
+        "Sl_No": [
+          "Sl. No."
+        ],
+        "Information": [
+          "Information"
+        ],
+        "Number": [
+          "Number"
+        ]
+      },
+      "FlatHeaders": [
+        "Sl. No.",
+        "Information",
+        "Number"
+      ],
+      "Rows": []
+    }
+  ],
+  "Headers": {
+    "Sl_No": [
+      "Sl. No."
+    ],
+    "Information": [
+      "Information"
+    ],
+    "Number": [
+      "Number"
+    ]
+  },
+  "FlatHeaders": [
+    "Sl. No.",
+    "Information",
+    "Number"
+  ],
+  "Rows": []
+}
