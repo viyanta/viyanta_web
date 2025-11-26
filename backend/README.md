@@ -59,6 +59,8 @@ backend/
 4. **Start the server**
    ```bash
    python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   or 
+    hypercorn main:app --bind 0.0.0.0:8000 --workers 14          
    ```
 
 ## 📚 Dependencies

@@ -705,7 +705,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         
                                                                         // Center-aligned columns (serial numbers)
                                                                         const centerAlignedColumns = [
-                                                                            'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
+                                                                            'sl no','sl_no', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
                                                                             's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
                                                                         ];
                                                                         const rightAlignedColumns = [

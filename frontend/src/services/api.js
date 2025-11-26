@@ -1037,6 +1037,48 @@ async updateCompany(companyId, updatedName) {
 
     return response.json();
   }
+
+
+  // 1️⃣ Get Premium Types
+ getPremiumTypes = async (dataType) => {
+  const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
+  return response.data;
+};
+
+// 2️⃣ Get Categories
+ getCategories = async (dataType, premiumType) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/categories?data_type=${dataType}&premium=${premiumType}`
+  );
+  return response.data;
+};
+
+// 3️⃣ Get Economy Data
+ getEconomyData = async (dataType, premiumType, category) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+  );
+  return response.data;
+};
+
+
+// 4️⃣ Create New Economy Data
+createEconomyData = async (payload) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
+  return response.data;
+};
+
+// 5️⃣ Update Existing Record by ID
+updateEconomyData = async (id, payload) => {
+  const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
+  return response.data;
+};
+
+// 6️⃣ Delete Record by ID
+deleteEconomyData = async (id) => {
+  const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
+  return response.data;
+};
 }
 
 export default new ApiService();
