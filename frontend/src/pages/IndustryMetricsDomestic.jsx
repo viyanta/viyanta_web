@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
-import './EconomyDomestic.css';
+import './IndustryMetricsDomestic.css';
 
-const EconomyDomestic = ({ onMenuClick }) => {
+const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
@@ -24,8 +24,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data - in production, this would come from an API
-  const economyData = [
+  // Sample data for Industry Metrics - in production, this would come from an API
+  const industryMetricsData = [
     // Insurance Premium - Growth
     {
       category: 'Insurance Premium',
@@ -34,8 +34,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       countryName: 'India',
       period: 'Annual',
       year: 'FY2024',
-      units: '%',
-      reportedValue: '12.5'
+      units: 'in %',
+      reportedValue: '7.10'
     },
     {
       category: 'Insurance Premium',
@@ -44,8 +44,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       countryName: 'Global',
       period: 'Annual',
       year: 'FY2024',
-      units: '%',
-      reportedValue: '8.3'
+      units: 'in %',
+      reportedValue: '2.40'
     },
     {
       category: 'Insurance Premium',
@@ -54,8 +54,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       countryName: 'Emerging Economies',
       period: 'Annual',
       year: 'FY2024',
-      units: '%',
-      reportedValue: '10.2'
+      units: 'in %',
+      reportedValue: '5.10'
     },
     {
       category: 'Insurance Premium',
@@ -64,59 +64,69 @@ const EconomyDomestic = ({ onMenuClick }) => {
       countryName: 'Advanced Economies',
       period: 'Annual',
       year: 'FY2024',
-      units: '%',
-      reportedValue: '6.8'
+      units: 'in %',
+      reportedValue: '1.70'
     },
     // Demographics - Population
     {
       category: 'Demographics',
       categoryLongName: 'Population',
-      description: 'Less than 20 years - Total',
+      description: 'Population composition (bn) - Less Than 20 years - Total',
       countryName: 'India',
       period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '450.2'
+      year: 'FY2021',
+      units: 'in INR Billion',
+      reportedValue: '35.00'
     },
     {
       category: 'Demographics',
       categoryLongName: 'Population',
-      description: '20 years to 64 years - Total',
+      description: 'Population composition (bn) - 20 years to 64 years - Total',
       countryName: 'India',
       period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '850.5'
+      year: 'FY2021',
+      units: 'in INR Billion',
+      reportedValue: '29.00'
     },
     {
       category: 'Demographics',
       categoryLongName: 'Population',
-      description: '65 years and above - Total',
+      description: 'Population composition (bn) - 65 years and above - Total',
       countryName: 'India',
       period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '120.8'
+      year: 'FY2035',
+      units: 'in INR Billion',
+      reportedValue: '256'
     },
     // Demographics - People
     {
       category: 'Demographics',
       categoryLongName: 'People',
-      description: 'Number of Households - 0.2 mn - Total Estimate',
+      description: 'Households distribution by income - < 0.2 mn - Estimate',
       countryName: 'India',
       period: 'Annual',
-      year: 'FY2012',
-      units: 'INR Million',
+      year: 'FY2050',
+      units: 'in INR Million',
+      reportedValue: '19.20'
+    },
+    {
+      category: 'Demographics',
+      categoryLongName: 'People',
+      description: 'Households distribution by income - 0.2 mn to 0.3 mn - Estimate',
+      countryName: 'India',
+      period: 'Annual',
+      year: 'FY2017',
+      units: 'in INR Million',
       reportedValue: '280.5'
     },
     {
       category: 'Demographics',
       categoryLongName: 'People',
-      description: 'Households distribution by income - 0.3 mn - Estimate',
+      description: 'Households distribution by income - 0.3 mn to 0.5 mn - Estimate',
       countryName: 'India',
       period: 'Annual',
       year: 'FY2012',
-      units: 'INR Million',
+      units: 'in INR Million',
       reportedValue: '320.8'
     },
     // Life Insurance Penetration - Business
@@ -126,8 +136,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'Hongkong',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2022',
+      units: 'in %',
       reportedValue: '15.8'
     },
     {
@@ -136,8 +146,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'Taiwan',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2030',
+      units: 'in %',
       reportedValue: '12.3'
     },
     {
@@ -146,8 +156,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'Singapore',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2023',
+      units: 'in %',
       reportedValue: '11.5'
     },
     {
@@ -156,8 +166,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'Malaysia',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2024',
+      units: 'in %',
       reportedValue: '9.2'
     },
     {
@@ -166,8 +176,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'Thailand',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2024',
+      units: 'in %',
       reportedValue: '7.8'
     },
     {
@@ -176,8 +186,8 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'India',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2024',
+      units: 'in %',
       reportedValue: '4.2'
     },
     {
@@ -186,21 +196,21 @@ const EconomyDomestic = ({ onMenuClick }) => {
       description: 'Life Insurance Penetration',
       countryName: 'China',
       period: 'Annual',
-      year: 'FY2000',
-      units: '%',
+      year: 'FY2024',
+      units: 'in %',
       reportedValue: '3.5'
     }
   ];
 
   // Get unique premium types, categories, period types, and periods for dropdowns
-  const premiumTypes = [...new Set(economyData.map(item => item.categoryLongName))];
-  const categories = [...new Set(economyData.map(item => item.category))];
-  const periodTypes = [...new Set(economyData.map(item => item.period))].filter(Boolean);
-  const periods = [...new Set(economyData.map(item => item.year))].filter(Boolean);
+  const premiumTypes = [...new Set(industryMetricsData.map(item => item.categoryLongName))];
+  const categories = [...new Set(industryMetricsData.map(item => item.category))];
+  const periodTypes = [...new Set(industryMetricsData.map(item => item.period))].filter(Boolean);
+  const periods = [...new Set(industryMetricsData.map(item => item.year))].filter(Boolean);
 
   // Filter data based on selections
   useEffect(() => {
-    let filtered = economyData;
+    let filtered = industryMetricsData;
     
     if (selectedPremiumType) {
       filtered = filtered.filter(item => item.categoryLongName === selectedPremiumType);
@@ -223,7 +233,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
 
   // Initialize filtered data
   useEffect(() => {
-    setFilteredData(economyData);
+    setFilteredData(industryMetricsData);
   }, []);
 
   const handleTabClick = (tab) => {
@@ -232,17 +242,15 @@ const EconomyDomestic = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      // Check which sidebar item is selected
-      if (selectedSidebarItem === 1001) { // Industry Metrics
-        navigate('/industry-metrics-dashboard');
-      } else {
-        navigate('/economy-dashboard');
-      }
-    } else if (tab === 'Domestic') {
-      // Stay on current page
-      return;
-    } else if (tab === 'International') {
-      navigate('/economy-international');
+      navigate('/industry-metrics-dashboard');
+    } else if (tab === 'Domestic Metrics') {
+      return; // Stay on current page
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
+    } else if (tab === 'Documents') {
+      navigate('/documents');
+    } else if (tab === 'News') {
+      navigate('/news');
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
@@ -253,23 +261,19 @@ const EconomyDomestic = ({ onMenuClick }) => {
       navigate('/analytics');
     } else if (tab === 'Annual Data') {
       navigate('/annual-data');
-    } else if (tab === 'Documents') {
-      navigate('/documents');
     } else if (tab === 'Peers') {
       navigate('/peers');
-    } else if (tab === 'News') {
-      navigate('/news');
-    } else if (tab === 'Domestic Metrics') {
-      navigate('/industry-metrics-domestic');
-    } else if (tab === 'International Metrics') {
-      navigate('/industry-metrics-international');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
   };
 
   return (
-    <div className="economy-domestic-page">
+    <div className="industry-metrics-domestic-page">
       <div className="page-header">
         <button
           onClick={() => {
@@ -281,7 +285,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
         >
           ☰
         </button>
-        <h1>Economy - Domestic</h1>
+        <h1>Industry Metrics - Domestic</h1>
       </div>
 
       <div className="main-content-wrapper">
@@ -393,7 +397,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
             {/* Data Table or Visuals */}
             {viewMode === 'data' ? (
               <div className="table-container">
-                <table className="economy-table">
+                <table className="industry-metrics-table">
                   <thead>
                     <tr>
                       <th>Category</th>
@@ -403,7 +407,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
                       <th>Period</th>
                       <th>Year</th>
                       <th>Units</th>
-                      <th>ReportedVideo</th>
+                      <th>ReportedValue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -444,7 +448,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
                                 <div
                                   className="chart-bar"
                                   style={{
-                                    height: `${(parseFloat(item.reportedValue) / 15) * 100}%`,
+                                    height: `${(parseFloat(item.reportedValue) / 10) * 100}%`,
                                     backgroundColor: '#36659b'
                                   }}
                                 >
@@ -471,7 +475,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
                                 <div
                                   className="chart-bar"
                                   style={{
-                                    height: `${(parseFloat(item.reportedValue) / 1000) * 100}%`,
+                                    height: `${(parseFloat(item.reportedValue) / 300) * 100}%`,
                                     backgroundColor: '#3F72AF'
                                   }}
                                 >
@@ -537,7 +541,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
                       <div className="stat-item">
                         <div className="stat-value">
                           {filteredData
-                            .filter(item => item.units === '%')
+                            .filter(item => item.units === 'in %')
                             .reduce((sum, item) => sum + parseFloat(item.reportedValue || 0), 0)
                             .toFixed(1)}%
                         </div>
@@ -555,5 +559,4 @@ const EconomyDomestic = ({ onMenuClick }) => {
   );
 };
 
-export default EconomyDomestic;
-
+export default IndustryMetricsDomestic;

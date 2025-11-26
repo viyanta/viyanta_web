@@ -16,7 +16,9 @@ const Analytics = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
   // Filter to show only active tabs
@@ -77,6 +79,10 @@ const Analytics = ({ onMenuClick }) => {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
       navigate('/economy-international');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       // For other tabs, you can add navigation logic later
       console.log(`Clicked ${tab} tab`);

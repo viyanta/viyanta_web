@@ -10,6 +10,7 @@ import Subscription from './pages/Subscription.jsx'
 import Login from './pages/Login.jsx'
 import Welcome from './pages/Welcome.jsx'
 import SignUp from './pages/SignUp.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
@@ -28,6 +29,9 @@ import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
 import EconomyDashboard from './pages/EconomyDashboard.jsx'
 import EconomyDomestic from './pages/EconomyDomestic.jsx'
 import EconomyInternational from './pages/EconomyInternational.jsx'
+import IndustryMetricsDashboard from './pages/IndustryMetricsDashboard.jsx'
+import IndustryMetricsDomestic from './pages/IndustryMetricsDomestic.jsx'
+import IndustryMetricsInternational from './pages/IndustryMetricsInternational.jsx'
 
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
@@ -393,6 +397,7 @@ function App() {
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             
             {/* Protected Routes */}
             <Route path="/*" element={
@@ -438,6 +443,9 @@ function App() {
                         <Route path="/economy-dashboard" element={<EconomyDashboard onMenuClick={openSidebar} />} />
                         <Route path="/economy-domestic" element={<EconomyDomestic onMenuClick={openSidebar} />} />
                         <Route path="/economy-international" element={<EconomyInternational onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-dashboard" element={<IndustryMetricsDashboard onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-domestic" element={<IndustryMetricsDomestic onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-international" element={<IndustryMetricsInternational onMenuClick={openSidebar} />} />
                       </Routes>
                     </main>
                   </div>

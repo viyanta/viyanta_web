@@ -14,7 +14,8 @@ function AnnualData({ onMenuClick }) {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Irdai Monthly Data'
   ];
 
   // Filter to show only active tabs
@@ -67,6 +68,10 @@ function AnnualData({ onMenuClick }) {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
       navigate('/economy-international');
+    } else if (tab === 'Irdai Monthly Data') {
+      // Navigate to IRDAI Monthly Data page if route exists
+      console.log('Irdai Monthly Data clicked');
+      // navigate('/irdai-monthly-data'); // Uncomment when route is available
     } else {
       console.log(`Clicked ${tab} tab`);
     }

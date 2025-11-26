@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
-import './EconomyDashboard.css';
+import './IndustryMetricsDashboard.css';
 
-const EconomyDashboard = ({ onMenuClick }) => {
+const IndustryMetricsDashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
+  const { isNavItemActive, activeNavItems } = useNavigation();
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [viewMode, setViewMode] = useState('visuals'); // 'data' or 'visuals'
 
   const allTabs = [
@@ -24,10 +25,10 @@ const EconomyDashboard = ({ onMenuClick }) => {
   // Set active tab based on current route
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/economy-domestic')) {
-      setActiveTab('Domestic');
-    } else if (path.includes('/economy-international')) {
-      setActiveTab('International');
+    if (path.includes('/industry-metrics-domestic')) {
+      setActiveTab('Domestic Metrics');
+    } else if (path.includes('/industry-metrics-international')) {
+      setActiveTab('International Metrics');
     } else {
       setActiveTab('Dashboard');
     }
@@ -39,19 +40,18 @@ const EconomyDashboard = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      // Check which sidebar item is selected
-      if (selectedSidebarItem === 1001) { // Industry Metrics
-        navigate('/industry-metrics-dashboard');
-      } else {
-        setActiveTab('Dashboard');
-        navigate('/economy-dashboard');
-      }
-    } else if (tab === 'Domestic') {
-      setActiveTab('Domestic');
-      navigate('/economy-domestic');
-    } else if (tab === 'International') {
-      setActiveTab('International');
-      navigate('/economy-international');
+      setActiveTab('Dashboard');
+      navigate('/industry-metrics-dashboard');
+    } else if (tab === 'Domestic Metrics') {
+      setActiveTab('Domestic Metrics');
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      setActiveTab('International Metrics');
+      navigate('/industry-metrics-international');
+    } else if (tab === 'Documents') {
+      navigate('/documents');
+    } else if (tab === 'News') {
+      navigate('/news');
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
@@ -62,23 +62,27 @@ const EconomyDashboard = ({ onMenuClick }) => {
       navigate('/analytics');
     } else if (tab === 'Annual Data') {
       navigate('/annual-data');
-    } else if (tab === 'Documents') {
-      navigate('/documents');
     } else if (tab === 'Peers') {
       navigate('/peers');
-    } else if (tab === 'News') {
-      navigate('/news');
-    } else if (tab === 'Domestic Metrics') {
-      navigate('/industry-metrics-domestic');
-    } else if (tab === 'International Metrics') {
-      navigate('/industry-metrics-international');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
   };
 
+  const premiumTypeOptions = [
+    'Growth',
+    'Premium Collection',
+    'Policy Count',
+    'Sum Assured',
+    'Market Share'
+  ];
+
   return (
-    <div className="economy-dashboard-page">
+    <div className="industry-metrics-dashboard-page">
       <div className="page-header">
         <button
           onClick={() => {
@@ -90,7 +94,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
         >
           ☰
         </button>
-        <h1>Economy - Dashboard</h1>
+        <h1>Industry Metrics - Dashboard</h1>
       </div>
 
       <div className="main-content-wrapper">
@@ -135,11 +139,31 @@ const EconomyDashboard = ({ onMenuClick }) => {
               </div>
             </div>
 
+            {/* Premium Type Selector */}
+            <div className="premium-type-selector">
+              <label htmlFor="premium-type-select">Select Premium Type Long name:</label>
+              <select
+                id="premium-type-select"
+                value={selectedPremiumType}
+                onChange={(e) => setSelectedPremiumType(e.target.value)}
+                className="premium-type-dropdown"
+              >
+                <option value="">Select Premium Type...</option>
+                {premiumTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Dashboard Content */}
             <div className="dashboard-content">
+              <h2 className="section-title">Industry Metrics</h2>
+              
               {viewMode === 'visuals' ? (
               <div className="dashboard-charts-grid">
-                {/* Top Left - Bar Chart 1 */}
+                {/* Top Left - Bar Chart 1 - Life Expectancy Male */}
                 <div className="dashboard-chart-card">
                   <h3 className="chart-title">Life Expectancy in years - Male</h3>
                   <div className="chart-container">
@@ -174,18 +198,18 @@ const EconomyDashboard = ({ onMenuClick }) => {
                   </div>
                 </div>
 
-                {/* Top Right - Bar Chart 2 */}
+                {/* Top Right - Bar Chart 2 - Life Expectancy Female */}
                 <div className="dashboard-chart-card">
                   <h3 className="chart-title">Life Expectancy in years - Female</h3>
                   <div className="chart-container">
                     <div className="bar-chart-vertical">
                       {[
-                        { label: 'Chrome', value: 63.5 },
-                        { label: 'Safari', value: 19.8 },
-                        { label: 'Firefox', value: 4.2 },
-                        { label: 'Edge', value: 4.1 },
-                        { label: 'Opera', value: 1.2 },
-                        { label: 'IE', value: 0.5 },
+                        { label: 'China', value: 63.5 },
+                        { label: 'India', value: 19.8 },
+                        { label: 'Brazil', value: 4.2 },
+                        { label: 'EU', value: 4.1 },
+                        { label: 'USA', value: 1.2 },
+                        { label: 'Argentina', value: 0.5 },
                         { label: 'Other', value: 1.4 }
                       ].map((item, index) => (
                         <div key={index} className="bar-item">
@@ -210,37 +234,37 @@ const EconomyDashboard = ({ onMenuClick }) => {
                   <div className="chart-container">
                     <div className="treemap-container">
                       <div className="treemap-item treemap-large" style={{ backgroundColor: '#4CAF50' }}>
-                        <div className="treemap-label">NORD NORGE</div>
+                        <div className="treemap-label">Thema og Netværk</div>
                         <div className="treemap-sub">
-                          <div className="treemap-sub-item">Troms og Finnmark</div>
-                          <div className="treemap-sub-item">Nordland</div>
+                          <div className="treemap-sub-item">Vurdering</div>
+                          <div className="treemap-sub-item">Indsigt</div>
                         </div>
                       </div>
                       <div className="treemap-item treemap-medium" style={{ backgroundColor: '#E0E0E0' }}>
-                        <div className="treemap-label">OSTLANDET</div>
+                        <div className="treemap-label">Viden og Netværk</div>
                         <div className="treemap-sub">
-                          <div className="treemap-sub-item">Innlandet</div>
-                          <div className="treemap-sub-item">Vestfold og Telemark</div>
+                          <div className="treemap-sub-item">Rådgivning</div>
+                          <div className="treemap-sub-item">Analyse</div>
                         </div>
                       </div>
                       <div className="treemap-item treemap-medium" style={{ backgroundColor: '#4CAF50' }}>
-                        <div className="treemap-label">VESTLANDET</div>
+                        <div className="treemap-label">Tjenester</div>
                         <div className="treemap-sub">
-                          <div className="treemap-sub-item">Vestland</div>
-                          <div className="treemap-sub-item">Rogaland</div>
+                          <div className="treemap-sub-item">Digital</div>
+                          <div className="treemap-sub-item">Produkter</div>
                         </div>
                       </div>
                       <div className="treemap-item treemap-small" style={{ backgroundColor: '#E0E0E0' }}>
-                        <div className="treemap-label">SORLANDET</div>
+                        <div className="treemap-label">Løsninger</div>
                         <div className="treemap-sub">
-                          <div className="treemap-sub-item">Agder</div>
+                          <div className="treemap-sub-item">Support</div>
                         </div>
                       </div>
                       <div className="treemap-item treemap-small" style={{ backgroundColor: '#4CAF50' }}>
-                        <div className="treemap-label">More og Romsdal</div>
+                        <div className="treemap-label">Rådgivning</div>
                       </div>
                       <div className="treemap-item treemap-small" style={{ backgroundColor: '#E0E0E0' }}>
-                        <div className="treemap-label">Trondelag</div>
+                        <div className="treemap-label">Produkter</div>
                       </div>
                     </div>
                   </div>
@@ -254,14 +278,14 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       {(() => {
                         const radius = 80;
                         const circumference = 2 * Math.PI * radius;
-                        const water = 55.0;
-                        const fat = 26.7;
-                        const protein = 15.5;
+                        const rådgivning = 55.0;
+                        const løsninger = 26.7;
+                        const produkter = 19.4;
                         const other = 2.8;
                         
-                        const waterLength = (water / 100) * circumference;
-                        const fatLength = (fat / 100) * circumference;
-                        const proteinLength = (protein / 100) * circumference;
+                        const rådgivningLength = (rådgivning / 100) * circumference;
+                        const løsningerLength = (løsninger / 100) * circumference;
+                        const produkterLength = (produkter / 100) * circumference;
                         const otherLength = (other / 100) * circumference;
                         
                         return (
@@ -273,7 +297,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                               fill="none"
                               stroke="#64B5F6"
                               strokeWidth="40"
-                              strokeDasharray={`${waterLength} ${circumference}`}
+                              strokeDasharray={`${rådgivningLength} ${circumference}`}
                               transform="rotate(-90 100 100)"
                             />
                             <circle
@@ -283,8 +307,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
                               fill="none"
                               stroke="#BA68C8"
                               strokeWidth="40"
-                              strokeDasharray={`${fatLength} ${circumference}`}
-                              strokeDashoffset={`-${waterLength}`}
+                              strokeDasharray={`${løsningerLength} ${circumference}`}
+                              strokeDashoffset={`-${rådgivningLength}`}
                               transform="rotate(-90 100 100)"
                             />
                             <circle
@@ -294,8 +318,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
                               fill="none"
                               stroke="#FF9800"
                               strokeWidth="40"
-                              strokeDasharray={`${proteinLength} ${circumference}`}
-                              strokeDashoffset={`-${waterLength + fatLength}`}
+                              strokeDasharray={`${produkterLength} ${circumference}`}
+                              strokeDashoffset={`-${rådgivningLength + løsningerLength}`}
                               transform="rotate(-90 100 100)"
                             />
                             <circle
@@ -306,7 +330,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                               stroke="#E0E0E0"
                               strokeWidth="40"
                               strokeDasharray={`${otherLength} ${circumference}`}
-                              strokeDashoffset={`-${waterLength + fatLength + proteinLength}`}
+                              strokeDashoffset={`-${rådgivningLength + løsningerLength + produkterLength}`}
                               transform="rotate(-90 100 100)"
                             />
                           </svg>
@@ -315,15 +339,15 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       <div className="pie-legend">
                         <div className="legend-item">
                           <div className="legend-color" style={{ backgroundColor: '#64B5F6' }}></div>
-                          <span>Water - 55.0%</span>
+                          <span>Rådgivning - 55.0%</span>
                         </div>
                         <div className="legend-item">
                           <div className="legend-color" style={{ backgroundColor: '#BA68C8' }}></div>
-                          <span>Fat - 26.7%</span>
+                          <span>Løsninger - 26.7%</span>
                         </div>
                         <div className="legend-item">
                           <div className="legend-color" style={{ backgroundColor: '#FF9800' }}></div>
-                          <span>Protein - 15.5%</span>
+                          <span>Produkter - 19.4%</span>
                         </div>
                         <div className="legend-item">
                           <div className="legend-color" style={{ backgroundColor: '#E0E0E0' }}></div>
@@ -335,7 +359,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                 </div>
               </div>
               ) : (
-              // Data Table View
+              /* Data Table View */
               <div className="data-table-container">
                 <table className="data-table">
                   <thead>
@@ -385,68 +409,68 @@ const EconomyDashboard = ({ onMenuClick }) => {
                     </tr>
                     <tr>
                       <td>Life Expectancy - Female</td>
-                      <td>Chrome</td>
+                      <td>China</td>
                       <td>63.5%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Life Expectancy - Female</td>
-                      <td>Safari</td>
+                      <td>India</td>
                       <td>19.8%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Life Expectancy - Female</td>
-                      <td>Firefox</td>
+                      <td>Brazil</td>
                       <td>4.2%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Life Expectancy - Female</td>
-                      <td>Edge</td>
+                      <td>EU</td>
                       <td>4.1%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Life Expectancy - Female</td>
-                      <td>Opera</td>
+                      <td>USA</td>
                       <td>1.2%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Average Household Savings</td>
-                      <td>NORD NORGE</td>
+                      <td>Thema og Netværk</td>
                       <td>55.0%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Average Household Savings</td>
-                      <td>OSTLANDET</td>
+                      <td>Viden og Netværk</td>
                       <td>26.7%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Average Household Savings</td>
-                      <td>VESTLANDET</td>
+                      <td>Tjenester</td>
                       <td>19.4%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Gross Financial Savings</td>
-                      <td>Water</td>
+                      <td>Rådgivning</td>
                       <td>55.0%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Gross Financial Savings</td>
-                      <td>Fat</td>
+                      <td>Løsninger</td>
                       <td>26.7%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
                       <td>Gross Financial Savings</td>
-                      <td>Protein</td>
-                      <td>15.5%</td>
+                      <td>Produkter</td>
+                      <td>19.4%</td>
                       <td>Percentage</td>
                     </tr>
                     <tr>
@@ -467,5 +491,5 @@ const EconomyDashboard = ({ onMenuClick }) => {
   );
 };
 
-export default EconomyDashboard;
+export default IndustryMetricsDashboard;
 

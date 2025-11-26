@@ -21,7 +21,8 @@ function Template({ onMenuClick }) {
     'Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
     'Define Template', 'Save Template',
-    'Screener Inputs', 'Screener Output Sheets'
+    'Screener Inputs', 'Screener Output Sheets',
+    'Irdai Monthly Data'
   ];
 
   // Filter to show only active tabs
@@ -65,6 +66,11 @@ function Template({ onMenuClick }) {
         break;
       case 'Save Template':
         console.log('Save Template clicked');
+        break;
+      case 'Irdai Monthly Data':
+        // Navigate to IRDAI Monthly Data page if route exists
+        console.log('Irdai Monthly Data clicked');
+        // navigate('/irdai-monthly-data'); // Uncomment when route is available
         break;
       default:
         console.log(`${tab} clicked`);

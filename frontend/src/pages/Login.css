@@ -112,6 +112,137 @@
   line-height: 1.6;
 }
 
+/* Email/Password Login Form */
+.email-login-form {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.email-login-form-group {
+  margin-bottom: 1rem;
+}
+
+.email-login-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  color: #1a1a1a;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.email-login-input:focus {
+  outline: none;
+  border-color: #36659b;
+  box-shadow: 0 0 0 3px rgba(54, 101, 155, 0.1);
+}
+
+.email-login-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.email-login-input::placeholder {
+  color: #999;
+}
+
+.email-login-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: #36659b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.email-login-button:hover:not(:disabled) {
+  background: #2e4f82;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(54, 101, 155, 0.3);
+}
+
+.email-login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.email-login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.email-login-error-container {
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+}
+
+.email-login-error {
+  color: #d32f2f;
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.email-login-help {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.email-login-link {
+  color: #36659b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.email-login-link:hover {
+  color: #2e4f82;
+  text-decoration: underline;
+}
+
+.forgot-password-link {
+  color: #36659b;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: #2d5280;
+  text-decoration: underline;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #999;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.login-divider span {
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+}
+
 /* Rejection Message */
 .login-rejection-message {
   background-color: #fff3cd;
@@ -126,6 +257,25 @@
 }
 
 .login-rejection-message strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+/* Success Message */
+.login-success-message {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #155724;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  animation: slideDown 0.3s ease-out;
+}
+
+.login-success-message strong {
   display: block;
   margin-bottom: 0.25rem;
   font-weight: 600;

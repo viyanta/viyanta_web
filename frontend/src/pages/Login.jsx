@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { loginWithGoogle, subscribeToAuthChanges } from "../firebase/auth";
+import { loginWithGoogle, loginWithEmailPassword, subscribeToAuthChanges } from "../firebase/auth";
 import "./Login.css";
 
 function Login() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showRejectionMessage, setShowRejectionMessage] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -14,6 +18,17 @@ function Login() {
     // Check if user came from agreement rejection
     if (location.state?.fromAgreementRejection) {
       setShowRejectionMessage(true);
+    }
+    
+    // Check if user came from successful signup
+    if (location.state?.signupSuccess) {
+      setShowSignupSuccess(true);
+      // Pre-fill email if provided
+      if (location.state?.email) {
+        setEmail(location.state.email);
+      }
+      // Clear the state after showing message
+      window.history.replaceState({}, document.title);
     }
 
     const unsubscribe = subscribeToAuthChanges((authUser) => {
@@ -29,10 +44,73 @@ function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setShowRejectionMessage(false);
+    setError("");
     try {
       await loginWithGoogle();
     } catch (error) {
       console.error("Login failed:", error);
+      setError("Google login failed. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setShowRejectionMessage(false);
+
+    // Basic validation
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      setLoading(false);
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Attempting login with email:", email);
+      const userCredential = await loginWithEmailPassword(email.trim(), password);
+      console.log("Login successful:", userCredential.user);
+      navigate("/insurance-dashboard");  // redirect
+    } catch (err) {
+      console.error("Email login failed:", err);
+      console.error("Error code:", err.code);
+      console.error("Error message:", err.message);
+      
+      let errorMessage = "Invalid email or password";
+      
+      // Handle specific Firebase errors
+      if (err.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password. If you don\'t have an account, please sign up first.';
+      } else if (err.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email. Please sign up first.';
+      } else if (err.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (err.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled. Please contact support.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (err.code === 'auth/internal-error') {
+        errorMessage = 'An internal error occurred. Please try again later.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password authentication is not enabled. Please contact support.';
+      } else {
+        errorMessage = `Login failed: ${err.message || 'Unknown error'}`;
+      }
+      
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -92,6 +170,74 @@ function Login() {
                 </div>
               )}
 
+              {/* Signup Success Message */}
+              {showSignupSuccess && (
+                <div className="login-success-message">
+                  <strong>Account Created Successfully!</strong> Please log in with your email and password to continue.
+                </div>
+              )}
+
+              {/* Email/Password Login Form */}
+              <form className="email-login-form" onSubmit={handleEmailLogin}>
+                <div className="email-login-form-group">
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="email-login-input"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="email-login-form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label htmlFor="password" style={{ fontSize: '0.875rem', color: '#666' }}>Password</label>
+                    <Link 
+                      to="/forgot-password" 
+                      className="forgot-password-link"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <input 
+                    type="password" 
+                    id="password"
+                    placeholder="Password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="email-login-input"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                {error && (
+                  <div className="email-login-error-container">
+                    <p className="email-login-error">{error}</p>
+                    {(error.includes('Invalid email or password') || error.includes('No account found')) && (
+                      <p className="email-login-help">
+                        Don't have an account? <Link to="/signup" className="email-login-link">Sign up here</Link>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  className="email-login-button"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="login-divider">
+                <span>OR</span>
+              </div>
+
               {/* Google Login Button */}
               <button 
                 className="google-login-button"
@@ -118,7 +264,7 @@ function Login() {
 
               {/* Security Note */}
               <p className="login-security-note">
-                Secure authentication powered by Google
+                Secure authentication powered by Firebase
               </p>
             </div>
           </div>

@@ -175,6 +175,18 @@
   box-shadow: 0 2px 4px rgba(54, 101, 155, 0.3);
 }
 
+.view-toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: transparent;
+  color: #999;
+}
+
+.view-toggle-btn:disabled:hover {
+  background-color: transparent;
+  color: #999;
+}
+
 /* Filters Section */
 .filters-section {
   display: flex;

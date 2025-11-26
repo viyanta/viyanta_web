@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
-import './EconomyInternational.css';
+import './IndustryMetricsInternational.css';
 
-const EconomyInternational = ({ onMenuClick }) => {
+const IndustryMetricsInternational = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
@@ -24,274 +24,274 @@ const EconomyInternational = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data for International - in production, this would come from an API
-  const economyData = [
+  // Sample data for Industry Metrics International - in production, this would come from an API
+  const industryMetricsData = [
     // Insurance Premium - Growth
     {
-      premiumTypeLongName: 'Growth',
+      premiumTypeLongName: 'Insurance Premium',
       countryName: 'Global',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
+      description: 'Total Insurance Premium expected growth in Global over 5 years',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '2.4'
     },
     {
-      premiumTypeLongName: 'Growth',
+      premiumTypeLongName: 'Insurance Premium',
       countryName: 'Emerging Economies',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
+      description: 'Total Insurance Premium expected growth in Emerging Economies over 5 years',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '5.1'
     },
     {
-      premiumTypeLongName: 'Growth',
+      premiumTypeLongName: 'Insurance Premium',
       countryName: 'Advanced Economies',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
+      description: 'Total Insurance Premium expected growth in Advanced Economies over 5 years',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '1.7'
     },
     // Life Insurance Penetration
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'HongKong',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '19.2'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'Taiwan',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '14.0'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'Singapore',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '7.6'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'Japan',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '6.8'
+      reportedValue: '5.8'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'Malaysia',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '5.2'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'Thailand',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '4.1'
     },
     {
-      premiumTypeLongName: 'Penetration',
+      premiumTypeLongName: 'Life Insurance Penetration',
       countryName: 'China',
       description: 'Life Insurance Penetration',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '3.2'
     },
     // Life Insurance Protection Gap
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'HongKong',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '41.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'Taiwan',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '14.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'Singapore',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '55.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'Japan',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '28.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'Malaysia',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '62.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'Thailand',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '75.0'
     },
     {
-      premiumTypeLongName: 'Protection Gap',
+      premiumTypeLongName: 'Life Insurance Protection Gap',
       countryName: 'China',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
+      description: 'Protection Gap',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2018-2019',
       reportedValue: '68.0'
     },
     // Sum Assured as % of GDP
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'Singapore',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '332.0'
     },
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'Japan',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '252.0'
     },
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'Malaysia',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '153.0'
     },
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'Thailand',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '98.0'
     },
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'USA',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '145.0'
     },
     {
-      premiumTypeLongName: 'Sum Assured % GDP',
+      premiumTypeLongName: 'Sum Assured as % of GDP',
       countryName: 'South Korea',
       description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2021-2022',
       reportedValue: '178.0'
     },
     // Pension Market Penetration
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'Singapore',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
+      processedFinancialYearPeriod: '2023-2024',
+      reportedValue: ''
+    },
+    {
+      premiumTypeLongName: 'Pension Market Penetration',
+      countryName: 'Japan',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '31.0'
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Japan',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '146.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'Australia',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '98.0'
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'Thailand',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '54.0'
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'USA',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '90.0'
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'South Korea',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: ''
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'HongKong',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: ''
     },
     {
-      premiumTypeLongName: 'Pension Penetration',
+      premiumTypeLongName: 'Pension Market Penetration',
       countryName: 'Canada',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
+      description: 'Pension Market Penetration as % of GDP',
+      reportedUnit: 'in %',
       processedFinancialYearPeriod: '2023-2024',
       reportedValue: '85.0'
     }
   ];
 
   // Get unique premium types, categories, period types, and periods for dropdowns
-  const premiumTypes = [...new Set(economyData.map(item => item.premiumTypeLongName))];
-  const categories = [...new Set(economyData.map(item => item.description))];
+  const premiumTypes = [...new Set(industryMetricsData.map(item => item.premiumTypeLongName))];
+  const categories = [...new Set(industryMetricsData.map(item => item.description))];
   // For International, period types could be Annual, Quarterly, Monthly, etc.
   // Since the data doesn't have a period type field, we'll use common period types
   const periodTypes = ['Annual', 'Quarterly', 'Monthly', 'Semi-Annual'];
-  const periods = [...new Set(economyData.map(item => item.processedFinancialYearPeriod))].filter(Boolean);
+  const periods = [...new Set(industryMetricsData.map(item => item.processedFinancialYearPeriod))].filter(Boolean);
 
   // Filter data based on selections
   useEffect(() => {
-    let filtered = economyData;
+    let filtered = industryMetricsData;
     
     if (selectedPremiumType) {
       filtered = filtered.filter(item => item.premiumTypeLongName === selectedPremiumType);
@@ -316,7 +316,7 @@ const EconomyInternational = ({ onMenuClick }) => {
 
   // Initialize filtered data
   useEffect(() => {
-    setFilteredData(economyData);
+    setFilteredData(industryMetricsData);
   }, []);
 
   const handleTabClick = (tab) => {
@@ -325,17 +325,15 @@ const EconomyInternational = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      // Check which sidebar item is selected
-      if (selectedSidebarItem === 1001) { // Industry Metrics
-        navigate('/industry-metrics-dashboard');
-      } else {
-        navigate('/economy-dashboard');
-      }
-    } else if (tab === 'Domestic') {
-      navigate('/economy-domestic');
-    } else if (tab === 'International') {
-      // Stay on current page
-      return;
+      navigate('/industry-metrics-dashboard');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      return; // Stay on current page
+    } else if (tab === 'Documents') {
+      navigate('/documents');
+    } else if (tab === 'News') {
+      navigate('/news');
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
@@ -346,23 +344,19 @@ const EconomyInternational = ({ onMenuClick }) => {
       navigate('/analytics');
     } else if (tab === 'Annual Data') {
       navigate('/annual-data');
-    } else if (tab === 'Documents') {
-      navigate('/documents');
     } else if (tab === 'Peers') {
       navigate('/peers');
-    } else if (tab === 'News') {
-      navigate('/news');
-    } else if (tab === 'Domestic Metrics') {
-      navigate('/industry-metrics-domestic');
-    } else if (tab === 'International Metrics') {
-      navigate('/industry-metrics-international');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
   };
 
   return (
-    <div className="economy-international-page">
+    <div className="industry-metrics-international-page">
       <div className="page-header">
         <button
           onClick={() => {
@@ -374,7 +368,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         >
           ☰
         </button>
-        <h1>Economy - International</h1>
+        <h1>Industry Metrics - International</h1>
       </div>
 
       <div className="main-content-wrapper">
@@ -486,7 +480,7 @@ const EconomyInternational = ({ onMenuClick }) => {
             {/* Data Table or Visuals */}
             {viewMode === 'data' ? (
               <div className="table-container">
-                <table className="economy-table">
+                <table className="industry-metrics-table">
                   <thead>
                     <tr>
                       <th>PremiumTypeLongName</th>
@@ -526,7 +520,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {(() => {
-                          const growthData = filteredData.filter(item => item.premiumTypeLongName === 'Growth');
+                          const growthData = filteredData.filter(item => item.premiumTypeLongName === 'Insurance Premium');
                           const maxValue = Math.max(...growthData.map(item => parseFloat(item.reportedValue) || 0), 1);
                           return growthData.map((item, index) => {
                             const value = parseFloat(item.reportedValue) || 0;
@@ -559,7 +553,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {(() => {
-                          const penetrationData = filteredData.filter(item => item.premiumTypeLongName === 'Penetration');
+                          const penetrationData = filteredData.filter(item => item.premiumTypeLongName === 'Life Insurance Penetration');
                           const maxValue = Math.max(...penetrationData.map(item => parseFloat(item.reportedValue) || 0), 1);
                           return penetrationData.map((item, index) => {
                             const value = parseFloat(item.reportedValue) || 0;
@@ -592,7 +586,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {(() => {
-                          const gapData = filteredData.filter(item => item.premiumTypeLongName === 'Protection Gap');
+                          const gapData = filteredData.filter(item => item.premiumTypeLongName === 'Life Insurance Protection Gap');
                           const maxValue = Math.max(...gapData.map(item => parseFloat(item.reportedValue) || 0), 1);
                           return gapData.map((item, index) => {
                             const value = parseFloat(item.reportedValue) || 0;
@@ -625,7 +619,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {(() => {
-                          const gdpData = filteredData.filter(item => item.premiumTypeLongName === 'Sum Assured % GDP');
+                          const gdpData = filteredData.filter(item => item.premiumTypeLongName === 'Sum Assured as % of GDP');
                           const maxValue = Math.max(...gdpData.map(item => parseFloat(item.reportedValue) || 0), 1);
                           return gdpData.map((item, index) => {
                             const value = parseFloat(item.reportedValue) || 0;
@@ -658,7 +652,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {(() => {
-                          const pensionData = filteredData.filter(item => item.premiumTypeLongName === 'Pension Penetration' && item.reportedValue);
+                          const pensionData = filteredData.filter(item => item.premiumTypeLongName === 'Pension Market Penetration' && item.reportedValue);
                           const maxValue = Math.max(...pensionData.map(item => parseFloat(item.reportedValue) || 0), 1);
                           return pensionData.map((item, index) => {
                             const value = parseFloat(item.reportedValue) || 0;
@@ -730,5 +724,4 @@ const EconomyInternational = ({ onMenuClick }) => {
   );
 };
 
-export default EconomyInternational;
-
+export default IndustryMetricsInternational;

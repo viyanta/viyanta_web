@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../utils/Button.jsx'
-import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
+import { subscribeToAuthChanges, logout, updateUserProfile } from '../firebase/auth.js'
 import './Profile.css'
 
 function Profile({ onMenuClick }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
       if (authUser) {
         setUser(authUser);
+        setFullName(authUser.displayName || '');
         setImageError(false);
       } else {
         navigate('/login');
@@ -22,6 +28,56 @@ function Profile({ onMenuClick }) {
     });
     return unsubscribe;
   }, [navigate]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setFullName(user?.displayName || '');
+    setSaveError('');
+    setSaveSuccess(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFullName(user?.displayName || '');
+    setSaveError('');
+    setSaveSuccess(false);
+  };
+
+  const handleSave = async () => {
+    if (!fullName || !fullName.trim()) {
+      setSaveError('Full name cannot be empty');
+      return;
+    }
+
+    setSaving(true);
+    setSaveError('');
+    setSaveSuccess(false);
+
+    try {
+      await updateUserProfile(user, {
+        displayName: fullName.trim()
+      });
+      
+      // Update local user state
+      setUser({
+        ...user,
+        displayName: fullName.trim()
+      });
+      
+      setSaveSuccess(true);
+      setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      setSaveError('Failed to update profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -85,15 +141,62 @@ function Profile({ onMenuClick }) {
           {/* Card Header */}
           <div className="profile-card-header">
             <h2 className="profile-card-title">Personal Information</h2>
-            <Button 
-              variant="outline" 
-              size="small"
-              disabled
-              className="profile-edit-btn"
-            >
-              Edit Profile
-            </Button>
+            {!isEditing ? (
+              <Button 
+                variant="outline" 
+                size="small"
+                onClick={handleEdit}
+                className="profile-edit-btn"
+              >
+                Edit Profile
+              </Button>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button 
+                  variant="outline" 
+                  size="small"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="small"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
           </div>
+          
+          {/* Success/Error Messages */}
+          {saveSuccess && (
+            <div style={{ 
+              padding: '0.75rem', 
+              marginBottom: '1rem', 
+              backgroundColor: '#d4edda', 
+              color: '#155724', 
+              borderRadius: '8px',
+              border: '1px solid #c3e6cb'
+            }}>
+              Profile updated successfully!
+            </div>
+          )}
+          {saveError && (
+            <div style={{ 
+              padding: '0.75rem', 
+              marginBottom: '1rem', 
+              backgroundColor: '#f8d7da', 
+              color: '#721c24', 
+              borderRadius: '8px',
+              border: '1px solid #f5c6cb'
+            }}>
+              {saveError}
+            </div>
+          )}
 
           {/* Profile Section */}
           <div className="profile-section">
@@ -133,7 +236,25 @@ function Profile({ onMenuClick }) {
           <div className="profile-details">
             <div className="profile-detail-item">
               <label className="profile-detail-label">Full Name</label>
-              <p className="profile-detail-value">{user.displayName || 'Not provided'}</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    fontSize: '1rem',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    marginTop: '0.25rem'
+                  }}
+                  disabled={saving}
+                />
+              ) : (
+                <p className="profile-detail-value">{user.displayName || 'Not provided'}</p>
+              )}
             </div>
 
             <div className="profile-detail-item">

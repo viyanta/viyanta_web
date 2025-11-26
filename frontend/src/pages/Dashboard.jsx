@@ -6,7 +6,7 @@ import './Dashboard.css';
 
 const Dashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive, selectedSidebarItem } = useNavigation();
+  const { isNavItemActive, selectedSidebarItem, activeNavItems } = useNavigation();
   const [selectedFrequency, setSelectedFrequency] = useState('Quarterly');
   const [selectedType, setSelectedType] = useState('Factsheet');
   const [activeView, setActiveView] = useState('Visuals');
@@ -21,11 +21,12 @@ const Dashboard = ({ onMenuClick }) => {
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
     'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
-    'Domestic', 'International'
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
   // Handle tab clicks
   const handleTabClick = (tab) => {
@@ -69,9 +70,11 @@ const Dashboard = ({ onMenuClick }) => {
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
     } else if (tab === 'Dashboard') {
-      // Check if Economy is selected in sidebar
+      // Check which sidebar item is selected
       if (selectedSidebarItem === 1007) { // Economy
         navigate('/economy-dashboard');
+      } else if (selectedSidebarItem === 1001) { // Industry Metrics
+        navigate('/industry-metrics-dashboard');
       } else {
         // Stay on current page
         return;
@@ -80,6 +83,14 @@ const Dashboard = ({ onMenuClick }) => {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
       navigate('/economy-international');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
+    } else if (tab === 'Irdai Monthly Data') {
+      // Navigate to IRDAI Monthly Data page if route exists
+      console.log('Irdai Monthly Data clicked');
+      // navigate('/irdai-monthly-data'); // Uncomment when route is available
     } else {
       // For other tabs, you can add navigation logic later
       console.log(`Clicked ${tab} tab`);

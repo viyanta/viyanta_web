@@ -20,9 +20,9 @@ export const NavigationProvider = ({ children }) => {
       case 1000: // Company Information
         return ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'];
       case 1001: // Industry Metrics
-        return ['Dashboard', 'Analytics', 'Documents'];
+        return ['Dashboard', 'Domestic Metrics', 'International Metrics', 'Documents', 'News'];
       case 1002: // Industry Aggregates
-        return ['Dashboard', 'Analytics', 'Documents', 'News'];
+        return ['L Forms', 'Annual Data', 'Irdai Monthly Data'];
       case 1003: // Products
         return ['Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'];
       case 1004: // Report Generator
