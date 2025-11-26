@@ -83,3 +83,18 @@ class ReportData(Base):
     formno = Column(String(50))
     title = Column(String(255))
     datarow = Column(JSON, nullable=False)
+
+
+class EconomyMaster(Base):
+    __tablename__ = "economy_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ProcessedPeriodType = Column(String(50), nullable=True)
+    ProcessedFYYear = Column(String(10), nullable=True)
+    DataType = Column(String(50), nullable=True)
+    CountryName = Column(String(100), nullable=True)
+    PremiumTypeLongName = Column(String(100), nullable=True)
+    CategoryLongName = Column(String(100), nullable=True)
+    Description = Column(String(255), nullable=True)
+    ReportedUnit = Column(String(50), nullable=True)
+    ReportedValue = Column(String(50), nullable=True)
