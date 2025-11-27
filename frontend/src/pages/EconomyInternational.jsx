@@ -2,305 +2,250 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
 import './EconomyInternational.css';
 
 const EconomyInternational = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPeriodType, setSelectedPeriodType] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  
+  // API data states
+  const [premiumTypes, setPremiumTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // CRUD states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [formData, setFormData] = useState({
+    ProcessedPeriodType: '',
+    ProcessedFYYear: '',
+    DataType: 'International',
+    CountryName: '',
+    PremiumTypeLongName: '',
+    CategoryLongName: '',
+    Description: '',
+    ReportedUnit: '',
+    ReportedValue: ''
+  });
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
-    'Domestic', 'International'
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data for International - in production, this would come from an API
-  const economyData = [
-    // Insurance Premium - Growth
-    {
-      premiumTypeLongName: 'Growth',
-      countryName: 'Global',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '2.4'
-    },
-    {
-      premiumTypeLongName: 'Growth',
-      countryName: 'Emerging Economies',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '5.1'
-    },
-    {
-      premiumTypeLongName: 'Growth',
-      countryName: 'Advanced Economies',
-      description: 'Total Insurance Premium expected growth over 5 years',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '1.7'
-    },
-    // Life Insurance Penetration
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'HongKong',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '19.2'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'Taiwan',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '14.0'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'Singapore',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '7.6'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'Japan',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '6.8'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'Malaysia',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '5.2'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'Thailand',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '4.1'
-    },
-    {
-      premiumTypeLongName: 'Penetration',
-      countryName: 'China',
-      description: 'Life Insurance Penetration',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '3.2'
-    },
-    // Life Insurance Protection Gap
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'HongKong',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '41.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'Taiwan',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '14.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'Singapore',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '55.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'Japan',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '28.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'Malaysia',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '62.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'Thailand',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '75.0'
-    },
-    {
-      premiumTypeLongName: 'Protection Gap',
-      countryName: 'China',
-      description: 'Life Insurance Protection Gap',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '68.0'
-    },
-    // Sum Assured as % of GDP
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'Singapore',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '332.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'Japan',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '252.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'Malaysia',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '153.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'Thailand',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '98.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'USA',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '145.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured % GDP',
-      countryName: 'South Korea',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: '%',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '178.0'
-    },
-    // Pension Market Penetration
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Singapore',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '31.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Japan',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '146.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Australia',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '98.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Thailand',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '54.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'USA',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '90.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'South Korea',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: ''
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'HongKong',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: ''
-    },
-    {
-      premiumTypeLongName: 'Pension Penetration',
-      countryName: 'Canada',
-      description: 'Pension Market Penetration',
-      reportedUnit: '% of GDP',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '85.0'
-    }
-  ];
-
-  // Get unique premium types and categories for dropdowns
-  const premiumTypes = [...new Set(economyData.map(item => item.premiumTypeLongName))];
-  const categories = [...new Set(economyData.map(item => item.description))];
-
-  // Filter data based on selections
+  // Fetch premium types from API when component loads (when International tab is clicked)
   useEffect(() => {
-    let filtered = economyData;
-    
-    if (selectedPremiumType) {
-      filtered = filtered.filter(item => item.premiumTypeLongName === selectedPremiumType);
-    }
-    
-    if (selectedCategory) {
-      filtered = filtered.filter(item => item.description === selectedCategory);
-    }
-    
-    setFilteredData(filtered);
+    const fetchPremiumTypes = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/premium-types?data_type=International
+        console.log('🔵 Calling API: /api/economy/premium-types?data_type=International');
+        const data = await ApiService.getPremiumTypes('International');
+        console.log('✅ Premium types received from API:', data);
+        console.log('📊 Number of premium types:', data?.length || 0);
+        setPremiumTypes(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching premium types:', err);
+        setError('Failed to load premium types. Please try again.');
+        setPremiumTypes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Fetch immediately when component loads (when International tab is clicked)
+    fetchPremiumTypes();
+  }, []);
+
+  // Fetch categories when premium type is selected
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!selectedPremiumType) {
+        setCategories([]);
+        setFilteredData([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/categories?data_type=International&premium={selectedPremiumType}
+        console.log(`🔵 Calling Categories API: /api/economy/categories?data_type=International&premium=${selectedPremiumType}`);
+        const data = await ApiService.getCategories('International', selectedPremiumType);
+        console.log('✅ Categories received from API:', data);
+        console.log('📊 Number of categories:', data?.length || 0);
+        setCategories(data || []);
+        // Reset category selection when premium type changes
+        setSelectedCategory('');
+      } catch (err) {
+        console.error('❌ Error fetching categories:', err);
+        setError('Failed to load categories. Please try again.');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [selectedPremiumType]);
+
+  // Fetch economy data when both premium type and category are selected
+  useEffect(() => {
+    const fetchEconomyData = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setFilteredData([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/data?data_type=International&premium={selectedPremiumType}&category={selectedCategory}
+        console.log(`🔵 Calling Economy Data API: /api/economy/data?data_type=International&premium=${selectedPremiumType}&category=${selectedCategory}`);
+        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+        console.log('✅ Economy data received from API:', data);
+        console.log('📊 Number of records:', data?.length || 0);
+        setFilteredData(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching economy data:', err);
+        setError('Failed to load economy data. Please try again.');
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEconomyData();
   }, [selectedPremiumType, selectedCategory]);
 
-  // Initialize filtered data
-  useEffect(() => {
-    setFilteredData(economyData);
-  }, []);
+  // CRUD Handler Functions
+  const handleAdd = () => {
+    setFormData({
+      ProcessedPeriodType: '',
+      ProcessedFYYear: '',
+      DataType: 'International',
+      CountryName: '',
+      PremiumTypeLongName: '',
+      CategoryLongName: '',
+      Description: '',
+      ReportedUnit: '',
+      ReportedValue: ''
+    });
+    setEditingRecord(null);
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (record) => {
+    setFormData({
+      ProcessedPeriodType: record.ProcessedPeriodType || '',
+      ProcessedFYYear: record.ProcessedFYYear || '',
+      DataType: record.DataType || 'International',
+      CountryName: record.CountryName || '',
+      PremiumTypeLongName: record.PremiumTypeLongName || '',
+      CategoryLongName: record.CategoryLongName || '',
+      Description: record.Description || '',
+      ReportedUnit: record.ReportedUnit || '',
+      ReportedValue: record.ReportedValue || ''
+    });
+    setEditingRecord(record);
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      await ApiService.deleteEconomyData(recordToDelete.id);
+      setSuccessMessage('Record deleted successfully!');
+      setShowDeleteConfirm(false);
+      setRecordToDelete(null);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error deleting record:', err);
+      setError('Failed to delete record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRecordToDelete(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      if (editingRecord) {
+        // Update existing record
+        await ApiService.updateEconomyData(editingRecord.id, formData);
+        setSuccessMessage('Record updated successfully!');
+      } else {
+        // Create new record
+        await ApiService.createEconomyData(formData);
+        setSuccessMessage('Record added successfully!');
+      }
+
+      setShowAddModal(false);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error saving record:', err);
+      setError('Failed to save record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Old hardcoded data removed - now using API
+
+  // Old hardcoded filtering logic removed - now using API
 
   const handleTabClick = (tab) => {
     if (!isNavItemActive(tab)) {
@@ -308,7 +253,12 @@ const EconomyInternational = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      navigate('/economy-dashboard');
+      // Check which sidebar item is selected
+      if (selectedSidebarItem === 1001) { // Industry Metrics
+        navigate('/industry-metrics-dashboard');
+      } else {
+        navigate('/economy-dashboard');
+      }
     } else if (tab === 'Domestic') {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
@@ -330,6 +280,10 @@ const EconomyInternational = ({ onMenuClick }) => {
       navigate('/peers');
     } else if (tab === 'News') {
       navigate('/news');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
@@ -387,10 +341,72 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <button
                   className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
                   onClick={() => setViewMode('visuals')}
+                  disabled
                 >
                   Visuals
                 </button>
               </div>
+            </div>
+
+            {/* Success Message */}
+            {successMessage && (
+              <div className="success-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#dfd', 
+                color: '#3a3', 
+                borderRadius: '4px' 
+              }}>
+                {successMessage}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="error-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#fee', 
+                color: '#c33', 
+                borderRadius: '4px' 
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+              <button
+                onClick={handleAdd}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#36659b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(54, 101, 155, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#2d5280';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(54, 101, 155, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#36659b';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(54, 101, 155, 0.2)';
+                }}
+              >
+                <span>+</span>
+                <span>Add New Record</span>
+              </button>
             </div>
 
             {/* Filter Dropdowns */}
@@ -402,11 +418,16 @@ const EconomyInternational = ({ onMenuClick }) => {
                   value={selectedPremiumType}
                   onChange={(e) => setSelectedPremiumType(e.target.value)}
                   className="filter-select"
+                  disabled={loading}
                 >
-                  <option value="">All Premium Types</option>
-                  {premiumTypes.map((type, index) => (
+                  <option value="">Select Premium Type...</option>
+                  {premiumTypes.length > 0 ? (
+                    premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
-                  ))}
+                    ))
+                  ) : (
+                    !loading && <option value="" disabled>No premium types available</option>
+                  )}
                 </select>
               </div>
 
@@ -417,13 +438,29 @@ const EconomyInternational = ({ onMenuClick }) => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="filter-select"
+                  disabled={loading || !selectedPremiumType}
                 >
-                  <option value="">All Categories</option>
-                  {categories.map((category, index) => (
+                  <option value="">Select Category...</option>
+                  {categories.length > 0 ? (
+                    categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
-                  ))}
+                    ))
+                  ) : (
+                    selectedPremiumType && !loading && <option value="" disabled>No categories available</option>
+                  )}
                 </select>
+                {!selectedPremiumType && (
+                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Please select a Premium Type first
+                  </small>
+                )}
               </div>
+
+              {loading && (
+                <div style={{ padding: '10px', color: '#666' }}>
+                  Loading...
+              </div>
+              )}
             </div>
 
             {/* Data Table or Visuals */}
@@ -432,29 +469,110 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <table className="economy-table">
                   <thead>
                     <tr>
-                      <th>PremiumTypeLongName</th>
+                      <th>ProcessedPeriodType</th>
+                      <th>ProcessedFYYear</th>
+                      <th>DataType</th>
                       <th>CountryName</th>
+                      <th>PremiumTypeLongName</th>
+                      <th>CategoryLongName</th>
                       <th>Description</th>
                       <th>ReportedUnit</th>
-                      <th>ProcessedFinancialYearPeriod</th>
                       <th>ReportedValue</th>
+                      <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="10" className="no-data">Loading data...</td>
+                      </tr>
+                    ) : filteredData.length > 0 ? (
                       filteredData.map((row, index) => (
-                        <tr key={index}>
-                          <td>{row.premiumTypeLongName}</td>
-                          <td>{row.countryName}</td>
-                          <td>{row.description}</td>
-                          <td>{row.reportedUnit}</td>
-                          <td>{row.processedFinancialYearPeriod}</td>
-                          <td>{row.reportedValue || '-'}</td>
+                        <tr key={row.id || index}>
+                          <td>{row.ProcessedPeriodType || '-'}</td>
+                          <td>{row.ProcessedFYYear || '-'}</td>
+                          <td>{row.DataType || '-'}</td>
+                          <td>{row.CountryName || '-'}</td>
+                          <td>{row.PremiumTypeLongName || '-'}</td>
+                          <td>{row.CategoryLongName || '-'}</td>
+                          <td>{row.Description || '-'}</td>
+                          <td>{row.ReportedUnit || '-'}</td>
+                          <td>{row.ReportedValue || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleEdit(row)}
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#0056b3';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = '#007bff';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                }}
+                              >
+                                <span>✏️</span>
+                                <span>Edit</span>
+                              </button>
+                            <button
+                              onClick={() => handleDelete(row)}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#c82333';
+                                e.target.style.transform = 'translateY(-1px)';
+                                e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#dc3545';
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                              }}
+                            >
+                              <span>🗑️</span>
+                              <span>Delete</span>
+                            </button>
+                            </div>
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" className="no-data">No data available</td>
+                        <td colSpan="10" className="no-data">
+                          {selectedPremiumType && selectedCategory 
+                            ? 'No data available for selected filters' 
+                            : 'Please select Premium Type and Category to view data'}
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -669,6 +787,351 @@ const EconomyInternational = ({ onMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            zIndex: 9999,
+            padding: isMobile ? '80px 10px 20px' : '20px',
+            overflowY: 'auto'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddModal(false);
+              setEditingRecord(null);
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: isMobile ? '20px' : 'clamp(20px, 4vw, 30px)',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: isMobile ? 'calc(100vh - 100px)' : 'calc(100vh - 120px)',
+            overflow: 'auto',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            marginTop: isMobile ? '0' : '80px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>
+                {editingRecord ? 'Edit Record' : 'Add New Record'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingRecord(null);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f0f0f0';
+                  e.target.style.color = '#333';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#666';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed Period Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedPeriodType}
+                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed FY Year:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedFYYear}
+                  onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Data Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.DataType}
+                  onChange={(e) => setFormData({ ...formData, DataType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  disabled
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Country Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.CountryName}
+                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Premium Type Long Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.PremiumTypeLongName}
+                  onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
+                  placeholder="Enter Premium Type Long Name..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+                {premiumTypes.length > 0 && (
+                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    Suggestions: {premiumTypes.slice(0, 3).join(', ')}{premiumTypes.length > 3 ? '...' : ''}
+                  </small>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Category Long Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.CategoryLongName}
+                  onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
+                  placeholder="Enter Category Long Name..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+                {categories.length > 0 && (
+                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    Suggestions: {categories.slice(0, 3).join(', ')}{categories.length > 3 ? '...' : ''}
+                  </small>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Description:
+                </label>
+                <textarea
+                  value={formData.Description}
+                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Unit:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedUnit}
+                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Value:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedValue}
+                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingRecord(null);
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                >
+                  {loading ? 'Saving...' : (editingRecord ? 'Update' : 'Add')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && recordToDelete && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelDelete();
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '450px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ margin: '0 0 10px 0', color: '#dc3545', fontSize: '24px' }}>
+                ⚠️ Confirm Delete
+              </h2>
+              <p style={{ margin: 0, color: '#666', fontSize: '14px', lineHeight: '1.5' }}>
+                Are you sure you want to delete this record? This action cannot be undone.
+              </p>
+            </div>
+
+            {recordToDelete && (
+              <div style={{
+                backgroundColor: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                border: '1px solid #dee2e6'
+              }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Premium Type:</strong> {recordToDelete.PremiumTypeLongName || '-'}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Category:</strong> {recordToDelete.CategoryLongName || '-'}
+                </div>
+                <div>
+                  <strong>Country:</strong> {recordToDelete.CountryName || '-'}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={cancelDelete}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.backgroundColor = '#c82333';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.backgroundColor = '#dc3545';
+                  }
+                }}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

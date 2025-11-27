@@ -1,4 +1,4 @@
-.economy-dashboard-page {
+.industry-metrics-dashboard-page {
   padding: clamp(10px, 3vw, 20px);
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -136,6 +136,44 @@
   cursor: not-allowed;
 }
 
+/* Premium Type Selector */
+.premium-type-selector {
+  margin-bottom: clamp(20px, 3vw, 25px);
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 15px);
+  flex-wrap: wrap;
+}
+
+.premium-type-selector label {
+  font-size: clamp(14px, 2.5vw, 16px);
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.premium-type-dropdown {
+  padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 18px);
+  font-size: clamp(13px, 2vw, 15px);
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: clamp(200px, 25vw, 300px);
+  outline: none;
+}
+
+.premium-type-dropdown:hover {
+  border-color: var(--main-color);
+}
+
+.premium-type-dropdown:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(63, 114, 175, 0.1);
+}
+
 /* Dashboard Content */
 /* View Toggle */
 .page-title-section {
@@ -225,6 +263,15 @@
 
 .data-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.section-title {
+  margin: 0 0 clamp(20px, 3vw, 25px) 0;
+  font-size: clamp(20px, 4vw, 24px);
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid var(--main-color);
+  padding-bottom: clamp(8px, 1.5vw, 12px);
 }
 
 .dashboard-charts-grid {
@@ -512,46 +559,6 @@
   flex-shrink: 0;
 }
 
-.quick-actions {
-  margin-top: clamp(30px, 5vw, 40px);
-}
-
-.quick-actions h3 {
-  margin: 0 0 clamp(15px, 3vw, 20px) 0;
-  font-size: clamp(18px, 3.5vw, 22px);
-  font-weight: 600;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-  gap: clamp(15px, 3vw, 20px);
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  padding: clamp(12px, 2.5vw, 16px) clamp(24px, 4vw, 32px);
-  font-size: clamp(14px, 2.5vw, 16px);
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.action-btn.primary {
-  background-color: var(--main-color);
-  color: white;
-  box-shadow: 0 2px 8px rgba(54, 101, 155, 0.3);
-}
-
-.action-btn.primary:hover {
-  background-color: var(--sub-color);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(54, 101, 155, 0.4);
-}
-
 /* Responsive Design */
 @media (max-width: 1600px) {
   .dashboard-charts-grid {
@@ -605,7 +612,7 @@
 }
 
 @media (max-width: 1024px) {
-  .economy-dashboard-page {
+  .industry-metrics-dashboard-page {
     padding: clamp(8px, 1.5vw, 15px);
   }
 
@@ -656,7 +663,7 @@
 }
 
 @media (max-width: 968px) {
-  .economy-dashboard-page {
+  .industry-metrics-dashboard-page {
     padding: clamp(8px, 2vw, 15px);
   }
 
@@ -690,6 +697,16 @@
     padding: clamp(6px, 1.5vw, 10px) clamp(10px, 2.5vw, 16px);
     font-size: clamp(10px, 2.2vw, 12px);
     min-height: clamp(30px, 7vw, 36px);
+  }
+
+  .premium-type-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .premium-type-dropdown {
+    width: 100%;
+    min-width: 100%;
   }
 
   .dashboard-charts-grid {
@@ -728,18 +745,10 @@
     width: clamp(140px, 26vw, 170px);
     height: clamp(140px, 26vw, 170px);
   }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    width: 100%;
-  }
 }
 
 @media (max-width: 768px) {
-  .economy-dashboard-page {
+  .industry-metrics-dashboard-page {
     padding: clamp(6px, 1.5vw, 10px);
   }
 
@@ -845,7 +854,7 @@
 }
 
 @media (max-width: 480px) {
-  .economy-dashboard-page {
+  .industry-metrics-dashboard-page {
     padding: clamp(5px, 1.2vw, 8px);
   }
   

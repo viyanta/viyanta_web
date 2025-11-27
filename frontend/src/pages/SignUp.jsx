@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { loginWithGoogle } from "../firebase/auth";
+import { registerWithEmailPassword, updateUserProfile, logout } from "../firebase/auth";
 import "./SignUp.css";
 
 function SignUp() {
   const [formData, setFormData] = useState({
     fullName: '',
-    email: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -41,6 +43,18 @@ function SignUp() {
       newErrors.email = 'Please enter a valid email address';
     }
     
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
     if (!termsAccepted) {
       newErrors.terms = 'You must accept the Terms and Conditions';
     }
@@ -58,13 +72,55 @@ function SignUp() {
 
     setLoading(true);
     try {
-      // For now, we'll use Google authentication
-      // In the future, you can store the form data and then authenticate
-      await loginWithGoogle();
-      // After successful signup, user will be redirected by auth listener
+      // Create user with email and password
+      const userCredential = await registerWithEmailPassword(formData.email, formData.password);
+      const user = userCredential.user;
+      
+      // Update user profile with full name
+      if (formData.fullName && formData.fullName.trim()) {
+        try {
+          await updateUserProfile(user, {
+            displayName: formData.fullName.trim()
+          });
+          console.log("User profile updated with full name:", formData.fullName);
+        } catch (profileError) {
+          console.error("Failed to update user profile:", profileError);
+          // Don't fail the signup if profile update fails, but log the error
+        }
+      }
+      
+      // Log out the user after successful signup (Firebase auto-logs in after registration)
+      try {
+        await logout();
+        console.log("User logged out after signup");
+      } catch (logoutError) {
+        console.error("Failed to logout after signup:", logoutError);
+        // Continue with redirect even if logout fails
+      }
+      
+      // Redirect to login page with success message
+      navigate('/login', { 
+        state: { 
+          signupSuccess: true,
+          email: formData.email 
+        } 
+      });
     } catch (error) {
       console.error("Sign up failed:", error);
-      setErrors({ submit: 'Sign up failed. Please try again.' });
+      let errorMessage = 'Sign up failed. Please try again.';
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered. Please login instead.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please choose a stronger password.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password accounts are not enabled.';
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -151,6 +207,46 @@ function SignUp() {
                   )}
                 </div>
 
+                {/* Create Password Field */}
+                <div className="signup-form-group">
+                  <label htmlFor="password" className="signup-form-label">
+                    Create Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your Password"
+                    className={`signup-form-input ${errors.password ? 'error' : ''}`}
+                    disabled={loading}
+                  />
+                  {errors.password && (
+                    <span className="signup-error-message">{errors.password}</span>
+                  )}
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className="signup-form-group">
+                  <label htmlFor="confirmPassword" className="signup-form-label">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm your Password"
+                    className={`signup-form-input ${errors.confirmPassword ? 'error' : ''}`}
+                    disabled={loading}
+                  />
+                  {errors.confirmPassword && (
+                    <span className="signup-error-message">{errors.confirmPassword}</span>
+                  )}
+                </div>
+
                 {/* Terms and Conditions Checkbox */}
                 <div className="signup-terms-group">
                   <label className="signup-terms-checkbox">
@@ -211,7 +307,7 @@ function SignUp() {
 
               {/* Security Note */}
               <p className="signup-security-note">
-                Secure authentication powered by Google
+                Secure authentication powered by Firebase
               </p>
             </div>
           </div>

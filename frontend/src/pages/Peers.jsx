@@ -35,7 +35,8 @@ const Peers = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Irdai Monthly Data'
   ];
 
   // Filter to show only active tabs

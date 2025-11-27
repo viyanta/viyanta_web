@@ -1,4 +1,4 @@
-.economy-domestic-page {
+.industry-metrics-domestic-page {
   padding: clamp(10px, 3vw, 20px);
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -239,7 +239,7 @@
   background: white;
 }
 
-.economy-table {
+.industry-metrics-table {
   width: 100%;
   border-collapse: collapse;
   font-size: clamp(12px, 2.5vw, 14px);
@@ -248,14 +248,14 @@
   box-sizing: border-box;
 }
 
-.economy-table thead {
+.industry-metrics-table thead {
   background-color: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.economy-table th {
+.industry-metrics-table th {
   padding: clamp(12px, 2.5vw, 16px);
   text-align: left;
   font-weight: 600;
@@ -265,18 +265,18 @@
   font-size: clamp(12px, 2.5vw, 13px);
 }
 
-.economy-table td {
+.industry-metrics-table td {
   padding: clamp(10px, 2.5vw, 14px);
   border-bottom: 1px solid #ddd;
   color: #555;
   word-wrap: break-word;
 }
 
-.economy-table tbody tr:hover {
+.industry-metrics-table tbody tr:hover {
   background-color: white;
 }
 
-.economy-table tbody tr:last-child td {
+.industry-metrics-table tbody tr:last-child td {
   border-bottom: none;
 }
 
@@ -435,7 +435,7 @@
 }
 
 @media (max-width: 1024px) {
-  .economy-domestic-page {
+  .industry-metrics-domestic-page {
     padding: clamp(8px, 1.5vw, 15px);
   }
 
@@ -453,7 +453,7 @@
     padding: clamp(12px, 2vw, 20px);
   }
 
-  .economy-table {
+  .industry-metrics-table {
     font-size: clamp(11px, 1.8vw, 13px);
   }
 
@@ -464,7 +464,7 @@
 }
 
 @media (max-width: 968px) {
-  .economy-domestic-page {
+  .industry-metrics-domestic-page {
     padding: clamp(8px, 2vw, 15px);
   }
 
@@ -561,20 +561,20 @@
     max-width: 100%;
   }
 
-  .economy-table {
+  .industry-metrics-table {
     font-size: clamp(11px, 2vw, 13px);
     min-width: 700px;
     width: 100%;
     table-layout: auto;
   }
 
-  .economy-table th,
-  .economy-table td {
+  .industry-metrics-table th,
+  .industry-metrics-table td {
     padding: clamp(6px, 1.5vw, 10px);
     font-size: clamp(10px, 1.8vw, 12px);
   }
 
-  .economy-table th {
+  .industry-metrics-table th {
     font-size: clamp(11px, 2vw, 12px);
   }
 
@@ -644,7 +644,7 @@
 }
 
 @media (max-width: 768px) {
-  .economy-domestic-page {
+  .industry-metrics-domestic-page {
     padding: 8px;
   }
 
@@ -674,19 +674,18 @@
     min-height: 30px;
   }
 
-
-  .economy-table {
+  .industry-metrics-table {
     font-size: 10px;
     min-width: 600px;
   }
 
-  .economy-table th,
-  .economy-table td {
+  .industry-metrics-table th,
+  .industry-metrics-table td {
     padding: 5px;
     font-size: 9px;
   }
 
-  .economy-table th {
+  .industry-metrics-table th {
     font-size: 10px;
   }
 
@@ -749,7 +748,7 @@
 }
 
 @media (max-width: 480px) {
-  .economy-domestic-page {
+  .industry-metrics-domestic-page {
     padding: 5px;
   }
 
@@ -773,19 +772,18 @@
     min-height: 28px;
   }
 
-
   .view-toggle-btn {
     padding: 5px 12px;
     font-size: 10px;
   }
 
-  .economy-table {
+  .industry-metrics-table {
     min-width: 500px;
     font-size: 9px;
   }
 
-  .economy-table th,
-  .economy-table td {
+  .industry-metrics-table th,
+  .industry-metrics-table td {
     padding: 4px;
     font-size: 8px;
   }

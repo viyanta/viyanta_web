@@ -2,216 +2,246 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
 import './EconomyDomestic.css';
 
 const EconomyDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPeriodType, setSelectedPeriodType] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  
+  // API data states
+  const [premiumTypes, setPremiumTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // CRUD states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [formData, setFormData] = useState({
+    ProcessedPeriodType: '',
+    ProcessedFYYear: '',
+    DataType: 'Domestic',
+    CountryName: '',
+    PremiumTypeLongName: '',
+    CategoryLongName: '',
+    Description: '',
+    ReportedUnit: '',
+    ReportedValue: ''
+  });
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
-    'Domestic', 'International'
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data - in production, this would come from an API
-  const economyData = [
-    // Insurance Premium - Growth
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in India over 5 years',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: '%',
-      reportedValue: '12.5'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Global over 5 years',
-      countryName: 'Global',
-      period: 'Annual',
-      year: 'FY2024',
-      units: '%',
-      reportedValue: '8.3'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Emerging Economies over 5 years',
-      countryName: 'Emerging Economies',
-      period: 'Annual',
-      year: 'FY2024',
-      units: '%',
-      reportedValue: '10.2'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Advanced Economies over 5 years',
-      countryName: 'Advanced Economies',
-      period: 'Annual',
-      year: 'FY2024',
-      units: '%',
-      reportedValue: '6.8'
-    },
-    // Demographics - Population
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: 'Less than 20 years - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '450.2'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: '20 years to 64 years - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '850.5'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: '65 years and above - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'INR Million',
-      reportedValue: '120.8'
-    },
-    // Demographics - People
-    {
-      category: 'Demographics',
-      categoryLongName: 'People',
-      description: 'Number of Households - 0.2 mn - Total Estimate',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2012',
-      units: 'INR Million',
-      reportedValue: '280.5'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'People',
-      description: 'Households distribution by income - 0.3 mn - Estimate',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2012',
-      units: 'INR Million',
-      reportedValue: '320.8'
-    },
-    // Life Insurance Penetration - Business
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Hongkong',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '15.8'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Taiwan',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '12.3'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Singapore',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '11.5'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Malaysia',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '9.2'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Thailand',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '7.8'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '4.2'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'China',
-      period: 'Annual',
-      year: 'FY2000',
-      units: '%',
-      reportedValue: '3.5'
-    }
-  ];
-
-  // Get unique premium types and categories for dropdowns
-  const premiumTypes = [...new Set(economyData.map(item => item.categoryLongName))];
-  const categories = [...new Set(economyData.map(item => item.category))];
-
-  // Filter data based on selections
+  // Fetch premium types from API when component loads (when Domestic tab is clicked)
   useEffect(() => {
-    let filtered = economyData;
-    
-    if (selectedPremiumType) {
-      filtered = filtered.filter(item => item.categoryLongName === selectedPremiumType);
-    }
-    
-    if (selectedCategory) {
-      filtered = filtered.filter(item => item.category === selectedCategory);
-    }
-    
-    setFilteredData(filtered);
+    const fetchPremiumTypes = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/premium-types?data_type=Domestic
+        console.log('🔵 Calling API: /api/economy/premium-types?data_type=Domestic');
+        const data = await ApiService.getPremiumTypes('Domestic');
+        console.log('✅ Premium types received from API:', data);
+        console.log('📊 Number of premium types:', data?.length || 0);
+        setPremiumTypes(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching premium types:', err);
+        setError('Failed to load premium types. Please try again.');
+        setPremiumTypes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Fetch immediately when component loads (when Domestic tab is clicked)
+    fetchPremiumTypes();
+  }, []);
+
+  // Fetch categories when premium type is selected
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!selectedPremiumType) {
+        setCategories([]);
+        setFilteredData([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/categories?data_type=Domestic&premium={selectedPremiumType}
+        console.log(`🔵 Calling Categories API: /api/economy/categories?data_type=Domestic&premium=${selectedPremiumType}`);
+        const data = await ApiService.getCategories('Domestic', selectedPremiumType);
+        console.log('✅ Categories received from API:', data);
+        console.log('📊 Number of categories:', data?.length || 0);
+        setCategories(data || []);
+        // Reset category selection when premium type changes
+        setSelectedCategory('');
+      } catch (err) {
+        console.error('❌ Error fetching categories:', err);
+        setError('Failed to load categories. Please try again.');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [selectedPremiumType]);
+
+  // Fetch economy data when both premium type and category are selected
+  useEffect(() => {
+    const fetchEconomyData = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setFilteredData([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Call API: http://localhost:8000/api/economy/data?data_type=Domestic&premium={selectedPremiumType}&category={selectedCategory}
+        console.log(`🔵 Calling Economy Data API: /api/economy/data?data_type=Domestic&premium=${selectedPremiumType}&category=${selectedCategory}`);
+        const data = await ApiService.getEconomyData('Domestic', selectedPremiumType, selectedCategory);
+        console.log('✅ Economy data received from API:', data);
+        console.log('📊 Number of records:', data?.length || 0);
+        setFilteredData(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching economy data:', err);
+        setError('Failed to load economy data. Please try again.');
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEconomyData();
   }, [selectedPremiumType, selectedCategory]);
 
-  // Initialize filtered data
-  useEffect(() => {
-    setFilteredData(economyData);
-  }, []);
+  // CRUD Handler Functions
+  const handleAdd = () => {
+    setFormData({
+      ProcessedPeriodType: '',
+      ProcessedFYYear: '',
+      DataType: 'Domestic',
+      CountryName: '',
+      PremiumTypeLongName: '',
+      CategoryLongName: '',
+      Description: '',
+      ReportedUnit: '',
+      ReportedValue: ''
+    });
+    setEditingRecord(null);
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (record) => {
+    setFormData({
+      ProcessedPeriodType: record.ProcessedPeriodType || '',
+      ProcessedFYYear: record.ProcessedFYYear || '',
+      DataType: record.DataType || 'Domestic',
+      CountryName: record.CountryName || '',
+      PremiumTypeLongName: record.PremiumTypeLongName || '',
+      CategoryLongName: record.CategoryLongName || '',
+      Description: record.Description || '',
+      ReportedUnit: record.ReportedUnit || '',
+      ReportedValue: record.ReportedValue || ''
+    });
+    setEditingRecord(record);
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      await ApiService.deleteEconomyData(recordToDelete.id);
+      setSuccessMessage('Record deleted successfully!');
+      setShowDeleteConfirm(false);
+      setRecordToDelete(null);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getEconomyData('Domestic', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error deleting record:', err);
+      setError('Failed to delete record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRecordToDelete(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      if (editingRecord) {
+        // Update existing record
+        await ApiService.updateEconomyData(editingRecord.id, formData);
+        setSuccessMessage('Record updated successfully!');
+      } else {
+        // Create new record
+        await ApiService.createEconomyData(formData);
+        setSuccessMessage('Record added successfully!');
+      }
+
+      setShowAddModal(false);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getEconomyData('Domestic', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error saving record:', err);
+      setError('Failed to save record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTabClick = (tab) => {
     if (!isNavItemActive(tab)) {
@@ -219,7 +249,12 @@ const EconomyDomestic = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      navigate('/economy-dashboard');
+      // Check which sidebar item is selected
+      if (selectedSidebarItem === 1001) { // Industry Metrics
+        navigate('/industry-metrics-dashboard');
+      } else {
+        navigate('/economy-dashboard');
+      }
     } else if (tab === 'Domestic') {
       // Stay on current page
       return;
@@ -241,6 +276,10 @@ const EconomyDomestic = ({ onMenuClick }) => {
       navigate('/peers');
     } else if (tab === 'News') {
       navigate('/news');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
@@ -298,10 +337,72 @@ const EconomyDomestic = ({ onMenuClick }) => {
                 <button
                   className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
                   onClick={() => setViewMode('visuals')}
+                  disabled
                 >
                   Visuals
                 </button>
               </div>
+            </div>
+
+            {/* Success Message */}
+            {successMessage && (
+              <div className="success-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#dfd', 
+                color: '#3a3', 
+                borderRadius: '4px' 
+              }}>
+                {successMessage}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="error-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#fee', 
+                color: '#c33', 
+                borderRadius: '4px' 
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+              <button
+                onClick={handleAdd}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#36659b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(54, 101, 155, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#2d5280';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(54, 101, 155, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#36659b';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(54, 101, 155, 0.2)';
+                }}
+              >
+                <span>+</span>
+                <span>Add New Record</span>
+              </button>
             </div>
 
             {/* Filter Dropdowns */}
@@ -313,11 +414,16 @@ const EconomyDomestic = ({ onMenuClick }) => {
                   value={selectedPremiumType}
                   onChange={(e) => setSelectedPremiumType(e.target.value)}
                   className="filter-select"
+                  disabled={loading}
                 >
-                  <option value="">All Premium Types</option>
-                  {premiumTypes.map((type, index) => (
+                  <option value="">Select Premium Type...</option>
+                  {premiumTypes.length > 0 ? (
+                    premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
-                  ))}
+                    ))
+                  ) : (
+                    !loading && <option value="" disabled>No premium types available</option>
+                  )}
                 </select>
               </div>
 
@@ -328,13 +434,29 @@ const EconomyDomestic = ({ onMenuClick }) => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="filter-select"
+                  disabled={loading || !selectedPremiumType}
                 >
-                  <option value="">All Categories</option>
-                  {categories.map((category, index) => (
+                  <option value="">Select Category...</option>
+                  {categories.length > 0 ? (
+                    categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
-                  ))}
+                    ))
+                  ) : (
+                    selectedPremiumType && !loading && <option value="" disabled>No categories available</option>
+                  )}
                 </select>
+                {!selectedPremiumType && (
+                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Please select a Premium Type first
+                  </small>
+                )}
               </div>
+
+              {loading && (
+                <div style={{ padding: '10px', color: '#666' }}>
+                  Loading...
+              </div>
+              )}
             </div>
 
             {/* Data Table or Visuals */}
@@ -343,33 +465,110 @@ const EconomyDomestic = ({ onMenuClick }) => {
                 <table className="economy-table">
                   <thead>
                     <tr>
-                      <th>Category</th>
+                      <th>ProcessedPeriodType</th>
+                      <th>ProcessedFYYear</th>
+                      <th>DataType</th>
+                      <th>CountryName</th>
+                      <th>PremiumTypeLongName</th>
                       <th>CategoryLongName</th>
                       <th>Description</th>
-                      <th>CountryName</th>
-                      <th>Period</th>
-                      <th>Year</th>
-                      <th>Units</th>
-                      <th>ReportedVideo</th>
+                      <th>ReportedUnit</th>
+                      <th>ReportedValue</th>
+                      <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="10" className="no-data">Loading data...</td>
+                      </tr>
+                    ) : filteredData.length > 0 ? (
                       filteredData.map((row, index) => (
-                        <tr key={index}>
-                          <td>{row.category}</td>
-                          <td>{row.categoryLongName}</td>
-                          <td>{row.description}</td>
-                          <td>{row.countryName}</td>
-                          <td>{row.period}</td>
-                          <td>{row.year}</td>
-                          <td>{row.units}</td>
-                          <td>{row.reportedValue}</td>
+                        <tr key={row.id || index}>
+                          <td>{row.ProcessedPeriodType || '-'}</td>
+                          <td>{row.ProcessedFYYear || '-'}</td>
+                          <td>{row.DataType || '-'}</td>
+                          <td>{row.CountryName || '-'}</td>
+                          <td>{row.PremiumTypeLongName || '-'}</td>
+                          <td>{row.CategoryLongName || '-'}</td>
+                          <td>{row.Description || '-'}</td>
+                          <td>{row.ReportedUnit || '-'}</td>
+                          <td>{row.ReportedValue || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleEdit(row)}
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#0056b3';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = '#007bff';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                }}
+                              >
+                                <span>✏️</span>
+                                <span>Edit</span>
+                              </button>
+                            <button
+                              onClick={() => handleDelete(row)}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#c82333';
+                                e.target.style.transform = 'translateY(-1px)';
+                                e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#dc3545';
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                              }}
+                            >
+                              <span>🗑️</span>
+                              <span>Delete</span>
+                            </button>
+                            </div>
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="8" className="no-data">No data available</td>
+                        <td colSpan="10" className="no-data">
+                          {selectedPremiumType && selectedCategory 
+                            ? 'No data available for selected filters' 
+                            : 'Please select Premium Type and Category to view data'}
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -377,89 +576,39 @@ const EconomyDomestic = ({ onMenuClick }) => {
               </div>
             ) : (
               <div className="visuals-container">
+                {loading ? (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>Loading visuals...</div>
+                ) : filteredData.length > 0 ? (
                 <div className="visuals-grid">
-                  {/* Chart 1: Insurance Premium Growth */}
+                    {/* Chart 1: Data by Country */}
                   <div className="visual-card">
-                    <h3>Insurance Premium Growth</h3>
+                      <h3>Data by Country</h3>
                     <div className="chart-wrapper">
                       <div className="bar-chart">
                         {filteredData
-                          .filter(item => item.category === 'Insurance Premium')
+                            .filter(item => item.CountryName && item.ReportedValue)
+                            .slice(0, 10)
                           .map((item, index) => (
-                            <div key={index} className="chart-item">
+                              <div key={item.id || index} className="chart-item">
                               <div className="chart-bar-container">
                                 <div
                                   className="chart-bar"
                                   style={{
-                                    height: `${(parseFloat(item.reportedValue) / 15) * 100}%`,
+                                      height: `${Math.min((parseFloat(item.ReportedValue) || 0) / Math.max(...filteredData.map(d => parseFloat(d.ReportedValue) || 0)) * 100, 100)}%`,
                                     backgroundColor: '#36659b'
                                   }}
                                 >
-                                  <span className="bar-value">{item.reportedValue}%</span>
+                                    <span className="bar-value">{item.ReportedValue}</span>
+                  </div>
                                 </div>
-                              </div>
-                              <div className="chart-label">{item.countryName}</div>
+                                <div className="chart-label">{item.CountryName}</div>
                             </div>
                           ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* Chart 2: Demographics - Population */}
-                  <div className="visual-card">
-                    <h3>Population Demographics</h3>
-                    <div className="chart-wrapper">
-                      <div className="bar-chart">
-                        {filteredData
-                          .filter(item => item.category === 'Demographics' && item.categoryLongName === 'Population')
-                          .map((item, index) => (
-                            <div key={index} className="chart-item">
-                              <div className="chart-bar-container">
-                                <div
-                                  className="chart-bar"
-                                  style={{
-                                    height: `${(parseFloat(item.reportedValue) / 1000) * 100}%`,
-                                    backgroundColor: '#3F72AF'
-                                  }}
-                                >
-                                  <span className="bar-value">{item.reportedValue}</span>
-                                </div>
-                              </div>
-                              <div className="chart-label">{item.description.split(' - ')[0]}</div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart 3: Life Insurance Penetration */}
-                  <div className="visual-card">
-                    <h3>Life Insurance Penetration by Country</h3>
-                    <div className="chart-wrapper">
-                      <div className="bar-chart">
-                        {filteredData
-                          .filter(item => item.category === 'Life Insurance Penetration')
-                          .map((item, index) => (
-                            <div key={index} className="chart-item">
-                              <div className="chart-bar-container">
-                                <div
-                                  className="chart-bar"
-                                  style={{
-                                    height: `${(parseFloat(item.reportedValue) / 20) * 100}%`,
-                                    backgroundColor: '#5a8fc7'
-                                  }}
-                                >
-                                  <span className="bar-value">{item.reportedValue}%</span>
-                                </div>
-                              </div>
-                              <div className="chart-label">{item.countryName}</div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart 4: Summary Statistics */}
+                    {/* Chart 2: Summary Statistics */}
                   <div className="visual-card">
                     <h3>Summary Statistics</h3>
                     <div className="stats-grid">
@@ -471,33 +620,385 @@ const EconomyDomestic = ({ onMenuClick }) => {
                       </div>
                       <div className="stat-item">
                         <div className="stat-value">
-                          {[...new Set(filteredData.map(item => item.category))].length}
+                            {[...new Set(filteredData.map(item => item.CategoryLongName).filter(Boolean))].length}
                         </div>
                         <div className="stat-label">Categories</div>
                       </div>
                       <div className="stat-item">
                         <div className="stat-value">
-                          {[...new Set(filteredData.map(item => item.countryName))].length}
+                            {[...new Set(filteredData.map(item => item.CountryName).filter(Boolean))].length}
                         </div>
                         <div className="stat-label">Countries</div>
                       </div>
                       <div className="stat-item">
                         <div className="stat-value">
                           {filteredData
-                            .filter(item => item.units === '%')
-                            .reduce((sum, item) => sum + parseFloat(item.reportedValue || 0), 0)
-                            .toFixed(1)}%
+                              .filter(item => item.ReportedValue)
+                              .reduce((sum, item) => sum + parseFloat(item.ReportedValue || 0), 0)
+                              .toFixed(1)}
+                          </div>
+                          <div className="stat-label">Total Value</div>
                         </div>
-                        <div className="stat-label">Avg Growth</div>
                       </div>
                     </div>
                   </div>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    {selectedPremiumType && selectedCategory 
+                      ? 'No data available for selected filters' 
+                      : 'Please select Premium Type and Category to view visuals'}
                 </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            zIndex: 9999,
+            padding: isMobile ? '80px 10px 20px' : '20px',
+            overflowY: 'auto'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddModal(false);
+              setEditingRecord(null);
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: isMobile ? '20px' : 'clamp(20px, 4vw, 30px)',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: isMobile ? 'calc(100vh - 100px)' : 'calc(100vh - 120px)',
+            overflow: 'auto',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            marginTop: isMobile ? '0' : '80px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>
+                {editingRecord ? 'Edit Record' : 'Add New Record'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingRecord(null);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f0f0f0';
+                  e.target.style.color = '#333';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#666';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed Period Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedPeriodType}
+                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed FY Year:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedFYYear}
+                  onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Data Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.DataType}
+                  onChange={(e) => setFormData({ ...formData, DataType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  disabled
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Country Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.CountryName}
+                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Premium Type Long Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.PremiumTypeLongName}
+                  onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
+                  placeholder="Enter Premium Type Long Name..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+                {premiumTypes.length > 0 && (
+                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    Suggestions: {premiumTypes.slice(0, 3).join(', ')}{premiumTypes.length > 3 ? '...' : ''}
+                  </small>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Category Long Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.CategoryLongName}
+                  onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
+                  placeholder="Enter Category Long Name..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+                {categories.length > 0 && (
+                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    Suggestions: {categories.slice(0, 3).join(', ')}{categories.length > 3 ? '...' : ''}
+                  </small>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Description:
+                </label>
+                <textarea
+                  value={formData.Description}
+                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Unit:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedUnit}
+                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Value:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedValue}
+                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingRecord(null);
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                >
+                  {loading ? 'Saving...' : (editingRecord ? 'Update' : 'Add')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && recordToDelete && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelDelete();
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '450px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ margin: '0 0 10px 0', color: '#dc3545', fontSize: '24px' }}>
+                ⚠️ Confirm Delete
+              </h2>
+              <p style={{ margin: 0, color: '#666', fontSize: '14px', lineHeight: '1.5' }}>
+                Are you sure you want to delete this record? This action cannot be undone.
+              </p>
+            </div>
+
+            {recordToDelete && (
+              <div style={{
+                backgroundColor: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                border: '1px solid #dee2e6'
+              }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Premium Type:</strong> {recordToDelete.PremiumTypeLongName || '-'}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Category:</strong> {recordToDelete.CategoryLongName || '-'}
+                </div>
+                <div>
+                  <strong>Country:</strong> {recordToDelete.CountryName || '-'}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={cancelDelete}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  opacity: loading ? 0.6 : 1,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.backgroundColor = '#c82333';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.backgroundColor = '#dc3545';
+                  }
+                }}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

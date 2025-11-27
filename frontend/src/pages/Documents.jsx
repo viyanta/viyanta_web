@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
 import { useAuth } from '../context/AuthContext';
-import apiService from '../services/api';
+import apiService, { API_BASE_URL } from '../services/api';
 import './Documents.css';
 
 const Documents = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
   const { user } = useAuth();
 
   // State for document extraction workflow
@@ -30,11 +30,13 @@ const Documents = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
   // Load companies from database
   useEffect(() => {
@@ -147,7 +149,7 @@ const Documents = ({ onMenuClick }) => {
       const mappedCompanyName = companyNameMapping[selectedCompany.toLowerCase()] || selectedCompany;
       
       // Create download URL for the split PDF
-      const apiBase = 'http://localhost:8000/api';
+      const apiBase = API_BASE_URL;
       const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedPDF)}/splits/${encodeURIComponent(selectedForm)}/download`;
       
       console.log('Loading split PDF from URL:', downloadUrl);
@@ -218,7 +220,7 @@ const Documents = ({ onMenuClick }) => {
       const mappedCompanyName = companyNameMapping[selectedCompany.toLowerCase()] || selectedCompany;
       
       // Create download URL for the split PDF
-      const apiBase = 'http://localhost:8000/api';
+      const apiBase = API_BASE_URL;
       const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedPDF)}/splits/${encodeURIComponent(selectedForm)}/download`;
       
       console.log('Downloading split PDF from URL:', downloadUrl);
@@ -246,7 +248,12 @@ const Documents = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      navigate('/dashboard');
+      // Check which sidebar item is selected
+      if (selectedSidebarItem === 1001) { // Industry Metrics
+        navigate('/industry-metrics-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
@@ -285,6 +292,10 @@ const Documents = ({ onMenuClick }) => {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
       navigate('/economy-international');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
