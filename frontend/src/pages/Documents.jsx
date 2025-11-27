@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
 import { useAuth } from '../context/AuthContext';
-import apiService from '../services/api';
+import apiService, { API_BASE_URL } from '../services/api';
 import './Documents.css';
 
 const Documents = ({ onMenuClick }) => {
@@ -149,7 +149,7 @@ const Documents = ({ onMenuClick }) => {
       const mappedCompanyName = companyNameMapping[selectedCompany.toLowerCase()] || selectedCompany;
       
       // Create download URL for the split PDF
-      const apiBase = 'http://localhost:8000/api';
+      const apiBase = API_BASE_URL;
       const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedPDF)}/splits/${encodeURIComponent(selectedForm)}/download`;
       
       console.log('Loading split PDF from URL:', downloadUrl);
@@ -220,7 +220,7 @@ const Documents = ({ onMenuClick }) => {
       const mappedCompanyName = companyNameMapping[selectedCompany.toLowerCase()] || selectedCompany;
       
       // Create download URL for the split PDF
-      const apiBase = 'http://localhost:8000/api';
+      const apiBase = API_BASE_URL;
       const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedPDF)}/splits/${encodeURIComponent(selectedForm)}/download`;
       
       console.log('Downloading split PDF from URL:', downloadUrl);

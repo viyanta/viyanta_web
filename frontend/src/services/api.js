@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 // Use environment variable or relative URL for production
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
   (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
@@ -935,7 +937,9 @@ async updateCompany(companyId, updatedName) {
 
   // Get template API base URL
   getTemplateApiBase() {
-    return 'http://localhost:8000/templates';
+    // Use API_BASE_URL but replace /api with /templates
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    return `${baseUrl}/templates`;
   }
 
   // PDF Splitter API methods
