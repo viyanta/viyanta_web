@@ -6,7 +6,7 @@ from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
-# from routes.peers import router as peers_router  # Commented out - file doesn't exist
+# from routes.peers import router as peers_router
 from routes.economy import router as economy_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
@@ -23,18 +23,25 @@ logging.basicConfig(level=logging.WARNING)
 
 app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
 
-# CORS setup
-# Get allowed origins from environment variable or default to localhost for development
-# Default includes both localhost (dev) and production frontend URL
-DEFAULT_ORIGINS = "http://localhost:5173,https://app.viyantainsights.com,http://app.viyantainsights.com"
-ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS)
-ALLOWED_ORIGINS = [origin.strip()
-                   for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
+# CORS setup - Allow both development and production origins
+allowed_origins = [
+    "http://localhost:5173",  # Development frontend
+    "http://localhost:3000",  # Alternative dev port
+    "http://localhost:5174",  # Alternative dev port
+]
+
+# Add production origin from environment variable if set
+production_origin = os.getenv("FRONTEND_URL")
+if production_origin:
+    allowed_origins.append(production_origin)
+
+# Also allow all origins in development (can be restricted in production)
+if os.getenv("ENVIRONMENT") != "production":
+    allowed_origins.append("*")
 
 app.add_middleware(
     CORSMiddleware,
-    # Allow frontend origins (configurable via env var)
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=allowed_origins if os.getenv("ENVIRONMENT") == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +69,7 @@ app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
-# app.include_router(peers_router, prefix="/api", tags=["peers"])  # Commented out - router doesn't exist
+# app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
