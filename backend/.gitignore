@@ -12,3 +12,8 @@ __pycache__
 test_*.py
 extractions/*
 gemini_verified_json/*
+
+venv310
+venv*
+.venv*
+venv12    
