@@ -863,6 +863,88 @@ class ApiService {
     return response.json();
   }
 
+  // Get companies from L-Forms API
+  async getLformCompanies() {
+    const response = await fetch(`${API_BASE_URL}/lforms/companies`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get forms for a specific company from L-Forms API
+  async getLformForms(company) {
+    const response = await fetch(`${API_BASE_URL}/lforms/forms?company=${encodeURIComponent(company)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get periods for a specific company and form from L-Forms API
+  async getLformPeriods(company, formNo) {
+    const response = await fetch(`${API_BASE_URL}/lforms/periods?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report types for a specific company, form, and period from L-Forms API
+  async getLformReportTypes(company, formNo, period) {
+    const response = await fetch(`${API_BASE_URL}/lforms/reporttypes?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report data for a specific company, form, period, and optional report type from L-Forms API
+  async getLformData(company, formNo, period, reportType = null) {
+    let url = `${API_BASE_URL}/lforms/data?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`;
+    if (reportType) {
+      url += `&report_type=${encodeURIComponent(reportType)}`;
+    }
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      // Handle specific error cases
+      if (response.status === 404) {
+        // Return empty array for 404 instead of throwing error
+        // This is not really an error - just no data available
+        return [];
+      } else if (response.status === 500) {
+        throw new Error('Server error. Please check the data format.');
+      } else {
+        throw new Error(errorMessage);
+      }
+    }
+
+    return response.json();
+  }
+
   // Create a new company
   async createCompany(companyName) {
     const response = await fetch(`${API_BASE_URL}/companies/`, {
