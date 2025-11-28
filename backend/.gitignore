@@ -13,7 +13,7 @@ test_*.py
 extractions/*
 gemini_verified_json/*
 
-venv310
-venv*
-.venv*
-venv12    
+venv310/
+venv*/
+.venv*/
+venv12 
