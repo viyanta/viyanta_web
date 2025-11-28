@@ -32,7 +32,7 @@ const PDFSplitterWorkflow = ({ user }) => {
     try {
       setLoadingCompanies(true);
       console.log('Loading companies from database...');
-      const response = await apiService.get('/api/companies/');
+      const response = await apiService.getCompanies();
       console.log('Companies response:', response);
       
       // Extract company names from the response

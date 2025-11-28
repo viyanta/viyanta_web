@@ -8,6 +8,7 @@ from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
 # from routes.peers import router as peers_router  # Commented out - file doesn't exist
 from routes.economy import router as economy_router
+from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
 from routes import company
 import logging
@@ -27,11 +28,13 @@ app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
 # Default includes both localhost (dev) and production frontend URL
 DEFAULT_ORIGINS = "http://localhost:5173,https://app.viyantainsights.com,http://app.viyantainsights.com"
 ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS)
-ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
+ALLOWED_ORIGINS = [origin.strip()
+                   for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # Allow frontend origins (configurable via env var)
+    # Allow frontend origins (configurable via env var)
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,6 +65,7 @@ app.include_router(pdf_splitter_router,
 # app.include_router(peers_router, prefix="/api", tags=["peers"])  # Commented out - router doesn't exist
 app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
+app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
