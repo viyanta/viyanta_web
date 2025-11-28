@@ -79,6 +79,21 @@ class EconomyMaster(Base):
     ReportedValue = Column(String(50), nullable=True)
 
 
+class IndustryMaster(Base):
+    __tablename__ = "industry_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ProcessedPeriodType = Column(String(50), nullable=True)
+    ProcessedFYYear = Column(String(10), nullable=True)
+    DataType = Column(String(50), nullable=True)
+    CountryName = Column(String(100), nullable=True)
+    PremiumTypeLongName = Column(String(100), nullable=True)
+    CategoryLongName = Column(String(100), nullable=True)
+    Description = Column(String(255), nullable=True)
+    ReportedUnit = Column(String(50), nullable=True)
+    ReportedValue = Column(String(50), nullable=True)
+
+
 class Companies(Base):
     __tablename__ = "companies"
 
