@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
@@ -39,6 +39,11 @@ const EconomyInternational = ({ onMenuClick }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
+  
+  // Refs to prevent duplicate API calls
+  const fetchingPremiumTypesRef = useRef(false);
+  const fetchingCategoriesRef = useRef(false);
+  const fetchingDataRef = useRef(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,7 +65,11 @@ const EconomyInternational = ({ onMenuClick }) => {
 
   // Fetch premium types from API when component loads (when International tab is clicked)
   useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingPremiumTypesRef.current) return;
+    
     const fetchPremiumTypes = async () => {
+      fetchingPremiumTypesRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -76,6 +85,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         setPremiumTypes([]);
       } finally {
         setLoading(false);
+        fetchingPremiumTypesRef.current = false;
       }
     };
 
@@ -85,6 +95,9 @@ const EconomyInternational = ({ onMenuClick }) => {
 
   // Fetch categories when premium type is selected
   useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingCategoriesRef.current) return;
+    
     const fetchCategories = async () => {
       if (!selectedPremiumType) {
         setCategories([]);
@@ -92,6 +105,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         return;
       }
 
+      fetchingCategoriesRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -109,6 +123,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         setCategories([]);
       } finally {
         setLoading(false);
+        fetchingCategoriesRef.current = false;
       }
     };
 
@@ -117,12 +132,16 @@ const EconomyInternational = ({ onMenuClick }) => {
 
   // Fetch economy data when both premium type and category are selected
   useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDataRef.current) return;
+    
     const fetchEconomyData = async () => {
       if (!selectedPremiumType || !selectedCategory) {
         setFilteredData([]);
         return;
       }
 
+      fetchingDataRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -138,6 +157,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         setFilteredData([]);
       } finally {
         setLoading(false);
+        fetchingDataRef.current = false;
       }
     };
 

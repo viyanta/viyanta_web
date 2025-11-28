@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import ApiService from '../services/api'
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar'
-import { useNavigation } from '../context/NavigationContext'
 import './Lform.css'
 
 function Lform({ onMenuClick }) {
-    const navigate = useNavigate();
-    const { isNavItemActive } = useNavigation();
     const [selectedValues, setSelectedValues] = useState({
         lform: '',
         period: '',
@@ -37,73 +33,6 @@ function Lform({ onMenuClick }) {
     const fetchingReportTypesRef = useRef(false);
     const fetchingDataRef = useRef(false);
     const lastDataRequestRef = useRef('');
-
-    // Navigation tabs
-    const allTabs = [
-        'Dashboard', 'Background', 'L Forms', 'Metrics', 
-        'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
-        'Define Template', 'Save Template',
-        'Screener Inputs', 'Screener Output Sheets',
-        'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
-        'Irdai Monthly Data'
-    ];
-
-    // Filter to show only active tabs
-    const tabs = allTabs.filter(tab => isNavItemActive(tab));
-
-    // Handle tab clicks
-    const handleTabClick = (tab) => {
-        // Only allow clicks on active items
-        if (!isNavItemActive(tab)) {
-            return;
-        }
-        
-        if (tab === 'Dashboard') {
-            navigate('/dashboard');
-        } else if (tab === 'Background') {
-            navigate('/insurance-dashboard?tab=Background');
-        } else if (tab === 'L Forms') {
-            // Stay on current page
-            return;
-        } else if (tab === 'Metrics') {
-            navigate('/metrics');
-          } else if (tab === 'Analytics') {
-              navigate('/analytics');
-          } else if (tab === 'Annual Data') {
-              navigate('/annual-data');
-          } else if (tab === 'Documents') {
-              navigate('/documents');
-        } else if (tab === 'Peers') {
-            navigate('/peers');
-        } else if (tab === 'News') {
-            navigate('/news');
-        } else if (tab === 'Define Template') {
-            navigate('/template');
-        } else if (tab === 'Save Template') {
-            console.log('Save Template clicked');
-        } else if (tab === 'Screener Inputs') {
-            console.log('Screener Inputs clicked');
-        } else if (tab === 'Screener Output Sheets') {
-            console.log('Screener Output Sheets clicked');
-        } else if (tab === 'Child Plans') {
-            console.log('Child Plans clicked');
-        } else if (tab === 'Investment Plans') {
-            console.log('Investment Plans clicked');
-        } else if (tab === 'Protection Plans') {
-            console.log('Protection Plans clicked');
-        } else if (tab === 'Term Plans') {
-            console.log('Term Plans clicked');
-        } else if (tab === 'New Launches') {
-            console.log('New Launches clicked');
-        } else if (tab === 'Irdai Monthly Data') {
-            // Navigate to IRDAI Monthly Data page if route exists
-            console.log('Irdai Monthly Data clicked');
-            // navigate('/irdai-monthly-data'); // Uncomment when route is available
-        } else {
-            // For other tabs, you can add navigation logic later
-            console.log(`Clicked ${tab} tab`);
-        }
-    };
 
     // L Form options from the image
     const lformOptions = [
@@ -381,21 +310,6 @@ function Lform({ onMenuClick }) {
 
                     {/* Main Content Area */}
                     <div className="main-content-area">
-                        {/* Navigation Tabs */}
-                        <div className="navigation-tabs-container">
-                            <div className="navigation-tabs">
-                                {tabs.map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => handleTabClick(tab)}
-                                        className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
                         {/* Insurer Name Dropdown */}
                         <div className="insurer-section">
                             <div className="insurer-dropdown-wrapper">

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
 import './IndustryMetricsInternational.css';
 
 const IndustryMetricsInternational = ({ onMenuClick }) => {
@@ -13,6 +14,17 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  
+  // API data states
+  const [premiumTypes, setPremiumTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Refs to prevent duplicate API calls
+  const fetchingPremiumTypesRef = useRef(false);
+  const fetchingCategoriesRef = useRef(false);
+  const fetchingDataRef = useRef(false);
 
   const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
@@ -24,300 +36,102 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data for Industry Metrics International - in production, this would come from an API
-  const industryMetricsData = [
-    // Insurance Premium - Growth
-    {
-      premiumTypeLongName: 'Insurance Premium',
-      countryName: 'Global',
-      description: 'Total Insurance Premium expected growth in Global over 5 years',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '2.4'
-    },
-    {
-      premiumTypeLongName: 'Insurance Premium',
-      countryName: 'Emerging Economies',
-      description: 'Total Insurance Premium expected growth in Emerging Economies over 5 years',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '5.1'
-    },
-    {
-      premiumTypeLongName: 'Insurance Premium',
-      countryName: 'Advanced Economies',
-      description: 'Total Insurance Premium expected growth in Advanced Economies over 5 years',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '1.7'
-    },
-    // Life Insurance Penetration
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'HongKong',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '19.2'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'Taiwan',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '14.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'Singapore',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '7.6'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'Japan',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '5.8'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'Malaysia',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '5.2'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'Thailand',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '4.1'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Penetration',
-      countryName: 'China',
-      description: 'Life Insurance Penetration',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '3.2'
-    },
-    // Life Insurance Protection Gap
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'HongKong',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '41.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'Taiwan',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '14.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'Singapore',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '55.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'Japan',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '28.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'Malaysia',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '62.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'Thailand',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '75.0'
-    },
-    {
-      premiumTypeLongName: 'Life Insurance Protection Gap',
-      countryName: 'China',
-      description: 'Protection Gap',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2018-2019',
-      reportedValue: '68.0'
-    },
-    // Sum Assured as % of GDP
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'Singapore',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '332.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'Japan',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '252.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'Malaysia',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '153.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'Thailand',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '98.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'USA',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '145.0'
-    },
-    {
-      premiumTypeLongName: 'Sum Assured as % of GDP',
-      countryName: 'South Korea',
-      description: 'Sum Assured as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2021-2022',
-      reportedValue: '178.0'
-    },
-    // Pension Market Penetration
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'Singapore',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: ''
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'Japan',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '31.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'Australia',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '98.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'Thailand',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '54.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'USA',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '90.0'
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'South Korea',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: ''
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'HongKong',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: ''
-    },
-    {
-      premiumTypeLongName: 'Pension Market Penetration',
-      countryName: 'Canada',
-      description: 'Pension Market Penetration as % of GDP',
-      reportedUnit: 'in %',
-      processedFinancialYearPeriod: '2023-2024',
-      reportedValue: '85.0'
-    }
-  ];
-
-  // Get unique premium types, categories, period types, and periods for dropdowns
-  const premiumTypes = [...new Set(industryMetricsData.map(item => item.premiumTypeLongName))];
-  const categories = [...new Set(industryMetricsData.map(item => item.description))];
-  // For International, period types could be Annual, Quarterly, Monthly, etc.
-  // Since the data doesn't have a period type field, we'll use common period types
-  const periodTypes = ['Annual', 'Quarterly', 'Monthly', 'Semi-Annual'];
-  const periods = [...new Set(industryMetricsData.map(item => item.processedFinancialYearPeriod))].filter(Boolean);
-
-  // Filter data based on selections
+  // Fetch premium types from API when component loads
   useEffect(() => {
-    let filtered = industryMetricsData;
+    // Prevent duplicate calls
+    if (fetchingPremiumTypesRef.current) return;
     
-    if (selectedPremiumType) {
-      filtered = filtered.filter(item => item.premiumTypeLongName === selectedPremiumType);
-    }
-    
-    if (selectedCategory) {
-      filtered = filtered.filter(item => item.description === selectedCategory);
-    }
-    
-    // Note: Period Type filtering would require a period type field in the data
-    // For now, we'll keep it for future use
-    // if (selectedPeriodType) {
-    //   filtered = filtered.filter(item => item.periodType === selectedPeriodType);
-    // }
-    
-    if (selectedPeriod) {
-      filtered = filtered.filter(item => item.processedFinancialYearPeriod === selectedPeriod);
-    }
-    
-    setFilteredData(filtered);
-  }, [selectedPremiumType, selectedCategory, selectedPeriodType, selectedPeriod]);
+    const fetchPremiumTypes = async () => {
+      fetchingPremiumTypesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('🔵 Calling API: /api/industry/premium-types?data_type=International');
+        const data = await ApiService.getPremiumTypesIndustry('International');
+        console.log('✅ Premium types received from API:', data);
+        console.log('📊 Number of premium types:', data?.length || 0);
+        setPremiumTypes(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching premium types:', err);
+        setError('Failed to load premium types. Please try again.');
+        setPremiumTypes([]);
+      } finally {
+        setLoading(false);
+        fetchingPremiumTypesRef.current = false;
+      }
+    };
 
-  // Initialize filtered data
-  useEffect(() => {
-    setFilteredData(industryMetricsData);
+    fetchPremiumTypes();
   }, []);
+
+  // Fetch categories when premium type is selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingCategoriesRef.current) return;
+    
+    const fetchCategories = async () => {
+      if (!selectedPremiumType) {
+        setCategories([]);
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingCategoriesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Categories API: /api/industry/categories?data_type=International&premium=${selectedPremiumType}`);
+        const data = await ApiService.getCategoriesIndustry('International', selectedPremiumType);
+        console.log('✅ Categories received from API:', data);
+        console.log('📊 Number of categories:', data?.length || 0);
+        setCategories(data || []);
+        // Reset category selection when premium type changes
+        setSelectedCategory('');
+      } catch (err) {
+        console.error('❌ Error fetching categories:', err);
+        setError('Failed to load categories. Please try again.');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+        fetchingCategoriesRef.current = false;
+      }
+    };
+
+    fetchCategories();
+  }, [selectedPremiumType]);
+
+  // Fetch industry data when both premium type and category are selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDataRef.current) return;
+    
+    const fetchIndustryData = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingDataRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Industry Data API: /api/industry/data?data_type=International&premium=${selectedPremiumType}&category=${selectedCategory}`);
+        const data = await ApiService.getIndustryDataIndustry('International', selectedPremiumType, selectedCategory);
+        console.log('✅ Industry data received from API:', data);
+        console.log('📊 Number of records:', data?.length || 0);
+        setFilteredData(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching industry data:', err);
+        setError('Failed to load industry data. Please try again.');
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+        fetchingDataRef.current = false;
+      }
+    };
+
+    fetchIndustryData();
+  }, [selectedPremiumType, selectedCategory]);
 
   const handleTabClick = (tab) => {
     if (!isNavItemActive(tab)) {
@@ -423,12 +237,20 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   value={selectedPremiumType}
                   onChange={(e) => setSelectedPremiumType(e.target.value)}
                   className="filter-select"
+                  disabled={loading}
                 >
-                  <option value="">All Premium Types</option>
+                  <option value="">
+                    {loading ? 'Loading premium types...' : 'Select Premium Type...'}
+                  </option>
                   {premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
                   ))}
                 </select>
+                {error && (
+                  <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {error}
+                  </small>
+                )}
               </div>
 
               <div className="filter-group">
@@ -438,43 +260,21 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="filter-select"
+                  disabled={!selectedPremiumType || loading}
                 >
-                  <option value="">All Categories</option>
+                  <option value="">
+                    {!selectedPremiumType 
+                      ? 'Select a Premium Type first' 
+                      : loading 
+                      ? 'Loading categories...' 
+                      : 'Select Category...'}
+                  </option>
                   {categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="filter-group">
-                <label htmlFor="period-type">Select Period Type</label>
-                <select
-                  id="period-type"
-                  value={selectedPeriodType}
-                  onChange={(e) => setSelectedPeriodType(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Period Types</option>
-                  {periodTypes.map((type, index) => (
-                    <option key={index} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="period">Select Period</label>
-                <select
-                  id="period"
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Periods</option>
-                  {periods.map((period, index) => (
-                    <option key={index} value={period}>{period}</option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Data Table or Visuals */}
@@ -483,31 +283,46 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                 <table className="industry-metrics-table">
                   <thead>
                     <tr>
-                      <th>PremiumTypeLongName</th>
-                      <th>CountryName</th>
+                      <th>Premium Type</th>
+                      <th>Category</th>
                       <th>Description</th>
-                      <th>ReportedUnit</th>
-                      <th>ProcessedFinancialYearPeriod</th>
-                      <th>ReportedValue</th>
+                      <th>Country Name</th>
+                      <th>Period Type</th>
+                      <th>FY Year</th>
+                      <th>Reported Unit</th>
+                      <th>Reported Value</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((row, index) => (
-                        <tr key={index}>
-                          <td>{row.premiumTypeLongName}</td>
-                          <td>{row.countryName}</td>
-                          <td>{row.description}</td>
-                          <td>{row.reportedUnit}</td>
-                          <td>{row.processedFinancialYearPeriod}</td>
-                          <td>{row.reportedValue || '-'}</td>
-                        </tr>
-                      ))
-                    ) : (
+                    {loading && (
                       <tr>
-                        <td colSpan="6" className="no-data">No data available</td>
+                        <td colSpan="8" className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                          Loading data...
+                        </td>
                       </tr>
                     )}
+                    {!loading && filteredData.length > 0 ? (
+                      filteredData.map((row, index) => (
+                        <tr key={index}>
+                          <td>{row.PremiumTypeLongName || '-'}</td>
+                          <td>{row.CategoryLongName || '-'}</td>
+                          <td>{row.Description || '-'}</td>
+                          <td>{row.CountryName || '-'}</td>
+                          <td>{row.ProcessedPeriodType || '-'}</td>
+                          <td>{row.ProcessedFYYear || '-'}</td>
+                          <td>{row.ReportedUnit || '-'}</td>
+                          <td>{row.ReportedValue || '-'}</td>
+                        </tr>
+                      ))
+                    ) : !loading ? (
+                      <tr>
+                        <td colSpan="8" className="no-data">
+                          {selectedPremiumType && selectedCategory 
+                            ? 'No data available for the selected criteria.' 
+                            : 'Please select Premium Type and Category to view data.'}
+                        </td>
+                      </tr>
+                    ) : null}
                   </tbody>
                 </table>
               </div>

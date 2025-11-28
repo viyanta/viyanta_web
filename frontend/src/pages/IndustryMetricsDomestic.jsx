@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
 import './IndustryMetricsDomestic.css';
 
 const IndustryMetricsDomestic = ({ onMenuClick }) => {
@@ -13,6 +14,17 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  
+  // API data states
+  const [premiumTypes, setPremiumTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Refs to prevent duplicate API calls
+  const fetchingPremiumTypesRef = useRef(false);
+  const fetchingCategoriesRef = useRef(false);
+  const fetchingDataRef = useRef(false);
 
   const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics', 
@@ -24,217 +36,102 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Sample data for Industry Metrics - in production, this would come from an API
-  const industryMetricsData = [
-    // Insurance Premium - Growth
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in India over 5 years',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '7.10'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Global over 5 years',
-      countryName: 'Global',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '2.40'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Emerging Economies over 5 years',
-      countryName: 'Emerging Economies',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '5.10'
-    },
-    {
-      category: 'Insurance Premium',
-      categoryLongName: 'Growth',
-      description: 'Total Insurance Premium expected growth in Advanced Economies over 5 years',
-      countryName: 'Advanced Economies',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '1.70'
-    },
-    // Demographics - Population
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: 'Population composition (bn) - Less Than 20 years - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2021',
-      units: 'in INR Billion',
-      reportedValue: '35.00'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: 'Population composition (bn) - 20 years to 64 years - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2021',
-      units: 'in INR Billion',
-      reportedValue: '29.00'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'Population',
-      description: 'Population composition (bn) - 65 years and above - Total',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2035',
-      units: 'in INR Billion',
-      reportedValue: '256'
-    },
-    // Demographics - People
-    {
-      category: 'Demographics',
-      categoryLongName: 'People',
-      description: 'Households distribution by income - < 0.2 mn - Estimate',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2050',
-      units: 'in INR Million',
-      reportedValue: '19.20'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'People',
-      description: 'Households distribution by income - 0.2 mn to 0.3 mn - Estimate',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2017',
-      units: 'in INR Million',
-      reportedValue: '280.5'
-    },
-    {
-      category: 'Demographics',
-      categoryLongName: 'People',
-      description: 'Households distribution by income - 0.3 mn to 0.5 mn - Estimate',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2012',
-      units: 'in INR Million',
-      reportedValue: '320.8'
-    },
-    // Life Insurance Penetration - Business
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Hongkong',
-      period: 'Annual',
-      year: 'FY2022',
-      units: 'in %',
-      reportedValue: '15.8'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Taiwan',
-      period: 'Annual',
-      year: 'FY2030',
-      units: 'in %',
-      reportedValue: '12.3'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Singapore',
-      period: 'Annual',
-      year: 'FY2023',
-      units: 'in %',
-      reportedValue: '11.5'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Malaysia',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '9.2'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'Thailand',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '7.8'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'India',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '4.2'
-    },
-    {
-      category: 'Life Insurance Penetration',
-      categoryLongName: 'Business',
-      description: 'Life Insurance Penetration',
-      countryName: 'China',
-      period: 'Annual',
-      year: 'FY2024',
-      units: 'in %',
-      reportedValue: '3.5'
-    }
-  ];
-
-  // Get unique premium types, categories, period types, and periods for dropdowns
-  const premiumTypes = [...new Set(industryMetricsData.map(item => item.categoryLongName))];
-  const categories = [...new Set(industryMetricsData.map(item => item.category))];
-  const periodTypes = [...new Set(industryMetricsData.map(item => item.period))].filter(Boolean);
-  const periods = [...new Set(industryMetricsData.map(item => item.year))].filter(Boolean);
-
-  // Filter data based on selections
+  // Fetch premium types from API when component loads
   useEffect(() => {
-    let filtered = industryMetricsData;
+    // Prevent duplicate calls
+    if (fetchingPremiumTypesRef.current) return;
     
-    if (selectedPremiumType) {
-      filtered = filtered.filter(item => item.categoryLongName === selectedPremiumType);
-    }
-    
-    if (selectedCategory) {
-      filtered = filtered.filter(item => item.category === selectedCategory);
-    }
-    
-    if (selectedPeriodType) {
-      filtered = filtered.filter(item => item.period === selectedPeriodType);
-    }
-    
-    if (selectedPeriod) {
-      filtered = filtered.filter(item => item.year === selectedPeriod);
-    }
-    
-    setFilteredData(filtered);
-  }, [selectedPremiumType, selectedCategory, selectedPeriodType, selectedPeriod]);
+    const fetchPremiumTypes = async () => {
+      fetchingPremiumTypesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('🔵 Calling API: /api/industry/premium-types?data_type=Domestic');
+        const data = await ApiService.getPremiumTypesIndustry('Domestic');
+        console.log('✅ Premium types received from API:', data);
+        console.log('📊 Number of premium types:', data?.length || 0);
+        setPremiumTypes(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching premium types:', err);
+        setError('Failed to load premium types. Please try again.');
+        setPremiumTypes([]);
+      } finally {
+        setLoading(false);
+        fetchingPremiumTypesRef.current = false;
+      }
+    };
 
-  // Initialize filtered data
-  useEffect(() => {
-    setFilteredData(industryMetricsData);
+    fetchPremiumTypes();
   }, []);
+
+  // Fetch categories when premium type is selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingCategoriesRef.current) return;
+    
+    const fetchCategories = async () => {
+      if (!selectedPremiumType) {
+        setCategories([]);
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingCategoriesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Categories API: /api/industry/categories?data_type=Domestic&premium=${selectedPremiumType}`);
+        const data = await ApiService.getCategoriesIndustry('Domestic', selectedPremiumType);
+        console.log('✅ Categories received from API:', data);
+        console.log('📊 Number of categories:', data?.length || 0);
+        setCategories(data || []);
+        // Reset category selection when premium type changes
+        setSelectedCategory('');
+      } catch (err) {
+        console.error('❌ Error fetching categories:', err);
+        setError('Failed to load categories. Please try again.');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+        fetchingCategoriesRef.current = false;
+      }
+    };
+
+    fetchCategories();
+  }, [selectedPremiumType]);
+
+  // Fetch industry data when both premium type and category are selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDataRef.current) return;
+    
+    const fetchIndustryData = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingDataRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Industry Data API: /api/industry/data?data_type=Domestic&premium=${selectedPremiumType}&category=${selectedCategory}`);
+        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
+        console.log('✅ Industry data received from API:', data);
+        console.log('📊 Number of records:', data?.length || 0);
+        setFilteredData(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching industry data:', err);
+        setError('Failed to load industry data. Please try again.');
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+        fetchingDataRef.current = false;
+      }
+    };
+
+    fetchIndustryData();
+  }, [selectedPremiumType, selectedCategory]);
 
   const handleTabClick = (tab) => {
     if (!isNavItemActive(tab)) {
@@ -340,12 +237,20 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                   value={selectedPremiumType}
                   onChange={(e) => setSelectedPremiumType(e.target.value)}
                   className="filter-select"
+                  disabled={loading}
                 >
-                  <option value="">All Premium Types</option>
+                  <option value="">
+                    {loading ? 'Loading premium types...' : 'Select Premium Type...'}
+                  </option>
                   {premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
                   ))}
                 </select>
+                {error && (
+                  <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {error}
+                  </small>
+                )}
               </div>
 
               <div className="filter-group">
@@ -355,43 +260,21 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="filter-select"
+                  disabled={!selectedPremiumType || loading}
                 >
-                  <option value="">All Categories</option>
+                  <option value="">
+                    {!selectedPremiumType 
+                      ? 'Select a Premium Type first' 
+                      : loading 
+                      ? 'Loading categories...' 
+                      : 'Select Category...'}
+                  </option>
                   {categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="filter-group">
-                <label htmlFor="period-type">Select Period Type</label>
-                <select
-                  id="period-type"
-                  value={selectedPeriodType}
-                  onChange={(e) => setSelectedPeriodType(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Period Types</option>
-                  {periodTypes.map((type, index) => (
-                    <option key={index} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="period">Select Period</label>
-                <select
-                  id="period"
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Periods</option>
-                  {periods.map((period, index) => (
-                    <option key={index} value={period}>{period}</option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Data Table or Visuals */}
@@ -400,35 +283,46 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                 <table className="industry-metrics-table">
                   <thead>
                     <tr>
+                      <th>Premium Type</th>
                       <th>Category</th>
-                      <th>CategoryLongName</th>
                       <th>Description</th>
-                      <th>CountryName</th>
-                      <th>Period</th>
-                      <th>Year</th>
-                      <th>Units</th>
-                      <th>ReportedValue</th>
+                      <th>Country Name</th>
+                      <th>Period Type</th>
+                      <th>FY Year</th>
+                      <th>Reported Unit</th>
+                      <th>Reported Value</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((row, index) => (
-                        <tr key={index}>
-                          <td>{row.category}</td>
-                          <td>{row.categoryLongName}</td>
-                          <td>{row.description}</td>
-                          <td>{row.countryName}</td>
-                          <td>{row.period}</td>
-                          <td>{row.year}</td>
-                          <td>{row.units}</td>
-                          <td>{row.reportedValue}</td>
-                        </tr>
-                      ))
-                    ) : (
+                    {loading && (
                       <tr>
-                        <td colSpan="8" className="no-data">No data available</td>
+                        <td colSpan="8" className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                          Loading data...
+                        </td>
                       </tr>
                     )}
+                    {!loading && filteredData.length > 0 ? (
+                      filteredData.map((row, index) => (
+                        <tr key={index}>
+                          <td>{row.PremiumTypeLongName || '-'}</td>
+                          <td>{row.CategoryLongName || '-'}</td>
+                          <td>{row.Description || '-'}</td>
+                          <td>{row.CountryName || '-'}</td>
+                          <td>{row.ProcessedPeriodType || '-'}</td>
+                          <td>{row.ProcessedFYYear || '-'}</td>
+                          <td>{row.ReportedUnit || '-'}</td>
+                          <td>{row.ReportedValue || '-'}</td>
+                        </tr>
+                      ))
+                    ) : !loading ? (
+                      <tr>
+                        <td colSpan="8" className="no-data">
+                          {selectedPremiumType && selectedCategory 
+                            ? 'No data available for the selected criteria.' 
+                            : 'Please select Premium Type and Category to view data.'}
+                        </td>
+                      </tr>
+                    ) : null}
                   </tbody>
                 </table>
               </div>
