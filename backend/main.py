@@ -8,8 +8,11 @@ from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
 # from routes.peers import router as peers_router
 from routes.economy import router as economy_router
+from routes.indusrty import router as indusrty_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
+
+
 from routes import company
 import logging
 import os
@@ -21,7 +24,18 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
+app = FastAPI(
+    title="Viyanta File Processing API",
+    version="1.0.0",
+    openapi_tags=[
+        {"name": "download", "description": "File download operations"},
+        {"name": "dropdown", "description": "Dropdown and filter operations"},
+        {"name": "company_l_forms", "description": "Company L-Forms operations"},
+        {"name": "pdf_splitter", "description": "PDF splitting operations"},
+        {"name": "Economy", "description": "Economy data operations"},
+        {"name": "L-Forms", "description": "L-Forms data extraction and retrieval"},
+    ]
+)
 
 # CORS setup - Allow both development and production origins
 allowed_origins = [
@@ -72,6 +86,7 @@ app.include_router(pdf_splitter_router,
 # app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
+app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 
@@ -117,8 +132,15 @@ def read_root():
             "user_history": "/api/extraction/history/{user_id}",
             "pdf_splitter_upload": "/api/pdf-splitter/upload",
             "pdf_splitter_companies": "/api/pdf-splitter/companies",
-            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits"
-        }
+            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits",
+            "lforms_companies": "/api/lforms/companies",
+            "lforms_forms": "/api/lforms/forms",
+            "lforms_periods": "/api/lforms/periods",
+            "lforms_report_types": "/api/lforms/reporttypes",
+            "lforms_data": "/api/lforms/data"
+        },
+        "docs": "/docs",
+        "openapi_schema": "/openapi.json"
     }
 
 

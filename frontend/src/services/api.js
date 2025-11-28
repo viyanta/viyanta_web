@@ -1124,7 +1124,9 @@ async updateCompany(companyId, updatedName) {
     return response.json();
   }
 
-
+  // =====================
+  // ECONOMY APIs
+  // =====================
   // 1️⃣ Get Premium Types
  getPremiumTypes = async (dataType) => {
   const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
@@ -1165,6 +1167,97 @@ deleteEconomyData = async (id) => {
   const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
   return response.data;
 };
+
+
+
+  // =====================
+  // INDUSTRY APIs
+  // =====================
+  // 1️⃣ Get Premium Types
+  getPremiumTypesIndustry = async (dataType) => {
+    const response = await axios.get(`${API_BASE_URL}/industry/premium-types?data_type=${dataType}`);
+    return response.data;
+  };
+  
+  // 2️⃣ Get Categories
+   getCategoriesIndustry = async (dataType, premiumType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/categories?data_type=${dataType}&premium=${premiumType}`
+    );
+    return response.data;
+  };
+  
+  // 3️⃣ Get Industry Data
+   getIndustryDataIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+  
+  
+  // 4️⃣ Create New Industry Data
+  createIndustryDataIndustry = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/add`, payload);
+    return response.data;
+  };
+  
+  // 5️⃣ Update Existing Record by ID
+  updateIndustryDataIndustry = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/industry/update/${id}`, payload);
+    return response.data;
+  };
+  
+  // 6️⃣ Delete Record by ID
+  deleteIndustryDataIndustry = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
+    return response.data;
+  };
+  
+
+
+
+  // =====================
+  // L-FORMS APIs
+  // =====================
+
+  // 1️⃣ Company Dropdown
+  getCompanies = async () => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
+    return res.data;
+  };
+
+  // 2️⃣ Form Dropdown
+  getForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
+
+  // 3️⃣ Period Dropdown
+  getPeriods = async (company, form_no) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
+      params: { company, form_no }
+    });
+    return res.data;
+  };
+
+  // 4️⃣ Report Type Dropdown
+  getReportTypes = async (company, form_no, period) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
+      params: { company, form_no, period }
+    });
+    return res.data;
+  };
+
+  // 5️⃣ Final Table Data
+  getReportData = async (company, form_no, period, report_type = null) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
+      params: { company, form_no, period, report_type }
+    });
+    return res.data;
+  };
 }
 
 export default new ApiService();
