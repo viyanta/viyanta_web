@@ -1092,13 +1092,13 @@ deleteEconomyData = async (id) => {
   // INDUSTRY APIs
   // =====================
   // 1️⃣ Get Premium Types
-  getPremiumTypes = async (dataType) => {
+  getPremiumTypesIndustry = async (dataType) => {
     const response = await axios.get(`${API_BASE_URL}/industry/premium-types?data_type=${dataType}`);
     return response.data;
   };
   
   // 2️⃣ Get Categories
-   getCategories = async (dataType, premiumType) => {
+   getCategoriesIndustry = async (dataType, premiumType) => {
     const response = await axios.get(
       `${API_BASE_URL}/industry/categories?data_type=${dataType}&premium=${premiumType}`
     );
@@ -1106,7 +1106,7 @@ deleteEconomyData = async (id) => {
   };
   
   // 3️⃣ Get Industry Data
-   getIndustryData = async (dataType, premiumType, category) => {
+   getIndustryDataIndustry = async (dataType, premiumType, category) => {
     const response = await axios.get(
       `${API_BASE_URL}/industry/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
     );
@@ -1115,19 +1115,19 @@ deleteEconomyData = async (id) => {
   
   
   // 4️⃣ Create New Industry Data
-  createIndustryData = async (payload) => {
+  createIndustryDataIndustry = async (payload) => {
     const response = await axios.post(`${API_BASE_URL}/industry/add`, payload);
     return response.data;
   };
   
   // 5️⃣ Update Existing Record by ID
-  updateIndustryData = async (id, payload) => {
+  updateIndustryDataIndustry = async (id, payload) => {
     const response = await axios.patch(`${API_BASE_URL}/industry/update/${id}`, payload);
     return response.data;
   };
   
   // 6️⃣ Delete Record by ID
-  deleteIndustryData = async (id) => {
+  deleteIndustryDataIndustry = async (id) => {
     const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
     return response.data;
   };
