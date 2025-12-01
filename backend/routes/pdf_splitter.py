@@ -14,6 +14,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from services.pdf_splitter import PDFSplitterService
 
+
 # Load environment variables
 load_dotenv()
 
@@ -28,8 +29,11 @@ BASE_DIR = Path(__file__).parent.parent
 FORM_PREFERENCES_FILE = BASE_DIR / "form_preferences.json"
 
 # Pydantic models for form preferences
+
+
 class FormPreferencesRequest(BaseModel):
     enabled_forms: List[str]
+
 
 def load_form_preferences() -> Dict:
     """Load form preferences from JSON file"""
@@ -42,6 +46,7 @@ def load_form_preferences() -> Dict:
             return {}
     return {}
 
+
 def save_form_preferences(prefs: Dict):
     """Save form preferences to JSON file"""
     try:
@@ -49,7 +54,8 @@ def save_form_preferences(prefs: Dict):
             json.dump(prefs, f, indent=2)
     except Exception as e:
         print(f"Error saving form preferences: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.post("/upload-and-split")
@@ -1023,7 +1029,7 @@ async def extract_form_data(
             f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
 
         try:
-            from databases.models import Companies, Report, ReportData
+            from databases.models import Company, ReportModels
             from databases.database import SessionLocal
 
             print(f"[DB] Creating database session...")
@@ -1031,19 +1037,19 @@ async def extract_form_data(
 
             # 1. Find or create company
             print(f"[DB] Looking for company: {company_name}")
-            company_obj = db.query(Companies).filter_by(
-                companyname=company_name).first()
+            company_obj = db.query(Company).filter_by(
+                name=company_name).first()
             if not company_obj:
                 print(f"[DB] Company not found, creating new entry...")
-                company_obj = Companies(companyname=company_name)
+                company_obj = Company(name=company_name)
                 db.add(company_obj)
                 db.commit()
                 db.refresh(company_obj)
                 print(
-                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+                    f"[DB] ✅ Created company with ID: {company_obj.id}")
             else:
                 print(
-                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+                    f"[DB] ✅ Found existing company with ID: {company_obj.id}")
 
             # 2. Insert into Report
             report_period = None
@@ -1073,46 +1079,63 @@ async def extract_form_data(
                     f"[DB] No period found, using current date: {report_period}")
 
             print(f"[DB] Creating Report entry...")
-            report_obj = Report(
+
+            # 1️⃣ Resolve company DB record for foreign key
+            company_obj = db.query(Company).filter_by(
+                name=company_name).first()
+            if not company_obj:
+                company_obj = Company(name=company_name)
+                db.add(company_obj)
+                db.commit()
+                db.refresh(company_obj)
+
+            # 2️⃣ Convert company name to table key
+            table_key = company_name.lower().replace(" ", "_")
+            report_model = ReportModels.get(table_key)
+
+            if not report_model:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"No table found for company: {company_name}"
+                )
+
+            # Extract ReportType (Standalone/Consolidated)
+            report_type = None
+            match = re.search(r'\s([SC])\s*FY', pdf_name, re.IGNORECASE)
+
+            if match:
+                type_code = match.group(1).upper()
+                report_type = "Standalone" if type_code == "S" else "Consolidated"
+            else:
+                report_type = "Standalone"  # Optional fallback
+
+            # 3️⃣ Insert into correct dynamic table
+            report_obj = report_model(
                 company=company_name,
+                company_id=company_obj.id,
+                ReportType=report_type,
                 pdf_name=pdf_name,
-                registration_number=str(
-                    registration_number) if registration_number else None,
+                registration_number=registration_number,
                 form_no=form_code,
-                title=str(title) if title else None,
+                title=title,
                 period=str(report_period),
-                currency=str(currency) if currency else None,
-                pages_used=str(pages_used) if pages_used else None,
+                currency=currency,
+                pages_used=pages_used,
                 source_pdf=split_filename,
                 flat_headers=flat_headers,
                 data_rows=data_rows
             )
+
             db.add(report_obj)
             db.commit()
             db.refresh(report_obj)
+
             print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
 
             # 3. Insert each row into ReportData
             print(
                 f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
             inserted_count = 0
-            for idx, row in enumerate(normalized_data):
-                try:
-                    db.add(ReportData(
-                        reportid=report_obj.id,
-                        pdf_name=pdf_name,
-                        formno=row.get("Form No") or form_code,
-                        title=row.get("Title") or "",
-                        datarow=row
-                    ))
-                    inserted_count += 1
-                except Exception as row_exc:
-                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
-                    if idx == 0:  # Print first row details for debugging
-                        print(
-                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
-
-            db.commit()
             print(
                 f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
             db.close()
@@ -1158,7 +1181,7 @@ async def get_form_preferences(company_name: str, pdf_name: str):
     try:
         prefs = load_form_preferences()
         key = f"{company_name}_{pdf_name}"
-        
+
         # Check if key exists in preferences (None means no preferences saved yet)
         if key in prefs:
             enabled_forms = prefs[key]
@@ -1178,7 +1201,8 @@ async def get_form_preferences(company_name: str, pdf_name: str):
                 }
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get preferences: {str(e)}")
 
 
 @router.post("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
@@ -1195,7 +1219,7 @@ async def set_form_preferences(
         key = f"{company_name}_{pdf_name}"
         prefs[key] = request.enabled_forms
         save_form_preferences(prefs)
-        
+
         return {
             "success": True,
             "message": f"Form preferences saved for {company_name}/{pdf_name}",
@@ -1204,13 +1228,16 @@ async def set_form_preferences(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 # Data edits storage (using JSON file for simplicity)
 DATA_EDITS_FILE = BASE_DIR / "data_edits.json"
 
 # Pydantic models for data edits
+
+
 class CellEditRequest(BaseModel):
     form_name: str
     record_index: int
@@ -1218,8 +1245,10 @@ class CellEditRequest(BaseModel):
     header: str
     value: str
 
+
 class BulkEditRequest(BaseModel):
     edits: List[CellEditRequest]
+
 
 def load_data_edits() -> Dict:
     """Load data edits from JSON file"""
@@ -1232,6 +1261,7 @@ def load_data_edits() -> Dict:
             return {}
     return {}
 
+
 def save_data_edits(edits: Dict):
     """Save data edits to JSON file"""
     try:
@@ -1239,7 +1269,8 @@ def save_data_edits(edits: Dict):
             json.dump(edits, f, indent=2)
     except Exception as e:
         print(f"Error saving data edits: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to save edits: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save edits: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1251,7 +1282,7 @@ async def get_data_edits(company_name: str, pdf_name: str):
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
         pdf_edits = edits.get(key, {})
-        
+
         return {
             "success": True,
             "data": {
@@ -1259,7 +1290,8 @@ async def get_data_edits(company_name: str, pdf_name: str):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get edits: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get edits: {str(e)}")
 
 
 @router.post("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1274,10 +1306,10 @@ async def save_data_edit(
     try:
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
-        
+
         if key not in edits:
             edits[key] = {}
-        
+
         # Create edit key: form_recordIndex_rowIndex_header
         edit_key = f"{request.form_name}_{request.record_index}_{request.row_index}_{request.header}"
         edits[key][edit_key] = {
@@ -1288,9 +1320,9 @@ async def save_data_edit(
             "value": request.value,
             "edited_at": datetime.now().isoformat()
         }
-        
+
         save_data_edits(edits)
-        
+
         return {
             "success": True,
             "message": f"Cell edit saved for {company_name}/{pdf_name}",
@@ -1299,7 +1331,8 @@ async def save_data_edit(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save edit: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save edit: {str(e)}")
 
 
 @router.delete("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1317,19 +1350,20 @@ async def delete_data_edit(
     try:
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
-        
+
         if key in edits:
             edit_key = f"{form_name}_{record_index}_{row_index}_{header}"
             if edit_key in edits[key]:
                 del edits[key][edit_key]
                 save_data_edits(edits)
-        
+
         return {
             "success": True,
             "message": "Edit deleted successfully"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete edit: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete edit: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")

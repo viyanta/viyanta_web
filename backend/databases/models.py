@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, Text, DateTime, JSON, ForeignKey, Boolean, Date
+    Column, Integer, BigInteger, String, DateTime, JSON, ForeignKey
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -12,23 +12,19 @@ class Company(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), nullable=False, unique=True)
 
-    # 1 company -> many reports
-    reports = relationship("Report", back_populates="company_obj")
 
+# =================================================================
+# Dynamic per-company Reports Table Models
+# =================================================================
 
-class Report(Base):
-    __tablename__ = "reports"
+class ReportsBase(Base):
+    __abstract__ = True  # Do not create a table for this class
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-
-    # existing text column (we are keeping it)
     company = Column(String(255), nullable=False)
+    company_id = Column(Integer, ForeignKey("company.id"), nullable=False)
 
-    # new FK column
-    company_id = Column(Integer, ForeignKey("company.id"), nullable=True)
-
-    ReportType = Column(String(100), nullable=True)
-
+    ReportType = Column(String(100))
     pdf_name = Column(String(512))
     registration_number = Column(String(255))
     form_no = Column(String(50), nullable=False)
@@ -37,32 +33,54 @@ class Report(Base):
     currency = Column(String(50))
     pages_used = Column(Integer)
     source_pdf = Column(String(255))
-    flat_headers = Column(JSON)      # stored as JSON/longtext in DB
+    flat_headers = Column(JSON)
     data_rows = Column(JSON, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
-    # relationships
-    company_obj = relationship("Company", back_populates="reports")
-    rows = relationship("ReportData", back_populates="report",
-                        cascade="all, delete-orphan")
+
+# Company-based report tables
+company_tables = [
+    "acko_life",
+    "aditya_birla_sun_life",
+    "ageas_federal_life",
+    "aviva_life",
+    "axis_max_life",
+    "bajaj_allianz_life",
+    "bandhan_life",
+    "bharti_axa_life",
+    "canara_hsbc_life",
+    "creditaccess_life",
+    "edelweiss_tokio_life",
+    "future_generali_india_life",
+    "go_digit_life",
+    "hdfc_life",
+    "icici_prudential_life",
+    "indiafirst_life",
+    "kotak_life",
+    "lic_of_india_life",
+    "pnb_metlife_life",
+    "pramerica_life",
+    "reliance_nippon_life",
+    "sbi_life",
+    "shriram_life",
+    "starunion_daichi_life",
+    "tata_aig_life"
+]
+
+ReportModels = {}
+
+for table in company_tables:
+    class_name = "".join(word.capitalize() for word in table.split("_"))
+    ReportModels[table] = type(
+        f"Reports{class_name}",
+        (ReportsBase,),
+        {"__tablename__": f"reports_{table}"}
+    )
 
 
-class ReportData(Base):
-    __tablename__ = "reportdata"
-
-    DataID = Column(Integer, primary_key=True, autoincrement=True)
-    ReportID = Column(BigInteger, ForeignKey("reports.id"), nullable=False)
-
-    ReportType = Column(String(100), nullable=True)
-
-    pdf_name = Column(String(512))
-    FormNo = Column(String(50))
-    Title = Column(String(255))
-    DataRow = Column(JSON, nullable=False)
-
-    # relationship back to Report
-    report = relationship("Report", back_populates="rows")
-
+# =================================================================
+# Other tables you already have
+# =================================================================
 
 class EconomyMaster(Base):
     __tablename__ = "economy_master"
