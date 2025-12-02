@@ -1168,6 +1168,46 @@ deleteEconomyData = async (id) => {
   return response.data;
 };
 
+// 7️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+getDashboardData = async (descriptions) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`, 
+    { descriptions: descriptions }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 8️⃣ Get Selected Descriptions (Global for all users)
+getSelectedDescriptions = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+    return response.data.descriptions || [];
+  } catch (error) {
+    console.error('Error fetching selected descriptions:', error);
+    return [];
+  }
+};
+
+// 9️⃣ Update Selected Descriptions (Save globally - admin only)
+updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
+    { 
+      descriptions: descriptions,
+      removed_description: removedDescription
+    }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
 
 
   // =====================

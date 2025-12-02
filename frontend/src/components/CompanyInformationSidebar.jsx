@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
 
 function CompanyInformationSidebar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const navigate = useNavigate();
     const { handleSidebarItemClick, selectedSidebarItem } = useNavigation();
 
     // Load theme preference from localStorage and listen for changes
@@ -101,6 +103,16 @@ function CompanyInformationSidebar() {
                         onClick={() => {
                             setSelectedItem(item.id);
                             handleSidebarItemClick(item.id, item.name);
+                            
+                            // Navigate based on sidebar item
+                            if (item.id === 1007) { // Economy
+                                navigate('/economy-dashboard');
+                            } else if (item.id === 1001) { // Industry Metrics
+                                navigate('/industry-metrics-dashboard');
+                            } else if (item.id === 1000) { // Company Information
+                                navigate('/dashboard');
+                            }
+                            // Add more navigation cases as needed
                         }}
                     >
                         {item.name}

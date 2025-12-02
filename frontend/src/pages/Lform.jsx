@@ -314,12 +314,12 @@ function Lform({ onMenuClick }) {
                         <div className="insurer-section">
                             <div className="insurer-dropdown-wrapper">
                                 <label className="insurer-label">Insurer Name</label>
-                                <select
-                                    value={selectedCompany || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setSelectedCompany(value);
-                                    }}
+                    <select
+                        value={selectedCompany || ''}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedCompany(value);
+                        }}
                                     className="insurer-select"
                                     disabled={loadingCompanies}
                                 >
@@ -331,23 +331,23 @@ function Lform({ onMenuClick }) {
                                             {company}
                                         </option>
                                     ))}
-                                </select>
+                    </select>
                                 {errorCompanies && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorCompanies}
                                     </small>
                                 )}
-                            </div>
-                        </div>
+                </div>
+            </div>
 
                         {/* Filters Section */}
                         <div className="filters-section">
-                            {/* Select L Form Dropdown */}
+                        {/* Select L Form Dropdown */}
                             <div className="filter-group">
                                 <label>Select L Form</label>
-                                <select 
-                                    value={selectedValues.lform} 
-                                    onChange={(e) => handleSelection('lform', e.target.value)}
+                            <select 
+                                value={selectedValues.lform} 
+                                onChange={(e) => handleSelection('lform', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || loadingLforms}
                                 >
@@ -360,21 +360,21 @@ function Lform({ onMenuClick }) {
                                     </option>
                                     {lforms.map((form, index) => (
                                         <option key={index} value={form}>{form}</option>
-                                    ))}
-                                </select>
+                                ))}
+                            </select>
                                 {errorLforms && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorLforms}
                                     </small>
                                 )}
-                            </div>
+                        </div>
 
-                            {/* Select Period Dropdown */}
+                        {/* Select Period Dropdown */}
                             <div className="filter-group">
                                 <label>Select Period</label>
-                                <select 
-                                    value={selectedValues.period} 
-                                    onChange={(e) => handleSelection('period', e.target.value)}
+                            <select 
+                                value={selectedValues.period} 
+                                onChange={(e) => handleSelection('period', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || !selectedValues.lform || loadingPeriods}
                                 >
@@ -389,21 +389,21 @@ function Lform({ onMenuClick }) {
                                     </option>
                                     {periods.map((period, index) => (
                                         <option key={index} value={period}>{period}</option>
-                                    ))}
-                                </select>
+                                ))}
+                            </select>
                                 {errorPeriods && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorPeriods}
                                     </small>
                                 )}
-                            </div>
+                        </div>
 
-                            {/* Select Report Type Dropdown */}
+                        {/* Select Report Type Dropdown */}
                             <div className="filter-group">
                                 <label>Select Report Type</label>
-                                <select 
-                                    value={selectedValues.reportType} 
-                                    onChange={(e) => handleSelection('reportType', e.target.value)}
+                            <select 
+                                value={selectedValues.reportType} 
+                                onChange={(e) => handleSelection('reportType', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || !selectedValues.lform || !selectedValues.period || loadingReportTypes}
                                 >
@@ -420,27 +420,27 @@ function Lform({ onMenuClick }) {
                                     </option>
                                     {reportTypes.map((reportType, index) => (
                                         <option key={index} value={reportType}>{reportType}</option>
-                                    ))}
-                                </select>
+                                ))}
+                            </select>
                                 {errorReportTypes && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorReportTypes}
                                     </small>
                                 )}
-                            </div>
                         </div>
+                    </div>
 
                         {/* Data Display Section */}
                         {loadingData && (
-                            <div style={{ 
+                    <div style={{
                                 textAlign: 'center', 
                                 padding: '40px', 
                                 color: '#666',
                                 fontSize: '16px'
                             }}>
                                 Loading data...
-                            </div>
-                        )}
+                        </div>
+                    )}
 
                         {errorData && (
                             <div className="warning-message" style={{ backgroundColor: '#f8d7da', borderColor: '#f5c6cb' }}>
@@ -452,14 +452,14 @@ function Lform({ onMenuClick }) {
                         {!loadingData && !errorData && reportData.length === 0 && 
                          selectedCompany && selectedValues.lform && selectedValues.period && 
                          (!reportTypes.length || selectedValues.reportType) && (
-                            <div style={{ 
+                        <div style={{
                                 textAlign: 'center', 
                                 padding: 'clamp(30px, 6vw, 50px)', 
                                 color: '#666',
                                 fontSize: 'clamp(14px, 2.5vw, 16px)',
                                 backgroundColor: '#f8f9fa',
-                                borderRadius: '8px',
-                                border: '1px solid #dee2e6',
+                            borderRadius: '8px',
+                            border: '1px solid #dee2e6',
                                 marginTop: 'clamp(20px, 4vw, 30px)'
                             }}>
                                 <p style={{ margin: 0, fontWeight: '500' }}>
@@ -473,18 +473,18 @@ function Lform({ onMenuClick }) {
 
                         {!loadingData && !errorData && reportData.length > 0 && (
                             <div className="data-display-section">
-                                <h2 style={{ 
+                            <h2 style={{
                                     fontSize: 'clamp(18px, 3.5vw, 22px)',
                                     marginBottom: 'clamp(15px, 3vw, 20px)',
-                                    color: '#333',
+                                color: '#333',
                                     textAlign: 'center',
                                     fontWeight: '600'
-                                }}>
+                            }}>
                                     {selectedCompany} - {selectedValues.lform}
                                     {selectedValues.period && ` - ${selectedValues.period}`}
                                     {selectedValues.reportType && ` (${selectedValues.reportType})`}
-                                </h2>
-                                
+                            </h2>
+                            
                                 <div className="table-container">
                                     <table className="lform-table">
                                         <thead>
@@ -525,7 +525,7 @@ function Lform({ onMenuClick }) {
                         {!loadingData && !errorData && reportData.length === 0 && 
                          selectedCompany && selectedValues.lform && selectedValues.period && 
                          reportTypes.length > 0 && !selectedValues.reportType && (
-                            <div style={{ 
+                            <div style={{
                                 textAlign: 'center', 
                                 padding: 'clamp(30px, 6vw, 50px)', 
                                 color: '#666',
@@ -553,23 +553,23 @@ function Lform({ onMenuClick }) {
                                 
                                 <div className="table-container">
                                     <table className="lform-table">
-                                        <thead>
+                                    <thead>
                                             <tr>
                                                 <th>Particulars</th>
                                                 <th style={{ textAlign: 'center' }}>Schedule Ref. Form No.</th>
                                                 <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period}</th>
                                                 <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period === 'Jun 24' ? 'Jun 23' : 'Previous Period'}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
                                                 <td style={{ fontWeight: '600' }}>
-                                                    Amounts transferred from the Policyholders Account (Technical Account)
-                                                </td>
+                                                Amounts transferred from the Policyholders Account (Technical Account)
+                                            </td>
                                                 <td style={{ textAlign: 'center' }}>-</td>
                                                 <td style={{ textAlign: 'right' }}>37,960</td>
                                                 <td style={{ textAlign: 'right' }}>29,600</td>
-                                            </tr>
+                                        </tr>
                                         <tr>
                                             <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
                                                 Income From Investments
@@ -855,14 +855,14 @@ function Lform({ onMenuClick }) {
                             </div>
                             
                                 <div className="table-footer">
-                                    <p><strong>Units:</strong> (₹ Lakhs)</p>
-                                    <p><strong>*</strong> in excess of the allowable limits as prescribed by IRDAI</p>
-                                    <p>The Schedules referred to herein form an integral part of the Condensed Consolidated Profit and Loss Account.</p>
-                                </div>
+                                <p><strong>Units:</strong> (₹ Lakhs)</p>
+                                <p><strong>*</strong> in excess of the allowable limits as prescribed by IRDAI</p>
+                                <p>The Schedules referred to herein form an integral part of the Condensed Consolidated Profit and Loss Account.</p>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                    </div>
+                                </div>
                 </div>
             </div>
         </div>

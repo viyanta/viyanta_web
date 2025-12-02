@@ -91,7 +91,7 @@
 
 .navigation-tabs {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: clamp(8px, 2vw, 12px);
   width: 100%;
@@ -499,7 +499,7 @@
   }
 
   .navigation-tabs {
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: clamp(6px, 1.5vw, 10px);
     overflow-x: auto;
@@ -662,7 +662,7 @@
   }
 
   .navigation-tabs {
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 4px;
     padding-bottom: 3px;
@@ -761,7 +761,7 @@
   }
 
   .navigation-tabs {
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 3px;
   }
