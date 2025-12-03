@@ -1,0 +1,1077 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
+import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
+import './IndustryMetricsDomestic.css';
+
+const IndustryMetricsDomestic = ({ onMenuClick }) => {
+  const navigate = useNavigate();
+  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
+  const [selectedPremiumType, setSelectedPremiumType] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPeriodType, setSelectedPeriodType] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
+  const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  
+  // API data states
+  const [premiumTypes, setPremiumTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // CRUD states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [formData, setFormData] = useState({
+    ProcessedPeriodType: '',
+    ProcessedFYYear: '',
+    DataType: 'Domestic',
+    CountryName: '',
+    PremiumTypeLongName: '',
+    CategoryLongName: '',
+    Description: '',
+    ReportedUnit: '',
+    ReportedValue: ''
+  });
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showCustomPremiumType, setShowCustomPremiumType] = useState(false);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [selectedPremiumTypeOption, setSelectedPremiumTypeOption] = useState('');
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
+  
+  // Refs to prevent duplicate API calls
+  const fetchingPremiumTypesRef = useRef(false);
+  const fetchingCategoriesRef = useRef(false);
+  const fetchingDataRef = useRef(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const allTabs = [
+    'Dashboard', 'Background', 'L Forms', 'Metrics', 
+    'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
+  ];
+
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
+
+  // Fetch premium types from API when component loads
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingPremiumTypesRef.current) return;
+    
+    const fetchPremiumTypes = async () => {
+      fetchingPremiumTypesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('🔵 Calling API: /api/industry/premium-types?data_type=Domestic');
+        const data = await ApiService.getPremiumTypesIndustry('Domestic');
+        console.log('✅ Premium types received from API:', data);
+        console.log('📊 Number of premium types:', data?.length || 0);
+        setPremiumTypes(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching premium types:', err);
+        setError('Failed to load premium types. Please try again.');
+        setPremiumTypes([]);
+      } finally {
+        setLoading(false);
+        fetchingPremiumTypesRef.current = false;
+      }
+    };
+
+    fetchPremiumTypes();
+  }, []);
+
+  // Fetch categories when premium type is selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingCategoriesRef.current) return;
+    
+    const fetchCategories = async () => {
+      if (!selectedPremiumType) {
+        setCategories([]);
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingCategoriesRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Categories API: /api/industry/categories?data_type=Domestic&premium=${selectedPremiumType}`);
+        const data = await ApiService.getCategoriesIndustry('Domestic', selectedPremiumType);
+        console.log('✅ Categories received from API:', data);
+        console.log('📊 Number of categories:', data?.length || 0);
+        setCategories(data || []);
+        // Reset category selection when premium type changes
+        setSelectedCategory('');
+      } catch (err) {
+        console.error('❌ Error fetching categories:', err);
+        setError('Failed to load categories. Please try again.');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+        fetchingCategoriesRef.current = false;
+      }
+    };
+
+    fetchCategories();
+  }, [selectedPremiumType]);
+
+  // Fetch industry data when both premium type and category are selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDataRef.current) return;
+    
+    const fetchIndustryData = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingDataRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        console.log(`🔵 Calling Industry Data API: /api/industry/data?data_type=Domestic&premium=${selectedPremiumType}&category=${selectedCategory}`);
+        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
+        console.log('✅ Industry data received from API:', data);
+        console.log('📊 Number of records:', data?.length || 0);
+        setFilteredData(data || []);
+      } catch (err) {
+        console.error('❌ Error fetching industry data:', err);
+        setError('Failed to load industry data. Please try again.');
+        setFilteredData([]);
+      } finally {
+        setLoading(false);
+        fetchingDataRef.current = false;
+      }
+    };
+
+    fetchIndustryData();
+  }, [selectedPremiumType, selectedCategory]);
+
+  const handleAddNew = () => {
+    setFormData({
+      ProcessedPeriodType: '',
+      ProcessedFYYear: '',
+      DataType: 'Domestic',
+      CountryName: '',
+      PremiumTypeLongName: '',
+      CategoryLongName: '',
+      Description: '',
+      ReportedUnit: '',
+      ReportedValue: ''
+    });
+    setEditingRecord(null);
+    setShowCustomPremiumType(false);
+    setShowCustomCategory(false);
+    setSelectedPremiumTypeOption('');
+    setSelectedCategoryOption('');
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (record) => {
+    const premiumTypeValue = record.PremiumTypeLongName || '';
+    const categoryValue = record.CategoryLongName || '';
+    
+    setFormData({
+      ProcessedPeriodType: record.ProcessedPeriodType || '',
+      ProcessedFYYear: record.ProcessedFYYear || '',
+      DataType: record.DataType || 'Domestic',
+      CountryName: record.CountryName || '',
+      PremiumTypeLongName: premiumTypeValue,
+      CategoryLongName: categoryValue,
+      Description: record.Description || '',
+      ReportedUnit: record.ReportedUnit || '',
+      ReportedValue: record.ReportedValue || ''
+    });
+    
+    // Check if the values exist in the dropdowns
+    const isPremiumTypeInList = premiumTypes.includes(premiumTypeValue);
+    const isCategoryInList = categories.includes(categoryValue);
+    
+    setShowCustomPremiumType(!isPremiumTypeInList && premiumTypeValue !== '');
+    setShowCustomCategory(!isCategoryInList && categoryValue !== '');
+    setSelectedPremiumTypeOption(isPremiumTypeInList ? premiumTypeValue : '');
+    setSelectedCategoryOption(isCategoryInList ? categoryValue : '');
+    setEditingRecord(record);
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      await ApiService.deleteIndustryDataIndustry(recordToDelete.id);
+      setSuccessMessage('Record deleted successfully!');
+      setShowDeleteConfirm(false);
+      setRecordToDelete(null);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error deleting record:', err);
+      setError('Failed to delete record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRecordToDelete(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      if (editingRecord) {
+        // Update existing record
+        await ApiService.updateIndustryDataIndustry(editingRecord.id, formData);
+        setSuccessMessage('Record updated successfully!');
+      } else {
+        // Create new record
+        await ApiService.createIndustryDataIndustry(formData);
+        setSuccessMessage('Record added successfully!');
+      }
+
+      setShowAddModal(false);
+      // Refresh data
+      if (selectedPremiumType && selectedCategory) {
+        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
+        setFilteredData(data || []);
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error saving record:', err);
+      setError('Failed to save record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabClick = (tab) => {
+    if (!isNavItemActive(tab)) {
+      return;
+    }
+    
+    if (tab === 'Dashboard') {
+      navigate('/industry-metrics-dashboard');
+    } else if (tab === 'Domestic Metrics') {
+      return; // Stay on current page
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
+    } else if (tab === 'Documents') {
+      navigate('/documents');
+    } else if (tab === 'News') {
+      navigate('/news');
+    } else if (tab === 'Background') {
+      navigate('/insurance-dashboard?tab=Background');
+    } else if (tab === 'L Forms') {
+      navigate('/lform');
+    } else if (tab === 'Metrics') {
+      navigate('/metrics');
+    } else if (tab === 'Analytics') {
+      navigate('/analytics');
+    } else if (tab === 'Annual Data') {
+      navigate('/annual-data');
+    } else if (tab === 'Peers') {
+      navigate('/peers');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
+    } else {
+      console.log(`Clicked ${tab} tab`);
+    }
+  };
+
+  return (
+    <div className="industry-metrics-domestic-page">
+      <div className="page-header">
+        <button
+          onClick={() => {
+            if (onMenuClick) {
+              onMenuClick();
+            }
+          }}
+          className="hamburger-button"
+        >
+          ☰
+        </button>
+        <h1>Industry Metrics - Domestic</h1>
+      </div>
+
+      <div className="main-content-wrapper">
+        <div className="content-layout">
+          {/* Left Sidebar */}
+          <div className="sidebar-container">
+            <CompanyInformationSidebar />
+          </div>
+
+          {/* Main Content Area */}
+          <div className="main-content-area">
+            {/* Navigation Tabs */}
+            <div className="navigation-tabs-container">
+              <div className="navigation-tabs">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => handleTabClick(tab)}
+                    className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* View Toggle */}
+            <div className="page-title-section">
+              <div className="view-toggle-container">
+                <button
+                  className={`view-toggle-btn ${viewMode === 'data' ? 'active' : ''}`}
+                  onClick={() => setViewMode('data')}
+                >
+                  Data
+                </button>
+                <button
+                  className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
+                  onClick={() => setViewMode('visuals')}
+                  disabled
+                >
+                  Visuals
+                </button>
+              </div>
+            </div>
+
+            {/* Success Message */}
+            {successMessage && (
+              <div className="success-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#dfd', 
+                color: '#3a3', 
+                borderRadius: '4px' 
+              }}>
+                {successMessage}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="error-message" style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#fee', 
+                color: '#c33', 
+                borderRadius: '4px' 
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+              <button
+                onClick={handleAddNew}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#36659b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#2a4d75';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#36659b';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
+              >
+                <span>➕</span>
+                <span>Add New Record</span>
+              </button>
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="filters-section">
+              <div className="filter-group">
+                <label htmlFor="premium-type">Select Premium Type Long name</label>
+                <select
+                  id="premium-type"
+                  value={selectedPremiumType}
+                  onChange={(e) => setSelectedPremiumType(e.target.value)}
+                  className="filter-select"
+                  disabled={loading}
+                >
+                  <option value="">
+                    {loading ? 'Loading premium types...' : 'Select Premium Type...'}
+                  </option>
+                  {premiumTypes.map((type, index) => (
+                    <option key={index} value={type}>{type}</option>
+                  ))}
+                </select>
+                {error && (
+                  <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {error}
+                  </small>
+                )}
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="category">Select Category Long Name</label>
+                <select
+                  id="category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="filter-select"
+                  disabled={!selectedPremiumType || loading}
+                >
+                  <option value="">
+                    {!selectedPremiumType 
+                      ? 'Select a Premium Type first' 
+                      : loading 
+                      ? 'Loading categories...' 
+                      : 'Select Category...'}
+                  </option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+            </div>
+
+            {/* Data Table or Visuals */}
+            {viewMode === 'data' ? (
+              <div className="table-container">
+                <table className="industry-metrics-table">
+                  <thead>
+                    <tr>
+                      <th>Premium Type</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Country Name</th>
+                      <th>Period Type</th>
+                      <th>FY Year</th>
+                      <th>Reported Unit</th>
+                      <th>Reported Value</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading && (
+                      <tr>
+                        <td colSpan="8" className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                          Loading data...
+                        </td>
+                      </tr>
+                    )}
+                    {!loading && filteredData.length > 0 ? (
+                      filteredData.map((row, index) => (
+                        <tr key={row.id || index}>
+                          <td>{row.PremiumTypeLongName || '-'}</td>
+                          <td>{row.CategoryLongName || '-'}</td>
+                          <td>{row.Description || '-'}</td>
+                          <td>{row.CountryName || '-'}</td>
+                          <td>{row.ProcessedPeriodType || '-'}</td>
+                          <td>{row.ProcessedFYYear || '-'}</td>
+                          <td>{row.ReportedUnit || '-'}</td>
+                          <td>{row.ReportedValue || '-'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleEdit(row)}
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#0056b3';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = '#007bff';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                }}
+                              >
+                                <span>✏️</span>
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                onClick={() => handleDelete(row)}
+                                style={{
+                                  padding: '6px 12px',
+                                  backgroundColor: '#dc3545',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  transition: 'all 0.2s ease',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#c82333';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = '#dc3545';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                }}
+                              >
+                                <span>🗑️</span>
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : !loading ? (
+                      <tr>
+                        <td colSpan="9" className="no-data">
+                          {selectedPremiumType && selectedCategory 
+                            ? 'No data available for the selected criteria.' 
+                            : 'Please select Premium Type and Category to view data.'}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="visuals-container">
+                <div className="visuals-grid">
+                  {/* Chart 1: Insurance Premium Growth */}
+                  <div className="visual-card">
+                    <h3>Insurance Premium Growth</h3>
+                    <div className="chart-wrapper">
+                      <div className="bar-chart">
+                        {filteredData
+                          .filter(item => item.category === 'Insurance Premium')
+                          .map((item, index) => (
+                            <div key={index} className="chart-item">
+                              <div className="chart-bar-container">
+                                <div
+                                  className="chart-bar"
+                                  style={{
+                                    height: `${(parseFloat(item.reportedValue) / 10) * 100}%`,
+                                    backgroundColor: '#36659b'
+                                  }}
+                                >
+                                  <span className="bar-value">{item.reportedValue}%</span>
+                                </div>
+                              </div>
+                              <div className="chart-label">{item.countryName}</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart 2: Demographics - Population */}
+                  <div className="visual-card">
+                    <h3>Population Demographics</h3>
+                    <div className="chart-wrapper">
+                      <div className="bar-chart">
+                        {filteredData
+                          .filter(item => item.category === 'Demographics' && item.categoryLongName === 'Population')
+                          .map((item, index) => (
+                            <div key={index} className="chart-item">
+                              <div className="chart-bar-container">
+                                <div
+                                  className="chart-bar"
+                                  style={{
+                                    height: `${(parseFloat(item.reportedValue) / 300) * 100}%`,
+                                    backgroundColor: '#3F72AF'
+                                  }}
+                                >
+                                  <span className="bar-value">{item.reportedValue}</span>
+                                </div>
+                              </div>
+                              <div className="chart-label">{item.description.split(' - ')[0]}</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart 3: Life Insurance Penetration */}
+                  <div className="visual-card">
+                    <h3>Life Insurance Penetration by Country</h3>
+                    <div className="chart-wrapper">
+                      <div className="bar-chart">
+                        {filteredData
+                          .filter(item => item.category === 'Life Insurance Penetration')
+                          .map((item, index) => (
+                            <div key={index} className="chart-item">
+                              <div className="chart-bar-container">
+                                <div
+                                  className="chart-bar"
+                                  style={{
+                                    height: `${(parseFloat(item.reportedValue) / 20) * 100}%`,
+                                    backgroundColor: '#5a8fc7'
+                                  }}
+                                >
+                                  <span className="bar-value">{item.reportedValue}%</span>
+                                </div>
+                              </div>
+                              <div className="chart-label">{item.countryName}</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart 4: Summary Statistics */}
+                  <div className="visual-card">
+                    <h3>Summary Statistics</h3>
+                    <div className="stats-grid">
+                      <div className="stat-item">
+                        <div className="stat-value">
+                          {filteredData.length}
+                        </div>
+                        <div className="stat-label">Total Records</div>
+                      </div>
+                      <div className="stat-item">
+                        <div className="stat-value">
+                          {[...new Set(filteredData.map(item => item.category))].length}
+                        </div>
+                        <div className="stat-label">Categories</div>
+                      </div>
+                      <div className="stat-item">
+                        <div className="stat-value">
+                          {[...new Set(filteredData.map(item => item.countryName))].length}
+                        </div>
+                        <div className="stat-label">Countries</div>
+                      </div>
+                      <div className="stat-item">
+                        <div className="stat-value">
+                          {filteredData
+                            .filter(item => item.units === 'in %')
+                            .reduce((sum, item) => sum + parseFloat(item.reportedValue || 0), 0)
+                            .toFixed(1)}%
+                        </div>
+                        <div className="stat-label">Avg Growth</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            zIndex: 9999,
+            padding: isMobile ? '80px 10px 20px' : '20px',
+            overflowY: 'auto'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddModal(false);
+              setEditingRecord(null);
+              setShowCustomPremiumType(false);
+              setShowCustomCategory(false);
+              setSelectedPremiumTypeOption('');
+              setSelectedCategoryOption('');
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: isMobile ? '20px' : 'clamp(20px, 4vw, 30px)',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: isMobile ? 'calc(100vh - 100px)' : 'calc(100vh - 120px)',
+            overflow: 'auto',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            marginTop: isMobile ? '0' : '80px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>
+                {editingRecord ? 'Edit Record' : 'Add New Record'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingRecord(null);
+                  setShowCustomPremiumType(false);
+                  setShowCustomCategory(false);
+                  setSelectedPremiumTypeOption('');
+                  setSelectedCategoryOption('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f0f0f0';
+                  e.target.style.color = '#333';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#666';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed Period Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedPeriodType}
+                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Processed FY Year:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ProcessedFYYear}
+                  onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Data Type:
+                </label>
+                <input
+                  type="text"
+                  value={formData.DataType}
+                  onChange={(e) => setFormData({ ...formData, DataType: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  disabled
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Country Name:
+                </label>
+                <input
+                  type="text"
+                  value={formData.CountryName}
+                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Premium Type Long Name:
+                </label>
+                <select
+                  value={selectedPremiumTypeOption}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedPremiumTypeOption(value);
+                    if (value === '__ADD_NEW__') {
+                      setShowCustomPremiumType(true);
+                      setFormData({ ...formData, PremiumTypeLongName: '' });
+                    } else {
+                      setShowCustomPremiumType(false);
+                      setFormData({ ...formData, PremiumTypeLongName: value });
+                    }
+                  }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                >
+                  <option value="">Select Premium Type...</option>
+                  {premiumTypes.map((type, index) => (
+                    <option key={index} value={type}>{type}</option>
+                  ))}
+                  <option value="__ADD_NEW__">--- Add New Premium Type ---</option>
+                </select>
+                {showCustomPremiumType && (
+                  <input
+                    type="text"
+                    value={formData.PremiumTypeLongName}
+                    onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
+                    placeholder="Enter new Premium Type Long Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
+                  />
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Category Long Name:
+                </label>
+                <select
+                  value={selectedCategoryOption}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedCategoryOption(value);
+                    if (value === '__ADD_NEW__') {
+                      setShowCustomCategory(true);
+                      setFormData({ ...formData, CategoryLongName: '' });
+                    } else {
+                      setShowCustomCategory(false);
+                      setFormData({ ...formData, CategoryLongName: value });
+                    }
+                  }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                >
+                  <option value="">Select Category...</option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                  ))}
+                  <option value="__ADD_NEW__">--- Add New Category ---</option>
+                </select>
+                {showCustomCategory && (
+                  <input
+                    type="text"
+                    value={formData.CategoryLongName}
+                    onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
+                    placeholder="Enter new Category Long Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
+                  />
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Description:
+                </label>
+                <textarea
+                  value={formData.Description}
+                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Unit:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedUnit}
+                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Reported Value:
+                </label>
+                <input
+                  type="text"
+                  value={formData.ReportedValue}
+                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingRecord(null);
+                    setShowCustomPremiumType(false);
+                    setShowCustomCategory(false);
+                    setSelectedPremiumTypeOption('');
+                    setSelectedCategoryOption('');
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.6 : 1
+                  }}
+                >
+                  {loading ? 'Saving...' : (editingRecord ? 'Update' : 'Add')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && recordToDelete && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelDelete();
+            }
+          }}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ marginTop: 0, marginBottom: '15px' }}>Confirm Delete</h2>
+            <p style={{ marginBottom: '20px' }}>
+              Are you sure you want to delete this record? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={cancelDelete}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default IndustryMetricsDomestic;

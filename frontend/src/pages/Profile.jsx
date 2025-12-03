@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../utils/Button.jsx'
-import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
+import { subscribeToAuthChanges, logout, updateUserProfile } from '../firebase/auth.js'
+import './Profile.css'
 
 function Profile({ onMenuClick }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
       if (authUser) {
         setUser(authUser);
-        setImageError(false); // Reset image error when user changes
-        console.log('User data:', authUser); // Debug log
-        console.log('Profile photo URL:', authUser.photoURL); // Debug log
+        setFullName(authUser.displayName || '');
+        setImageError(false);
       } else {
         navigate('/login');
       }
@@ -26,7 +30,53 @@ function Profile({ onMenuClick }) {
   }, [navigate]);
 
   const handleEdit = () => {
-    setIsEditing(!isEditing);
+    setIsEditing(true);
+    setFullName(user?.displayName || '');
+    setSaveError('');
+    setSaveSuccess(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFullName(user?.displayName || '');
+    setSaveError('');
+    setSaveSuccess(false);
+  };
+
+  const handleSave = async () => {
+    if (!fullName || !fullName.trim()) {
+      setSaveError('Full name cannot be empty');
+      return;
+    }
+
+    setSaving(true);
+    setSaveError('');
+    setSaveSuccess(false);
+
+    try {
+      await updateUserProfile(user, {
+        displayName: fullName.trim()
+      });
+      
+      // Update local user state
+      setUser({
+        ...user,
+        displayName: fullName.trim()
+      });
+      
+      setSaveSuccess(true);
+      setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      setSaveError('Failed to update profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -38,302 +88,200 @@ function Profile({ onMenuClick }) {
     }
   };
 
-  // Default placeholder image (SVG data URI)
-  const defaultProfileImage =
-    "data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23bdbdbd'/%3E%3Ctext x='50%' y='54%' text-anchor='middle' font-size='40' fill='white' font-family='Arial' dy='.3em'%3F%3E?%3C/text%3E%3C/svg%3E";
-
-  // Function to get a higher quality Google profile image
-  const getOptimizedImageUrl = (photoURL) => {
-    if (!photoURL || typeof photoURL !== 'string') return null;
-    
-    // If it's a Google profile image, try to get a higher quality version
-    if (photoURL.includes('googleusercontent.com')) {
-      // For better compatibility, use a more reliable size parameter
-      if (photoURL.includes('=s')) {
-        return photoURL.replace(/=s\d+(-c)?/, '=s200-c');
-      } else {
-        return photoURL + '=s200-c';
-      }
-    }
-    // Always return the original URL if it's not a Google image
-    return photoURL;
-  };
-
-  // Alternative image loading approach for Google images
-  const getGoogleImageProxy = (photoURL) => {
-    if (!photoURL) return null;
-    // Use Google's own image proxy service for better compatibility
-    if (photoURL.includes('googleusercontent.com')) {
-      // Try using the original size without forcing larger sizes
-      return photoURL.replace(/=s\d+(-c)?/, '');
-    }
-    return photoURL;
+  const getInitials = (displayName) => {
+    if (!displayName) return 'U';
+    return displayName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh' 
-      }}>
-        <p>Loading...</p>
+      <div className="profile-page">
+        <div className="profile-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (
-    <div className="fade-in" style={{ padding: '1rem' }}>
-      {/* Header Section */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          {/* Hamburger Menu Icon */}
-          <button
-            onClick={() => {
-              console.log('Profile hamburger clicked!');
-              if (onMenuClick) {
-                onMenuClick();
-              } else {
-                console.log('onMenuClick is not defined');
-              }
-            }}
-            style={{
-              background: 'rgba(63, 114, 175, 0.1)',
-              border: '1px solid rgba(63, 114, 175, 0.3)',
-              color: 'var(--main-color)',
-              borderRadius: '6px',
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              minWidth: '36px',
-              minHeight: '36px'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
-              e.target.style.transform = 'scale(1)';
-            }}
-          >
-            ☰
-          </button>
-          <h1 style={{ 
-                    margin: 0,
-                    fontSize: 'clamp(18px, 5vw, 28px)',
-                    lineHeight: '1.2'
-                }}>User Profile</h1>
+    <div className="profile-page">
+      {/* Page Header */}
+      <div className="profile-page-header">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="profile-menu-btn"
+          aria-label="Toggle menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.5 5H17.5M2.5 10H17.5M2.5 15H17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+        <div className="profile-header-content">
+          <h1 className="profile-page-title">User Profile</h1>
+          <p className="profile-page-subtitle">
+            Manage your account information, preferences and subscription
+          </p>
         </div>
-        <p style={{ fontSize: '1.1rem', marginBottom: '0' }}>
-          Manage your account information and preferences.
-        </p>
       </div>
 
-      <div className="grid grid-3" style={{ gap: '2rem', alignItems: 'start' }}>
-        {/* Profile Card */}
-        <div className="card" style={{ gridColumn: 'span 2' }}>
-          <div className="card-header">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3>Personal Information</h3>
+      {/* Main Content */}
+      <div className="profile-content">
+        <div className="profile-card">
+          {/* Card Header */}
+          <div className="profile-card-header">
+            <h2 className="profile-card-title">Personal Information</h2>
+            {!isEditing ? (
               <Button 
                 variant="outline" 
                 size="small"
-                icon="✏️"
                 onClick={handleEdit}
-                disabled
+                className="profile-edit-btn"
               >
-                Edit Profile (Coming Soon)
+                Edit Profile
               </Button>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
-            <div style={{ 
-              width: '100px', 
-              height: '100px', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              marginRight: '2rem',
-              boxShadow: 'var(--shadow-medium)',
-              overflow: 'hidden',
-              border: '3px solid var(--border-color)'
-            }}>
-              {user.photoURL && !imageError ? (
-                <img 
-                  src={user.photoURL}
-                  alt="Profile" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    display: 'block'
-                  }}
-                  onError={() => {
-                    console.log('Profile image failed to load, showing initials');
-                    setImageError(true);
-                  }}
-                  onLoad={() => {
-                    console.log('Profile image loaded successfully');
-                    setImageError(false);
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  backgroundColor: 'var(--sub-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '2rem',
-                  fontWeight: 'bold'
-                }}>
-                  {user.displayName ? user.displayName.split(' ').map(n => n[0]).join('') : 'U'}
-                </div>
-              )}
-            </div>
-            <div>
-              <h2 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
-                {user.displayName || 'User'}
-              </h2>
-              <p style={{ margin: '0 0 0.25rem 0', color: 'var(--sub-color)', fontWeight: '500' }}>
-                Viyanta User
-              </p>
-              <p style={{ margin: '0', color: 'var(--text-color-light)' }}>
-                Document Processing Team
-              </p>
-              {/* Debug info */}
-              {/* <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light)', marginTop: '0.5rem' }}>
-                <p>Photo URL: <a href={user.photoURL} target="_blank" rel="noopener noreferrer">{user.photoURL || 'Not available'}</a></p>
-                <p>Optimized URL: {getOptimizedImageUrl(user.photoURL) || 'Not available'}</p>
-                <p>Image Error: {imageError ? 'Yes' : 'No'}</p>
-              </div> */}
-            </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Button 
+                  variant="outline" 
+                  size="small"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="small"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
           </div>
           
-          <div className="grid grid-2" style={{ gap: '1.5rem' }}>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500' }}>
-                {user.displayName || 'Not provided'}
-              </p>
+          {/* Success/Error Messages */}
+          {saveSuccess && (
+            <div style={{ 
+              padding: '0.75rem', 
+              marginBottom: '1rem', 
+              backgroundColor: '#d4edda', 
+              color: '#155724', 
+              borderRadius: '8px',
+              border: '1px solid #c3e6cb'
+            }}>
+              Profile updated successfully!
+            </div>
+          )}
+          {saveError && (
+            <div style={{ 
+              padding: '0.75rem', 
+              marginBottom: '1rem', 
+              backgroundColor: '#f8d7da', 
+              color: '#721c24', 
+              borderRadius: '8px',
+              border: '1px solid #f5c6cb'
+            }}>
+              {saveError}
+            </div>
+          )}
+
+          {/* Profile Section */}
+          <div className="profile-section">
+            <div className="profile-avatar-container">
+              <div className="profile-avatar-wrapper">
+                {user.photoURL && !imageError ? (
+                  <img 
+                    src={user.photoURL}
+                    alt="Profile" 
+                    className="profile-avatar-img"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className="profile-avatar-initials">
+                    {getInitials(user.displayName)}
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="primary"
+                size="small"
+                onClick={() => navigate('/subscription')}
+                className="profile-subscription-btn"
+              >
+                Subscription
+              </Button>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500' }}>
-                {user.email}
-              </p>
+            <div className="profile-info">
+              <h3 className="profile-name">{user.displayName || 'User'}</h3>
+              <p className="profile-role">Viyanta User</p>
+              <p className="profile-team">Document Processing Team</p>
+            </div>
+          </div>
+
+          {/* Details Grid */}
+          <div className="profile-details">
+            <div className="profile-detail-item">
+              <label className="profile-detail-label">Full Name</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    fontSize: '1rem',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    marginTop: '0.25rem'
+                  }}
+                  disabled={saving}
+                />
+              ) : (
+                <p className="profile-detail-value">{user.displayName || 'Not provided'}</p>
+              )}
             </div>
 
-            {/* <div className="form-group">
-              <label className="form-label">Account Provider</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500' }}>
-                Google
-              </p>
-            </div> */}
-
-            {/* <div className="form-group">
-              <label className="form-label">User ID</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500', color: 'var(--text-color-light)' }}>
-                {user.uid.substring(0, 8)}...
-              </p>
-            </div> */}
-
-            <div className="form-group">
-              <label className="form-label">Account Status</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500', color: 'var(--success-color)' }}>
-                ✅ Verified
-              </p>
+            <div className="profile-detail-item">
+              <label className="profile-detail-label">Email Address</label>
+              <p className="profile-detail-value">{user.email}</p>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Last Sign In</label>
-              <p style={{ margin: 0, padding: '0.75rem 0', fontWeight: '500' }}>
+            <div className="profile-detail-item">
+              <label className="profile-detail-label">Account Status</label>
+              <div className="profile-status">
+                <span className="profile-status-icon">✓</span>
+                <span className="profile-status-text">Verified</span>
+              </div>
+            </div>
+
+            <div className="profile-detail-item">
+              <label className="profile-detail-label">Last Sign In</label>
+              <p className="profile-detail-value">
                 {user.metadata.lastSignInTime ? 
-                  new Date(user.metadata.lastSignInTime).toLocaleDateString() : 
+                  new Date(user.metadata.lastSignInTime).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  }) : 
                   'Today'
                 }
               </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Account Actions */}
-        <div>
-          <div className="card" style={{ marginBottom: '1rem' }}>
-            <h4 style={{ marginBottom: '1rem' }}>Account Actions</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <Button variant="primary" size="small" icon="🔒" disabled>
-                Change Password
-              </Button>
-              <Button variant="outline" size="small" icon="⚙️" disabled>
-                Account Settings
-              </Button>
-              <Button variant="ghost" size="small" icon="📊" disabled>
-                Activity Log
-              </Button>
-            </div>
-          </div>
-
-          <div className="card" style={{ marginBottom: '1rem' }}>
-            <h4 style={{ marginBottom: '1rem' }}>Account Stats</h4>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-color-light)' }}>
-              <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Files Uploaded:</span>
-                <strong>0</strong>
-              </div>
-              <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Total Size:</span>
-                <strong>0 MB</strong>
-              </div>
-              <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Member Since:</span>
-                <strong>{user.metadata.creationTime ? 
-                  new Date(user.metadata.creationTime).toLocaleDateString() : 
-                  'Today'
-                }</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Last Login:</span>
-                <strong>{user.metadata.lastSignInTime ? 
-                  new Date(user.metadata.lastSignInTime).toLocaleDateString() : 
-                  'Today'
-                }</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h4 style={{ marginBottom: '1rem' }}>Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <Button variant="ghost" size="small" icon="❓" disabled>
-                Help Center
-              </Button>
-              <Button variant="ghost" size="small" icon="💬" disabled>
-                Contact Support
-              </Button>
-              <Button 
-                variant="error" 
-                size="small" 
-                icon="🚪"
-                onClick={handleLogout}
-              >
-                Sign Out
-              </Button>
             </div>
           </div>
         </div>

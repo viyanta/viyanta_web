@@ -6,7 +6,7 @@ import './News.css';
 
 const News = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
 
   // State for insurer selection and news data
   const [selectedInsurer, setSelectedInsurer] = useState('HDFC Life');
@@ -214,11 +214,13 @@ const News = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
   const handleTabClick = (tab) => {
     if (!isNavItemActive(tab)) {
@@ -226,7 +228,12 @@ const News = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
-      navigate('/dashboard');
+      // Check which sidebar item is selected
+      if (selectedSidebarItem === 1001) { // Industry Metrics
+        navigate('/industry-metrics-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
     } else if (tab === 'L Forms') {
@@ -261,6 +268,14 @@ const News = ({ onMenuClick }) => {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }

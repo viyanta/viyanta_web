@@ -6,8 +6,13 @@ from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
-from routes.peers import router as peers_router
+# from routes.peers import router as peers_router
+from routes.economy import router as economy_router
+from routes.indusrty import router as indusrty_router
+from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
+
+
 from routes import company
 import logging
 import os
@@ -19,12 +24,38 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0")
+app = FastAPI(
+    title="Viyanta File Processing API",
+    version="1.0.0",
+    openapi_tags=[
+        {"name": "download", "description": "File download operations"},
+        {"name": "dropdown", "description": "Dropdown and filter operations"},
+        {"name": "company_l_forms", "description": "Company L-Forms operations"},
+        {"name": "pdf_splitter", "description": "PDF splitting operations"},
+        {"name": "Economy", "description": "Economy data operations"},
+        {"name": "L-Forms", "description": "L-Forms data extraction and retrieval"},
+    ]
+)
 
-# CORS setup
+# CORS setup - Allow both development and production origins
+allowed_origins = [
+    "http://localhost:5173",  # Development frontend
+    "http://localhost:3000",  # Alternative dev port
+    "http://localhost:5174",  # Alternative dev port
+]
+
+# Add production origin from environment variable if set
+production_origin = os.getenv("FRONTEND_URL")
+if production_origin:
+    allowed_origins.append(production_origin)
+
+# Also allow all origins in development (can be restricted in production)
+if os.getenv("ENVIRONMENT") != "production":
+    allowed_origins.append("*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Allow frontend origins
+    allow_origins=allowed_origins if os.getenv("ENVIRONMENT") == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,8 +83,11 @@ app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
-app.include_router(peers_router, prefix="/api", tags=["peers"])
+# app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
+app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
+app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
+app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
@@ -98,8 +132,15 @@ def read_root():
             "user_history": "/api/extraction/history/{user_id}",
             "pdf_splitter_upload": "/api/pdf-splitter/upload",
             "pdf_splitter_companies": "/api/pdf-splitter/companies",
-            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits"
-        }
+            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits",
+            "lforms_companies": "/api/lforms/companies",
+            "lforms_forms": "/api/lforms/forms",
+            "lforms_periods": "/api/lforms/periods",
+            "lforms_report_types": "/api/lforms/reporttypes",
+            "lforms_data": "/api/lforms/data"
+        },
+        "docs": "/docs",
+        "openapi_schema": "/openapi.json"
     }
 
 

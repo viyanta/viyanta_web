@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
 
 function CompanyInformationSidebar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const navigate = useNavigate();
     const { handleSidebarItemClick, selectedSidebarItem } = useNavigation();
 
     // Load theme preference from localStorage and listen for changes
@@ -35,7 +37,7 @@ function CompanyInformationSidebar() {
         };
     }, []);
 
-    // Menu configuration - Company Information + 6 items, all clickable
+    // Menu configuration - Company Information + 7 items, all clickable
     const menuConfig = [
         { id: 1000, name: 'Company Information', isDarkTheme: 1, isLightTheme: 1 },
         { id: 1001, name: 'Industry Metrics', isDarkTheme: 1, isLightTheme: 1 },
@@ -43,7 +45,8 @@ function CompanyInformationSidebar() {
         { id: 1003, name: 'Products', isDarkTheme: 1, isLightTheme: 1 },
         { id: 1004, name: 'Report Generator', isDarkTheme: 1, isLightTheme: 1 },
         { id: 1005, name: 'Screener', isDarkTheme: 1, isLightTheme: 1 },
-        { id: 1006, name: 'IRDAI Monthly Data', isDarkTheme: 1, isLightTheme: 1 }
+        { id: 1006, name: 'IRDAI Monthly Data', isDarkTheme: 1, isLightTheme: 1 },
+        { id: 1007, name: 'Economy', isDarkTheme: 1, isLightTheme: 1 }
     ];
 
     // Filter menu items based on theme
@@ -100,6 +103,16 @@ function CompanyInformationSidebar() {
                         onClick={() => {
                             setSelectedItem(item.id);
                             handleSidebarItemClick(item.id, item.name);
+                            
+                            // Navigate based on sidebar item
+                            if (item.id === 1007) { // Economy
+                                navigate('/economy-dashboard');
+                            } else if (item.id === 1001) { // Industry Metrics
+                                navigate('/industry-metrics-dashboard');
+                            } else if (item.id === 1000) { // Company Information
+                                navigate('/dashboard');
+                            }
+                            // Add more navigation cases as needed
                         }}
                     >
                         {item.name}

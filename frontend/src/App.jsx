@@ -6,7 +6,11 @@ import UtilityIcons from './components/UtilityIcons.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ExplorerAllUsers from './pages/ExplorerAllUsers.jsx'
 import Profile from './pages/Profile.jsx'
+import Subscription from './pages/Subscription.jsx'
 import Login from './pages/Login.jsx'
+import Welcome from './pages/Welcome.jsx'
+import SignUp from './pages/SignUp.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import { StatsProvider } from './context/StatsContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
@@ -22,6 +26,12 @@ import News from './pages/News.jsx'
 import SmartPDFExtraction from './pages/SmartPDFExtraction.jsx'
 import InsuranceDashboard from './pages/InsuranceDashboard.jsx'
 import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
+import EconomyDashboard from './pages/EconomyDashboard.jsx'
+import EconomyDomestic from './pages/EconomyDomestic.jsx'
+import EconomyInternational from './pages/EconomyInternational.jsx'
+import IndustryMetricsDashboard from './pages/IndustryMetricsDashboard.jsx'
+import IndustryMetricsDomestic from './pages/IndustryMetricsDomestic.jsx'
+import IndustryMetricsInternational from './pages/IndustryMetricsInternational.jsx'
 
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
@@ -322,7 +332,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/welcome" replace />;
   }
 
   // Show user agreement if user is authenticated but hasn't accepted the agreement
@@ -354,7 +364,7 @@ function AdminRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/welcome" replace />;
   }
 
   if (!isAdmin) {
@@ -382,8 +392,12 @@ function App() {
         <DuplicateWindowPreventer />
         <Router>
           <Routes>
-            {/* Public Route */}
+            {/* Public Routes */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             
             {/* Protected Routes */}
             <Route path="/*" element={
@@ -413,6 +427,7 @@ function App() {
                         <Route path="/news" element={<News onMenuClick={openSidebar} />} />
                         <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
                         <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
+                        <Route path="/subscription" element={<Subscription onMenuClick={openSidebar} />} />
                         <Route path="/smart-extraction" element={
                           <AdminRoute>
                             <SmartPDFExtraction onMenuClick={openSidebar} />
@@ -425,6 +440,12 @@ function App() {
                           />
                         } />
                         <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
+                        <Route path="/economy-dashboard" element={<EconomyDashboard onMenuClick={openSidebar} />} />
+                        <Route path="/economy-domestic" element={<EconomyDomestic onMenuClick={openSidebar} />} />
+                        <Route path="/economy-international" element={<EconomyInternational onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-dashboard" element={<IndustryMetricsDashboard onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-domestic" element={<IndustryMetricsDomestic onMenuClick={openSidebar} />} />
+                        <Route path="/industry-metrics-international" element={<IndustryMetricsInternational onMenuClick={openSidebar} />} />
                       </Routes>
                     </main>
                   </div>

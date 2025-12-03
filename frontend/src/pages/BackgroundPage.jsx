@@ -6,7 +6,7 @@ import './BackgroundPage.css';
 
 const BackgroundPage = ({ selectedInsurer, onTabChange, onInsurerChange }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, activeNavItems } = useNavigation();
   const [activeTab, setActiveTab] = useState('Data');
   const [selectedCompany, setSelectedCompany] = useState(selectedInsurer || '');
 
@@ -16,11 +16,13 @@ const BackgroundPage = ({ selectedInsurer, onTabChange, onInsurerChange }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
-  // Filter to show only active tabs
-  const tabs = allTabs.filter(tab => isNavItemActive(tab));
+  // Filter to show only active tabs, preserving order from activeNavItems
+  const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
   const handleTabClick = (tab) => {
     // Only allow clicks on active items
@@ -68,6 +70,14 @@ const BackgroundPage = ({ selectedInsurer, onTabChange, onInsurerChange }) => {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
+    } else if (tab === 'Irdai Monthly Data') {
+      // Navigate to IRDAI Monthly Data page if route exists
+      console.log('Irdai Monthly Data clicked');
+      // navigate('/irdai-monthly-data'); // Uncomment when route is available
     } else {
       // For other tabs, you can add functionality later
       console.log(`Clicked on ${tab} tab`);
