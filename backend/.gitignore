@@ -1,8 +1,8 @@
 .env
 .env.*
 venv
-*.json
-*.pdf
+# *.json
+# *.pdf
 *.parquet
 *.csv
 __pycache__
@@ -12,3 +12,8 @@ __pycache__
 test_*.py
 extractions/*
 gemini_verified_json/*
+
+venv310/
+venv*/
+.venv*/
+venv12 

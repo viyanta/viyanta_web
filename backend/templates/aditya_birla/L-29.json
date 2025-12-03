@@ -1,0 +1,52 @@
+{
+  "Form No": "L-29",
+  "Title": "FORM L-29 Detail regarding debt securities",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "PERIODIC DISCLOSURES",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Rs in Lakhs",
+  "Statement_Date": "31 December 2022",
+  "Periodicity": "Quarterly",
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Market_Value_2022": [
+      "Market Value As at 31 December 2022"
+    ],
+    "Market_Value_2022_Percent": [
+      "Market Value As % of total for this class"
+    ],
+    "Market_Value_2021": [
+      "Market Value As at 31 December 2021"
+    ],
+    "Market_Value_2021_Percent": [
+      "Market Value As % of total for this class"
+    ],
+    "Book_Value_2022": [
+      "Book Value As at 31 December 2022"
+    ],
+    "Book_Value_2022_Percent": [
+      "Book Value As % of total for this class"
+    ],
+    "Book_Value_2021": [
+      "Book Value As at 31 December 2021"
+    ],
+    "Book_Value_2021_Percent": [
+      "Book Value As % of total for this class"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Market Value As at 31 December 2022",
+    "Market Value As % of total for this class",
+    "Market Value As at 31 December 2021",
+    "Market Value As % of total for this class",
+    "Book Value As at 31 December 2022",
+    "Book Value As % of total for this class",
+    "Book Value As at 31 December 2021",
+    "Book Value As % of total for this class"
+  ],
+  "Rows": []
+}

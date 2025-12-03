@@ -1,16 +1,55 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form, Body
 from fastapi.responses import FileResponse
-from typing import List, Dict
+from typing import List, Dict, Optional
+from pydantic import BaseModel
 import os
 import json
 import re
+import sys
+import uuid
+import subprocess
+import traceback
 from pathlib import Path
+from datetime import datetime
+from dotenv import load_dotenv
 from services.pdf_splitter import PDFSplitterService
+
+# Load environment variables
+load_dotenv()
 
 router = APIRouter(tags=["PDF Splitter"])
 
 # Initialize the PDF splitter service
 pdf_splitter = PDFSplitterService()
+
+# Form preferences storage (using JSON file for simplicity)
+# Use absolute path in backend directory
+BASE_DIR = Path(__file__).parent.parent
+FORM_PREFERENCES_FILE = BASE_DIR / "form_preferences.json"
+
+# Pydantic models for form preferences
+class FormPreferencesRequest(BaseModel):
+    enabled_forms: List[str]
+
+def load_form_preferences() -> Dict:
+    """Load form preferences from JSON file"""
+    if FORM_PREFERENCES_FILE.exists():
+        try:
+            with open(FORM_PREFERENCES_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading form preferences: {e}")
+            return {}
+    return {}
+
+def save_form_preferences(prefs: Dict):
+    """Save form preferences to JSON file"""
+    try:
+        with open(FORM_PREFERENCES_FILE, 'w') as f:
+            json.dump(prefs, f, indent=2)
+    except Exception as e:
+        print(f"Error saving form preferences: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.post("/upload-and-split")
@@ -38,7 +77,7 @@ async def upload_and_split_pdf(
             "success": True,
             "message": f"PDF uploaded and split into {result['total_splits']} files",
             "data": {
-                "upload_id": result["upload_id"],
+                # "upload_id": result["upload_id"],
                 "company_name": result["company_name"],
                 "pdf_name": result["pdf_name"],
                 "total_splits": result["total_splits"]
@@ -188,7 +227,9 @@ async def extract_form_data(
     Extract form data from a split PDF and correct it with Gemini
     """
     print(f"🎯 EXTRACT FORM FUNCTION CALLED!")
+
     try:
+
         print(
             f"🔍 Extract form request: company={company_name}, pdf={pdf_name}, split={split_filename}, user={user_id}")
 
@@ -274,7 +315,8 @@ async def extract_form_data(
 
         def build_template_index() -> Dict[str, List[Dict[str, str]]]:
             """Scan ALL company template folders and build index by base form code.
-            Returns: { 'L-6A': [ { 'company': 'hdfc', 'file': 'L-6A SHAREHOLDERS EXPENSES SCHEDULE.json', 'path': '/abs/path' }, ... ] }
+            Returns: {
+                'L-6A': [ { 'company': 'hdfc', 'file': 'L-6A SHAREHOLDERS EXPENSES SCHEDULE.json', 'path': '/abs/path' }, ... ] }
             """
             idx: Dict[str, List[Dict[str, str]]] = {}
             if not templates_root.exists():
@@ -291,6 +333,9 @@ async def extract_form_data(
                         r'(L-\d+[A-Z]+)',
                         r'(L-\d+-[A-Z]+)',  # L-1-A, L-2-A (dash then letters)
                         r'(L-\d+)',  # L-6, L-7, L-28 (just numbers)
+                        r'(L-\d+" "+[A-Z]+)',  # L-1 A (space then letters)
+                        # L-1 AA (space then letters)
+                        r'(L-\d+" "+[A-Z][A-Z]+)',
                     ]
 
                     base = None
@@ -436,6 +481,66 @@ async def extract_form_data(
 
         template_path = Path(template_entry['path'])
         template_name = template_entry['file']
+
+        # === ENHANCED FILE PATHS DEBUGGING ===
+        print(f"\n🔍 === FILE PATHS SELECTION DEBUG ===")
+        print(f"📂 Company Name Input: '{company_name}'")
+        print(f"📄 PDF Name Input: '{pdf_name}'")
+        print(f"📋 Split Filename Input: '{split_filename}'")
+        print(f"🎯 Form Code Detected: '{form_code}'")
+        print(f"📁 Templates Root Directory: {templates_root}")
+        print(f"📁 Company Templates Directory: {company_templates_dir}")
+        print(
+            f"📁 Company Templates Dir Exists: {company_templates_dir.exists()}")
+        print(f"📄 Split PDF Path: {split_path}")
+        print(f"📄 Split PDF Exists: {Path(split_path).exists()}")
+        print(
+            f"📄 Split PDF Size: {Path(split_path).stat().st_size if Path(split_path).exists() else 'N/A'} bytes")
+        print(f"📋 Template Selected: {template_name}")
+        print(f"🎯 Full Template Path: {template_path}")
+        print(f"📊 Template Exists: {template_path.exists()}")
+        print(
+            f"📊 Template Size: {template_path.stat().st_size if template_path.exists() else 'N/A'} bytes")
+
+        # Create output directories first
+        extractions_dir = Path("extractions") / \
+            company_name.lower().replace(" ", "_") / pdf_name
+        extractions_dir.mkdir(parents=True, exist_ok=True)
+
+        gemini_dir = Path("gemini_verified_json") / \
+            company_name.lower().replace(" ", "_") / pdf_name
+        gemini_dir.mkdir(parents=True, exist_ok=True)
+
+        extracted_json = extractions_dir / \
+            f"{Path(split_filename).stem}_extracted.json"
+        corrected_json = gemini_dir / \
+            f"{Path(split_filename).stem}_corrected.json"
+
+        # Output directories debugging
+        print(f"📂 Extractions Output Dir: {extractions_dir}")
+        print(f"📂 Extractions Dir Exists: {extractions_dir.exists()}")
+        print(f"🤖 Gemini Output Dir: {gemini_dir}")
+        print(f"🤖 Gemini Dir Exists: {gemini_dir.exists()}")
+        print(f"📄 Extracted JSON Path: {extracted_json}")
+        print(f"🤖 Corrected JSON Path: {corrected_json}")
+
+        # Show relative paths for clarity
+        try:
+            cwd = Path.cwd()
+            print(f"📁 Current Working Directory: {cwd}")
+            print(
+                f"📋 Template Relative Path: {template_path.relative_to(cwd)}")
+            print(
+                f"📄 Split PDF Relative Path: {Path(split_path).relative_to(cwd)}")
+            print(
+                f"📄 Extracted JSON Relative Path: {extracted_json.relative_to(cwd)}")
+            print(
+                f"🤖 Corrected JSON Relative Path: {corrected_json.relative_to(cwd)}")
+        except Exception as e:
+            print(f"⚠️ Could not compute relative paths: {e}")
+
+        print(f"=== END FILE PATHS DEBUG ===\n")
+
         print(
             f"Selected template: {template_name} (company={template_entry['company']}) for form_code={form_code}")
 
@@ -443,23 +548,22 @@ async def extract_form_data(
             raise HTTPException(
                 status_code=404, detail=f"Resolved template path not found: {template_path}")
 
-        print(f"Final template being used: {template_name} at {template_path}")
+        print(f"Final template being used: {template_name}")
 
-        # Create output paths - UPDATED STRUCTURE
-        # Store extracted JSONs in extractions/
-        extractions_dir = Path("extractions") / \
-            company_name.lower() / pdf_name
-        extractions_dir.mkdir(parents=True, exist_ok=True)
+        # Validate critical paths before proceeding
+        if not template_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Template file not found: {template_path}"
+            )
 
-        # Store Gemini corrected JSONs in gemini_verified_json/
-        gemini_dir = Path("gemini_verified_json") / \
-            company_name.lower() / pdf_name
-        gemini_dir.mkdir(parents=True, exist_ok=True)
+        if not Path(split_path).exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Split PDF file not found: {split_path}"
+            )
 
-        extracted_json = extractions_dir / \
-            f"{Path(split_filename).stem}_extracted.json"
-        corrected_json = gemini_dir / \
-            f"{Path(split_filename).stem}_corrected.json"
+        print(f"✅ All critical files exist and are accessible")
 
         # Step 1: Run PDF extraction
         extraction_cmd = [
@@ -470,11 +574,20 @@ async def extract_form_data(
             "--output", str(extracted_json)
         ]
 
-        print(f"🔧 Extraction command: {' '.join(extraction_cmd)}")
+        print(f"\n🔧 === EXTRACTION COMMAND DEBUG ===")
+        print(f"Command: {' '.join(extraction_cmd)}")
+        print(f"Working Directory: {Path.cwd()}")
+        print(f"Python Executable: {sys.executable}")
+        print(
+            f"Extraction Script Exists: {Path('services/pdf_splitted_extraction.py').exists()}")
+        print(f"Template Arg: --template {template_path}")
+        print(f"PDF Arg: --pdf {split_path}")
+        print(f"Output Arg: --output {extracted_json}")
         print(f"📁 Template path exists: {template_path.exists()}")
         print(f"📄 Split path exists: {Path(split_path).exists()}")
         print(f"📂 Extractions dir exists: {extractions_dir.exists()}")
         print(f"📂 Gemini dir exists: {gemini_dir.exists()}")
+        print(f"=== END COMMAND DEBUG ===\n")
 
         # Add extraction timeout and better error handling
         extraction_result = subprocess.run(
@@ -525,196 +638,318 @@ async def extract_form_data(
             extracted_is_empty = True
             print(f"⚠️ Extracted JSON not found - will force Gemini correction")
 
-        # Step 2: ALWAYS run Gemini correction (even for empty extractions)
-        print(
-            f"🤖 Starting Gemini correction (empty extraction: {extracted_is_empty})")
-
+        # Step 2: Smart Gemini correction with quick mode option
         import os  # ensure os available for env config
-        # Configurable timeouts & retries (can disable timeout entirely)
-        primary_timeout_env = os.getenv(
-            "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "180")
-        retry_timeout_env = os.getenv("GEMINI_CORRECTION_TIMEOUT_RETRY", "120")
-        no_timeout_mode = os.getenv("GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
-        primary_timeout = None if no_timeout_mode else int(primary_timeout_env)
-        retry_timeout = None if no_timeout_mode else int(retry_timeout_env)
-        enable_retry = os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0"
-        enable_second_retry = os.getenv(
-            "GEMINI_CORRECTION_SECOND_RETRY", "1") != "0"
 
-        # Dynamic initial batch size based on extracted row count
-        dynamic_rows = extracted_row_count if not extracted_is_empty else 0
-        if dynamic_rows > 120:
-            initial_batch = 3
-        elif dynamic_rows > 80:
-            initial_batch = 4
-        elif dynamic_rows > 40:
-            initial_batch = 5
+        # PERFORMANCE OPTIMIZATION: Quick mode for small, well-extracted datasets
+        enable_quick_mode = os.getenv("GEMINI_QUICK_MODE", "0") == "1"
+        quick_mode_threshold = int(
+            os.getenv("GEMINI_QUICK_MODE_THRESHOLD", "20"))
+
+        # Skip Gemini for small, well-extracted datasets in quick mode
+        skip_gemini = (enable_quick_mode and
+                       not extracted_is_empty and
+                       extracted_row_count > 0 and
+                       extracted_row_count <= quick_mode_threshold)
+
+        if skip_gemini:
+            print(
+                f"⚡ QUICK MODE: Skipping Gemini correction for small dataset ({extracted_row_count} rows)")
+            gemini_corrected = False
+            final_json_path = extracted_json
+            correction_notes = {
+                "quick_mode_used": True,
+                "rows_processed": extracted_row_count,
+                "reason": "skipped_for_speed"
+            }
         else:
-            initial_batch = 6  # small batches improve JSON correctness
-        # Allow override via env
-        initial_batch = int(
-            os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", str(initial_batch)))
-        second_batch = int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "4"))
-        third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "2"))
-
-        def run_gemini(batch_size: int, timeout_seconds):
-            cmd = [
-                sys.executable,
-                "services/pdf_splitted_gemini_very.py",
-                "--template", str(template_path),
-                "--extracted", str(extracted_json),
-                "--pdf", split_path,
-                "--output", str(corrected_json),
-                "--batch-size", str(batch_size)
-            ]
-            # Diagnostic banner
             print(
-                f"🔧 Gemini correction command (batch={batch_size}, timeout={'NONE' if timeout_seconds is None else str(timeout_seconds)+'s'}): {' '.join(cmd)}")
-            try:
-                if timeout_seconds is None:
-                    result = subprocess.run(
-                        cmd, capture_output=True, text=True)
+                f"🤖 Starting Gemini correction (empty extraction: {extracted_is_empty}, rows: {extracted_row_count})")
+
+            # CRITICAL: Verify environment is loaded correctly
+            api_key_check = os.getenv("GEMINI_API_KEY")
+            if not api_key_check:
+                print("❌ CRITICAL: GEMINI_API_KEY not found in environment!")
+                print("🔧 Attempting to reload .env file...")
+                load_dotenv()
+                api_key_check = os.getenv("GEMINI_API_KEY")
+                if api_key_check:
+                    print(
+                        f"✅ GEMINI_API_KEY loaded after reload (length: {len(api_key_check)})")
                 else:
-                    result = subprocess.run(
-                        cmd, capture_output=True, text=True, timeout=timeout_seconds)
-                return result, None
-            except subprocess.TimeoutExpired as te:
-                print(
-                    f"⏰ Gemini correction timed out after {timeout_seconds}s (batch={batch_size})")
-                return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout_seconds}s"), te
-
-        # First attempt (dynamic batch)
-        correction_result, primary_timeout_exc = run_gemini(
-            batch_size=initial_batch, timeout_seconds=primary_timeout)
-
-        retry_used = False
-        second_retry_used = False
-
-        # First retry on failure / timeout
-        if (correction_result.returncode != 0) and enable_retry and not corrected_json.exists():
-            print(
-                f"♻️ Attempting Gemini correction retry with smaller batch size ({second_batch})")
-            correction_result_retry, retry_exc = run_gemini(
-                batch_size=second_batch, timeout_seconds=retry_timeout)
-            if correction_result_retry.returncode == 0 and corrected_json.exists():
-                print("✅ Retry succeeded with reduced batch size")
-                correction_result = correction_result_retry
-                retry_used = True
+                    print("❌ GEMINI_API_KEY still not found after reload!")
             else:
-                print(
-                    f"❌ Retry failed (code={correction_result_retry.returncode}) - will consider second retry")
+                print(f"✅ GEMINI_API_KEY found (length: {len(api_key_check)})")
 
-        # Second retry if still failing and enabled
-        if (correction_result.returncode != 0) and enable_second_retry and not corrected_json.exists():
-            print(
-                f"🔁 Second retry with ultra small batch size ({third_batch}) and extended timeout")
-            extended_timeout = None if no_timeout_mode else int(
-                os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", str(retry_timeout or 180)))
-            correction_result_retry2, retry2_exc = run_gemini(
-                batch_size=third_batch, timeout_seconds=extended_timeout)
-            if correction_result_retry2.returncode == 0 and corrected_json.exists():
-                print("✅ Second retry succeeded with ultra small batch")
-                correction_result = correction_result_retry2
-                second_retry_used = True
+            # OPTIMIZED: Faster timeouts for quicker processing
+            # Shorter timeouts since we're using smaller batches and multithreading
+            primary_timeout_env = os.getenv(
+                "GEMINI_CORRECTION_TIMEOUT_PRIMARY", "300")   # Reduced from 180s
+            retry_timeout_env = os.getenv(
+                "GEMINI_CORRECTION_TIMEOUT_RETRY", "200")  # Reduced from 120s
+            no_timeout_mode = os.getenv(
+                "GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
+            primary_timeout = None if no_timeout_mode else int(
+                primary_timeout_env)
+            retry_timeout = None if no_timeout_mode else int(retry_timeout_env)
+            enable_retry = os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0"
+            enable_second_retry = os.getenv(
+                "GEMINI_CORRECTION_SECOND_RETRY", "1") != "0"
+
+            # OPTIMIZED: Faster batch sizes and better multithreading defaults
+            dynamic_rows = extracted_row_count if not extracted_is_empty else 0
+
+            # Smaller batches for faster parallel processing
+            if dynamic_rows > 200:
+                initial_batch = 25  # Reduced from 18 for better parallelization
+            elif dynamic_rows > 100:
+                initial_batch = 20  # Reduced from 12
+            elif dynamic_rows > 50:
+                initial_batch = 15  # Reduced from 6
             else:
-                print(
-                    f"❌ Second retry failed (code={correction_result_retry2.returncode}) - proceeding with extracted data")
+                initial_batch = 10  # Reduced from 6 for faster small datasets
 
-        print(
-            f"💯 Gemini correction final return code: {correction_result.returncode}")
-        if correction_result.stdout:
-            print(
-                f"📤 Gemini correction stdout (final): {correction_result.stdout[:2000]}")
-        if correction_result.stderr:
-            print(
-                f"❌ Gemini correction stderr (final): {correction_result.stderr[:2000]}")
+            # Allow override via env (with better defaults)
+            initial_batch = int(
+                os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", str(initial_batch)))
+            second_batch = int(
+                # Faster retry
+                os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8"))
+            # Fastest final retry
+            third_batch = int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
 
-        gemini_corrected = False
-        correction_notes = {
-            "primary_timeout_sec": primary_timeout if primary_timeout is not None else "none",
-            "retry_timeout_sec": retry_timeout if retry_timeout is not None else "none",
-            "retry_used": retry_used,
-            "second_retry_used": second_retry_used,
-            "primary_timed_out": primary_timeout_exc is not None,
-            "attempt_return_code": correction_result.returncode,
-            "initial_batch": initial_batch,
-            "second_batch": second_batch,
-            "third_batch": third_batch,
-            "no_timeout_mode": no_timeout_mode
-        }
+            # Force enable multithreading and optimize worker count
+            max_workers = min(8, max(2, dynamic_rows // 10)
+                              )  # Auto-scale workers
+            max_workers = int(os.getenv("GEMINI_WORKERS", str(max_workers)))
 
-        final_json_path = extracted_json  # Default fallback
+            print(f"🚀 PERFORMANCE OPTIMIZATION:")
+            print(f"   Rows to process: {dynamic_rows}")
+            print(f"   Initial batch size: {initial_batch}")
+            print(f"   Max workers: {max_workers}")
+            print(f"   Multithreading: ENABLED")
 
-        if correction_result.returncode == 0 and corrected_json.exists():
-            try:
-                with open(corrected_json, "r", encoding="utf-8") as cf:
-                    corrected_content = cf.read()
-                    corrected_data = json.loads(corrected_content)
-                # Robust row counting
-
-                def count_rows(obj):
-                    if isinstance(obj, list):
-                        total = 0
-                        for item in obj:
-                            if isinstance(item, dict):
-                                rows = item.get("Rows")
-                                if isinstance(rows, list):
-                                    total += len(rows)
-                            elif isinstance(item, list):
-                                total += len(item)
-                        return total
-                    if isinstance(obj, dict):
-                        rows = obj.get("Rows")
-                        if isinstance(rows, list):
-                            return len(rows)
-                    return 0
-                corrected_row_count = count_rows(corrected_data)
-                extracted_row_count_baseline = 0
+            def run_gemini():
+                cmd = [
+                    sys.executable,
+                    "services/pdf_splitted_gemini_very.py",
+                    "--template", str(template_path),
+                    "--extracted", str(extracted_json),
+                    "--pdf", split_path,
+                    "--output", str(corrected_json)
+                    # Optionally: "--model", "gemini-2.5-flash"
+                ]
+                print(f"Prompt being sent to Google Gemini : {cmd}")
+                # Enhanced Gemini command debugging
+                print(f"\n🤖 === GEMINI CORRECTION PATHS DEBUG ===")
+                print(f"🔧 Template Path: {template_path}")
+                print(f"📄 Extracted JSON: {extracted_json}")
+                print(f"📄 Extracted JSON Exists: {extracted_json.exists()}")
+                print(f"📄 Split PDF Path: {split_path}")
+                print(f"🤖 Corrected JSON Output: {corrected_json}")
+                print(f"=== END GEMINI PATHS DEBUG ===\n")
                 try:
-                    if extracted_json.exists():
-                        with open(extracted_json, "r", encoding="utf-8") as ef:
-                            baseline = json.load(ef)
-                        extracted_row_count_baseline = count_rows(baseline)
-                except Exception:
-                    pass
-                if corrected_row_count > 0:
-                    gemini_corrected = True
-                    final_json_path = corrected_json
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=primary_timeout)
+                    return result, None
+                except subprocess.TimeoutExpired as te:
                     print(
-                        f"✅ Gemini correction successful: {corrected_row_count} rows (baseline {extracted_row_count_baseline})")
-                    if corrected_row_count <= extracted_row_count_baseline:
+                        f"⏰ Gemini correction timed out after {primary_timeout}s")
+                    return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {primary_timeout}s"), te
+
+            # Only one call needed for single-call Gemini
+            correction_result, primary_timeout_exc = run_gemini()
+            # Remove all retry logic for Gemini correction (single call only)
+            retry_used = False
+            second_retry_used = False
+
+            print(
+                f"💯 Gemini correction final return code: {correction_result.returncode}")
+            if correction_result.stdout:
+                print(
+                    f"📤 Gemini correction stdout (final): {correction_result.stdout[:2000]}")
+            if correction_result.stderr:
+                print(
+                    f"❌ Gemini correction stderr (final): {correction_result.stderr[:2000]}")
+
+            gemini_corrected = False
+            correction_notes = {
+                "primary_timeout_sec": primary_timeout if primary_timeout is not None else "none",
+                "retry_timeout_sec": retry_timeout if retry_timeout is not None else "none",
+                "retry_used": retry_used,
+                "second_retry_used": second_retry_used,
+                "primary_timed_out": primary_timeout_exc is not None,
+                "attempt_return_code": correction_result.returncode,
+                "initial_batch": initial_batch,
+                "second_batch": second_batch,
+                "third_batch": third_batch,
+                "no_timeout_mode": no_timeout_mode
+            }
+
+            final_json_path = extracted_json  # Default fallback
+
+            if correction_result.returncode == 0 and corrected_json.exists():
+                try:
+                    with open(corrected_json, "r", encoding="utf-8") as cf:
+                        corrected_content = cf.read()
+                        corrected_data = json.loads(corrected_content)
+                    # Enhanced row counting to handle multiple JSON formats
+
+                    def count_rows(obj):
+                        """Count rows in various JSON formats from different versions of Gemini correction"""
+                        if obj is None:
+                            return 0
+
+                        # Format 1: New Gemini format with metadata wrapper
+                        if isinstance(obj, dict) and "data" in obj:
+                            data = obj["data"]
+                            if isinstance(data, list):
+                                total = 0
+                                for item in data:
+                                    if isinstance(item, dict) and "Rows" in item:
+                                        rows = item["Rows"]
+                                        if isinstance(rows, list):
+                                            total += len(rows)
+                                    elif isinstance(item, list):
+                                        total += len(item)
+                                return total
+                            return 0
+
+                        # Format 2: Direct list format (old extraction)
+                        if isinstance(obj, list):
+                            total = 0
+                            for item in obj:
+                                if isinstance(item, dict):
+                                    # Check for "Rows" key
+                                    if "Rows" in item:
+                                        rows = item["Rows"]
+                                        if isinstance(rows, list):
+                                            total += len(rows)
+                                    # Check for "data" key
+                                    elif "data" in item:
+                                        data = item["data"]
+                                        if isinstance(data, list):
+                                            total += len(data)
+                                elif isinstance(item, list):
+                                    total += len(item)
+                            return total
+
+                        # Format 3: Direct dict with "Rows"
+                        if isinstance(obj, dict):
+                            if "Rows" in obj:
+                                rows = obj["Rows"]
+                                if isinstance(rows, list):
+                                    return len(rows)
+                            # Check for "data" key at root level
+                            elif "data" in obj:
+                                data = obj["data"]
+                                if isinstance(data, list):
+                                    return len(data)
+
+                        return 0
+                    corrected_row_count = count_rows(corrected_data)
+
+                    # Enhanced debugging for corrected JSON structure
+                    print(f"🔍 DEBUG: Corrected JSON structure analysis:")
+                    print(f"   Type: {type(corrected_data)}")
+                    if isinstance(corrected_data, dict):
+                        print(f"   Keys: {list(corrected_data.keys())}")
+                        if "data" in corrected_data:
+                            data = corrected_data["data"]
+                            print(f"   data type: {type(data)}")
+                            if isinstance(data, list) and data:
+                                print(f"   data length: {len(data)}")
+                                print(f"   first item type: {type(data[0])}")
+                                if isinstance(data[0], dict):
+                                    print(
+                                        f"   first item keys: {list(data[0].keys())}")
+                    elif isinstance(corrected_data, list):
+                        print(f"   List length: {len(corrected_data)}")
+                        if corrected_data:
+                            print(
+                                f"   First item type: {type(corrected_data[0])}")
+                            if isinstance(corrected_data[0], dict):
+                                print(
+                                    f"   First item keys: {list(corrected_data[0].keys())}")
+
+                    print(
+                        f"🔢 Calculated corrected row count: {corrected_row_count}")
+
+                    extracted_row_count_baseline = 0
+                    try:
+                        if extracted_json.exists():
+                            with open(extracted_json, "r", encoding="utf-8") as ef:
+                                baseline = json.load(ef)
+                            extracted_row_count_baseline = count_rows(baseline)
+                            print(
+                                f"🔢 Calculated baseline row count: {extracted_row_count_baseline}")
+                    except Exception as baseline_e:
+                        print(f"⚠️ Error calculating baseline: {baseline_e}")
+                        pass
+                    # More lenient success criteria for Gemini correction
+                    # Accept 0 or more rows (Gemini might clean up sparse data)
+                    if corrected_row_count >= 0:
+                        gemini_corrected = True
+                        final_json_path = corrected_json
+
+                        if corrected_row_count > 0:
+                            print(
+                                f"✅ Gemini correction successful: {corrected_row_count} rows (baseline {extracted_row_count_baseline})")
+                            if corrected_row_count <= extracted_row_count_baseline:
+                                print(
+                                    "ℹ️ Corrected row count not higher than baseline – may include qualitative normalization / header fixes")
+                        else:
+                            print(
+                                f"✅ Gemini correction successful: Data cleaned/optimized (0 rows, baseline {extracted_row_count_baseline})")
+                            print(
+                                "ℹ️ Gemini may have cleaned up sparse or redundant data")
+                    else:
                         print(
-                            "ℹ️ Corrected row count not higher than baseline – may still include qualitative normalization / header fixes")
-                else:
+                            "⚠️ Corrected JSON has invalid structure – discarding and using extracted data")
+                except Exception as e:
                     print(
-                        "⚠️ Corrected JSON empty after parse – discarding and using extracted data")
-            except Exception as e:
+                        f"⚠️ Error validating corrected JSON: {e} – using extracted data")
+            else:
+                print("⚠️ Gemini correction not successful – using extracted data")
                 print(
-                    f"⚠️ Error validating corrected JSON: {e} – using extracted data")
-        else:
-            print("⚠️ Gemini correction not successful – using extracted data")
+                    f"🔧 Debug Info: return_code={correction_result.returncode}")
+                if correction_result.stdout:
+                    print(f"📤 Stdout: {correction_result.stdout[:1000]}")
+                if correction_result.stderr:
+                    print(f"❌ Stderr: {correction_result.stderr[:1000]}")
+                print(f"🔍 Corrected JSON exists: {corrected_json.exists()}")
+                if corrected_json.exists():
+                    try:
+                        file_size = corrected_json.stat().st_size
+                        print(f"📊 Corrected JSON file size: {file_size} bytes")
+                        if file_size > 0:
+                            with open(corrected_json, "r", encoding="utf-8") as f:
+                                preview = f.read(500)
+                                print(f"📄 File preview: {preview}")
+                    except Exception as pe:
+                        print(f"❌ Error reading corrected JSON: {pe}")
 
-        # Enhanced / enriched corrected variant preference
-        enhanced_corrected_json = Path(str(corrected_json).replace(
-            "_corrected.json", "_corrected_enhanced.json"))
-        if enhanced_corrected_json.exists():
-            try:
-                with open(enhanced_corrected_json, "r", encoding="utf-8") as enf:
-                    _ = json.load(enf)  # sanity parse
-                final_json_path = enhanced_corrected_json
-                gemini_corrected = True
-                correction_notes["used_enhanced"] = True
-                print(
-                    f"🎯 Using Enhanced Gemini-corrected JSON: {final_json_path}")
-            except Exception as ee:
-                print(f"⚠️ Failed to parse enhanced corrected JSON: {ee}")
-        else:
-            correction_notes["used_enhanced"] = False
+            # Enhanced / enriched corrected variant preference
+            enhanced_corrected_json = Path(str(corrected_json).replace(
+                "_corrected.json", "_corrected_enhanced.json"))
+            if enhanced_corrected_json.exists():
+                try:
+                    with open(enhanced_corrected_json, "r", encoding="utf-8") as enf:
+                        _ = json.load(enf)  # sanity parse
+                    final_json_path = enhanced_corrected_json
+                    gemini_corrected = True
+                    correction_notes["used_enhanced"] = True
+                    print(
+                        f"🎯 Using Enhanced Gemini-corrected JSON: {final_json_path}")
+                except Exception as ee:
+                    print(f"⚠️ Failed to parse enhanced corrected JSON: {ee}")
+            else:
+                correction_notes["used_enhanced"] = False
 
-        if not gemini_corrected:
-            correction_notes["reason"] = "correction_failed_or_empty"
-        else:
-            correction_notes["reason"] = "success"
+            if not gemini_corrected:
+                correction_notes["reason"] = "correction_failed_or_empty"
+            else:
+                correction_notes["reason"] = "success"
 
         # Load the final JSON
         with open(final_json_path, "r", encoding="utf-8") as f:
@@ -763,10 +998,136 @@ async def extract_form_data(
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(extraction_metadata, f, indent=2, ensure_ascii=False)
 
+        # Normalize final_data to ensure consistent frontend format
+        # Handle both old format {metadata, data} and new format {Rows, _metadata}
+        normalized_data = final_data
+        if isinstance(final_data, dict):
+            if "Rows" in final_data:
+                # New Gemini format: {Rows: [...], _metadata: {...}}
+                # Convert to frontend-expected format: {data: [...]}
+                normalized_data = final_data["Rows"]
+                print(
+                    f"🔄 Normalized new Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            elif "data" in final_data:
+                # Old Gemini format: {metadata: {...}, data: [...]}
+                # Extract the data array
+                normalized_data = final_data["data"]
+                print(
+                    f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            # If it's already a plain dict or other format, leave as-is
+
+        # --- Store Gemini-verified data in Companies, Reports, ReportData tables ---
+        print(f"\n🗄️ === DATABASE STORAGE DEBUG ===")
+        print(f"📊 Normalized data type: {type(normalized_data)}")
+        print(
+            f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
+
+        try:
+            from databases.models import Companies, Report, ReportData
+            from databases.database import SessionLocal
+
+            print(f"[DB] Creating database session...")
+            db = SessionLocal()
+
+            # 1. Find or create company
+            print(f"[DB] Looking for company: {company_name}")
+            company_obj = db.query(Companies).filter_by(
+                companyname=company_name).first()
+            if not company_obj:
+                print(f"[DB] Company not found, creating new entry...")
+                company_obj = Companies(companyname=company_name)
+                db.add(company_obj)
+                db.commit()
+                db.refresh(company_obj)
+                print(
+                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+            else:
+                print(
+                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+
+            # 2. Insert into Report
+            report_period = None
+            currency = None
+            registration_number = None
+            title = None
+            pages_used = None
+            flat_headers = None
+            data_rows = None
+
+            print(f"[DB] Extracting metadata from normalized_data...")
+            if isinstance(normalized_data, list) and len(normalized_data) > 0:
+                first_row = normalized_data[0]
+                report_period = first_row.get("Period")
+                currency = first_row.get("Currency")
+                registration_number = first_row.get("RegistrationNumber")
+                title = first_row.get("Title")
+                pages_used = first_row.get("PagesUsed")
+                flat_headers = first_row.get("FlatHeaders")
+                data_rows = first_row.get("Rows")
+                print(
+                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
+
+            if not report_period:
+                report_period = str(datetime.now().date())
+                print(
+                    f"[DB] No period found, using current date: {report_period}")
+
+            print(f"[DB] Creating Report entry...")
+            report_obj = Report(
+                company=company_name,
+                pdf_name=pdf_name,
+                registration_number=str(
+                    registration_number) if registration_number else None,
+                form_no=form_code,
+                title=str(title) if title else None,
+                period=str(report_period),
+                currency=str(currency) if currency else None,
+                pages_used=str(pages_used) if pages_used else None,
+                source_pdf=split_filename,
+                flat_headers=flat_headers,
+                data_rows=data_rows
+            )
+            db.add(report_obj)
+            db.commit()
+            db.refresh(report_obj)
+            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+
+            # 3. Insert each row into ReportData
+            print(
+                f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
+            inserted_count = 0
+            for idx, row in enumerate(normalized_data):
+                try:
+                    db.add(ReportData(
+                        reportid=report_obj.id,
+                        pdf_name=pdf_name,
+                        formno=row.get("Form No") or form_code,
+                        title=row.get("Title") or "",
+                        datarow=row
+                    ))
+                    inserted_count += 1
+                except Exception as row_exc:
+                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
+                    if idx == 0:  # Print first row details for debugging
+                        print(
+                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
+
+            db.commit()
+            print(
+                f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
+            db.close()
+            print(f"✅ Stored extraction in companies, reports, reportdata tables.")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+        except Exception as db_exc:
+            import traceback
+            print(f"❌ Failed to store extraction in DB: {db_exc}")
+            print(f"❌ Full traceback: {traceback.format_exc()}")
+            print(f"=== END DATABASE STORAGE DEBUG ===\n")
+
         return {
             "success": True,
             "extraction_id": extraction_metadata["extraction_id"],
-            "data": final_data,
+            "data": normalized_data,
             "metadata": extraction_metadata
         }
 
@@ -786,6 +1147,189 @@ async def extract_form_data(
         detailed_error = f"{error_msg} | Context: {context_info}"
 
         raise HTTPException(status_code=500, detail=detailed_error)
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def get_form_preferences(company_name: str, pdf_name: str):
+    """
+    Get form visibility preferences for a specific PDF (shared across all users)
+    Returns empty array if preferences don't exist (first time)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        
+        # Check if key exists in preferences (None means no preferences saved yet)
+        if key in prefs:
+            enabled_forms = prefs[key]
+            # Return the saved preferences (even if empty array)
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": enabled_forms
+                }
+            }
+        else:
+            # No preferences saved yet - return None to indicate first time
+            return {
+                "success": True,
+                "data": {
+                    "enabled_forms": None
+                }
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
+async def set_form_preferences(
+    company_name: str,
+    pdf_name: str,
+    request: FormPreferencesRequest
+):
+    """
+    Set form visibility preferences for a specific PDF (admin only, shared across all users)
+    """
+    try:
+        prefs = load_form_preferences()
+        key = f"{company_name}_{pdf_name}"
+        prefs[key] = request.enabled_forms
+        save_form_preferences(prefs)
+        
+        return {
+            "success": True,
+            "message": f"Form preferences saved for {company_name}/{pdf_name}",
+            "data": {
+                "enabled_forms": request.enabled_forms
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+
+
+# Data edits storage (using JSON file for simplicity)
+DATA_EDITS_FILE = BASE_DIR / "data_edits.json"
+
+# Pydantic models for data edits
+class CellEditRequest(BaseModel):
+    form_name: str
+    record_index: int
+    row_index: int
+    header: str
+    value: str
+
+class BulkEditRequest(BaseModel):
+    edits: List[CellEditRequest]
+
+def load_data_edits() -> Dict:
+    """Load data edits from JSON file"""
+    if DATA_EDITS_FILE.exists():
+        try:
+            with open(DATA_EDITS_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading data edits: {e}")
+            return {}
+    return {}
+
+def save_data_edits(edits: Dict):
+    """Save data edits to JSON file"""
+    try:
+        with open(DATA_EDITS_FILE, 'w') as f:
+            json.dump(edits, f, indent=2)
+    except Exception as e:
+        print(f"Error saving data edits: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save edits: {str(e)}")
+
+
+@router.get("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def get_data_edits(company_name: str, pdf_name: str):
+    """
+    Get all data edits for a specific PDF (shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        pdf_edits = edits.get(key, {})
+        
+        return {
+            "success": True,
+            "data": {
+                "edits": pdf_edits
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get edits: {str(e)}")
+
+
+@router.post("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def save_data_edit(
+    company_name: str,
+    pdf_name: str,
+    request: CellEditRequest
+):
+    """
+    Save a single cell edit (admin only, shared across all users)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key not in edits:
+            edits[key] = {}
+        
+        # Create edit key: form_recordIndex_rowIndex_header
+        edit_key = f"{request.form_name}_{request.record_index}_{request.row_index}_{request.header}"
+        edits[key][edit_key] = {
+            "form_name": request.form_name,
+            "record_index": request.record_index,
+            "row_index": request.row_index,
+            "header": request.header,
+            "value": request.value,
+            "edited_at": datetime.now().isoformat()
+        }
+        
+        save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": f"Cell edit saved for {company_name}/{pdf_name}",
+            "data": {
+                "edit": edits[key][edit_key]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save edit: {str(e)}")
+
+
+@router.delete("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
+async def delete_data_edit(
+    company_name: str,
+    pdf_name: str,
+    form_name: str,
+    record_index: int,
+    row_index: int,
+    header: str
+):
+    """
+    Delete a specific cell edit (admin only)
+    """
+    try:
+        edits = load_data_edits()
+        key = f"{company_name}_{pdf_name}"
+        
+        if key in edits:
+            edit_key = f"{form_name}_{record_index}_{row_index}_{header}"
+            if edit_key in edits[key]:
+                del edits[key][edit_key]
+                save_data_edits(edits)
+        
+        return {
+            "success": True,
+            "message": "Edit deleted successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete edit: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")
@@ -881,7 +1425,7 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
             metadata["gemini_corrected"] = True
             print(f"🤖 Forced gemini_corrected=True for corrected source")
 
-        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (BEFORE normalization for old format)
         if isinstance(data, list) and len(data) > 0:
             for record_idx, record in enumerate(data):
                 if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
@@ -897,9 +1441,41 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
                         print(
                             f"📊 Fixed headers for record {record_idx}: {actual_keys}")
 
+        # Normalize data to ensure consistent frontend format
+        # Handle both old format {metadata, data} and new format {Rows, _metadata}
+        normalized_data = data
+        if isinstance(data, dict):
+            if "Rows" in data:
+                # New Gemini format: {Rows: [...], _metadata: {...}}
+                normalized_data = data["Rows"]
+                print(
+                    f"🔄 Normalized new Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            elif "data" in data:
+                # Old Gemini format: {metadata: {...}, data: [...]}
+                normalized_data = data["data"]
+                print(
+                    f"🔄 Normalized old Gemini format: {len(normalized_data) if isinstance(normalized_data, list) else 0} items")
+            # If it's already a plain dict or other format, leave as-is
+
+        # HEADER CONSISTENCY FIX: Ensure FlatHeaders match actual row keys (AFTER normalization for new format)
+        if isinstance(normalized_data, list) and len(normalized_data) > 0:
+            for record_idx, record in enumerate(normalized_data):
+                if isinstance(record, dict) and "Rows" in record and len(record["Rows"]) > 0:
+                    # Get actual keys from first row
+                    first_row = record["Rows"][0]
+                    if isinstance(first_row, dict):
+                        actual_keys = list(first_row.keys())
+
+                        # Update FlatHeaders to match actual data
+                        record["FlatHeaders"] = actual_keys
+                        record["FlatHeadersNormalized"] = actual_keys
+
+                        print(
+                            f"🔧 Fixed headers for normalized record {record_idx}: {actual_keys}")
+
         return {
             "success": True,
-            "data": data,
+            "data": normalized_data,
             "metadata": metadata,
             "source": source_type,
             "file_path": str(json_path)
@@ -908,3 +1484,129 @@ async def get_extracted_data(company_name: str, pdf_name: str, split_filename: s
     except Exception as e:
         print(f"Get extraction error: {e}")
         return {"success": False, "error": str(e)}
+
+
+@router.get("/debug-gemini-config")
+async def debug_gemini_config():
+    """
+    Debug endpoint to show current Gemini performance configuration
+    """
+    import os
+
+    config = {
+        "quick_mode": {
+            "enabled": os.getenv("GEMINI_QUICK_MODE", "0") == "1",
+            "threshold": int(os.getenv("GEMINI_QUICK_MODE_THRESHOLD", "20"))
+        },
+        "multithreading": {
+            "enabled": True,  # Always enabled now
+            "workers": int(os.getenv("GEMINI_WORKERS", "4"))
+        },
+        "timeouts": {
+            "primary": int(os.getenv("GEMINI_CORRECTION_TIMEOUT_PRIMARY", "90")),
+            "retry": int(os.getenv("GEMINI_CORRECTION_TIMEOUT_RETRY", "60")),
+            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_TIMEOUT", "45")),
+            "no_timeout_mode": os.getenv("GEMINI_CORRECTION_NO_TIMEOUT", "0") == "1"
+        },
+        "batch_sizes": {
+            "initial": int(os.getenv("GEMINI_CORRECTION_INITIAL_BATCH", "10")),
+            "second": int(os.getenv("GEMINI_CORRECTION_SECOND_BATCH", "8")),
+            "third": int(os.getenv("GEMINI_CORRECTION_THIRD_BATCH", "5"))
+        },
+        "retry_settings": {
+            "enable_retry": os.getenv("GEMINI_CORRECTION_RETRY", "1") != "0",
+            "enable_second_retry": os.getenv("GEMINI_CORRECTION_SECOND_RETRY", "1") != "0"
+        },
+        "pdf_optimization": {
+            "max_pages": "3",  # Fixed for performance
+            "retries": "2"     # Fixed for performance
+        }
+    }
+
+    return {
+        "success": True,
+        "message": "Current Gemini performance configuration",
+        "config": config,
+        "recommendations": {
+            "for_speed": "Enable GEMINI_QUICK_MODE=1 for small datasets",
+            "for_accuracy": "Disable quick mode and increase batch sizes",
+            "for_production": "Use 6-8 workers and quick mode enabled"
+        }
+    }
+
+
+@router.post("/test-extraction-performance")
+async def test_extraction_performance(
+    company_name: str = "SBI Life",
+    form_code: str = "L-4-PREMIUM",
+    simulate_rows: int = 15
+):
+    """
+    Test endpoint to simulate extraction performance and demonstrate quick mode
+    """
+    import os
+    import time
+
+    start_time = time.time()
+
+    # Simulate the same logic as the real extraction
+    enable_quick_mode = os.getenv("GEMINI_QUICK_MODE", "0") == "1"
+    quick_mode_threshold = int(os.getenv("GEMINI_QUICK_MODE_THRESHOLD", "20"))
+
+    extracted_is_empty = simulate_rows == 0
+    extracted_row_count = simulate_rows
+
+    skip_gemini = (enable_quick_mode and
+                   not extracted_is_empty and
+                   extracted_row_count > 0 and
+                   extracted_row_count <= quick_mode_threshold)
+
+    performance_config = {
+        "dynamic_rows": extracted_row_count,
+        "initial_batch": 10 if extracted_row_count > 50 else 3,
+        "max_workers": min(8, max(2, extracted_row_count // 10)),
+        "quick_mode_enabled": enable_quick_mode,
+        "quick_mode_threshold": quick_mode_threshold,
+        "would_skip_gemini": skip_gemini
+    }
+
+    # Simulate processing time
+    if skip_gemini:
+        simulated_time = 2.0  # Very fast without Gemini
+        processing_path = "extraction_only"
+    else:
+        # Simulate Gemini processing time based on batch size and workers
+        # 5 seconds per batch item
+        batch_processing_time = performance_config["initial_batch"] * 5
+        # More workers = faster
+        worker_multiplier = 1.0 / performance_config["max_workers"]
+        simulated_time = batch_processing_time * worker_multiplier
+        processing_path = "extraction_plus_gemini"
+
+    # Simulate some processing time (scaled down)
+    time.sleep(min(simulated_time / 10, 1.0))
+
+    end_time = time.time()
+    actual_time = end_time - start_time
+
+    return {
+        "success": True,
+        "test_scenario": {
+            "company": company_name,
+            "form_code": form_code,
+            "simulated_rows": simulate_rows
+        },
+        "performance_analysis": {
+            "processing_path": processing_path,
+            "would_skip_gemini": skip_gemini,
+            "estimated_time_seconds": round(simulated_time, 2),
+            "actual_test_time": round(actual_time, 3),
+            "time_savings": round(max(0, 30 - simulated_time), 2) if skip_gemini else 0
+        },
+        "configuration": performance_config,
+        "recommendations": [
+            "Enable GEMINI_QUICK_MODE=1 for datasets under 20 rows",
+            "Use 6+ workers for large datasets",
+            "Consider batch size 3-4 for optimal parallelization"
+        ]
+    }

@@ -1,0 +1,41 @@
+{
+  "Form No": "L-35",
+  "Title": "DOWNGRADING OF INVESTMENTS 2",
+  "Subtitle": "(Read with Regulation 10)",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Statement_as_on": "{QUARTER_END_DATE}",
+  "Statement_Type": "Statement of downgraded investments",
+  "Periodicity": "Quarterly",
+  "Name_of_Fund": "Life Fund",
+  "Currency": "Rs. in Lakhs",
+  "Part": "PART-A",
+  "PagesUsed": "1",
+  "Headers": {
+    "Sr_No": ["Sr. No"],
+    "Name_of_the_security": ["Name of the security"],
+    "COI": ["COI"],
+    "Amount": ["Amount"],
+    "Date_of_purchase": ["Date of purchase"],
+    "Rating_agency": ["Rating agency"],
+    "Original_grade": ["Original grade"],
+    "Current_grade": ["Current grade"],
+    "Date_of_downgrade": ["Date of downgrade"],
+    "Remarks": ["Remarks"]
+  },
+  "FlatHeaders": [
+    "Sr. No",
+    "Name of the security",
+    "COI",
+    "Amount",
+    "Date of purchase",
+    "Rating agency",
+    "Original grade",
+    "Current grade",
+    "Date of downgrade",
+    "Remarks"
+  ],
+  "Rows": []
+}
+

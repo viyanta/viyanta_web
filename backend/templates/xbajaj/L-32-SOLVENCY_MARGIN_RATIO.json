@@ -1,0 +1,25 @@
+{
+  "Form No": "L-32",
+  "Title": "AVAILABLE SOLVENCY MARGIN AND SOLVENCY RATIO",
+  "Company": "Bajaj Allianz Life Insurance Company Limited",
+  "Registration No": "116",
+  "Date of Registration": "3 August 2001",
+  "Period": "As at Quarter ended {QUARTER_END_DATE}",
+  "Currency": "Rs. in Lakhs",
+  "PagesUsed": "1",
+  "Classification": "Total Business",
+  "Form_Code": "KT-3",
+  "Headers": {
+    "Item": ["Item", "(1)"],
+    "Description": ["Description", "(2)"],
+    "Notes_No": ["Notes No...", "(3)"],
+    "Adjusted_Value": ["Adjusted Value", "(Rs.Lakhs)", "(4)"]
+  },
+  "FlatHeaders": [
+    "Item (1)",
+    "Description (2)",
+    "Notes No... (3)",
+    "Adjusted Value (Rs.Lakhs) (4)"
+  ],
+  "Rows": []
+}

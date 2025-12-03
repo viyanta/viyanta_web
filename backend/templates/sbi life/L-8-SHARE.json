@@ -1,0 +1,24 @@
+{
+    "Form No": "L-8-SHARE",
+    "Title": "SHARE CAPITAL AND PATTERN OF SHAREHOLDING SCHEDULE",
+    "Period": "",
+    "Currency": "Rs in Lakhs",
+    "PagesUsed": "13",
+    "Headers": {
+        "Particulars": [
+            "Particulars"
+        ],
+        "As_at_Current": [
+            "As_at_Current"
+        ],
+        "As_at_Previous": [
+            "As_at_Previous"
+        ]
+    },
+    "FlatHeaders": [
+        "Particulars",
+        "As_at_Current",
+        "As_at_Previous"
+    ],
+    "Rows": []
+}

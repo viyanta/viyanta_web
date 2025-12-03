@@ -1,0 +1,50 @@
+{
+  "Form No": "L-28",
+  "Title": "STATEMENT OF NAV OF SEGREGATED FUNDS",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Registration_Number": "105",
+  "Link_to_Form": "FORM 3A (Part B)",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Periodicity_of_Submission": "Quarterly",
+  "Part": "C",
+  "Currency": "₹",
+  
+  
+  "Headers": {
+    "No": ["No"],
+    "Fund_Name": ["Fund Name"],
+    "SFIN": ["SFIN"],
+    "Date_of_Launch": ["Date of Launch"],
+    "Par_Non_Par": ["Par/Non Par"],
+    "Assets_Under_Management_on_the_above_date_Lakhs": ["Assets Under Management on", "the above date", "(₹ Lakhs)"],
+    "NAV_as_per_LB_2_Rupees": ["NAV as per", "LB 2", "(₹)"],
+    "NAV_as_on_the_above_date": ["NAV as on the", "above date*", "(₹)"],
+    "Previous_Qtr_NAV": ["Previous", "Qtr NAV", "(₹)"],
+    "Second_Previous_Qtr_NAV": ["2nd Previous", "Qtr NAV", "(₹)"],
+    "Third_Previous_Qtr_NAV": ["3rd Previous", "Qtr NAV", "(₹)"],
+    "Fourth_Previous_Qtr_NAV": ["4th Previous", "Qtr NAV", "(₹)"],
+    "Return_Yield": ["Return/Yield**"],
+    "Three_Year_Rolling_CAGR": ["3 Year", "Rolling", "CAGR"],
+    "Highest_NAV_since_inception_Rupees": ["Highest NAV", "since inception", "(₹)"]
+  },
+  
+  "FlatHeaders": [
+    "No",
+    "Fund_Name",
+    "SFIN",
+    "Date_of_Launch",
+    "Par_Non_Par",
+    "Assets_Under_Management_on_the_above_date_Lakhs",
+    "NAV_as_per_LB_2_Rupees",
+    "NAV_as_on_the_above_date",
+    "Previous_Qtr_NAV",
+    "Second_Previous_Qtr_NAV",
+    "Third_Previous_Qtr_NAV",
+    "Fourth_Previous_Qtr_NAV",
+    "Return_Yield",
+    "Three_Year_Rolling_CAGR",
+    "Highest_NAV_since_inception_Rupees"
+  ],
+  
+  "Rows": []
+} 

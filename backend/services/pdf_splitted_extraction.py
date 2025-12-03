@@ -163,10 +163,10 @@ def extract_tables_from_page(pdf_path, page_number):
     # PRIMARY: Use camelot first (better for complex tables)
     print("[INFO] Trying camelot extraction...")
     try:
-        # Try both stream and lattice flavors
+        # Try lattice first (works better for bordered tables), then stream
         camelot_tables = camelot.read_pdf(
-            pdf_path, pages=str(page_number), flavor="stream")
-        print(f"Camelot stream found {len(camelot_tables)} tables")
+            pdf_path, pages=str(page_number), flavor="lattice")
+        print(f"Camelot lattice found {len(camelot_tables)} tables")
 
         for i, t in enumerate(camelot_tables):
             table_data = t.df.values.tolist()
@@ -175,18 +175,18 @@ def extract_tables_from_page(pdf_path, page_number):
                     f"Camelot table {i}: {len(table_data)} rows, {len(table_data[0]) if table_data else 0} cols")
                 tables.append(table_data)
 
-        # If stream didn't find good tables, try lattice
+        # If lattice didn't find good tables, try stream as a fallback
         if not tables:
-            print("[INFO] Trying camelot lattice...")
+            print("[INFO] Trying camelot stream as fallback...")
             camelot_tables = camelot.read_pdf(
-                pdf_path, pages=str(page_number), flavor="lattice")
-            print(f"Camelot lattice found {len(camelot_tables)} tables")
+                pdf_path, pages=str(page_number), flavor="stream")
+            print(f"Camelot stream found {len(camelot_tables)} tables")
 
             for i, t in enumerate(camelot_tables):
                 table_data = t.df.values.tolist()
                 if table_data and len(table_data) > 0:
                     print(
-                        f"Camelot lattice table {i}: {len(table_data)} rows, {len(table_data[0]) if table_data else 0} cols")
+                        f"Camelot stream table {i}: {len(table_data)} rows, {len(table_data[0]) if table_data else 0} cols")
                     tables.append(table_data)
 
     except Exception as e:
@@ -372,22 +372,52 @@ def normalize_row(mapped, flat_headers):
     for h in flat_headers:
         cell = mapped.get(h, "").replace("\n", " ").strip()
         if cell:
+            # Split long cell values using multiple-spaces or semicolons, but keep single-word values intact
             tokens = [tok.strip() for tok in re.split(
-                r"\s{2,}|\n", cell) if tok.strip()]
+                r"\s{2,}|\n|;|\|", cell) if tok.strip()]
+            # If a token looks like multiple serial numbers ("1 2 3"), keep it as-is for now
             all_values.extend(tokens)
         else:
             all_values.append("")
 
-    # Redistribute across headers
-    cleaned = {}
+    # Helper to detect numeric-like token
+    def is_numeric_like(s: str) -> bool:
+        if not s:
+            return False
+        # Consider digits, parentheses markers, a/b labels and common markers as numeric-like
+        s2 = s.replace(',', '').replace('*', '').strip()
+        return bool(re.search(r"\d", s2))
+
+    # If headers expect a leading serial number but the first value is non-numeric
+    # and another cell contains numeric data, try to realign by moving the rightmost numeric token into the serial column
+    cleaned = {h: "" for h in flat_headers}
     v_index = 0
+    # Simple fill left-to-right first
     for h in flat_headers:
         if v_index < len(all_values):
-            val = all_values[v_index].strip()
-            cleaned[h] = val
+            cleaned[h] = all_values[v_index]
             v_index += 1
         else:
             cleaned[h] = ""
+
+    # Post-process alignment heuristics
+    # If first header looks like a serial (sl, sl., s.no, no.) but value is not numeric
+    first_h = flat_headers[0].lower() if flat_headers else ""
+    if any(tok in first_h for tok in ["sl", "no", "s.no", "sl.", "serial"]) and not is_numeric_like(cleaned.get(flat_headers[0], "")):
+        # find rightmost numeric-like column
+        right_numeric_idx = None
+        for idx in range(len(flat_headers)-1, -1, -1):
+            if is_numeric_like(cleaned.get(flat_headers[idx], "")):
+                right_numeric_idx = idx
+                break
+
+        if right_numeric_idx is not None and right_numeric_idx != 0:
+            # Move that numeric into the first column and shift intermediate values rightwards
+            numeric_val = cleaned[flat_headers[right_numeric_idx]]
+            for i in range(right_numeric_idx, 0, -1):
+                cleaned[flat_headers[i]] = cleaned[flat_headers[i-1]]
+            cleaned[flat_headers[0]] = numeric_val
+
     return cleaned
 
 
@@ -456,7 +486,7 @@ def _find_header_row(rows, flat_headers, header_tokens):
     if not rows:
         return -1
 
-    for i, row in enumerate(rows[:5]):  # Check first 5 rows
+    for i, row in enumerate(rows[:10]):  # Check first 10 rows
         if isinstance(row, str):
             row = _smart_split_row(row)
 
@@ -477,7 +507,7 @@ def _find_header_row(rows, flat_headers, header_tokens):
                     header_matches += 1
 
         # If majority of cells look like headers, this is likely the header row
-        if header_matches >= min(2, len(flat_headers) // 2):
+        if header_matches >= max(1, min(2, len(flat_headers) // 2)):
             return i
 
     return -1  # No clear header row found
@@ -509,6 +539,16 @@ def _smart_split_row(row_str):
     if len(cols) > 1:
         return [c.strip() for c in cols if c.strip()]
 
+    # 5. Detect leading series of serial numbers (e.g., "1 2 3  No. of branches ... 0")
+    # If we detect multiple leading numbers separated by spaces followed by text, keep them joined with commas
+    m = re.match(r'^((?:\d+\s+){2,})(.+)$', row_str.strip())
+    if m:
+        nums = m.group(1).strip()
+        rest = m.group(2).strip()
+        # Collapse multiple numbers into a single token separated by commas so downstream logic can decide
+        collapsed = nums.replace(' ', ',')
+        return [collapsed, rest]
+
     # 5. Last resort: single column
     return [row_str.strip()]
 
@@ -522,15 +562,41 @@ def _map_row_to_headers(cleaned_cells, flat_headers):
         print(
             f"More cells ({len(cleaned_cells)}) than headers ({len(flat_headers)}), adjusting...")
 
-        # Strategy 1: Combine extra cells into the last column
-        adjusted_cells = cleaned_cells[:len(flat_headers)-1]
-        if len(cleaned_cells) >= len(flat_headers):
-            # Combine remaining cells
-            remaining = cleaned_cells[len(flat_headers)-1:]
-            combined = " ".join(cell for cell in remaining if cell.strip())
-            adjusted_cells.append(combined)
-
-        cleaned_cells = adjusted_cells
+        # Strategy: If first header is 'Particulars' (textual) and last headers are numeric,
+        # merge middle/extra cells into the Particulars column to preserve numeric columns alignment.
+        first_h = flat_headers[0].lower() if flat_headers else ""
+        if 'particular' in first_h or 'information' in first_h:
+            # keep first column as is, try to compress trailing extras into the particulars column
+            adjusted = []
+            # Always take the first cleaned cell
+            adjusted.append(cleaned_cells[0])
+            # For numeric-like tail columns, try to align to the right
+            tail_needed = len(flat_headers) - 1
+            tail_cells = cleaned_cells[-tail_needed:] if tail_needed > 0 else []
+            # Middle cells become part of particulars
+            middle = cleaned_cells[1:len(
+                cleaned_cells)-tail_needed] if tail_needed > 0 else cleaned_cells[1:]
+            particulars_combined = " ".join([c for c in middle if c.strip()])
+            # Insert particulars_combined as second token (if there is a separate particulars header)
+            if len(flat_headers) > 1:
+                adjusted.append(particulars_combined)
+            # Append tail numeric cells (or blanks to fill)
+            adjusted.extend(tail_cells)
+            # If adjusted length still mismatches, pad or truncate
+            if len(adjusted) > len(flat_headers):
+                adjusted = adjusted[:len(flat_headers)]
+            while len(adjusted) < len(flat_headers):
+                adjusted.append("")
+            cleaned_cells = adjusted
+        else:
+            # Default: combine extras into last column
+            adjusted_cells = cleaned_cells[:len(flat_headers)-1]
+            if len(cleaned_cells) >= len(flat_headers):
+                # Combine remaining cells
+                remaining = cleaned_cells[len(flat_headers)-1:]
+                combined = " ".join(cell for cell in remaining if cell.strip())
+                adjusted_cells.append(combined)
+            cleaned_cells = adjusted_cells
 
     # Map cells to headers
     for i, header in enumerate(flat_headers):
@@ -825,20 +891,8 @@ def _detect_form_type(text):
 
 
 def _get_headers_for_form_type(form_type, default_headers):
-    """Get appropriate headers based on detected form type"""
-
-    form_specific_headers = {
-        "L-43": ["Meeting_Date", "Company_Name", "Meeting_Type", "Proposal", "Description", "Recommendation", "Vote", "Reason"],
-        "L-44": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-32": ["Particulars", "Amount", "Percentage"],
-        "L-1-A": ["Particulars", "Current_Quarter", "Previous_Quarter", "Current_Year", "Previous_Year"],
-        "L-3-A": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-2-A": ["Particulars", "Current_Year", "Previous_Year"],
-        "L-4": ["Particulars", "New_Business", "Renewal", "Total"],
-        "L-5": ["Particulars", "Current_Quarter", "Previous_Quarter"],
-    }
-
-    return form_specific_headers.get(form_type, default_headers)
+    """Get appropriate headers based on detected form type. No hardcoded headers, always use default_headers."""
+    return default_headers
 
 
 if __name__ == "__main__":

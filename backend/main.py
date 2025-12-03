@@ -1,18 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routes.upload import router as upload_router
+from sqlalchemy.orm import Session
 from routes.download import router as download_router
-from routes.preview import router as preview_router
-from routes.stats import router as stats_router
 from routes.dropdown import router as dropdown_router
-from routes.report import router as report_router
 from routes.company_lforms import router as company_l_forms_router
-from routes.extraction import router as extract_router
-from routes.folder_uploader import router as folder_uploader_router
-from routes.master_template import router as template_router
 from routes.pdf_splitter import router as pdf_splitter_router
-from databases.database import Base, engine
+# from routes.peers import router as peers_router
+from routes.economy import router as economy_router
+from routes.indusrty import router as indusrty_router
+from routes.lforms import router as lform_router
+from databases.database import Base, engine, get_db
+
+
 from routes import company
 import logging
 import os
@@ -24,23 +24,23 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0",docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
-    redoc_url="/api/redoc")
+app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/api/docs",
+              openapi_url="/api/openapi.json",
+              redoc_url="/api/redoc")
 
-# CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://app.viyantainsights.com","*"],  # Allow frontend origins
+    # Allow frontend origins
+    allow_origins=["https://app.viyantainsights.com", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-#<<<<<<< HEAD
-import os
-print("DEBUG S3_BUCKET_NAME:***************************", os.getenv("S3_BUCKET_NAME"))
-#=======
+# <<<<<<< HEAD
+print("DEBUG S3_BUCKET_NAME:***************************",
+      os.getenv("S3_BUCKET_NAME"))
+# =======
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -55,25 +55,20 @@ async def startup_event():
         print("⚠️ Database initialization skipped - init_db module not available")
     except Exception as e:
         print(f"⚠️ Startup event failed: {e}")
-#>>>>>>> 4b07d77ceef3c0610fa6fc17dd2608d16a72671c
+# >>>>>>> 4b07d77ceef3c0610fa6fc17dd2608d16a72671c
 
 # Include routers
-app.include_router(upload_router, prefix="/api/files", tags=["upload"])
 app.include_router(download_router, prefix="/api/files", tags=["download"])
-app.include_router(preview_router, prefix="/api/files", tags=["preview"])
-app.include_router(stats_router, prefix="/api/files", tags=["stats"])
 app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
-app.include_router(report_router, prefix="/api/files", tags=["report"])
 app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
-app.include_router(extract_router, prefix="/api/extraction",
-                   tags=["extraction"])
-app.include_router(folder_uploader_router, prefix="/api",
-                   tags=["folder_uploader"])
-app.include_router(template_router, prefix="/templates", tags=["templates"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
+# app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
+app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
+app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
+app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
@@ -118,8 +113,15 @@ def read_root():
             "user_history": "/api/extraction/history/{user_id}",
             "pdf_splitter_upload": "/api/pdf-splitter/upload",
             "pdf_splitter_companies": "/api/pdf-splitter/companies",
-            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits"
-        }
+            "pdf_splitter_splits": "/api/pdf-splitter/companies/{company_name}/pdfs/{pdf_name}/splits",
+            "lforms_companies": "/api/lforms/companies",
+            "lforms_forms": "/api/lforms/forms",
+            "lforms_periods": "/api/lforms/periods",
+            "lforms_report_types": "/api/lforms/reporttypes",
+            "lforms_data": "/api/lforms/data"
+        },
+        "docs": "/docs",
+        "openapi_schema": "/openapi.json"
     }
 
 
@@ -138,14 +140,7 @@ def db_status():
     }
 
 
-@app.get("/api/companies/")
-def get_companies_api():
-    """API endpoint for companies list"""
-    return {
-        "success": True,
-        "companies": ["SBI Life", "HDFC Life", "ICICI Prudential", "Bajaj Allianz"],
-        "message": "Companies retrieved successfully"
-    }
+# Companies endpoint moved to routes/company.py to avoid duplication
 
 
 if __name__ == "__main__":

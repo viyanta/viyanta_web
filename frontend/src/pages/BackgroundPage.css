@@ -1,0 +1,377 @@
+/* Background Page Styles */
+.background-page {
+  padding: clamp(10px, 3vw, 20px);
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* Navigation Tabs */
+.navigation-tabs-container {
+  width: 100%;
+  padding: 0 clamp(10px, 3vw, 20px);
+}
+
+.navigation-tabs {
+  display: flex;
+  gap: clamp(8px, 2vw, 12px);
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 5px;
+}
+
+.nav-tab {
+  padding: clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px);
+  font-size: clamp(12px, 2.5vw, 13px);
+  white-space: nowrap;
+  text-align: center;
+  border-radius: 6px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.nav-tab.active {
+  color: var(--main-color);
+  font-weight: 600;
+}
+
+.nav-tab:not(.active) {
+  color: #666;
+  font-weight: 400;
+}
+
+.nav-tab:hover {
+  color: var(--main-color);
+  background-color: rgba(30, 64, 175, 0.05);
+}
+
+/* Company Selection Section */
+.company-selection-section {
+  margin-bottom: clamp(20px, 4vw, 30px);
+}
+
+.company-selection-title {
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
+  color: var(--main-color);
+  margin: 0 0 clamp(10px, 2vw, 15px) 0;
+  line-height: 1.3;
+}
+
+.company-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(10px, 2vw, 15px);
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.company-dropdown {
+  padding: clamp(8px, 2vw, 12px) clamp(12px, 2vw, 15px);
+  font-size: clamp(13px, 2.5vw, 14px);
+  border: 2px solid #28a745;
+  border-radius: 6px;
+  background-color: white;
+  color: #333;
+  min-width: clamp(200px, 30vw, 280px);
+  max-width: 400px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  outline: none;
+}
+
+.company-dropdown:hover {
+  border-color: var(--main-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.company-dropdown:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 2px rgba(54, 101, 155, 0.15);
+}
+
+.company-dropdown option {
+  padding: 8px;
+  background-color: white;
+  color: #333;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.5vw, 8px);
+  margin-bottom: clamp(15px, 3vw, 25px);
+  font-size: clamp(13px, 2.5vw, 14px);
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-separator {
+  color: #999;
+}
+
+.breadcrumb-current {
+  color: #333;
+  font-weight: 500;
+}
+
+/* Content Tabs */
+.content-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: clamp(20px, 4vw, 30px);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.content-tab {
+  padding: clamp(10px, 2vw, 12px) clamp(20px, 3vw, 24px);
+  border: none;
+  background: none;
+  color: #666;
+  font-size: clamp(13px, 2.5vw, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.content-tab:hover {
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.content-tab.active {
+  color: var(--main-color);
+  border-bottom-color: var(--main-color);
+  background-color: #f8f9fa;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  gap: clamp(20px, 4vw, 40px);
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Company Logo Section */
+.company-logo-section {
+  flex: 0 0 clamp(250px, 30vw, 280px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  min-height: 200px;
+}
+
+.company-logo {
+  max-width: clamp(180px, 25vw, 220px);
+  max-height: clamp(80px, 15vw, 120px);
+  object-fit: contain;
+}
+
+/* Company Data Table */
+.company-data-table {
+  flex: 0 0 clamp(500px, 60vw, 600px);
+  background: white;
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-title {
+  font-size: clamp(18px, 3vw, 20px);
+  font-weight: 600;
+  color: #333;
+  margin-bottom: clamp(15px, 2vw, 20px);
+  padding-bottom: clamp(8px, 1vw, 10px);
+  border-bottom: 2px solid var(--main-color);
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 2vw, 16px);
+}
+
+.data-row {
+  display: grid;
+  grid-template-columns: clamp(200px, 25vw, 250px) 1fr;
+  gap: clamp(16px, 2vw, 24px);
+  padding: clamp(12px, 2vw, 16px) 0;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: start;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-label {
+  font-weight: 600;
+  color: #555;
+  font-size: clamp(13px, 2vw, 14px);
+  line-height: 1.4;
+}
+
+.data-value {
+  color: #333;
+  font-size: clamp(13px, 2vw, 14px);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Visuals Content */
+.visuals-content {
+  flex: 0 0 clamp(500px, 60vw, 600px);
+  background: white;
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.visuals-title {
+  font-size: clamp(18px, 3vw, 20px);
+  font-weight: 600;
+  color: #333;
+  margin-bottom: clamp(15px, 2vw, 20px);
+  padding-bottom: clamp(8px, 1vw, 10px);
+  border-bottom: 2px solid var(--main-color);
+}
+
+.visuals-placeholder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 30vw, 300px), 1fr));
+  gap: clamp(15px, 2vw, 20px);
+}
+
+.visual-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: clamp(15px, 2vw, 20px);
+  border: 1px solid #e9ecef;
+}
+
+.visual-card h4 {
+  font-size: clamp(14px, 2vw, 16px);
+  font-weight: 600;
+  color: var(--main-color);
+  margin-bottom: clamp(8px, 1vw, 10px);
+}
+
+.visual-card p {
+  color: #666;
+  font-size: clamp(12px, 2vw, 14px);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .navigation-tabs {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .background-page {
+    padding: clamp(8px, 2vw, 15px);
+  }
+  
+  .navigation-tabs {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: clamp(6px, 1vw, 8px);
+  }
+  
+  .nav-tab {
+    padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px);
+    font-size: clamp(11px, 2vw, 12px);
+    min-height: 32px;
+  }
+  
+  .company-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .company-dropdown {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .main-content {
+    flex-direction: column;
+    gap: clamp(15px, 3vw, 20px);
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .company-logo-section {
+    flex: none;
+    width: 100%;
+    padding: clamp(15px, 3vw, 20px);
+    min-height: 150px;
+  }
+  
+  .company-data-table,
+  .visuals-content {
+    flex: none;
+    width: 100%;
+    padding: clamp(15px, 3vw, 20px);
+  }
+  
+  .data-row {
+    grid-template-columns: 1fr;
+    gap: clamp(6px, 1vw, 8px);
+    padding: clamp(10px, 2vw, 12px) 0;
+  }
+  
+  .data-label {
+    font-weight: 600;
+    color: var(--main-color);
+    margin-bottom: 4px;
+  }
+  
+  .visuals-placeholder {
+    grid-template-columns: 1fr;
+  }
+  
+  .breadcrumb {
+    font-size: clamp(12px, 2vw, 13px);
+    gap: clamp(4px, 1vw, 6px);
+  }
+  
+  .content-tabs {
+    margin-bottom: clamp(15px, 3vw, 20px);
+  }
+  
+  .content-tab {
+    padding: clamp(8px, 2vw, 10px) clamp(15px, 3vw, 20px);
+    font-size: clamp(12px, 2vw, 13px);
+    min-height: 36px;
+  }
+}

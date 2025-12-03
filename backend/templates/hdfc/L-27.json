@@ -1,0 +1,50 @@
+{
+    "Form No": "L-24",
+    "Title": "VALUATION OF NET LIABILITIES",
+    "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+    "SubTitle": "Schedules forming part of financial statements",
+    "Registration_Number": "116",
+    "Date_of_Registration": "3 August 2001",
+    "Currency": "Rs. in Lakhs",
+    "Headers": {
+        "Particular": [
+            "particular"
+        ],
+        "SFIN_1_Actual_Inv": [
+            "SFIN 1 - Actual Inv.% Actual"
+        ],
+        "SFIN_1_%Actual": [
+            "SFIN_1_Actual_Inv"
+        ],
+        "SFIN_2_Actual_Inv": [
+            "SFIN 2 - Actual Inv.% Actual"
+        ],
+        "SFIN_2_%Actual": [
+            "SFIN_2_Actual_Inv"
+        ],
+        "SFIN_n_Actual_Inv": [
+            "SFIN n - Actual Inv.% Actual"
+        ],
+        "SFIN_n_%Actual": [
+            "SFIN_n_Actual_Inv"
+        ],
+        "Total of All Fund_Actual_Inv": [
+            "Total of All Fund - Actual Inv.% Actual"
+        ],
+        "Total of All Fund_%Actual": [
+            "Total of All Fund_Actual_Inv"
+        ]
+    },
+    "FlatHeaders": [
+        "particular",
+        "SFIN_1_Actual_Inv",
+        "SFIN_1_%Actual",
+        "SFIN_2_Actual_Inv",
+        "SFIN_2_%Actual",
+        "SFIN_n_Actual_Inv",
+        "SFIN_n_%Actual",
+        "Total of All Fund_Actual_Inv",
+        "Total of All Fund_%Actual"
+    ],
+    "Rows": []
+}

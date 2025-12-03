@@ -1,4 +1,8 @@
+
 const API_BASE_URL = 'https://app.viyantainsights.com/api';
+
+import axios from 'axios';
+
 
 class ApiService {
   // Legacy file upload methods
@@ -171,25 +175,7 @@ class ApiService {
     return response.json();
   }
 
-  async getFiles() {
-    const response = await fetch(`${API_BASE_URL}/files/files`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch files');
-    }
 
-    return response.json();
-  }
-
-  async getStats() {
-    const response = await fetch(`${API_BASE_URL}/files/stats`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch stats');
-    }
-
-    return response.json();
-  }
 
   async downloadOriginalFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/original/${fileId}`);
@@ -287,6 +273,16 @@ class ApiService {
     return response.json();
   }
 
+  async getCompaniesByLform(lform) {
+    const response = await fetch(`${API_BASE_URL}/peers/companies-by-lform?lform=${encodeURIComponent(lform)}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch companies by L-Form');
+    }
+
+    return response.json();
+  }
+
   async generateLformReport(filters) {
     const response = await fetch(`${API_BASE_URL}/files/generate-lform-report`, {
       method: 'POST',
@@ -304,22 +300,7 @@ class ApiService {
     return response.json();
   }
 
-  // User-specific history management methods
-  async getUserExtractionHistory(userId) {
-    const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      // Don't throw error for missing history, just return empty array
-      return [];
-    }
-
-    return response.json();
-  }
+ 
 
   async saveUserExtractionHistory(userId, extractionData) {
     const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
@@ -837,33 +818,7 @@ class ApiService {
 
   // === UPLOAD HISTORY METHODS ===
   
-  // Get upload history
-  async getUploadHistory(userId = null) {
-    // Get user from localStorage if not provided
-    if (!userId) {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        userId = user.id || user.user_id || 'default_user';
-      } else {
-        userId = 'default_user';
-      }
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/extraction/upload-history/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      // Return empty array if no history found
-      return [];
-    }
-
-    return response.json();
-  }
+ 
 
   // Save upload to history
   async saveToUploadHistory(uploadData, userId = null) {
@@ -903,6 +858,88 @@ class ApiService {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get companies from L-Forms API
+  async getLformCompanies() {
+    const response = await fetch(`${API_BASE_URL}/lforms/companies`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get forms for a specific company from L-Forms API
+  async getLformForms(company) {
+    const response = await fetch(`${API_BASE_URL}/lforms/forms?company=${encodeURIComponent(company)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get periods for a specific company and form from L-Forms API
+  async getLformPeriods(company, formNo) {
+    const response = await fetch(`${API_BASE_URL}/lforms/periods?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report types for a specific company, form, and period from L-Forms API
+  async getLformReportTypes(company, formNo, period) {
+    const response = await fetch(`${API_BASE_URL}/lforms/reporttypes?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report data for a specific company, form, period, and optional report type from L-Forms API
+  async getLformData(company, formNo, period, reportType = null) {
+    let url = `${API_BASE_URL}/lforms/data?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`;
+    if (reportType) {
+      url += `&report_type=${encodeURIComponent(reportType)}`;
+    }
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      // Handle specific error cases
+      if (response.status === 404) {
+        // Return empty array for 404 instead of throwing error
+        // This is not really an error - just no data available
+        return [];
+      } else if (response.status === 500) {
+        throw new Error('Server error. Please check the data format.');
+      } else {
+        throw new Error(errorMessage);
+      }
     }
 
     return response.json();
@@ -982,7 +1019,9 @@ async updateCompany(companyId, updatedName) {
 
   // Get template API base URL
   getTemplateApiBase() {
-    return 'http://localhost:8000/templates';
+    // Use API_BASE_URL but replace /api with /templates
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    return `${baseUrl}/templates`;
   }
 
   // PDF Splitter API methods
@@ -1084,6 +1123,182 @@ async updateCompany(companyId, updatedName) {
 
     return response.json();
   }
+
+  // =====================
+  // ECONOMY APIs
+  // =====================
+  // 1️⃣ Get Premium Types
+ getPremiumTypes = async (dataType) => {
+  const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
+  return response.data;
+};
+
+// 2️⃣ Get Categories
+ getCategories = async (dataType, premiumType) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/categories?data_type=${dataType}&premium=${premiumType}`
+  );
+  return response.data;
+};
+
+// 3️⃣ Get Economy Data
+ getEconomyData = async (dataType, premiumType, category) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+  );
+  return response.data;
+};
+
+
+// 4️⃣ Create New Economy Data
+createEconomyData = async (payload) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
+  return response.data;
+};
+
+// 5️⃣ Update Existing Record by ID
+updateEconomyData = async (id, payload) => {
+  const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
+  return response.data;
+};
+
+// 6️⃣ Delete Record by ID
+deleteEconomyData = async (id) => {
+  const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
+  return response.data;
+};
+
+// 7️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+getDashboardData = async (descriptions) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`, 
+    { descriptions: descriptions }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 8️⃣ Get Selected Descriptions (Global for all users)
+getSelectedDescriptions = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+    return response.data.descriptions || [];
+  } catch (error) {
+    console.error('Error fetching selected descriptions:', error);
+    return [];
+  }
+};
+
+// 9️⃣ Update Selected Descriptions (Save globally - admin only)
+updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
+    { 
+      descriptions: descriptions,
+      removed_description: removedDescription
+    }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+
+
+  // =====================
+  // INDUSTRY APIs
+  // =====================
+  // 1️⃣ Get Premium Types
+  getPremiumTypesIndustry = async (dataType) => {
+    const response = await axios.get(`${API_BASE_URL}/industry/premium-types?data_type=${dataType}`);
+    return response.data;
+  };
+  
+  // 2️⃣ Get Categories
+   getCategoriesIndustry = async (dataType, premiumType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/categories?data_type=${dataType}&premium=${premiumType}`
+    );
+    return response.data;
+  };
+  
+  // 3️⃣ Get Industry Data
+   getIndustryDataIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+  
+  
+  // 4️⃣ Create New Industry Data
+  createIndustryDataIndustry = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/add`, payload);
+    return response.data;
+  };
+  
+  // 5️⃣ Update Existing Record by ID
+  updateIndustryDataIndustry = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/industry/update/${id}`, payload);
+    return response.data;
+  };
+  
+  // 6️⃣ Delete Record by ID
+  deleteIndustryDataIndustry = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
+    return response.data;
+  };
+  
+
+
+
+  // =====================
+  // L-FORMS APIs
+  // =====================
+
+  // 1️⃣ Company Dropdown
+  getCompanies = async () => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
+    return res.data;
+  };
+
+  // 2️⃣ Form Dropdown
+  getForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
+
+  // 3️⃣ Period Dropdown
+  getPeriods = async (company, form_no) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
+      params: { company, form_no }
+    });
+    return res.data;
+  };
+
+  // 4️⃣ Report Type Dropdown
+  getReportTypes = async (company, form_no, period) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
+      params: { company, form_no, period }
+    });
+    return res.data;
+  };
+
+  // 5️⃣ Final Table Data
+  getReportData = async (company, form_no, period, report_type = null) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
+      params: { company, form_no, period, report_type }
+    });
+    return res.data;
+  };
 }
 
 export default new ApiService();
+export { API_BASE_URL };

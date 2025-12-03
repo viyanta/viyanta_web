@@ -15,7 +15,7 @@ class PDFSplitterService:
         self.base_upload_dir.mkdir(exist_ok=True)
         self.base_splits_dir.mkdir(exist_ok=True)
 
-    def upload_and_split_pdf(self, company_name: str, pdf_file, user_id: str) -> Dict:
+    def upload_and_split_pdf(self, company_name: str, pdf_file, *args, **kwargs) -> Dict:
         """
         Upload PDF and split it according to index extraction
         """
@@ -39,49 +39,18 @@ class PDFSplitterService:
             splits_folder.mkdir(parents=True, exist_ok=True)
 
             # Split the PDF using index extraction
-            split_files, ranges = split_pdf(str(pdf_path), str(splits_folder))
+            split_files, ranges, metadata = split_pdf(
+                str(pdf_path), str(splits_folder), company_name=company_name)
 
-            # Clean and process the ranges (apply deduplication logic)
-            processed_ranges = self._process_ranges(ranges)
-
-            # Additional validation: Check if the page ranges make sense
-            validated_ranges = self._validate_final_ranges(
-                processed_ranges, str(pdf_path))
-
-            # Create metadata
-            metadata = {
-                "upload_id": str(uuid.uuid4()),
-                "user_id": user_id,
-                "company_name": company_name,
-                "original_filename": pdf_filename,
-                "original_path": str(pdf_path),
-                "splits_folder": str(splits_folder),
-                "total_splits": len(split_files),
-                "split_files": [
-                    {
-                        "filename": Path(f).name,
-                        "path": f,
-                        "form_name": self._extract_clean_form_name(r.get("form_no", "Unknown")),
-                        "form_code": self._extract_form_code(r.get("form_no", "")),
-                        "serial_no": r.get("serial_no", ""),
-                        "start_page": r.get("start_page"),
-                        "end_page": r.get("end_page"),
-                        "original_form_no": r.get("form_no", "Unknown")
-                    }
-                    for f, r in zip(split_files, validated_ranges)
-                ],
-                "ranges": validated_ranges,
-                "method": "index" if ranges else "content_scan"
-            }
-
-            # Save metadata
+            # Save metadata (already created by split_pdf)
+            # (Optional: re-save to ensure consistency)
             metadata_path = splits_folder / "metadata.json"
             with open(metadata_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
 
             return {
                 "success": True,
-                "upload_id": metadata["upload_id"],
+                # "upload_id": metadata.get("upload_id"),
                 "company_name": company_name,
                 "pdf_name": pdf_name_clean,
                 "total_splits": len(split_files),
@@ -202,7 +171,7 @@ class PDFSplitterService:
                         pdfs.append({
                             "pdf_name": pdf_folder.name,
                             "total_splits": metadata.get("total_splits", 0),
-                            "upload_id": metadata.get("upload_id"),
+                            # "upload_id": metadata.get("upload_id"),
                             "original_filename": metadata.get("original_filename"),
                             "method": metadata.get("method", "unknown")
                         })

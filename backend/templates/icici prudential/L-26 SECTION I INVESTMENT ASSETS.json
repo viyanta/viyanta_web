@@ -1,0 +1,254 @@
+{
+  "Form No": "L-26",
+  "Title": "INVESTMENT ASSETS (LIFE INSURERS)-3A",
+  "SubTitle": "Investment Assets (Life Insurers) - Business within India",
+  "Company": "ICICI Prudential Life Insurance Company Limited",
+  "Regn_No": "105",
+  "Date": "As at {QUARTER_END_DATE}",
+  "Currency": "₹ Lakhs",
+  "Table_1_Application_of_Funds": {
+    "Title": "Application of Funds as per Balance Sheet (A)",
+    "Headers": {
+      "No": [
+        "No"
+      ],
+      "Particulars": [
+        "PARTICULARS"
+      ],
+      "Schedule_Ref": [
+        "SCH"
+      ],
+      "Amount": [
+        "Amount"
+      ]
+    },
+    "FlatHeaders": [
+      "No",
+      "Particulars",
+      "Schedule_Ref",
+      "Amount"
+    ],
+    "Rows": []
+  },
+  "Table_2_Less_Other_Assets": {
+    "Headers": {
+      "Less_Other_Assets": [
+        "Less: Other Assets (B)"
+      ],
+      "Schedule_Ref": [
+        "SCH"
+      ],
+      "Amount": [
+        "Amount"
+      ]
+    },
+    "FlatHeaders": [
+      "Less_Other_Assets",
+      "Schedule_Ref",
+      "Amount"
+    ],
+    "Rows": []
+  },
+  "Section_II": {
+    "Title": "Section II NON - LINKED BUSINESS",
+    "A_LIFE_FUND": {
+      "Headers": {
+        "Life_Fund": [
+          "A. LIFE FUND"
+        ],
+        "Percentage_as_per_Regulation": [
+          "% as per Reg"
+        ],
+        "SH": {
+          "Balance": [
+            "Balance",
+            "(a)"
+          ],
+          "FRSM_Plus": [
+            "FRSM+",
+            "(b)"
+          ]
+        },
+        "PH": {
+          "UL_Non_Unit_Res": [
+            "UL-Non Unit Res",
+            "(c)"
+          ],
+          "PAR": [
+            "PAR",
+            "(d)"
+          ],
+          "NON_PAR": [
+            "NON PAR",
+            "(e)"
+          ]
+        },
+        "Book_Value_SH_PH": [
+          "Book Value",
+          "(SH+PH)",
+          "(f) = [a+b+c+d+e]"
+        ],
+        "Actual_Percentage": [
+          "Actual %",
+          "(g) = [(f) - (a)]%"
+        ],
+        "FVC_Amount": [
+          "FVC Amount",
+          "(h)"
+        ],
+        "Total_Fund": [
+          "Total Fund",
+          "(i)=(f+h)"
+        ],
+        "Market_Value": [
+          "Market Value",
+          "(j)"
+        ]
+      },
+      "FlatHeaders": [
+        "Life_Fund",
+        "Percentage_as_per_Regulation",
+        "SH_Balance",
+        "SH_FRSM_Plus",
+        "PH_UL_Non_Unit_Res",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Book_Value_SH_PH",
+        "Actual_Percentage",
+        "FVC_Amount",
+        "Total_Fund",
+        "Market_Value"
+      ],
+      "Rows": []
+    },
+    "B_PENSION_GENERAL_ANNUITY_GROUP_BUSINESS": {
+      "Headers": {
+        "Pension_General_Annuity_Group_Business": [
+          "B. PENSION & GENERAL ANNUITY AND GROUP BUSINESS"
+        ],
+        "Percentage_as_per_Regulation": [
+          "% as per Reg"
+        ],
+        "PH": {
+          "PAR": [
+            "PAR",
+            "(a)"
+          ],
+          "NON_PAR": [
+            "NON PAR",
+            "(b)"
+          ]
+        },
+        "Book_Value": [
+          "Book Value",
+          "(c)= (a+b)"
+        ],
+        "Actual_Percentage": [
+          "Actual %",
+          "(d)"
+        ],
+        "FVC_Amount": [
+          "FVC Amount",
+          "(e)"
+        ],
+        "Total_Fund": [
+          "Total Fund",
+          "(f)=(c+e)"
+        ],
+        "Market_Value": [
+          "Market Value",
+          "(g)"
+        ]
+      },
+      "FlatHeaders": [
+        "Pension_General_Annuity_Group_Business",
+        "Percentage_as_per_Regulation",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Book_Value",
+        "Actual_Percentage",
+        "FVC_Amount",
+        "Total_Fund",
+        "Market_Value"
+      ],
+      "Rows": []
+    },
+    "C_LINKED_FUNDS": {
+      "Headers": {
+        "Linked_Funds": [
+          "C. LINKED FUNDS"
+        ],
+        "Percentage_as_per_Regulation": [
+          "% as per Reg"
+        ],
+        "PH": {
+          "PAR": [
+            "PAR",
+            "(a)"
+          ],
+          "NON_PAR": [
+            "NON PAR",
+            "(b)"
+          ]
+        },
+        "Total_Fund": [
+          "Total Fund",
+          "(c)= (a+b)"
+        ],
+        "Actual_Percentage": [
+          "Actual %",
+          "(d)"
+        ]
+      },
+      "FlatHeaders": [
+        "Linked_Funds",
+        "Percentage_as_per_Regulation",
+        "PH_PAR",
+        "PH_NON_PAR",
+        "Total_Fund",
+        "Actual_Percentage"
+      ],
+      "Rows": []
+    }
+  },
+  "Headers": {
+    "Particulars": [
+      "Particulars"
+    ],
+    "Current_Quarter": [
+      "For the quarter ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Current_Year_To_Date": [
+      "Up to the period ended",
+      "{QUARTER_END_DATE}"
+    ],
+    "Previous_Quarter": [
+      "For the quarter ended",
+      "{PREVIOUS_QUARTER_END}"
+    ],
+    "Previous_Year_To_Date": [
+      "Up to the period ended",
+      "{PREVIOUS_QUARTER_END}"
+    ]
+  },
+  "FlatHeaders": [
+    "Particulars",
+    "Current_Quarter",
+    "Current_Year_To_Date",
+    "Previous_Quarter",
+    "Previous_Year_To_Date",
+    "col5",
+    "col6",
+    "col7",
+    "col8",
+    "col9",
+    "col10",
+    "col11",
+    "col12",
+    "col13",
+    "col14",
+    "col15"
+  ],
+  "Rows": []
+}
