@@ -1490,15 +1490,21 @@ class ApiService {
   // =====================
 
   // 1️⃣ Company Dropdown
-  getCompaniesForLForms = async () => {
+  ForLForms = async () => {
     const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
     return res.data;
   };
 
+  // 2️⃣ Form Dropdown
+  getFormsLForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
 
-
-  // 2️⃣ Period Dropdown
-  getPeriodsForLForms = async (company, form_no) => {
+  // 3️⃣ Period Dropdown
+  getPeriodsLForms = async (company, form_no) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
       params: { company, form_no }
     });
@@ -1515,7 +1521,7 @@ class ApiService {
   };
 
   // 4️⃣ Report Type Dropdown
-  getReportTypesForLForms = async (company, form_no, period) => {
+  getReportTypesLForms = async (company, form_no, period) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
       params: { company, form_no, period }
     });
@@ -1523,7 +1529,7 @@ class ApiService {
   };
 
   // 5️⃣ Final Table Data
-  getReportDataForLForms = async (company, form_no, period, report_type = null) => {
+  getReportDataLForms = async (company, form_no, period, report_type = null) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
       params: { company, form_no, period, report_type }
     });

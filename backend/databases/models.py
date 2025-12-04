@@ -423,6 +423,17 @@ class IRDAIData(Base):
     quarter_period_ref = relationship("PeriodMaster")
 
 
+class DashboardSelectedDescriptions(Base):
+    """Store global selected descriptions for economy dashboard"""
+    __tablename__ = "dashboard_selected_descriptions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(500), nullable=False, unique=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())
+
+
 class Companies(Base):
     __tablename__ = "companies"
 
