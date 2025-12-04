@@ -23,6 +23,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
   const [viewMode, setViewMode] = useState('visuals'); // 'data' or 'visuals'
   const [dashboardData, setDashboardData] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [selectedPremium, setSelectedPremium] = useState(''); // Filter: Premium only
+  const [selectedCategory, setSelectedCategory] = useState(''); // Filter: Category (depends on Premium)
   const [chartOptions, setChartOptions] = useState({
     0: 'country', // Chart 1 option
     1: 'country', // Chart 2 option
@@ -211,17 +213,73 @@ const EconomyDashboard = ({ onMenuClick }) => {
     return categoryPremiumColorMap.get(key) || { bg: '#ffffff', border: '#e5e7eb' };
   };
 
-  // Transform data into pivot table format grouped by PeriodType
+  // Get unique Premium types for dropdown filter
+  const premiumOptions = useMemo(() => {
+    if (!dashboardData || dashboardData.length === 0) {
+      return [];
+    }
+
+    const premiums = new Set();
+    dashboardData.forEach(item => {
+      if (item && item.PremiumTypeLongName) {
+        premiums.add(item.PremiumTypeLongName);
+      }
+    });
+
+    return Array.from(premiums).sort();
+  }, [dashboardData]);
+
+  // Get unique Category types filtered by selected Premium
+  const categoryOptions = useMemo(() => {
+    if (!dashboardData || dashboardData.length === 0) {
+      return [];
+    }
+
+    // If no premium is selected, return empty array (category dropdown should be disabled)
+    if (!selectedPremium) {
+      return [];
+    }
+
+    const categories = new Set();
+    dashboardData.forEach(item => {
+      if (item && 
+          item.PremiumTypeLongName === selectedPremium && 
+          item.CategoryLongName) {
+        categories.add(item.CategoryLongName);
+      }
+    });
+
+    return Array.from(categories).sort();
+  }, [dashboardData, selectedPremium]);
+
+  // Reset category when premium changes
+  useEffect(() => {
+    setSelectedCategory('');
+  }, [selectedPremium]);
+
+  // Transform data into pivot table format grouped by PeriodType, filtered by selected Premium
   const pivotTableData = useMemo(() => {
     try {
       if (!dashboardData || dashboardData.length === 0) {
         return {};
       }
 
+      // Filter by selected Premium and Category - Both are required to show data
+      let filteredData = [];
+      if (selectedPremium && selectedCategory) {
+        // Filter by both Premium and Category
+        filteredData = dashboardData.filter(item => 
+          item && 
+          item.PremiumTypeLongName === selectedPremium &&
+          item.CategoryLongName === selectedCategory
+        );
+      }
+      // If Premium or Category is not selected, return empty array (no data displayed)
+
       // Group by ProcessedPeriodType
       const groupedByPeriodType = {};
       
-      dashboardData.forEach(item => {
+      filteredData.forEach(item => {
         if (!item) return;
         const periodType = item.ProcessedPeriodType || 'Other';
         if (!groupedByPeriodType[periodType]) {
@@ -284,7 +342,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
       console.error('Error creating pivot table data:', error);
       return {};
     }
-  }, [dashboardData]);
+  }, [dashboardData, selectedPremium, selectedCategory]);
 
   // Handle description deselection with API call (admin only)
   const handleDescriptionDeselect = async (description) => {
@@ -414,8 +472,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
               </div>
             </div>
 
-            {/* Selected Descriptions Display */}
-            {selectedDescriptions.length > 0 && (
+            {/* Selected Descriptions Display - Only for Admin */}
+            {isAdmin && selectedDescriptions.length > 0 && (
               <div style={{
                 marginBottom: '24px',
                 padding: '0',
@@ -426,7 +484,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                 overflow: 'hidden'
               }}>
                 {/* Header Section */}
-                <div style={{
+                <div className="selected-descriptions-header" style={{
                   background: 'linear-gradient(135deg, #3F72AF 0%, #5a8fc7 100%)',
                   padding: '20px 24px',
                   color: '#ffffff'
@@ -439,7 +497,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                     gap: '12px'
                 }}>
                   <div>
-                    <h3 style={{
+                    <h3 className="selected-descriptions-title" style={{
                       margin: 0,
                         fontSize: '18px',
                         fontWeight: 700,
@@ -449,7 +507,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                     }}>
                       Selected Descriptions for Dashboard
                     </h3>
-                    <p style={{
+                    <p className="selected-descriptions-subtitle" style={{
                       margin: 0,
                       fontSize: '13px',
                         color: 'rgba(255, 255, 255, 0.9)',
@@ -458,7 +516,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                         {selectedDescriptions.length} of 4 selected. {isAdmin ? 'Click on a card to remove.' : 'Only admin can modify selections.'}
                     </p>
                   </div>
-                  <div style={{
+                  <div className="selected-descriptions-count" style={{
                       padding: '8px 16px',
                       backgroundColor: 'rgba(255, 255, 255, 0.2)',
                       backdropFilter: 'blur(10px)',
@@ -477,10 +535,10 @@ const EconomyDashboard = ({ onMenuClick }) => {
                 </div>
                 
                 {/* Cards Container */}
-                <div style={{
+                <div className="selected-descriptions-cards" style={{
                   padding: '20px 24px',
                   display: 'grid',
-                  gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '16px',
                   backgroundColor: '#f9fafb'
                 }}>
@@ -539,13 +597,14 @@ const EconomyDashboard = ({ onMenuClick }) => {
                         )}
                         
                         {/* Description Title */}
-                            <div style={{
+                            <div className="description-card-title" style={{
                               fontWeight: 600,
                               color: '#111827',
                           lineHeight: '1.5',
                           fontSize: '15px',
                           paddingRight: isAdmin ? '80px' : '0',
-                          marginTop: '4px'
+                          marginTop: '4px',
+                          wordBreak: 'break-word'
                             }}>
                               {item.description}
                             </div>
@@ -1062,8 +1121,163 @@ const EconomyDashboard = ({ onMenuClick }) => {
               </div>
               ) : (
               // Data Table View - Pivot Format
-              !loadingData && selectedDescriptions && selectedDescriptions.length > 0 && dashboardData.length > 0 && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+              !loadingData && selectedDescriptions && selectedDescriptions.length > 0 && dashboardData.length > 0 ? (
                 <div className="pivot-tables-container">
+                  {/* Premium Filter Dropdown */}
+                  <div className="premium-filter" style={{
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    flexWrap: 'wrap'
+                  }}>
+                    <label className="filter-label" style={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      minWidth: isMobile ? '100%' : '200px',
+                      flex: isMobile ? '1 1 100%' : '0 0 auto'
+                    }}>
+                      Filter by Premium:
+                    </label>
+                    <select
+                      className="filter-select-dropdown"
+                      value={selectedPremium}
+                      onChange={(e) => setSelectedPremium(e.target.value)}
+                      style={{
+                        flex: isMobile ? '1 1 100%' : '1',
+                        maxWidth: isMobile ? '100%' : '400px',
+                        padding: '10px 12px',
+                        fontSize: '14px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        backgroundColor: '#ffffff',
+                        color: '#111827',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#3F72AF'}
+                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                    >
+                      <option value="">All Premiums</option>
+                      {premiumOptions.map((option, index) => (
+                        <option key={index} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedPremium && (
+                      <button
+                        className="clear-filter-btn"
+                        onClick={() => setSelectedPremium('')}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '13px',
+                          backgroundColor: '#ef4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                          transition: 'all 0.2s',
+                          flex: isMobile ? '1 1 100%' : '0 0 auto',
+                          whiteSpace: 'nowrap'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+                      >
+                        Clear Filter
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Category Filter Dropdown - Only enabled when Premium is selected */}
+                  <div className="category-filter" style={{
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    flexWrap: 'wrap',
+                    opacity: selectedPremium ? 1 : 0.6
+                  }}>
+                    <label className="filter-label" style={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      minWidth: isMobile ? '100%' : '200px',
+                      flex: isMobile ? '1 1 100%' : '0 0 auto'
+                    }}>
+                      Filter by Category:
+                    </label>
+                    <select
+                      className="filter-select-dropdown"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      disabled={!selectedPremium}
+                      style={{
+                        flex: isMobile ? '1 1 100%' : '1',
+                        maxWidth: isMobile ? '100%' : '400px',
+                        padding: '10px 12px',
+                        fontSize: '14px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        backgroundColor: selectedPremium ? '#ffffff' : '#f3f4f6',
+                        color: selectedPremium ? '#111827' : '#9ca3af',
+                        cursor: selectedPremium ? 'pointer' : 'not-allowed',
+                        outline: 'none',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        if (selectedPremium) {
+                          e.target.style.borderColor = '#3F72AF';
+                        }
+                      }}
+                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                    >
+                      <option value="">All Categories</option>
+                      {categoryOptions.map((option, index) => (
+                        <option key={index} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedCategory && (
+                      <button
+                        className="clear-filter-btn"
+                        onClick={() => setSelectedCategory('')}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '13px',
+                          backgroundColor: '#ef4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                          transition: 'all 0.2s',
+                          flex: isMobile ? '1 1 100%' : '0 0 auto',
+                          whiteSpace: 'nowrap'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+                      >
+                        Clear Filter
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Data Tables - Only show when data exists */}
+                  {pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+                    <>
                   {Object.keys(pivotTableData).sort().map(periodType => {
                     const periodData = pivotTableData[periodType];
                     if (!periodData) return null;
@@ -1075,8 +1289,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
                     }
 
                     return (
-                      <div key={periodType} style={{ marginBottom: '40px' }}>
-                        <h3 style={{ 
+                      <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
+                        <h3 className="period-type-title" style={{ 
                           marginBottom: '16px', 
                           fontSize: '18px', 
                           fontWeight: '600', 
@@ -1086,18 +1300,35 @@ const EconomyDashboard = ({ onMenuClick }) => {
                         }}>
                           {periodType} Data
                         </h3>
-                        <div className="data-table-container" style={{ overflowX: 'auto' }}>
+                        <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                           <table className="data-table pivot-table">
                   <thead>
                     <tr>
-                                <th style={{ position: 'sticky', left: 0, backgroundColor: '#3F72AF', zIndex: 10, minWidth: '300px' }}>
+                                <th className="pivot-table-header-desc" style={{ 
+                                  position: 'sticky', 
+                                  left: 0, 
+                                  backgroundColor: '#3F72AF', 
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '200px' : '300px', 
+                                  textAlign: 'center'
+                                }}>
                                   Description
                                 </th>
-                                <th style={{ position: 'sticky', left: '300px', backgroundColor: '#3F72AF', zIndex: 10, minWidth: '80px' }}>
+                                <th className="pivot-table-header-unit" style={{ 
+                                  position: 'sticky', 
+                                  left: isMobile ? '200px' : '300px', 
+                                  backgroundColor: '#3F72AF', 
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '60px' : '80px', 
+                                  textAlign: 'center'
+                                }}>
                                   Unit
                                 </th>
                                 {periods.map(period => (
-                                  <th key={period} style={{ minWidth: '100px', textAlign: 'center' }}>
+                                  <th key={period} className="pivot-table-header-period" style={{ 
+                                    minWidth: isMobile ? '80px' : '100px', 
+                                    textAlign: 'center'
+                                  }}>
                                     {period}
                                   </th>
                                 ))}
@@ -1107,66 +1338,52 @@ const EconomyDashboard = ({ onMenuClick }) => {
                               {descriptions.map((desc, descIndex) => {
                                 const metadata = descriptionMetadata[desc] || { category: 'N/A', premiumType: 'N/A' };
                                 const rowColor = getCategoryPremiumColor(metadata.category, metadata.premiumType);
+                                
                                 return (
                                 <tr key={descIndex} style={{
                                   backgroundColor: rowColor.bg,
                                   borderBottom: `2px solid ${rowColor.border}`
                                 }}>
-                                  <td style={{ 
+                                  <td className="pivot-table-cell-desc" style={{ 
                                     position: 'sticky', 
                                     left: 0, 
                                     backgroundColor: rowColor.bg, 
                                     zIndex: 5,
                                     padding: '12px',
                                     borderRight: `2px solid ${rowColor.border}`,
-                                    minWidth: '300px'
+                                    minWidth: isMobile ? '200px' : '300px'
                                   }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                      <div style={{ 
-                                        fontSize: '11px', 
-                                        color: '#6b7280', 
-                                        fontWeight: '500',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '2px'
-                                      }}>
-                                        <span style={{ color: '#3F72AF' }}>
-                                          <strong>Category:</strong> {metadata.category}
-                                        </span>
-                                        <span style={{ color: '#059669' }}>
-                                          <strong>Premium:</strong> {metadata.premiumType}
-                                        </span>
-                                      </div>
-                                      <div style={{ 
-                                        fontSize: '14px', 
-                                        fontWeight: '600', 
-                                        color: '#111827',
-                                        marginTop: '4px',
-                                        paddingTop: '4px',
-                                        borderTop: '1px solid #e5e7eb'
-                                      }}>
-                                        {desc}
-                                      </div>
+                                    <div style={{ 
+                                      fontSize: '14px', 
+                                      fontWeight: '600', 
+                                      color: '#111827',
+                                      wordBreak: 'break-word',
+                                      lineHeight: '1.4'
+                                    }}>
+                                      {desc} - <span style={{ color: '#1e40af', fontWeight: '600' }}>{metadata.premiumType || 'N/A'}</span> - <span style={{ color: '#059669', fontWeight: '600' }}>{metadata.category || 'N/A'}</span>
                                     </div>
                                   </td>
-                                  <td style={{ 
+                                  <td className="pivot-table-cell-unit" style={{ 
                                     position: 'sticky', 
-                                    left: '300px', 
+                                    left: isMobile ? '200px' : '300px', 
                                     backgroundColor: rowColor.bg, 
                                     zIndex: 5,
                                     padding: '12px',
                                     borderRight: `2px solid ${rowColor.border}`,
                                     fontSize: '12px',
-                                    color: '#6b7280'
+                                    color: '#6b7280',
+                                    whiteSpace: 'nowrap'
                                   }}>
                                     {units[desc] || '-'}
                                   </td>
                                   {periods.map(period => (
-                                    <td key={period} style={{ 
-                                      textAlign: 'center', 
+                                    <td key={period} className="pivot-table-cell-data" style={{ 
+                                      textAlign: 'right', 
                                       padding: '12px',
                                       borderRight: '1px solid #e5e7eb',
-                                      backgroundColor: rowColor.bg
+                                      backgroundColor: rowColor.bg,
+                                      fontSize: '13px',
+                                      whiteSpace: 'nowrap'
                                     }}>
                                       {pivot[desc] && pivot[desc][period] !== undefined 
                                         ? pivot[desc][period] 
@@ -1182,12 +1399,22 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       </div>
                     );
                   })}
+                    </>
+                  ) : (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                      {!selectedPremium
+                        ? 'Please select a Premium to view data'
+                        : !selectedCategory
+                        ? 'Please select a Category to view data'
+                        : 'No data found for selected filters'}
+                    </div>
+                  )}
               </div>
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
                   {selectedDescriptions.length === 0 
                     ? 'Please select up to 4 descriptions to view data' 
-                    : 'No data found for selected descriptions'}
+                    : 'No data available'}
                 </div>
               )
               )}

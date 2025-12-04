@@ -11,6 +11,11 @@ from routes.economy import router as economy_router
 from routes.indusrty import router as indusrty_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
+# Import models to ensure tables are created
+from databases.models import (
+    Company, Report, ReportData, EconomyMaster, 
+    DashboardSelectedDescriptions, User, IndustryMaster
+)
 
 
 from routes import company
@@ -69,6 +74,13 @@ app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
 app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
+
+# Log registered routes for debugging
+print("✅ Economy router registered with prefix: /api/economy")
+print("   Available endpoints:")
+print("   - GET  /api/economy/health")
+print("   - GET  /api/economy/selected-descriptions")
+print("   - POST /api/economy/update-selected-descriptions")
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
