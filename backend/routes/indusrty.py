@@ -4,7 +4,7 @@ from sqlalchemy import text
 from databases.models import IndustryMaster
 from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 # Pydantic models for create and update
 
@@ -19,6 +19,7 @@ class IndustryCreate(BaseModel):
     Description: Optional[str] = None
     ReportedUnit: Optional[str] = None
     ReportedValue: Optional[str] = None
+    IsActive: Optional[bool] = True
 
 
 class IndustryUpdate(BaseModel):
@@ -31,6 +32,7 @@ class IndustryUpdate(BaseModel):
     Description: Optional[str] = None
     ReportedUnit: Optional[str] = None
     ReportedValue: Optional[str] = None
+    IsActive: Optional[bool] = None
 
 
 router = APIRouter()
@@ -130,3 +132,31 @@ async def delete_industry_row(id: int, db=Depends(get_db)):
     db.commit()
 
     return {"message": f"Record ID {id} deleted successfully!"}
+
+
+class DashboardDataRequest(BaseModel):
+    descriptions: List[str]
+
+
+@router.post("/dashboard-data")
+def get_dashboard_data(request: DashboardDataRequest, db=Depends(get_db)):
+    """Get all data for selected descriptions in a single query"""
+    descriptions = request.descriptions
+    if not descriptions or len(descriptions) == 0:
+        return []
+    
+    # Create placeholders for IN clause
+    placeholders = ','.join([f':desc{i}' for i in range(len(descriptions))])
+    params = {f'desc{i}': desc for i, desc in enumerate(descriptions)}
+    
+    query = text(f"""
+        SELECT *
+        FROM industry_master
+        WHERE Description IN ({placeholders})
+        AND IsActive = 1
+        ORDER BY DataType, PremiumTypeLongName, CategoryLongName, ProcessedFYYear;
+    """)
+    
+    result = db.execute(query, params)
+    columns = result.keys()
+    return [dict(zip(columns, row)) for row in result.fetchall()]

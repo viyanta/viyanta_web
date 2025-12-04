@@ -1,13 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api';
 import './IndustryMetricsDomestic.css';
 
 const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
+  const location = useLocation();
+  const navigationContext = useNavigation();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin || false;
+  const { 
+    isNavItemActive, 
+    activeNavItems, 
+    selectedSidebarItem,
+    selectedDescriptions = [],
+    setSelectedDescriptions
+  } = navigationContext || {};
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedPeriodType, setSelectedPeriodType] = useState('');
@@ -33,7 +44,8 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
     CategoryLongName: '',
     Description: '',
     ReportedUnit: '',
-    ReportedValue: ''
+    ReportedValue: '',
+    IsActive: true
   });
   const [successMessage, setSuccessMessage] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -132,37 +144,130 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   }, [selectedPremiumType]);
 
   // Fetch industry data when both premium type and category are selected
+  const fetchIndustryData = useCallback(async () => {
+    if (!selectedPremiumType || !selectedCategory) {
+      setFilteredData([]);
+      setLoading(false);
+      return;
+    }
+
+    // Prevent duplicate calls only if already fetching
+    if (fetchingDataRef.current) {
+      return;
+    }
+
+    fetchingDataRef.current = true;
+    setLoading(true);
+    setError(null);
+    try {
+      console.log(`🔵 Calling Industry Data API: /api/industry/data?data_type=Domestic&premium=${selectedPremiumType}&category=${selectedCategory}`);
+      const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
+      console.log('✅ Industry data received from API:', data);
+      console.log('📊 Number of records:', data?.length || 0);
+      
+      // Filter data based on admin status:
+      // - Admin: Show all records (active and inactive)
+      // - Non-admin: Only show active records (IsActive === 1 or IsActive === true)
+      let filtered = data || [];
+      if (!isAdmin) {
+        filtered = filtered.filter(row => row.IsActive === 1 || row.IsActive === true);
+        console.log('🔒 Non-admin user: Filtered to active records only. Count:', filtered.length);
+      } else {
+        console.log('👑 Admin user: Showing all records (active and inactive). Count:', filtered.length);
+      }
+      
+      setFilteredData(filtered);
+    } catch (err) {
+      console.error('❌ Error fetching industry data:', err);
+      setError('Failed to load industry data. Please try again.');
+      setFilteredData([]);
+    } finally {
+      setLoading(false);
+      fetchingDataRef.current = false;
+    }
+  }, [selectedPremiumType, selectedCategory, isAdmin]);
+
   useEffect(() => {
-    // Prevent duplicate calls
-    if (fetchingDataRef.current) return;
-    
-    const fetchIndustryData = async () => {
-      if (!selectedPremiumType || !selectedCategory) {
-        setFilteredData([]);
-        return;
-      }
-
-      fetchingDataRef.current = true;
-      setLoading(true);
-      setError(null);
-      try {
-        console.log(`🔵 Calling Industry Data API: /api/industry/data?data_type=Domestic&premium=${selectedPremiumType}&category=${selectedCategory}`);
-        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
-        console.log('✅ Industry data received from API:', data);
-        console.log('📊 Number of records:', data?.length || 0);
-        setFilteredData(data || []);
-      } catch (err) {
-        console.error('❌ Error fetching industry data:', err);
-        setError('Failed to load industry data. Please try again.');
-        setFilteredData([]);
-      } finally {
-        setLoading(false);
-        fetchingDataRef.current = false;
-      }
-    };
-
     fetchIndustryData();
-  }, [selectedPremiumType, selectedCategory]);
+  }, [fetchIndustryData]);
+
+  // Refresh data only when navigating to this page (not on filter changes)
+  useEffect(() => {
+    if (location.pathname.includes('/industry-metrics-domestic')) {
+      // Reset refs to allow fresh fetch
+      fetchingDataRef.current = false;
+      fetchingCategoriesRef.current = false;
+      
+      // Only refresh if both filters are selected and we're on the page
+      if (selectedPremiumType && selectedCategory) {
+        const timer = setTimeout(() => {
+          if (!fetchingDataRef.current) {
+            fetchIndustryData();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Get unique descriptions with their premium type and category
+  const descriptionsWithContext = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return [];
+    
+    const descriptionMap = new Map();
+    filteredData.forEach(item => {
+      const description = item.Description || '';
+      if (description) {
+        if (!descriptionMap.has(description)) {
+          descriptionMap.set(description, {
+            description: description,
+            premiumType: item.PremiumTypeLongName || '',
+            category: item.CategoryLongName || ''
+          });
+        }
+      }
+    });
+    
+    return Array.from(descriptionMap.values());
+  }, [filteredData]);
+
+  // Handle description toggle - Save globally via API (admin only)
+  const handleDescriptionToggle = async (description) => {
+    if (!isAdmin) {
+      return; // Only admin can toggle descriptions
+    }
+
+    const isRemoving = selectedDescriptions.includes(description);
+    const updatedDescriptions = isRemoving
+      ? selectedDescriptions.filter(d => d !== description)
+      : selectedDescriptions.length >= 4
+        ? (alert('You can select maximum 4 descriptions only.'), selectedDescriptions)
+        : [...selectedDescriptions, description];
+
+    // If max limit reached, don't proceed
+    if (updatedDescriptions === selectedDescriptions && !isRemoving) {
+      return;
+    }
+
+    // Update local state first for immediate UI update
+    setSelectedDescriptions(updatedDescriptions);
+
+    // Call API to save globally
+    try {
+      await ApiService.updateSelectedDescriptions(updatedDescriptions, isRemoving ? description : null);
+      console.log(`✅ Description "${description}" ${isRemoving ? 'deselected' : 'selected'} successfully - saved globally`);
+      
+      // Refresh from backend to ensure sync
+      const refreshedDescriptions = await ApiService.getSelectedDescriptions();
+      setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
+    } catch (err) {
+      console.error('Error updating selected descriptions:', err);
+      // Revert on error
+      setSelectedDescriptions(selectedDescriptions);
+      alert('Failed to update selection. Please try again.');
+    }
+  };
 
   const handleAddNew = () => {
     setFormData({
@@ -174,7 +279,8 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       CategoryLongName: '',
       Description: '',
       ReportedUnit: '',
-      ReportedValue: ''
+      ReportedValue: '',
+      IsActive: true
     });
     setEditingRecord(null);
     setShowCustomPremiumType(false);
@@ -197,7 +303,8 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       CategoryLongName: categoryValue,
       Description: record.Description || '',
       ReportedUnit: record.ReportedUnit || '',
-      ReportedValue: record.ReportedValue || ''
+      ReportedValue: record.ReportedValue || '',
+      IsActive: record.IsActive !== undefined ? record.IsActive : true
     });
     
     // Check if the values exist in the dropdowns
@@ -253,26 +360,54 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
     setSuccessMessage(null);
 
     try {
+      // Ensure IsActive is set (default to true for new records)
+      const submitData = {
+        ...formData,
+        IsActive: formData.IsActive !== undefined ? formData.IsActive : true
+      };
+
       if (editingRecord) {
         // Update existing record
-        await ApiService.updateIndustryDataIndustry(editingRecord.id, formData);
+        await ApiService.updateIndustryDataIndustry(editingRecord.id, submitData);
         setSuccessMessage('Record updated successfully!');
       } else {
         // Create new record
-        await ApiService.createIndustryDataIndustry(formData);
+        await ApiService.createIndustryDataIndustry(submitData);
         setSuccessMessage('Record added successfully!');
       }
 
       setShowAddModal(false);
-      // Refresh data
-      if (selectedPremiumType && selectedCategory) {
-        const data = await ApiService.getIndustryDataIndustry('Domestic', selectedPremiumType, selectedCategory);
-        setFilteredData(data || []);
-      }
+      // Refresh data using the callback
+      fetchingDataRef.current = false;
+      await fetchIndustryData();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error saving record:', err);
       setError('Failed to save record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle status toggle (Active/Inactive) - Admin only
+  const handleStatusToggle = async (record) => {
+    if (!isAdmin) return;
+
+    const newStatus = (record.IsActive === 1 || record.IsActive === true) ? 0 : 1;
+    
+    setLoading(true);
+    try {
+      await ApiService.updateIndustryDataIndustry(record.id, {
+        ...record,
+        IsActive: newStatus
+      });
+      
+      // Refresh data
+      fetchingDataRef.current = false;
+      await fetchIndustryData();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      setError('Failed to update status. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -400,39 +535,41 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
             )}
 
             {/* Action Buttons */}
-            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-              <button
-                onClick={handleAddNew}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#36659b',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#2a4d75';
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#36659b';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                }}
-              >
-                <span>➕</span>
-                <span>Add New Record</span>
-              </button>
-            </div>
+            {isAdmin && (
+              <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleAddNew}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#36659b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#2a4d75';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#36659b';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  <span>➕</span>
+                  <span>Add New Record</span>
+                </button>
+              </div>
+            )}
 
             {/* Filter Dropdowns */}
             <div className="filters-section">
@@ -483,6 +620,93 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
 
             </div>
 
+            {/* Description Selection Section - Only visible to Admin */}
+            {isAdmin && selectedPremiumType && selectedCategory && descriptionsWithContext.length > 0 && (
+              <div className="description-selection-container">
+                <div className="description-selection-card">
+                  {/* Header Section */}
+                  <div className="description-selection-header">
+                    <div className="description-selection-header-content">
+                      <div>
+                        <h3 className="description-selection-title">
+                          Select Descriptions
+                        </h3>
+                        <p className="description-selection-subtitle">
+                          Choose up to 4 descriptions to visualize in Dashboard
+                        </p>
+                      </div>
+                      {selectedDescriptions && selectedDescriptions.length > 0 && (
+                        <div className="description-selection-counter">
+                          {selectedDescriptions.length}/4
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Cards Container */}
+                  <div className="description-cards-container">
+                    {descriptionsWithContext.map((item, index) => {
+                      const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
+                      const isDisabled = !isSelected && selectedDescriptions && selectedDescriptions.length >= 4;
+                      
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => !isDisabled && handleDescriptionToggle(item.description)}
+                          className={`description-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                          onMouseEnter={(e) => {
+                            if (!isDisabled && !isMobile) {
+                              e.currentTarget.style.borderColor = '#3F72AF';
+                              e.currentTarget.style.boxShadow = '0 12px 24px rgba(63, 114, 175, 0.2), 0 0 0 4px rgba(63, 114, 175, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(-4px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isDisabled && !isMobile) {
+                              e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
+                              e.currentTarget.style.boxShadow = isSelected 
+                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)' 
+                                : '0 2px 4px rgba(0, 0, 0, 0.06)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          {/* Custom Checkbox */}
+                          <div className="description-checkbox">
+                            <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
+                              {isSelected && (
+                                <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path 
+                                    d="M13.3333 4L6 11.3333L2.66667 8" 
+                                    stroke="white" 
+                                    strokeWidth="2.5" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Description Text */}
+                          <div className="description-text">
+                            <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
+                              {item.description}
+                            </div>
+                          </div>
+                          
+                          {/* Selection Indicator */}
+                          {isSelected && (
+                            <div className="description-indicator" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Data Table or Visuals */}
             {viewMode === 'data' ? (
               <div className="table-container">
@@ -497,13 +721,14 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                       <th>FY Year</th>
                       <th>Reported Unit</th>
                       <th>Reported Value</th>
-                      <th>Actions</th>
+                      {isAdmin && <th>Status</th>}
+                      {isAdmin && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {loading && (
                       <tr>
-                        <td colSpan="8" className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                        <td colSpan={isAdmin ? 10 : 8} className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
                           Loading data...
                         </td>
                       </tr>
@@ -519,77 +744,114 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                           <td>{row.ProcessedFYYear || '-'}</td>
                           <td>{row.ReportedUnit || '-'}</td>
                           <td>{row.ReportedValue || '-'}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                              <button
-                                onClick={() => handleEdit(row)}
-                                style={{
-                                  padding: '6px 12px',
-                                  backgroundColor: '#007bff',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontSize: '13px',
-                                  fontWeight: '500',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  transition: 'all 0.2s ease',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.target.style.backgroundColor = '#0056b3';
-                                  e.target.style.transform = 'translateY(-1px)';
-                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.target.style.backgroundColor = '#007bff';
-                                  e.target.style.transform = 'translateY(0)';
-                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                }}
-                              >
-                                <span>✏️</span>
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                onClick={() => handleDelete(row)}
-                                style={{
-                                  padding: '6px 12px',
-                                  backgroundColor: '#dc3545',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontSize: '13px',
-                                  fontWeight: '500',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  transition: 'all 0.2s ease',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.target.style.backgroundColor = '#c82333';
-                                  e.target.style.transform = 'translateY(-1px)';
-                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.target.style.backgroundColor = '#dc3545';
-                                  e.target.style.transform = 'translateY(0)';
-                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                }}
-                              >
-                                <span>🗑️</span>
-                                <span>Delete</span>
-                              </button>
-                            </div>
-                          </td>
+                          {isAdmin && (
+                            <td>
+                              <label style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                gap: '8px'
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={row.IsActive === 1 || row.IsActive === true}
+                                  onChange={() => handleStatusToggle(row)}
+                                  style={{
+                                    width: '40px',
+                                    height: '20px',
+                                    cursor: 'pointer',
+                                    appearance: 'none',
+                                    backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#28a745' : '#dc3545',
+                                    borderRadius: '10px',
+                                    position: 'relative',
+                                    transition: 'background-color 0.3s',
+                                    outline: 'none'
+                                  }}
+                                />
+                                <span style={{ 
+                                  fontSize: '12px', 
+                                  color: (row.IsActive === 1 || row.IsActive === true) ? '#28a745' : '#dc3545',
+                                  fontWeight: '500'
+                                }}>
+                                  {(row.IsActive === 1 || row.IsActive === true) ? 'Active' : 'Inactive'}
+                                </span>
+                              </label>
+                            </td>
+                          )}
+                          {isAdmin && (
+                            <td>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                <button
+                                  onClick={() => handleEdit(row)}
+                                  style={{
+                                    padding: '6px 12px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = '#0056b3';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = '#007bff';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                  }}
+                                >
+                                  <span>✏️</span>
+                                  <span>Edit</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(row)}
+                                  style={{
+                                    padding: '6px 12px',
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = '#c82333';
+                                    e.target.style.transform = 'translateY(-1px)';
+                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = '#dc3545';
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                  }}
+                                >
+                                  <span>🗑️</span>
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))
                     ) : !loading ? (
                       <tr>
-                        <td colSpan="9" className="no-data">
+                        <td colSpan={isAdmin ? 10 : 8} className="no-data">
                           {selectedPremiumType && selectedCategory 
                             ? 'No data available for the selected criteria.' 
                             : 'Please select Premium Type and Category to view data.'}
@@ -906,6 +1168,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                       setFormData({ ...formData, CategoryLongName: value });
                     }
                   }}
+                  disabled={!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 >
                   <option value="">Select Category...</option>

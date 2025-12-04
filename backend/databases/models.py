@@ -77,6 +77,7 @@ class EconomyMaster(Base):
     Description = Column(String(255), nullable=True)
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(50), nullable=True)
+    IsActive = Column(Boolean, default=True, nullable=False)
 
 
 class User(Base):
@@ -218,6 +219,7 @@ class IndustryMaster(Base):
     Description = Column(String(255), nullable=True)
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(50), nullable=True)
+    IsActive = Column(Boolean, default=True, nullable=False)
 
 
 class Companies(Base):
@@ -225,3 +227,13 @@ class Companies(Base):
 
     companyid = Column(Integer, primary_key=True, autoincrement=True)
     companyname = Column(String(255), unique=True, nullable=False)
+
+
+class DashboardSelectedDescriptions(Base):
+    """Store global selected descriptions for economy dashboard"""
+    __tablename__ = "dashboard_selected_descriptions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(500), nullable=False, unique=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

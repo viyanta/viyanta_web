@@ -25,11 +25,24 @@ export const NavigationProvider = ({ children }) => {
       try {
         setLoadingDescriptions(true);
         const descriptions = await ApiService.getSelectedDescriptions();
-        setSelectedDescriptionsState(Array.isArray(descriptions) ? descriptions : []);
-        console.log('✅ Loaded selected descriptions from backend:', descriptions);
+        const newDescriptions = Array.isArray(descriptions) ? descriptions : [];
+        
+        // Only update state if descriptions actually changed (prevents unnecessary re-renders)
+        setSelectedDescriptionsState(prev => {
+          const prevSorted = [...prev].sort().join(',');
+          const newSorted = [...newDescriptions].sort().join(',');
+          
+          if (prevSorted !== newSorted) {
+            console.log('✅ Selected descriptions updated from backend:', newDescriptions);
+            return newDescriptions;
+          }
+          // No change, return previous state to prevent re-render
+          return prev;
+        });
       } catch (error) {
         console.error('Error loading selected descriptions from backend:', error);
-        setSelectedDescriptionsState([]);
+        // Only set empty array if current state is not already empty
+        setSelectedDescriptionsState(prev => prev.length > 0 ? [] : prev);
       } finally {
         setLoadingDescriptions(false);
       }
@@ -38,8 +51,9 @@ export const NavigationProvider = ({ children }) => {
     // Load immediately
     loadSelectedDescriptions();
 
-    // Refresh every 5 seconds to get updates from admin
-    const refreshInterval = setInterval(loadSelectedDescriptions, 5000);
+    // Refresh every 30 seconds to get updates from admin (reduced from 5 seconds)
+    // Only triggers re-render if descriptions actually changed
+    const refreshInterval = setInterval(loadSelectedDescriptions, 30000);
 
     return () => clearInterval(refreshInterval);
   }, []);

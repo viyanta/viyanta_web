@@ -1253,6 +1253,19 @@ updateSelectedDescriptions = async (descriptions, removedDescription = null) => 
     const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
     return response.data;
   };
+
+  // 7️⃣ Get Industry Dashboard Data
+  getIndustryDashboardData = async (descriptions) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`, 
+      { descriptions: descriptions }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
   
 
 
