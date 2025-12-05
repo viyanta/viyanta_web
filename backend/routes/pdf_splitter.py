@@ -1031,54 +1031,59 @@ async def extract_form_data(
         try:
             from databases.models import Company, ReportModels
             from databases.database import SessionLocal
+            from sqlalchemy.exc import IntegrityError
 
             print(f"[DB] Creating database session...")
             db = SessionLocal()
 
-            # 1. Find or create company
-            print(f"[DB] Looking for company: {company_name}")
-            company_obj = db.query(Company).filter_by(
-                name=company_name).first()
-            if not company_obj:
-                print(f"[DB] Company not found, creating new entry...")
-                company_obj = Company(name=company_name)
-                db.add(company_obj)
-                db.commit()
-                db.refresh(company_obj)
+            try:
+                # 1. Find or create company
+                print(f"[DB] Looking for company: {company_name}")
+                company_obj = db.query(Company).filter_by(
+                    name=company_name).first()
+                if not company_obj:
+                    print(f"[DB] Company not found, creating new entry...")
+                    company_obj = Company(name=company_name)
+                    db.add(company_obj)
+                    db.commit()
+                    db.refresh(company_obj)
+                    print(
+                        f"[DB] ✅ Created company with ID: {company_obj.id}")
+                else:
+                    print(
+                        f"[DB] ✅ Found existing company with ID: {company_obj.id}")
+            except IntegrityError as ie:
                 print(
-                    f"[DB] ✅ Created company with ID: {company_obj.id}")
-            else:
+                    f"⚠️ Company creation integrity error (might already exist): {ie}")
+                db.rollback()
+                # Try to fetch again after rollback
+                company_obj = db.query(Company).filter_by(
+                    name=company_name).first()
+                if not company_obj:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to create or fetch company: {company_name}"
+                    )
+
+            # 2. Group normalized_data by Period and insert separate rows for each unique period
+            print(f"[DB] Grouping data by Period for storage...")
+
+            # Group tables by period
+            period_groups = {}
+            if isinstance(normalized_data, list):
+                for table in normalized_data:
+                    period = table.get("Period", str(datetime.now().date()))
+                    if period not in period_groups:
+                        period_groups[period] = []
+                    period_groups[period].append(table)
+
                 print(
-                    f"[DB] ✅ Found existing company with ID: {company_obj.id}")
+                    f"[DB] Found {len(period_groups)} unique periods: {list(period_groups.keys())}")
 
-            # 2. Insert into Report
-            report_period = None
-            currency = None
-            registration_number = None
-            title = None
-            pages_used = None
-            flat_headers = None
-            data_rows = None
-
-            print(f"[DB] Extracting metadata from normalized_data...")
-            if isinstance(normalized_data, list) and len(normalized_data) > 0:
-                first_row = normalized_data[0]
-                report_period = first_row.get("Period")
-                currency = first_row.get("Currency")
-                registration_number = first_row.get("RegistrationNumber")
-                title = first_row.get("Title")
-                pages_used = first_row.get("PagesUsed")
-                flat_headers = first_row.get("FlatHeaders")
-                data_rows = first_row.get("Rows")
-                print(
-                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
-
-            if not report_period:
-                report_period = str(datetime.now().date())
-                print(
-                    f"[DB] No period found, using current date: {report_period}")
-
-            print(f"[DB] Creating Report entry...")
+            # If no data, create a single default entry
+            if not period_groups:
+                period_groups[str(datetime.now().date())] = []
+                print(f"[DB] No data found, using current date as period")
 
             # 1️⃣ Resolve company DB record for foreign key
             company_obj = db.query(Company).filter_by(
@@ -1109,28 +1114,230 @@ async def extract_form_data(
             else:
                 report_type = "Standalone"  # Optional fallback
 
-            # 3️⃣ Insert into correct dynamic table
-            report_obj = report_model(
-                company=company_name,
-                company_id=company_obj.id,
-                ReportType=report_type,
-                pdf_name=pdf_name,
-                registration_number=registration_number,
-                form_no=form_code,
-                title=title,
-                period=str(report_period),
-                currency=currency,
-                pages_used=pages_used,
-                source_pdf=split_filename,
-                flat_headers=flat_headers,
-                data_rows=data_rows
-            )
+            # 3️⃣ Insert one row per unique period
+            report_objects = []
+            for report_period, tables_for_period in period_groups.items():
+                print(
+                    f"[DB] Creating Report entry for period: {report_period}")
 
-            db.add(report_obj)
-            db.commit()
-            db.refresh(report_obj)
+                # Combine all rows from tables with same period
+                combined_rows = []
+                currency = None
+                registration_number = None
+                title = None
+                pages_used = None
+                flat_headers = None
 
-            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+                for table in tables_for_period:
+                    # Extract metadata from first table in this period group
+                    if not currency:
+                        currency = table.get("Currency")
+                        registration_number = table.get("RegistrationNumber")
+                        title = table.get("Title")
+                        pages_used = table.get("PagesUsed")
+                        flat_headers = table.get("FlatHeaders")
+
+                    # Combine all rows
+                    table_rows = table.get("Rows", [])
+                    combined_rows.extend(table_rows)
+
+                print(
+                    f"[DB] Combined {len(combined_rows)} rows for period: {report_period}")
+
+                try:
+                    report_obj = report_model(
+                        company=company_name,
+                        company_id=company_obj.id,
+                        ReportType=report_type,
+                        pdf_name=pdf_name,
+                        registration_number=registration_number,
+                        form_no=form_code,
+                        title=title,
+                        period=str(report_period),
+                        currency=currency,
+                        pages_used=pages_used,
+                        source_pdf=split_filename,
+                        flat_headers=flat_headers,
+                        data_rows=combined_rows
+                    )
+
+                    db.add(report_obj)
+                    db.commit()
+                    db.refresh(report_obj)
+                    report_objects.append(report_obj)
+
+                    print(
+                        f"[DB] ✅ Created Report with ID: {report_obj.id} for period: {report_period}")
+                except IntegrityError as ie:
+                    print(
+                        f"⚠️ Period Master or Report integrity error for period '{report_period}': {ie}")
+                    db.rollback()
+                    
+                    # Important: After rollback, start a new transaction by querying
+                    # This clears the session state
+                    try:
+                        # Try to find existing report instead
+                        existing_report = db.query(report_model).filter_by(
+                            company_id=company_obj.id,
+                            form_no=form_code,
+                            period=str(report_period),
+                            source_pdf=split_filename
+                        ).first()
+
+                        if existing_report:
+                            print(
+                                f"[DB] ℹ️ Found existing report with ID: {existing_report.id}, updating data...")
+                            # Update existing report
+                            existing_report.data_rows = combined_rows
+                            existing_report.flat_headers = flat_headers
+                            existing_report.pages_used = pages_used
+                            db.commit()
+                            db.refresh(existing_report)
+                            report_objects.append(existing_report)
+                            print(
+                                f"[DB] ✅ Updated existing Report ID: {existing_report.id}")
+                        else:
+                            print(
+                                f"[DB] ❌ Could not create or find report for period: {report_period}")
+                            continue
+                    except Exception as query_err:
+                        print(f"[DB] ❌ Error querying existing report after rollback: {query_err}")
+                        # If we still can't query, the period might be the issue
+                        # Log it and continue to next period
+                        print(f"[DB] ⚠️ Skipping period '{report_period}' due to persistent errors")
+                        continue
+
+            print(
+                f"[DB] ✅ Total {len(report_objects)} Report rows created (one per unique period)")
+            # -------------------------------------------------------
+            #  EXTRA INSERTION INTO L-FORM TABLE (reports_l1 / l2 / etc.)
+            # -------------------------------------------------------
+            try:
+
+                def normalize_lform_key(form_code: str) -> str:
+                    fc = form_code.upper().strip()
+
+                    # Special cases first
+                    special_forms = {
+                        r'L[-\s]?6A.*': "l6a",
+                        r'L[-\s]?9A.*': "l9a",
+                        r'L[-\s]?14A.*': "l14a",
+                        r'L[-\s]?25\(I\).*': "l25_i",
+                        r'L[-\s]?25\(II\).*': "l25_ii",
+                    }
+                    for pattern, key in special_forms.items():
+                        if re.match(pattern, fc, re.IGNORECASE):
+                            return key.lower()
+
+                    # General fallback (L-1, L-8A, L-10B etc)
+                    match = re.match(r"L[-\s]?(\d+[A-Z]?)", fc, re.IGNORECASE)
+                    if match:
+                        base = match.group(1).lower()
+                        return f"l{base}"
+
+                    # no match = return as-is
+                    return fc.lower()
+
+                # ------------------------------------------------------------------
+                # INSERT THIS right before report_model lookup
+                # ------------------------------------------------------------------
+                # Normalize form code to detect correct L-form table
+                lform_key = normalize_lform_key(
+                    form_code)  # <= most important change
+
+                print(f"[DB] Normalized L-Form Key: {lform_key}")
+
+                # Prefer L-form table → fallback to company table
+                table_key = None
+
+                if lform_key in ReportModels:
+                    table_key = lform_key  # L-forms first priority
+                    print(f"[DB] 🚀 Using L-Form Table: reports_{table_key}")
+                else:
+                    # Default to company table
+                    table_key = company_name.lower().replace(" ", "_")
+                    print(f"[DB] 🏢 Using Company Table: reports_{table_key}")
+
+                report_model = ReportModels.get(table_key)
+                if not report_model:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"No report table found for key: {table_key}"
+                    )
+
+                # Store one row per period in L-form table
+                if lform_key not in ReportModels:
+                    print(
+                        f"[DB] ⚠️ No matching L-Form table found for: {form_code}")
+                else:
+                    lform_model = ReportModels[lform_key]
+
+                    # Insert into L-form table for each period
+                    for report_period, tables_for_period in period_groups.items():
+                        # Combine rows for this period
+                        combined_rows = []
+                        currency = None
+                        registration_number = None
+                        title = None
+                        pages_used = None
+                        flat_headers = None
+
+                        for table in tables_for_period:
+                            if not currency:
+                                currency = table.get("Currency")
+                                registration_number = table.get(
+                                    "RegistrationNumber")
+                                title = table.get("Title")
+                                pages_used = table.get("PagesUsed")
+                                flat_headers = table.get("FlatHeaders")
+
+                            table_rows = table.get("Rows", [])
+                            combined_rows.extend(table_rows)
+
+                        try:
+                            lform_obj = lform_model(
+                                company=company_name,
+                                company_id=company_obj.id,
+                                ReportType=report_type,
+                                pdf_name=pdf_name,
+                                registration_number=registration_number,
+                                form_no=form_code,
+                                title=title,
+                                period=str(report_period),
+                                currency=currency,
+                                pages_used=pages_used,
+                                source_pdf=split_filename,
+                                flat_headers=flat_headers,
+                                data_rows=combined_rows
+                            )
+                            db.add(lform_obj)
+                            db.commit()
+                            print(
+                                f"[DB] 📌 Also stored into L-Form table: {lform_key} for period: {report_period}")
+                        except IntegrityError as ie:
+                            print(
+                                f"⚠️ L-Form table integrity error for period '{report_period}': {ie}")
+                            db.rollback()
+                            # Try to find and update existing
+                            existing_lform = db.query(lform_model).filter_by(
+                                company_id=company_obj.id,
+                                form_no=form_code,
+                                period=str(report_period),
+                                source_pdf=split_filename
+                            ).first()
+
+                            if existing_lform:
+                                print(
+                                    f"[DB] ℹ️ Found existing L-form report, updating data...")
+                                existing_lform.data_rows = combined_rows
+                                existing_lform.flat_headers = flat_headers
+                                db.commit()
+                                print(f"[DB] ✅ Updated existing L-Form report")
+                            else:
+                                print(
+                                    f"[DB] ⚠️ Could not create or find L-form report")
+            except Exception as lf_exc:
+                print(f"❌ Failed to store into L-Form table: {lf_exc}")
 
             # 3. Insert each row into ReportData
             print(

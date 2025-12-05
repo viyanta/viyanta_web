@@ -7,19 +7,61 @@
   "Date_of_Registration": "3 August 2001",
   "Currency": "Rs. in Lakhs",
   "Headers": {
-    "Particulars": ["Particulars"],
-    "Gross_Block_As_at_1_April_Current_Year": ["Gross Block", "As at", "1 April {CURRENT_YEAR_APRIL_1_YEAR}"],
-    "Gross_Block_Additions": ["Gross Block", "Additions"],
-    "Gross_Block_Deductions": ["Gross Block", "Deductions"],
-    "Gross_Block_As_at_31_December_Current_Year": ["Gross Block", "As at 31 December", "{QUARTER_END_DATE_YEAR}"],
-    "Depreciation_As_at_1_April_Current_Year": ["Depreciation", "As at", "1 April {CURRENT_YEAR_APRIL_1_YEAR}"],
-    "Depreciation_For_the_period": ["Depreciation", "For the period"],
-    "Depreciation_Deductions_Adjustment": ["Depreciation", "Deductions/Adjustment"],
-    "Depreciation_As_at_31_December_Current_Year": ["Depreciation", "As at 31 December", "{QUARTER_END_DATE_YEAR}"],
-    "Net_Block_As_at_31_December_Current_Year": ["Net Block", "As at 31 December", "{QUARTER_END_DATE_YEAR}"],
-    "Net_Block_As_at_31_December_Previous_Year": ["Net Block", "As at 31 December", "{PREVIOUS_QUARTER_END_YEAR}"]
+    "sr_no": [
+      "Sr. No."
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "Gross_Block_As_at_1_April_Current_Year": [
+      "Gross Block",
+      "As at",
+      "1 April {CURRENT_YEAR_APRIL_1_YEAR}"
+    ],
+    "Gross_Block_Additions": [
+      "Gross Block",
+      "Additions"
+    ],
+    "Gross_Block_Deductions": [
+      "Gross Block",
+      "Deductions"
+    ],
+    "Gross_Block_As_at_31_December_Current_Year": [
+      "Gross Block",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Depreciation_As_at_1_April_Current_Year": [
+      "Depreciation",
+      "As at",
+      "1 April {CURRENT_YEAR_APRIL_1_YEAR}"
+    ],
+    "Depreciation_For_the_period": [
+      "Depreciation",
+      "For the period"
+    ],
+    "Depreciation_Deductions_Adjustment": [
+      "Depreciation",
+      "Deductions/Adjustment"
+    ],
+    "Depreciation_As_at_31_December_Current_Year": [
+      "Depreciation",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Net_Block_As_at_31_December_Current_Year": [
+      "Net Block",
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "Net_Block_As_at_31_December_Previous_Year": [
+      "Net Block",
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ]
   },
   "FlatHeaders": [
+    "sr_no",
     "Particulars",
     "Gross_Block_As_at_1_April_Current_Year",
     "Gross_Block_Additions",

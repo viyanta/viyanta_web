@@ -1179,6 +1179,39 @@ deleteEconomyData = async (id) => {
     });
     return res.data;
   };
+
+
+  
+  // =====================
+  // PERIOD SELECTION APIs
+  // =====================
+   // 1️⃣ Get all Financial Years
+   getFinancialYears = async () => {
+    const response = await axios.get(`${API_BASE_URL}/periods/years`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Period Types (Q1, HY, etc.) for a selected FY
+  getPeriodTypes = async (year) => {
+    const response = await axios.get(`${API_BASE_URL}/periods/types?year=${encodeURIComponent(year)}`);
+    return response.data;
+  };
+
+  // 3️⃣ Get Period Ranges (Apr 2021-Jun 2021...)
+  getPeriodRanges = async (year, periodType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/ranges?year=${encodeURIComponent(year)}&period_type=${encodeURIComponent(periodType)}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Monthly Period Breakdown (dd-mm-yyyy format)
+  getMonthlyPeriods = async (rangeValue) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/months?range_value=${encodeURIComponent(rangeValue)}`
+    );
+    return response.data;
+  };
 }
 
 export default new ApiService();

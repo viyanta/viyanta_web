@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, DateTime, JSON, ForeignKey
+    Column, Integer, BigInteger, String, DateTime, JSON, ForeignKey, Text, Boolean, Date
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -79,6 +79,44 @@ for table in company_tables:
 
 
 # =================================================================
+# Dynamic L-Form Based Tables: reports_l1 to reports_l45 and extras
+# =================================================================
+
+# Base set: L1 to L45
+lform_tables = [f"l{i}" for i in range(1, 46)]
+
+# Additional complex L-Form IDs
+extra_forms = [
+    "L6A",
+    "L9A",
+    "L14A",
+    "L25(i)",
+    "L25(ii)"
+]
+
+# Normalize extra form names for SQL table compatibility
+
+
+def normalize_lform(lform):
+    return lform.lower().replace("(", "_").replace(")", "").replace("-", "").replace("/", "")
+
+
+normalized_extra_tables = [normalize_lform(form) for form in extra_forms]
+
+# Complete table list
+lform_tables += normalized_extra_tables
+
+# Register Report models dynamically
+for table in lform_tables:
+    class_name = f"Reports{table.upper()}"  # e.g., ReportsL6A, ReportsL25_I
+    ReportModels[table] = type(
+        class_name,
+        (ReportsBase,),
+        {"__tablename__": f"reports_{table}"}
+    )
+
+
+# =================================================================
 # Other tables you already have
 # =================================================================
 
@@ -95,6 +133,7 @@ class EconomyMaster(Base):
     Description = Column(String(255), nullable=True)
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(50), nullable=True)
+    IsActive = Column(Boolean, default=True, nullable=False)
 
 
 class User(Base):
@@ -236,6 +275,63 @@ class IndustryMaster(Base):
     Description = Column(String(255), nullable=True)
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(50), nullable=True)
+    IsActive = Column(Boolean, default=True, nullable=False)
+
+
+class PeriodMaster(Base):
+    __tablename__ = "period_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # FY & financial period mapping
+    ProcessedFYYear = Column(String(10), nullable=True)
+    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
+    PeriodType = Column(String(20), nullable=True)  # Q1/Q2/Q3/Q4/HY/9M/FY
+    LFormsMarking = Column(String(10), nullable=True)
+
+    # Unique normalized financial period range (ex: Apr 2022-Mar 2023)
+    # Increased from 50 to 255 to accommodate longer period descriptions
+    ProcessedFinancialYearPeriodWithMonth = Column(
+        String(255), nullable=False, unique=True
+    )
+
+    # Original text extracted (before normalization)
+    raw_text = Column(String(255), nullable=True)
+
+    # Actual start & end date
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    # Relationship to monthly_period_master
+    monthly_mappings = relationship(
+        "MonthlyPeriodMaster",
+        back_populates="period_master_ref",
+        cascade="all, delete-orphan"
+    )
+
+
+class MonthlyPeriodMaster(Base):
+    __tablename__ = "monthly_period_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    ProcessedPeriodShortDate = Column(Date, nullable=False)  # Start of month
+    ProcessedPeriodEndDate = Column(Date, nullable=False)    # End of month
+    ProcessedPreviousPeriod = Column(Date, nullable=True)
+
+    ProcessedFYYear = Column(String(10), nullable=True)
+    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
+    ProcessedFinancialYearPeriodWithMonth = Column(String(50), nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    # Link to PeriodMaster
+    period_id = Column(Integer, ForeignKey("period_master.id"), nullable=True)
+
+    period_master_ref = relationship(
+        "PeriodMaster", back_populates="monthly_mappings")
 
 
 class Companies(Base):
