@@ -107,7 +107,7 @@
   white-space: nowrap;
   text-align: center;
   border-radius: 6px;
-  border: none;
+  border: 1px solid #e0e0e0;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -115,25 +115,35 @@
   justify-content: center;
   min-height: 36px;
   font-weight: 400;
+  background-color: white;
+  color: #333;
 }
 
-.nav-tab.active {
+/* Active but NOT selected - white background */
+.nav-tab.active:not(.selected) {
+  background-color: white;
+  color: #333;
+  font-weight: 400;
+  opacity: 1;
+  border: 1px solid #e0e0e0;
+}
+
+/* Active AND selected - blue background */
+.nav-tab.active.selected {
   background-color: var(--main-color);
   color: white;
   font-weight: 600;
-  opacity: 1;
-}
-
-.nav-tab.active.selected {
-  background-color: var(--main-color);
   box-shadow: 0 2px 8px rgba(54, 101, 155, 0.4);
+  border: 1px solid var(--main-color);
 }
 
+/* Inactive tabs - white background, grayed out */
 .nav-tab.inactive {
-  background-color: transparent;
-  color: #666;
-  opacity: 0.5;
+  background-color: white;
+  color: #999;
+  opacity: 0.6;
   cursor: not-allowed;
+  border: 1px solid #e0e0e0;
 }
 
 /* Dashboard Content */

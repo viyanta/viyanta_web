@@ -19,16 +19,20 @@ const EconomyInternational = ({ onMenuClick }) => {
     selectedDescriptions = [], 
     setSelectedDescriptions 
   } = navigationContext || {};
+  const [activeTab, setActiveTab] = useState('International'); // Track which tab is selected
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDescription, setSelectedDescription] = useState('');
   const [selectedPeriodType, setSelectedPeriodType] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  const [selectedRowIds, setSelectedRowIds] = useState(new Set()); // Track which row IDs are selected for dashboard
   
   // API data states
   const [premiumTypes, setPremiumTypes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [descriptions, setDescriptions] = useState([]); // Descriptions for dropdown
   const [modalCategories, setModalCategories] = useState([]); // Categories for modal dropdown
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -56,11 +60,29 @@ const EconomyInternational = ({ onMenuClick }) => {
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [selectedPremiumTypeOption, setSelectedPremiumTypeOption] = useState('');
   const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
-  const [yearSortOrder, setYearSortOrder] = useState('asc'); // 'asc' or 'desc'
+  
+  // Unique values for dropdowns
+  const [uniqueValues, setUniqueValues] = useState({
+    ProcessedPeriodType: [],
+    ProcessedFYYear: [],
+    CountryName: [],
+    Description: [],
+    ReportedUnit: [],
+    ReportedValue: []
+  });
+  const [showCustomInputs, setShowCustomInputs] = useState({
+    ProcessedPeriodType: false,
+    ProcessedFYYear: false,
+    CountryName: false,
+    Description: false,
+    ReportedUnit: false,
+    ReportedValue: false
+  });
   
   // Refs to prevent duplicate API calls
   const fetchingPremiumTypesRef = useRef(false);
   const fetchingCategoriesRef = useRef(false);
+  const fetchingDescriptionsRef = useRef(false);
   const fetchingDataRef = useRef(false);
 
   useEffect(() => {
@@ -138,8 +160,10 @@ const EconomyInternational = ({ onMenuClick }) => {
         console.log('✅ Categories received from API:', data);
         console.log('📊 Number of categories:', data?.length || 0);
         setCategories(data || []);
-        // Reset category selection when premium type changes
+        // Reset category and description selection when premium type changes
         setSelectedCategory('');
+        setSelectedDescription('');
+        setDescriptions([]);
       } catch (err) {
         console.error('❌ Error fetching categories:', err);
         setError('Failed to load categories. Please try again.');
@@ -153,9 +177,47 @@ const EconomyInternational = ({ onMenuClick }) => {
     fetchCategories();
   }, [selectedPremiumType]);
 
-  // Fetch economy data when both premium type and category are selected
+  // Fetch descriptions when both Category and Sub Category are selected
+  useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDescriptionsRef.current) return;
+    
+    const fetchDescriptions = async () => {
+      if (!selectedPremiumType || !selectedCategory) {
+        setDescriptions([]);
+        setSelectedDescription('');
+        setFilteredData([]);
+        return;
+      }
+
+      fetchingDescriptionsRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch descriptions from API endpoint
+        console.log(`🔵 Fetching descriptions for Category: ${selectedPremiumType}, Sub Category: ${selectedCategory}`);
+        const descriptions = await ApiService.getDescriptions('International', selectedPremiumType, selectedCategory);
+        
+        console.log('✅ Descriptions received from API:', descriptions);
+        setDescriptions(descriptions || []);
+        // Reset description selection when category/subcategory changes
+        setSelectedDescription('');
+      } catch (err) {
+        console.error('❌ Error fetching descriptions:', err);
+        setError('Failed to load descriptions. Please try again.');
+        setDescriptions([]);
+      } finally {
+        setLoading(false);
+        fetchingDescriptionsRef.current = false;
+      }
+    };
+
+    fetchDescriptions();
+  }, [selectedPremiumType, selectedCategory]);
+
+  // Fetch economy data when Description is selected
   const fetchEconomyData = useCallback(async () => {
-    if (!selectedPremiumType || !selectedCategory) {
+    if (!selectedPremiumType || !selectedCategory || !selectedDescription) {
       setFilteredData([]);
       setLoading(false);
       return;
@@ -176,10 +238,12 @@ const EconomyInternational = ({ onMenuClick }) => {
       console.log('✅ Economy data received from API:', data);
       console.log('📊 Number of records:', data?.length || 0);
       
+      // Filter data by selected Description
+      let filtered = (data || []).filter(row => row.Description === selectedDescription);
+      
       // Filter data based on admin status:
       // - Admin: Show all records (active and inactive)
       // - Non-admin: Only show active records (IsActive === 1 or IsActive === true)
-      let filtered = data || [];
       if (!isAdmin) {
         filtered = filtered.filter(row => row.IsActive === 1 || row.IsActive === true);
         console.log('🔒 Non-admin user: Filtered to active records only. Count:', filtered.length);
@@ -188,6 +252,14 @@ const EconomyInternational = ({ onMenuClick }) => {
       }
       
       setFilteredData(filtered);
+      
+      // Load selected row IDs for dashboard from backend
+      try {
+        const selectedIds = await ApiService.getSelectedRowIds('International', selectedDescription);
+        setSelectedRowIds(new Set(selectedIds));
+      } catch (err) {
+        console.error('Error loading selected row IDs:', err);
+      }
     } catch (err) {
       console.error('❌ Error fetching economy data:', err);
       setError('Failed to load economy data. Please try again.');
@@ -196,7 +268,92 @@ const EconomyInternational = ({ onMenuClick }) => {
       setLoading(false);
       fetchingDataRef.current = false;
     }
-  }, [selectedPremiumType, selectedCategory, isAdmin]);
+  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin]);
+  
+  // Handle row selection for dashboard
+  const handleRowSelection = async (rowId, isSelected) => {
+    try {
+      const newSelectedIds = new Set(selectedRowIds);
+      if (isSelected) {
+        newSelectedIds.add(rowId);
+      } else {
+        newSelectedIds.delete(rowId);
+      }
+      setSelectedRowIds(newSelectedIds);
+      
+      // Save to backend - ensure row IDs are numbers
+      const rowIdsArray = Array.from(newSelectedIds).map(id => Number(id));
+      console.log(`💾 Saving ${rowIdsArray.length} selected row IDs for "${selectedDescription}":`, rowIdsArray);
+      await ApiService.updateSelectedRowIds('International', selectedDescription, rowIdsArray);
+      console.log('✅ Row IDs saved successfully');
+    } catch (err) {
+      console.error('❌ Error updating selected row IDs:', err);
+      alert('Failed to update selection. Please try again.');
+      // Revert on error
+      setSelectedRowIds(new Set(selectedRowIds));
+    }
+  };
+  
+  // Handle select all for dashboard
+  const handleSelectAll = async (selectAll) => {
+    try {
+      if (selectAll) {
+        // Select all visible rows
+        const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+        const newSelectedIds = new Set(allRowIds);
+        setSelectedRowIds(newSelectedIds);
+        
+        // Save to backend - ensure row IDs are numbers
+        const rowIdsArray = allRowIds.map(id => Number(id));
+        console.log(`💾 Saving ${rowIdsArray.length} selected row IDs (Select All) for "${selectedDescription}":`, rowIdsArray);
+        await ApiService.updateSelectedRowIds('International', selectedDescription, rowIdsArray);
+        console.log('✅ All row IDs saved successfully');
+      } else {
+        // Deselect all
+        setSelectedRowIds(new Set());
+        
+        // Save to backend
+        console.log(`💾 Clearing all selected row IDs for "${selectedDescription}"`);
+        await ApiService.updateSelectedRowIds('International', selectedDescription, []);
+        console.log('✅ Row IDs cleared successfully');
+      }
+    } catch (err) {
+      console.error('❌ Error updating selected row IDs:', err);
+      alert('Failed to update selection. Please try again.');
+      // Revert on error
+      setSelectedRowIds(new Set(selectedRowIds));
+    }
+  };
+  
+  // Check if all rows are selected
+  const allRowsSelected = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return false;
+    const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+    return allRowIds.length > 0 && allRowIds.every(id => selectedRowIds.has(id));
+  }, [filteredData, selectedRowIds]);
+  
+  // Check if some rows are selected (for indeterminate state)
+  const someRowsSelected = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return false;
+    const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+    const selectedCount = allRowIds.filter(id => selectedRowIds.has(id)).length;
+    return selectedCount > 0 && selectedCount < allRowIds.length;
+  }, [filteredData, selectedRowIds]);
+  
+  // Ref for select all checkbox
+  const selectAllCheckboxRef = useRef(null);
+  
+  // Update indeterminate state of select all checkbox
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate = someRowsSelected && !allRowsSelected;
+    }
+  }, [someRowsSelected, allRowsSelected]);
+  
+  // Check if current description is selected in dashboard
+  const isDescriptionSelectedInDashboard = useMemo(() => {
+    return selectedDescription && selectedDescriptions.includes(selectedDescription);
+  }, [selectedDescription, selectedDescriptions]);
 
   useEffect(() => {
     fetchEconomyData();
@@ -209,9 +366,9 @@ const EconomyInternational = ({ onMenuClick }) => {
       fetchingDataRef.current = false;
       fetchingCategoriesRef.current = false;
       
-      // Only refresh if both filters are selected and we're on the page
+      // Only refresh if all filters are selected and we're on the page
       // Don't trigger on filter changes - that's handled by fetchEconomyData useEffect above
-      if (selectedPremiumType && selectedCategory) {
+      if (selectedPremiumType && selectedCategory && selectedDescription) {
         const timer = setTimeout(() => {
           if (!fetchingDataRef.current) {
             fetchEconomyData();
@@ -254,11 +411,9 @@ const EconomyInternational = ({ onMenuClick }) => {
     const isRemoving = selectedDescriptions.includes(description);
     const updatedDescriptions = isRemoving
       ? selectedDescriptions.filter(d => d !== description)
-      : selectedDescriptions.length >= 4
-        ? (alert('You can select maximum 4 descriptions only.'), selectedDescriptions)
-        : [...selectedDescriptions, description];
+      : [...selectedDescriptions, description];
 
-    // If max limit reached, don't proceed
+    // If no change, don't proceed
     if (updatedDescriptions === selectedDescriptions && !isRemoving) {
       return;
     }
@@ -282,40 +437,164 @@ const EconomyInternational = ({ onMenuClick }) => {
     }
   };
 
-  // Sort data by year when sort order changes (no filtering by selected descriptions - those are only for Dashboard)
+  // Sort data in ascending order: Description, ProcessedPeriodType, CountryName, ProcessedFYYear, ReportedUnit
   const sortedData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return filteredData;
     
-    // Sort by year (show all data, not filtered by selected descriptions)
+    // Sort by multiple fields in ascending order
     const sorted = [...filteredData].sort((a, b) => {
+      // 1. Sort by Description (Asc)
+      const descA = (a.Description || '').toLowerCase();
+      const descB = (b.Description || '').toLowerCase();
+      if (descA !== descB) {
+        return descA.localeCompare(descB);
+      }
+      
+      // 2. Sort by ProcessedPeriodType (Asc)
+      const periodA = (a.ProcessedPeriodType || '').toLowerCase();
+      const periodB = (b.ProcessedPeriodType || '').toLowerCase();
+      if (periodA !== periodB) {
+        return periodA.localeCompare(periodB);
+      }
+      
+      // 3. Sort by CountryName (Asc)
+      const countryA = (a.CountryName || '').toLowerCase();
+      const countryB = (b.CountryName || '').toLowerCase();
+      if (countryA !== countryB) {
+        return countryA.localeCompare(countryB);
+      }
+      
+      // 4. Sort by ProcessedFYYear (Asc)
       const yearA = a.ProcessedFYYear || '';
       const yearB = b.ProcessedFYYear || '';
-      
-      // Try to parse as numbers first, fallback to string comparison
       const numA = parseInt(yearA);
       const numB = parseInt(yearB);
-      
       if (!isNaN(numA) && !isNaN(numB)) {
-        return yearSortOrder === 'asc' ? numA - numB : numB - numA;
+        if (numA !== numB) {
+          return numA - numB;
+        }
+      } else {
+        const yearCompare = yearA.localeCompare(yearB);
+        if (yearCompare !== 0) {
+          return yearCompare;
+        }
       }
       
-      // String comparison fallback
-      if (yearSortOrder === 'asc') {
-        return yearA.localeCompare(yearB);
-      } else {
-        return yearB.localeCompare(yearA);
-      }
+      // 5. Sort by ReportedUnit (Asc)
+      const unitA = (a.ReportedUnit || '').toLowerCase();
+      const unitB = (b.ReportedUnit || '').toLowerCase();
+      return unitA.localeCompare(unitB);
     });
     
     return sorted;
-  }, [filteredData, yearSortOrder]);
+  }, [filteredData]);
 
-  const toggleYearSort = () => {
-    setYearSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-  };
+  // Transform data into pivot table format grouped by PeriodType for non-admin users
+  const pivotTableData = useMemo(() => {
+    if (isAdmin || !filteredData || filteredData.length === 0) {
+      return {};
+    }
+
+    try {
+      // Group by ProcessedPeriodType
+      const groupedByPeriodType = {};
+      
+      filteredData.forEach(item => {
+        if (!item) return;
+        const periodType = item.ProcessedPeriodType || 'Other';
+        if (!groupedByPeriodType[periodType]) {
+          groupedByPeriodType[periodType] = [];
+        }
+        groupedByPeriodType[periodType].push(item);
+      });
+
+      // Transform each group into pivot format
+      const pivotData = {};
+      
+      Object.keys(groupedByPeriodType).forEach(periodType => {
+        const groupData = groupedByPeriodType[periodType];
+        if (!groupData || groupData.length === 0) return;
+        
+        // Get category and subcategory from first item (should be same for all items in a periodType group)
+        const firstItem = groupData[0];
+        const categoryName = firstItem?.CategoryLongName || selectedCategory || '';
+        const subCategoryName = firstItem?.SubCategoryLongName || '';
+        
+        // Get all unique periods (columns) - sorted
+        const periods = [...new Set(groupData.map(item => item?.ProcessedFYYear || '').filter(p => p))].sort();
+        
+        // Get all unique descriptions (rows)
+        const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))];
+        
+        // Create pivot structure: { description: { period: value, unit: unit } }
+        const pivot = {};
+        const units = {}; // Store unit for each description
+        const descriptionMetadata = {}; // Store category and subcategory for each description
+        
+        descriptions.forEach(desc => {
+          if (!desc) return;
+          pivot[desc] = {};
+          groupData.forEach(item => {
+            if (item && item.Description === desc) {
+              const period = item.ProcessedFYYear || '';
+              pivot[desc][period] = item.ReportedValue || '-';
+              // Store unit (assuming same unit for all periods of a description)
+              if (!units[desc] && item.ReportedUnit) {
+                units[desc] = item.ReportedUnit;
+              }
+              // Store category and subcategory metadata
+              if (!descriptionMetadata[desc]) {
+                descriptionMetadata[desc] = {
+                  category: item.CategoryLongName || categoryName || '',
+                  subCategory: item.SubCategoryLongName || subCategoryName || ''
+                };
+              }
+            }
+          });
+        });
+        
+        pivotData[periodType] = {
+          periods: periods || [],
+          descriptions: descriptions || [],
+          pivot: pivot || {},
+          units: units || {},
+          descriptionMetadata: descriptionMetadata || {},
+          categoryName: categoryName,
+          subCategoryName: subCategoryName
+        };
+      });
+
+      return pivotData;
+    } catch (error) {
+      console.error('Error creating pivot table data:', error);
+      return {};
+    }
+  }, [filteredData, isAdmin]);
+
+  // Fetch unique values for form fields
+  const fetchUniqueValues = useCallback(async () => {
+    try {
+      const fields = ['ProcessedPeriodType', 'ProcessedFYYear', 'CountryName', 'Description', 'ReportedUnit', 'ReportedValue'];
+      const values = {};
+      
+      for (const field of fields) {
+        try {
+          const data = await ApiService.getUniqueValues('International', field);
+          values[field] = data || [];
+        } catch (err) {
+          console.error(`Error fetching unique values for ${field}:`, err);
+          values[field] = [];
+        }
+      }
+      
+      setUniqueValues(values);
+    } catch (err) {
+      console.error('Error fetching unique values:', err);
+    }
+  }, []);
 
   // CRUD Handler Functions
-  const handleAdd = () => {
+  const handleAdd = async () => {
     setFormData({
       ProcessedPeriodType: '',
       ProcessedFYYear: '',
@@ -334,6 +613,17 @@ const EconomyInternational = ({ onMenuClick }) => {
     setSelectedPremiumTypeOption('');
     setSelectedCategoryOption('');
     setModalCategories([]);
+    setShowCustomInputs({
+      ProcessedPeriodType: false,
+      ProcessedFYYear: false,
+      CountryName: false,
+      Description: false,
+      ReportedUnit: false,
+      ReportedValue: false
+    });
+    
+    // Fetch unique values when opening modal
+    await fetchUniqueValues();
     setShowAddModal(true);
   };
 
@@ -363,6 +653,16 @@ const EconomyInternational = ({ onMenuClick }) => {
     setSelectedPremiumTypeOption(isPremiumTypeInList ? premiumTypeValue : '');
     setSelectedCategoryOption(isCategoryInList ? categoryValue : '');
     
+    // Check if other fields exist in unique values
+    setShowCustomInputs({
+      ProcessedPeriodType: !uniqueValues.ProcessedPeriodType.includes(record.ProcessedPeriodType || '') && (record.ProcessedPeriodType || '') !== '',
+      ProcessedFYYear: !uniqueValues.ProcessedFYYear.includes(record.ProcessedFYYear || '') && (record.ProcessedFYYear || '') !== '',
+      CountryName: !uniqueValues.CountryName.includes(record.CountryName || '') && (record.CountryName || '') !== '',
+      Description: !uniqueValues.Description.includes(record.Description || '') && (record.Description || '') !== '',
+      ReportedUnit: !uniqueValues.ReportedUnit.includes(record.ReportedUnit || '') && (record.ReportedUnit || '') !== '',
+      ReportedValue: !uniqueValues.ReportedValue.includes(record.ReportedValue || '') && (record.ReportedValue || '') !== ''
+    });
+    
     // Fetch categories for the premium type if it exists
     if (premiumTypeValue && isPremiumTypeInList) {
       try {
@@ -375,6 +675,9 @@ const EconomyInternational = ({ onMenuClick }) => {
     } else {
       setModalCategories([]);
     }
+    
+    // Fetch unique values when opening edit modal
+    await fetchUniqueValues();
     
     setEditingRecord(record);
     setShowAddModal(true);
@@ -436,9 +739,15 @@ const EconomyInternational = ({ onMenuClick }) => {
       }
       
       // Refresh data if filters are still selected
-      if (selectedPremiumType && selectedCategory) {
+      if (selectedPremiumType && selectedCategory && selectedDescription) {
         const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
-        setFilteredData(data || []);
+        // Filter by selected Description
+        const filtered = (data || []).filter(row => row.Description === selectedDescription);
+        // Filter by admin status
+        const finalData = !isAdmin 
+          ? filtered.filter(row => row.IsActive === 1 || row.IsActive === true)
+          : filtered;
+        setFilteredData(finalData);
       } else {
         // Clear data if filters were cleared
         setFilteredData([]);
@@ -516,16 +825,28 @@ const EconomyInternational = ({ onMenuClick }) => {
       }
       
       // Refresh data if filters are selected
-      if (selectedPremiumType && selectedCategory) {
+      if (selectedPremiumType && selectedCategory && selectedDescription) {
         const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
-        setFilteredData(data || []);
+        // Filter by selected Description
+        const filtered = (data || []).filter(row => row.Description === selectedDescription);
+        // Filter by admin status
+        const finalData = !isAdmin 
+          ? filtered.filter(row => row.IsActive === 1 || row.IsActive === true)
+          : filtered;
+        setFilteredData(finalData);
       } else if (newPremiumType && newCategory) {
-        // If new record was added with new premium/category, refresh with those
+        // If new record was added with new premium/category, fetch descriptions first
         const data = await ApiService.getEconomyData('International', newPremiumType, newCategory);
-        setFilteredData(data || []);
-        // Also update the selected filters
+        const uniqueDescriptions = [...new Set(
+          (data || [])
+            .map(item => item.Description)
+            .filter(desc => desc && desc.trim() !== '')
+        )].sort();
+        setDescriptions(uniqueDescriptions);
         setSelectedPremiumType(newPremiumType);
         setSelectedCategory(newCategory);
+        // Don't set filteredData here - wait for Description to be selected
+        setFilteredData([]);
       }
       
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -547,6 +868,7 @@ const EconomyInternational = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
+      setActiveTab('Dashboard');
       // Check which sidebar item is selected
       if (selectedSidebarItem === 1001) { // Industry Metrics
         navigate('/industry-metrics-dashboard');
@@ -554,8 +876,10 @@ const EconomyInternational = ({ onMenuClick }) => {
         navigate('/economy-dashboard');
       }
     } else if (tab === 'Domestic') {
+      setActiveTab('Domestic');
       navigate('/economy-domestic');
     } else if (tab === 'International') {
+      setActiveTab('International');
       // Stay on current page
       return;
     } else if (tab === 'Background') {
@@ -637,22 +961,33 @@ const EconomyInternational = ({ onMenuClick }) => {
               >
                 Economy
               </span>
-              <span className="breadcrumb-separator" style={{ color: '#999' }}>›</span>
+              <span className="breadcrumb-separator" style={{ color: '#999' }}>{'>>'}</span>
               <span className="breadcrumb-current" style={{ color: '#36659b', fontWeight: '500' }}>International</span>
             </div>
 
             {/* Navigation Tabs */}
             <div className="navigation-tabs-container">
               <div className="navigation-tabs">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => handleTabClick(tab)}
-                    className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+                {tabs.map((tab) => {
+                  const isActive = isNavItemActive(tab);
+                  const isSelected = activeTab === tab;
+                  // Build className: only selected tab gets 'selected' class
+                  let className = 'nav-tab';
+                  if (isActive) {
+                    className += isSelected ? ' active selected' : ' active';
+                  } else {
+                    className += ' inactive';
+                  }
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => isActive && handleTabClick(tab)}
+                      className={className}
+                    >
+                      {tab}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -741,7 +1076,7 @@ const EconomyInternational = ({ onMenuClick }) => {
             {/* Filter Dropdowns */}
             <div className="filters-section">
               <div className="filter-group">
-                <label htmlFor="premium-type">Select Premium Type Long name</label>
+                <label htmlFor="premium-type">Select Category Long Name</label>
                 <select
                   id="premium-type"
                   value={selectedPremiumType}
@@ -749,7 +1084,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                   className="filter-select"
                   disabled={loading}
                 >
-                  <option value="">Select Premium Type...</option>
+                  <option value="">Select Category...</option>
                   {premiumTypes.length > 0 ? (
                     premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
@@ -761,7 +1096,7 @@ const EconomyInternational = ({ onMenuClick }) => {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="category">Select Category Long Name</label>
+                <label htmlFor="category">Select Sub Category Long Name</label>
                 <select
                   id="category"
                   value={selectedCategory}
@@ -769,7 +1104,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                   className="filter-select"
                   disabled={loading || !selectedPremiumType}
                 >
-                  <option value="">Select Category...</option>
+                  <option value="">Select Sub Category...</option>
                   {categories.length > 0 ? (
                     categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
@@ -780,7 +1115,32 @@ const EconomyInternational = ({ onMenuClick }) => {
                 </select>
                 {!selectedPremiumType && (
                   <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Please select a Premium Type first
+                    Please select a Category first
+                  </small>
+                )}
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="description">Select Description</label>
+                <select
+                  id="description"
+                  value={selectedDescription}
+                  onChange={(e) => setSelectedDescription(e.target.value)}
+                  className="filter-select"
+                  disabled={loading || !selectedPremiumType || !selectedCategory}
+                >
+                  <option value="">Select Description...</option>
+                  {descriptions.length > 0 ? (
+                    descriptions.map((desc, index) => (
+                    <option key={index} value={desc}>{desc}</option>
+                    ))
+                  ) : (
+                    selectedPremiumType && selectedCategory && !loading && <option value="" disabled>No descriptions available</option>
+                  )}
+                </select>
+                {(!selectedPremiumType || !selectedCategory) && (
+                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Please select Category and Sub Category first
                   </small>
                 )}
               </div>
@@ -793,7 +1153,7 @@ const EconomyInternational = ({ onMenuClick }) => {
             </div>
 
             {/* Description Selection Section - Only visible to Admin */}
-            {isAdmin && selectedPremiumType && selectedCategory && descriptionsWithContext.length > 0 && (
+            {isAdmin && selectedPremiumType && selectedCategory && selectedDescription && descriptionsWithContext.length > 0 && (
               <div className="description-selection-container">
                 <div className="description-selection-card">
                   {/* Header Section */}
@@ -804,12 +1164,12 @@ const EconomyInternational = ({ onMenuClick }) => {
                           Select Descriptions
                         </h3>
                         <p className="description-selection-subtitle">
-                          Choose up to 4 descriptions to visualize in Dashboard
+                          Choose descriptions to visualize in Dashboard
                         </p>
                       </div>
                       {selectedDescriptions && selectedDescriptions.length > 0 && (
                         <div className="description-selection-counter">
-                          {selectedDescriptions.length}/4
+                          {selectedDescriptions.length}
                         </div>
                       )}
                     </div>
@@ -819,7 +1179,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                   <div className="description-cards-container">
                     {descriptionsWithContext.map((item, index) => {
                       const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
-                      const isDisabled = !isSelected && selectedDescriptions && selectedDescriptions.length >= 4;
+                      const isDisabled = false; // No limit on number of descriptions
                       
                       return (
                         <div
@@ -879,238 +1239,428 @@ const EconomyInternational = ({ onMenuClick }) => {
               </div>
             )}
 
-            {/* Sort Year Button */}
-            {sortedData && sortedData.length > 0 && (
-              <div style={{ 
-                marginBottom: 'clamp(15px, 3vw, 20px)',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                gap: '10px'
-              }}>
-                <button
-                  onClick={toggleYearSort}
-                  style={{
-                    padding: 'clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px)',
-                    backgroundColor: '#36659b',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: 'clamp(13px, 2.5vw, 14px)',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 4px rgba(54, 101, 155, 0.2)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#2d5280';
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 8px rgba(54, 101, 155, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = '#36659b';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 2px 4px rgba(54, 101, 155, 0.2)';
-                  }}
-                >
-                  <span>Sort Year</span>
-                  <span style={{ fontSize: '16px' }}>
-                    {yearSortOrder === 'asc' ? '↑' : '↓'}
-                  </span>
-                  <span style={{ fontSize: '12px', opacity: 0.9 }}>
-                    ({yearSortOrder === 'asc' ? 'Ascending' : 'Descending'})
-                  </span>
-                </button>
-              </div>
-            )}
 
             {/* Data Table or Visuals */}
             {viewMode === 'data' ? (
-              <div className="table-container">
-                <table className="economy-table">
-                  <thead>
-                    <tr>
-                      <th>ProcessedPeriodType</th>
-                      <th>ProcessedFYYear</th>
-                      <th>DataType</th>
-                      <th>CountryName</th>
-                      <th>PremiumTypeLongName</th>
-                      <th>CategoryLongName</th>
-                      <th>Description</th>
-                      <th>ReportedUnit</th>
-                      <th>ReportedValue</th>
-                      {isAdmin && <th>Status</th>}
-                      {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
+              // For non-admin users, show pivot tables grouped by ProcessedPeriodType
+              !isAdmin && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+                <div className="pivot-tables-container" style={{ marginTop: '20px' }}>
+                  {Object.keys(pivotTableData).sort().map(periodType => {
+                    const periodData = pivotTableData[periodType];
+                    if (!periodData) return null;
+                    
+                    const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, categoryName = '', subCategoryName = '' } = periodData;
+                    
+                    if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
+                      return null;
+                    }
+
+                    // Use category and subcategory from periodData (stored at periodType level)
+                    const displayCategoryName = categoryName || selectedCategory || '';
+                    const displaySubCategoryName = subCategoryName || '';
+                    
+                    // Build breadcrumb: Category Long Name >> Sub Category Long Name >> Period Type
+                    const categoryLongName = selectedPremiumType || '';
+                    const subCategoryLongName = selectedCategory || displayCategoryName || '';
+                    const breadcrumbParts = [];
+                    if (categoryLongName) breadcrumbParts.push(categoryLongName);
+                    if (subCategoryLongName) breadcrumbParts.push(subCategoryLongName);
+                    if (periodType) breadcrumbParts.push(periodType);
+                    const breadcrumbText = breadcrumbParts.join(' >> ');
+
+                    return (
+                      <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
+                        <h3 className="period-type-title" style={{ 
+                          marginBottom: '16px', 
+                          fontSize: '18px', 
+                          fontWeight: '600', 
+                          color: '#111827',
+                          paddingBottom: '8px',
+                          borderBottom: '2px solid #3F72AF'
+                        }}>
+                          {breadcrumbText}
+                        </h3>
+                        <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                          <table className="data-table pivot-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr>
+                                <th className="pivot-table-header-desc" style={{ 
+                                  position: 'sticky', 
+                                  left: 0, 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '200px' : '300px', 
+                                  textAlign: 'left',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Description
+                                </th>
+                                <th className="pivot-table-header-unit" style={{ 
+                                  position: 'sticky', 
+                                  left: isMobile ? '200px' : '300px', 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '60px' : '80px', 
+                                  textAlign: 'center',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Period Unit
+                                </th>
+                                <th className="pivot-table-header-period-type" style={{ 
+                                  position: 'sticky', 
+                                  left: isMobile ? '260px' : '380px', 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '80px' : '100px', 
+                                  textAlign: 'center',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Period
+                                </th>
+                                {periods.map(period => (
+                                  <th key={period} className="pivot-table-header-period" style={{ 
+                                    minWidth: isMobile ? '80px' : '100px', 
+                                    textAlign: 'center',
+                                    backgroundColor: '#3F72AF',
+                                    color: '#ffffff',
+                                    padding: '12px',
+                                    border: '1px solid #2c5a8a'
+                                  }}>
+                                    {period}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {descriptions.map((desc, descIndex) => {
+                                const descMetadata = descriptionMetadata[desc] || {};
+                                
+                                return (
+                                  <tr key={descIndex} style={{
+                                    backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                    borderBottom: '1px solid #e5e7eb'
+                                  }}>
+                                    <td className="pivot-table-cell-desc" style={{ 
+                                      position: 'sticky', 
+                                      left: 0, 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      minWidth: isMobile ? '200px' : '300px',
+                                      fontWeight: '500'
+                                    }}>
+                                      {desc}
+                                    </td>
+                                    <td className="pivot-table-cell-unit" style={{ 
+                                      position: 'sticky', 
+                                      left: isMobile ? '200px' : '300px', 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      fontSize: '12px',
+                                      color: '#6b7280',
+                                      whiteSpace: 'nowrap',
+                                      textAlign: 'center'
+                                    }}>
+                                      {units[desc] || '-'}
+                                    </td>
+                                    <td className="pivot-table-cell-period-type" style={{ 
+                                      position: 'sticky', 
+                                      left: isMobile ? '260px' : '380px', 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      fontSize: '12px',
+                                      color: '#374151',
+                                      whiteSpace: 'nowrap',
+                                      textAlign: 'center',
+                                      fontWeight: '500'
+                                    }}>
+                                      {periodType}
+                                    </td>
+                                    {periods.map(period => (
+                                      <td key={period} className="pivot-table-cell-data" style={{ 
+                                        textAlign: 'right', 
+                                        padding: '12px',
+                                        borderRight: '1px solid #e5e7eb',
+                                        backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                        fontSize: '13px',
+                                        whiteSpace: 'nowrap'
+                                      }}>
+                                        {pivot[desc] && pivot[desc][period] !== undefined 
+                                          ? pivot[desc][period] 
+                                          : '-'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : isAdmin ? (
+                // For admin users, show regular table
+                <div className="table-container">
+                  <table className="economy-table">
+                    <thead>
                       <tr>
-                        <td colSpan={isAdmin ? 11 : 9} className="no-data">Loading data...</td>
+                        {isAdmin && <th>Status</th>}
+                        {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
+                        {isAdmin && (
+                          <th style={{ 
+                            textAlign: 'center', 
+                            minWidth: '120px',
+                            opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                          }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ 
+                                color: isDescriptionSelectedInDashboard ? '#333' : '#999',
+                                fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
+                              }}>
+                                Select for Dashboard
+                              </span>
+                              {!isDescriptionSelectedInDashboard && selectedDescription && (
+                                <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
+                                  Select in Dashboard first
+                                </span>
+                              )}
+                              {filteredData && filteredData.length > 0 && isDescriptionSelectedInDashboard && (
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={allRowsSelected}
+                                    ref={selectAllCheckboxRef}
+                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                    style={{
+                                      width: '16px',
+                                      height: '16px',
+                                      cursor: 'pointer'
+                                    }}
+                                    title={allRowsSelected ? 'Deselect all' : someRowsSelected ? 'Select all' : 'Select all'}
+                                  />
+                                  <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
+                                </label>
+                              )}
+                            </div>
+                          </th>
+                        )}
+                        <th>Description</th>
+                        <th>ProcessedPeriodType</th>
+                        <th>CountryName</th>
+                        <th>ProcessedFYYear</th>
+                        <th>ReportedUnit</th>
+                        <th>ReportedValue</th>
+                        <th>CategoryLongName</th>
+                        <th>SubCategoryLongName</th>
                       </tr>
-                    ) : sortedData.length > 0 ? (
-                      sortedData.map((row, index) => (
-                        <tr key={row.id || index}>
-                          <td>{row.ProcessedPeriodType || '-'}</td>
-                          <td>{row.ProcessedFYYear || '-'}</td>
-                          <td>{row.DataType || '-'}</td>
-                          <td>{row.CountryName || '-'}</td>
-                          <td>{row.PremiumTypeLongName || '-'}</td>
-                          <td>{row.CategoryLongName || '-'}</td>
-                          <td>{row.Description || '-'}</td>
-                          <td>{row.ReportedUnit || '-'}</td>
-                          <td>{row.ReportedValue || '-'}</td>
-                          {isAdmin && (
-                            <td>
-                              <label
-                                style={{
-                                  position: 'relative',
-                                  display: 'inline-block',
-                                  width: '50px',
-                                  height: '24px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={row.IsActive === 1 || row.IsActive === true}
-                                  onChange={async (e) => {
-                                    const newStatus = e.target.checked;
-                                    try {
-                                      await ApiService.updateEconomyData(row.id, { IsActive: newStatus });
-                                      // Update local state
-                                      setFilteredData(prevData =>
-                                        prevData.map(item =>
-                                          item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
-                                        )
-                                      );
-                                    } catch (err) {
-                                      console.error('Error updating status:', err);
-                                      alert('Failed to update status. Please try again.');
-                                    }
-                                  }}
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan={isAdmin ? 11 : 8} className="no-data">Loading data...</td>
+                        </tr>
+                      ) : sortedData.length > 0 ? (
+                        sortedData.map((row, index) => (
+                          <tr key={row.id || index}>
+                            {isAdmin && (
+                              <td>
+                                <label
                                   style={{
-                                    opacity: 0,
-                                    width: 0,
-                                    height: 0
-                                  }}
-                                />
-                                <span
-                                  style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
-                                    borderRadius: '24px',
-                                    transition: 'background-color 0.3s',
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '50px',
+                                    height: '24px',
                                     cursor: 'pointer'
                                   }}
                                 >
+                                  <input
+                                    type="checkbox"
+                                    checked={row.IsActive === 1 || row.IsActive === true}
+                                    onChange={async (e) => {
+                                      const newStatus = e.target.checked;
+                                      try {
+                                        await ApiService.updateEconomyData(row.id, { IsActive: newStatus });
+                                        // Update local state
+                                        setFilteredData(prevData =>
+                                          prevData.map(item =>
+                                            item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                          )
+                                        );
+                                      } catch (err) {
+                                        console.error('Error updating status:', err);
+                                        alert('Failed to update status. Please try again.');
+                                      }
+                                    }}
+                                    style={{
+                                      opacity: 0,
+                                      width: 0,
+                                      height: 0
+                                    }}
+                                  />
                                   <span
                                     style={{
                                       position: 'absolute',
-                                      content: '""',
-                                      height: '18px',
-                                      width: '18px',
-                                      left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
-                                      bottom: '3px',
-                                      backgroundColor: 'white',
-                                      borderRadius: '50%',
-                                      transition: 'left 0.3s',
-                                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
+                                      borderRadius: '24px',
+                                      transition: 'background-color 0.3s',
+                                      cursor: 'pointer'
                                     }}
-                                  />
-                                </span>
-                              </label>
-                            </td>
-                          )}
-                          {isAdmin && (
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                                <button
-                                  onClick={() => handleEdit(row)}
+                                  >
+                                    <span
+                                      style={{
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '18px',
+                                        width: '18px',
+                                        left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
+                                        bottom: '3px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        transition: 'left 0.3s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      }}
+                                    />
+                                  </span>
+                                </label>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                  <button
+                                    onClick={() => handleEdit(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#007bff',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#0056b3';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#007bff';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>✏️</span>
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#c82333';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#dc3545';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>🗑️</span>
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td style={{ 
+                                textAlign: 'center',
+                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRowIds.has(row.id)}
+                                  onChange={(e) => handleRowSelection(row.id, e.target.checked)}
+                                  disabled={!isDescriptionSelectedInDashboard}
                                   style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
+                                    opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#0056b3';
-                                    e.target.style.transform = 'translateY(-1px)';
-                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = '#007bff';
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                  }}
-                                >
-                                  <span>✏️</span>
-                                  <span>Edit</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(row)}
-                                  style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#dc3545',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#c82333';
-                                    e.target.style.transform = 'translateY(-1px)';
-                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = '#dc3545';
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                  }}
-                                >
-                                  <span>🗑️</span>
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            </td>
-                          )}
+                                  title={isDescriptionSelectedInDashboard 
+                                    ? "Select this row to display in dashboard" 
+                                    : "Please select this description in the Dashboard first"}
+                                />
+                              </td>
+                            )}
+                            <td>{row.Description || '-'}</td>
+                            <td>{row.ProcessedPeriodType || '-'}</td>
+                            <td>{row.CountryName || '-'}</td>
+                            <td>{row.ProcessedFYYear || '-'}</td>
+                            <td>{row.ReportedUnit || '-'}</td>
+                            <td>{row.ReportedValue || '-'}</td>
+                            <td>{row.PremiumTypeLongName || '-'}</td>
+                            <td>{row.CategoryLongName || '-'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={isAdmin ? 11 : 8} className="no-data">
+                            {!selectedPremiumType || !selectedCategory || !selectedDescription
+                              ? 'Please select Category, Sub Category, and Description to view data'
+                              : 'No data available for selected filters'}
+                          </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="11" className="no-data">
-                          {selectedPremiumType && selectedCategory 
-                            ? 'No data available for selected filters' 
-                            : 'Please select Premium Type and Category to view data'}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                // For non-admin users without pivot data, show message
+                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                  {!selectedPremiumType || !selectedCategory || !selectedDescription
+                    ? 'Please select Category, Sub Category, and Description to view data'
+                    : 'No data available for selected filters'}
+                </div>
+              )
             ) : (
               <div className="visuals-container">
                 <div className="visuals-grid">
@@ -1375,6 +1925,14 @@ const EconomyInternational = ({ onMenuClick }) => {
                   setSelectedPremiumTypeOption('');
                   setSelectedCategoryOption('');
                   setModalCategories([]);
+                  setShowCustomInputs({
+                    ProcessedPeriodType: false,
+                    ProcessedFYYear: false,
+                    CountryName: false,
+                    Description: false,
+                    ReportedUnit: false,
+                    ReportedValue: false
+                  });
                 }}
                 style={{
                   background: 'none',
@@ -1408,24 +1966,78 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Processed Period Type:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ProcessedPeriodType}
-                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ProcessedPeriodType ? (
+                  <select
+                    value={formData.ProcessedPeriodType}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedPeriodType: true }));
+                        setFormData({ ...formData, ProcessedPeriodType: '' });
+                      } else {
+                        setFormData({ ...formData, ProcessedPeriodType: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Processed Period Type...</option>
+                    {uniqueValues.ProcessedPeriodType.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ProcessedPeriodType}
+                    onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                    placeholder="Enter new Processed Period Type..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ProcessedPeriodType.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedPeriodType: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Processed FY Year:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ProcessedFYYear}
-                  onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ProcessedFYYear ? (
+                  <select
+                    value={formData.ProcessedFYYear}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                        setFormData({ ...formData, ProcessedFYYear: '' });
+                      } else {
+                        setFormData({ ...formData, ProcessedFYYear: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Processed FY Year...</option>
+                    {uniqueValues.ProcessedFYYear.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ProcessedFYYear}
+                    onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
+                    placeholder="Enter new Processed FY Year..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ProcessedFYYear.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
@@ -1445,17 +2057,44 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Country Name:
                 </label>
-                <input
-                  type="text"
-                  value={formData.CountryName}
-                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.CountryName ? (
+                  <select
+                    value={formData.CountryName}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, CountryName: true }));
+                        setFormData({ ...formData, CountryName: '' });
+                      } else {
+                        setFormData({ ...formData, CountryName: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Country Name...</option>
+                    {uniqueValues.CountryName.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.CountryName}
+                    onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                    placeholder="Enter new Country Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.CountryName.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, CountryName: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Premium Type Long Name:
+                  Category Long Name:
                 </label>
                 <select
                   value={selectedPremiumTypeOption}
@@ -1484,18 +2123,18 @@ const EconomyInternational = ({ onMenuClick }) => {
                   }}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 >
-                  <option value="">Select Premium Type...</option>
+                  <option value="">Select Category...</option>
                   {premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
                   ))}
-                  <option value="__ADD_NEW__">--- Add New Premium Type ---</option>
+                  <option value="__ADD_NEW__">--- Add New Category ---</option>
                 </select>
                 {showCustomPremiumType && (
                   <input
                     type="text"
                     value={formData.PremiumTypeLongName}
                     onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
-                    placeholder="Enter new Premium Type Long Name..."
+                    placeholder="Enter new Category Long Name..."
                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
                   />
                 )}
@@ -1528,15 +2167,15 @@ const EconomyInternational = ({ onMenuClick }) => {
                     cursor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  <option value="">Select Category...</option>
+                  <option value="">Select Sub Category...</option>
                   {modalCategories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
                   ))}
-                  <option value="__ADD_NEW__">--- Add New Category ---</option>
+                  <option value="__ADD_NEW__">--- Add New Sub Category ---</option>
                 </select>
                 {(!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) && (
                   <small style={{ display: 'block', marginTop: '4px', color: '#999', fontSize: '12px' }}>
-                    {showCustomPremiumType ? 'Please enter a Premium Type first' : 'Please select a Premium Type first'}
+                    {showCustomPremiumType ? 'Please enter a Category first' : 'Please select a Category first'}
                   </small>
                 )}
                 {showCustomCategory && (
@@ -1544,7 +2183,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                     type="text"
                     value={formData.CategoryLongName}
                     onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
-                    placeholder="Enter new Category Long Name..."
+                    placeholder="Enter new Sub Category Long Name..."
                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
                   />
                 )}
@@ -1554,35 +2193,116 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Description:
                 </label>
-                <textarea
-                  value={formData.Description}
-                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
-                />
+                {!showCustomInputs.Description ? (
+                  <select
+                    value={formData.Description}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, Description: true }));
+                        setFormData({ ...formData, Description: '' });
+                      } else {
+                        setFormData({ ...formData, Description: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Description...</option>
+                    {uniqueValues.Description.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <textarea
+                    value={formData.Description}
+                    onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                    placeholder="Enter new Description..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                    onBlur={() => {
+                      if (!formData.Description.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, Description: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Reported Unit:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ReportedUnit}
-                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ReportedUnit ? (
+                  <select
+                    value={formData.ReportedUnit}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedUnit: true }));
+                        setFormData({ ...formData, ReportedUnit: '' });
+                      } else {
+                        setFormData({ ...formData, ReportedUnit: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Reported Unit...</option>
+                    {uniqueValues.ReportedUnit.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ReportedUnit}
+                    onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                    placeholder="Enter new Reported Unit..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ReportedUnit.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedUnit: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Reported Value:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ReportedValue}
-                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ReportedValue ? (
+                  <select
+                    value={formData.ReportedValue}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedValue: true }));
+                        setFormData({ ...formData, ReportedValue: '' });
+                      } else {
+                        setFormData({ ...formData, ReportedValue: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Reported Value...</option>
+                    {uniqueValues.ReportedValue.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ReportedValue}
+                    onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                    placeholder="Enter new Reported Value..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ReportedValue.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedValue: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
 

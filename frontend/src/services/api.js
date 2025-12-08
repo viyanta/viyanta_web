@@ -1141,7 +1141,23 @@ async updateCompany(companyId, updatedName) {
   return response.data;
 };
 
-// 3️⃣ Get Economy Data
+// 3️⃣ Get Descriptions
+ getDescriptions = async (dataType, premiumType, category) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+  );
+  return response.data;
+};
+
+// 3.5️⃣ Get Unique Values for Form Fields
+ getUniqueValues = async (dataType, field) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/unique-values?data_type=${dataType}&field=${field}`
+  );
+  return response.data;
+};
+
+// 4️⃣ Get Economy Data
  getEconomyData = async (dataType, premiumType, category) => {
   const response = await axios.get(
     `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
@@ -1150,25 +1166,25 @@ async updateCompany(companyId, updatedName) {
 };
 
 
-// 4️⃣ Create New Economy Data
+// 5️⃣ Create New Economy Data
 createEconomyData = async (payload) => {
   const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
   return response.data;
 };
 
-// 5️⃣ Update Existing Record by ID
+// 6️⃣ Update Existing Record by ID
 updateEconomyData = async (id, payload) => {
   const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
   return response.data;
 };
 
-// 6️⃣ Delete Record by ID
+// 7️⃣ Delete Record by ID
 deleteEconomyData = async (id) => {
   const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
   return response.data;
 };
 
-// 7️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+// 8️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
 getDashboardData = async (descriptions) => {
   const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`, 
     { descriptions: descriptions }, 
@@ -1181,7 +1197,7 @@ getDashboardData = async (descriptions) => {
   return response.data;
 };
 
-// 8️⃣ Get Selected Descriptions (Global for all users)
+// 9️⃣ Get Selected Descriptions (Global for all users)
 getSelectedDescriptions = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
@@ -1192,13 +1208,69 @@ getSelectedDescriptions = async () => {
   }
 };
 
-// 9️⃣ Update Selected Descriptions (Save globally - admin only)
+// 🔟 Update Selected Descriptions (Save globally - admin only)
 updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
   const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
     { 
       descriptions: descriptions,
       removed_description: removedDescription
     }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 1️⃣1️⃣ Get Selected Row IDs for Dashboard
+getSelectedRowIds = async (dataType, description) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+    );
+    return response.data.row_ids || [];
+  } catch (error) {
+    console.error('Error fetching selected row IDs:', error);
+    return [];
+  }
+};
+
+// 1️⃣2️⃣ Update Selected Row IDs for Dashboard
+updateSelectedRowIds = async (dataType, description, rowIds) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/economy/update-selected-row-ids`,
+    {
+      data_type: dataType,
+      description: description,
+      row_ids: rowIds
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 1️⃣3️⃣ Get Chart Configurations
+getChartConfigs = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/economy/chart-configs`);
+    return response.data || {};
+  } catch (error) {
+    console.error('Error fetching chart configs:', error);
+    return {};
+  }
+};
+
+// 1️⃣4️⃣ Save Chart Configurations
+saveChartConfigs = async (configs) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/economy/save-chart-configs`,
+    { configs },
     {
       headers: {
         'Content-Type': 'application/json'
