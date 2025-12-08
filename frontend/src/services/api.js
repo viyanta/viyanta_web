@@ -1212,6 +1212,37 @@ deleteEconomyData = async (id) => {
     );
     return response.data;
   };
+
+
+  // ==========================
+  // IRDAI MONTHLY DATA APIs 
+  // ==========================
+
+  // 1️⃣ Get Available Report Months
+  getIrdaiReportMonths = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/months`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Insurers for a Selected Month
+  getIrdaiInsurers = async (reportMonth) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
+      params: { report_month: reportMonth },
+    });
+    return response.data.insurers;
+  };
+
+  // 3️⃣ Get Detailed Data For Selected Insurer
+  getIrdaiInsurerDetails = async (reportMonth, insurerName) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/details`, {
+      params: {
+        report_month: reportMonth,
+        insurer_name: insurerName,
+      },
+    });
+    return response.data; // includes both total + category rows
+  };
+  
 }
 
 export default new ApiService();

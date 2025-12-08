@@ -10,6 +10,7 @@ from routes.pdf_splitter import router as pdf_splitter_router
 from routes.economy import router as economy_router
 from routes.indusrty import router as indusrty_router
 from routes.periods import router as periods_router
+from routes.irdai_monthly import router as irdai_monthly_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
 
@@ -82,6 +83,8 @@ app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
 app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
 app.include_router(periods_router, prefix="/api/periods", tags=["Periods"])
+app.include_router(irdai_monthly_router,
+                   prefix="/api/irdai-monthly", tags=["IRDAI Monthly"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 

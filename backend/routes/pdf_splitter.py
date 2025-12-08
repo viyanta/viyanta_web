@@ -1172,39 +1172,29 @@ async def extract_form_data(
                     print(
                         f"⚠️ Period Master or Report integrity error for period '{report_period}': {ie}")
                     db.rollback()
-                    
-                    # Important: After rollback, start a new transaction by querying
-                    # This clears the session state
-                    try:
-                        # Try to find existing report instead
-                        existing_report = db.query(report_model).filter_by(
-                            company_id=company_obj.id,
-                            form_no=form_code,
-                            period=str(report_period),
-                            source_pdf=split_filename
-                        ).first()
+                    # Try to find existing report instead
+                    existing_report = db.query(report_model).filter_by(
+                        company_id=company_obj.id,
+                        form_no=form_code,
+                        period=str(report_period),
+                        source_pdf=split_filename
+                    ).first()
 
-                        if existing_report:
-                            print(
-                                f"[DB] ℹ️ Found existing report with ID: {existing_report.id}, updating data...")
-                            # Update existing report
-                            existing_report.data_rows = combined_rows
-                            existing_report.flat_headers = flat_headers
-                            existing_report.pages_used = pages_used
-                            db.commit()
-                            db.refresh(existing_report)
-                            report_objects.append(existing_report)
-                            print(
-                                f"[DB] ✅ Updated existing Report ID: {existing_report.id}")
-                        else:
-                            print(
-                                f"[DB] ❌ Could not create or find report for period: {report_period}")
-                            continue
-                    except Exception as query_err:
-                        print(f"[DB] ❌ Error querying existing report after rollback: {query_err}")
-                        # If we still can't query, the period might be the issue
-                        # Log it and continue to next period
-                        print(f"[DB] ⚠️ Skipping period '{report_period}' due to persistent errors")
+                    if existing_report:
+                        print(
+                            f"[DB] ℹ️ Found existing report with ID: {existing_report.id}, updating data...")
+                        # Update existing report
+                        existing_report.data_rows = combined_rows
+                        existing_report.flat_headers = flat_headers
+                        existing_report.pages_used = pages_used
+                        db.commit()
+                        db.refresh(existing_report)
+                        report_objects.append(existing_report)
+                        print(
+                            f"[DB] ✅ Updated existing Report ID: {existing_report.id}")
+                    else:
+                        print(
+                            f"[DB] ❌ Could not create or find report for period: {report_period}")
                         continue
 
             print(

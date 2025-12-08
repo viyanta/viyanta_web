@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, DateTime, JSON, ForeignKey, Text, Boolean, Date
+    Column, Integer, BigInteger, String, DateTime, DECIMAL, JSON, ForeignKey, Text, Boolean, Date
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -332,6 +332,52 @@ class MonthlyPeriodMaster(Base):
 
     period_master_ref = relationship(
         "PeriodMaster", back_populates="monthly_mappings")
+
+
+class IRDAIData(Base):
+    __tablename__ = "irdai_data"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+
+    report_month = Column(Date, nullable=False)
+    insurer_name = Column(String(255), nullable=False)
+    category = Column(String(255), nullable=False)
+
+    # First Year Premium
+    fyp_prev = Column(DECIMAL(18, 2))
+    fyp_current = Column(DECIMAL(18, 2))
+    fyp_growth = Column(DECIMAL(18, 2))
+    fyp_ytd_prev = Column(DECIMAL(18, 2))
+    fyp_ytd_current = Column(DECIMAL(18, 2))
+    fyp_growth_ytd = Column(DECIMAL(18, 2))
+    fyp_market_share = Column(DECIMAL(18, 2))
+
+    # No. of Policies / Schemes
+    pol_prev = Column(DECIMAL(18, 2))
+    pol_current = Column(DECIMAL(18, 2))
+    pol_growth = Column(DECIMAL(18, 2))
+    pol_ytd_prev = Column(DECIMAL(18, 2))
+    pol_ytd_current = Column(DECIMAL(18, 2))
+    pol_growth_ytd = Column(DECIMAL(18, 2))
+    pol_market_share = Column(DECIMAL(18, 2))
+
+    # No. of Lives Covered under Group Schemes
+    lives_prev = Column(DECIMAL(18, 2))
+    lives_current = Column(DECIMAL(18, 2))
+    lives_growth = Column(DECIMAL(18, 2))
+    lives_ytd_prev = Column(DECIMAL(18, 2))
+    lives_ytd_current = Column(DECIMAL(18, 2))
+    lives_growth_ytd = Column(DECIMAL(18, 2))
+    lives_market_share = Column(DECIMAL(18, 2))
+
+    # Sum Assured
+    sa_prev = Column(DECIMAL(18, 2))
+    sa_current = Column(DECIMAL(18, 2))
+    sa_growth = Column(DECIMAL(18, 2))
+    sa_ytd_prev = Column(DECIMAL(18, 2))
+    sa_ytd_current = Column(DECIMAL(18, 2))
+    sa_growth_ytd = Column(DECIMAL(18, 2))
+    sa_market_share = Column(DECIMAL(18, 2))
 
 
 class Companies(Base):
