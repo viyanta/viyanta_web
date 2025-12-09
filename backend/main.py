@@ -21,8 +21,8 @@ from routes.admin import router as admin_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
-    Company, EconomyMaster,
-    DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
+    Company, Report, ReportData, EconomyMaster,
+    DashboardSelectedDescriptions, User, IndustryMaster
 )
 
 
@@ -43,13 +43,13 @@ app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/a
 
 app.add_middleware(
     CORSMiddleware,
-# <<<<<<< backend_main
-#     allow_origins=allowed_origins if os.getenv(
-#         "ENVIRONMENT") == "production" else ["*"],
-# =======
+    # <<<<<<< backend_main
+    #     allow_origins=allowed_origins if os.getenv(
+    #         "ENVIRONMENT") == "production" else ["*"],
+    # =======
     # Allow frontend origins
     allow_origins=["https://app.viyantainsights.com", "*"],
-# >>>>>>> main
+    # >>>>>>> main
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

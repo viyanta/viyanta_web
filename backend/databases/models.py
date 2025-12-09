@@ -424,14 +424,13 @@ class IRDAIData(Base):
 
 
 class DashboardSelectedDescriptions(Base):
-    """Store global selected descriptions for economy dashboard"""
     __tablename__ = "dashboard_selected_descriptions"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String(500), nullable=False, unique=True)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(),
-                        onupdate=func.now())
+    description = Column(String(500), unique=True, nullable=False)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
 
 
 class Companies(Base):
