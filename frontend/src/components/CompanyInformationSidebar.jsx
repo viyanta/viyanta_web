@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
 
 function CompanyInformationSidebar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
     const { handleSidebarItemClick, selectedSidebarItem } = useNavigation();
 
     // Load theme preference from localStorage and listen for changes
@@ -36,6 +37,27 @@ function CompanyInformationSidebar() {
             window.removeEventListener('themeChanged', handleThemeChange);
         };
     }, []);
+
+    // Set selected item based on current route
+    useEffect(() => {
+        const path = location.pathname;
+        if (path.includes('/economy-dashboard') || path.includes('/economy-domestic') || path.includes('/economy-international')) {
+            setSelectedItem(1007); // Economy
+            if (selectedSidebarItem !== 1007) {
+                handleSidebarItemClick(1007, 'Economy');
+            }
+        } else if (path.includes('/industry-metrics')) {
+            // Always set and update for Industry Metrics pages
+            setSelectedItem(1001); // Industry Metrics
+            handleSidebarItemClick(1001, 'Industry Metrics');
+        } else if (path.includes('/dashboard') && !path.includes('/economy') && !path.includes('/industry-metrics')) {
+            setSelectedItem(1000); // Company Information
+            if (selectedSidebarItem !== 1000) {
+                handleSidebarItemClick(1000, 'Company Information');
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.pathname]);
 
     // Menu configuration - Company Information + 7 items, all clickable
     const menuConfig = [
@@ -79,8 +101,8 @@ function CompanyInformationSidebar() {
                         key={item.id}
                         style={{
                             padding: '8px 12px',
-                            color: selectedItem === item.id ? '#ffffff' : '#495057',
-                            backgroundColor: selectedItem === item.id ? '#36659b' : 'transparent',
+                            color: (selectedItem === item.id || selectedSidebarItem === item.id) ? '#ffffff' : '#495057',
+                            backgroundColor: (selectedItem === item.id || selectedSidebarItem === item.id) ? '#36659b' : 'transparent',
                             fontSize: item.id === 1000 ? '13px' : '12px',
                             fontWeight: item.id === 1000 ? '600' : 'normal',
                             borderBottom: index < getVisibleMenuItems().length - 1 ? '1px solid #f1f3f4' : 'none',
@@ -91,13 +113,17 @@ function CompanyInformationSidebar() {
                             minHeight: '32px'
                         }}
                         onMouseEnter={(e) => {
-                            if (selectedItem !== item.id) {
+                            const isSelected = selectedItem === item.id || selectedSidebarItem === item.id;
+                            if (!isSelected) {
                                 e.target.style.backgroundColor = '#f8f9fa';
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (selectedItem !== item.id) {
+                            const isSelected = selectedItem === item.id || selectedSidebarItem === item.id;
+                            if (!isSelected) {
                                 e.target.style.backgroundColor = 'transparent';
+                            } else {
+                                e.target.style.backgroundColor = '#36659b';
                             }
                         }}
                         onClick={() => {

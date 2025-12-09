@@ -32,6 +32,7 @@ import EconomyInternational from './pages/EconomyInternational.jsx'
 import IndustryMetricsDashboard from './pages/IndustryMetricsDashboard.jsx'
 import IndustryMetricsDomestic from './pages/IndustryMetricsDomestic.jsx'
 import IndustryMetricsInternational from './pages/IndustryMetricsInternational.jsx'
+import MetricsDomestic from './pages/MetricsDomestic.jsx'
 
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
@@ -446,6 +447,7 @@ function App() {
                         <Route path="/industry-metrics-dashboard" element={<IndustryMetricsDashboard onMenuClick={openSidebar} />} />
                         <Route path="/industry-metrics-domestic" element={<IndustryMetricsDomestic onMenuClick={openSidebar} />} />
                         <Route path="/industry-metrics-international" element={<IndustryMetricsInternational onMenuClick={openSidebar} />} />
+                        <Route path="/metrics-domestic" element={<MetricsDomestic onMenuClick={openSidebar} />} />
                       </Routes>
                     </main>
                   </div>
