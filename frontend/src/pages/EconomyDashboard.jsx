@@ -25,12 +25,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
   const [loadingData, setLoadingData] = useState(false);
   const [selectedPremium, setSelectedPremium] = useState(''); // Filter: Premium only
   const [selectedCategory, setSelectedCategory] = useState(''); // Filter: Category (depends on Premium)
-  const [chartOptions, setChartOptions] = useState({
-    0: 'country', // Chart 1 option
-    1: 'country', // Chart 2 option
-    2: 'country', // Chart 3 option
-    3: 'country'   // Chart 4 option
-  });
+  // Dynamic chart options - keyed by description index
+  const [chartOptions, setChartOptions] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
   const fetchingDashboardDataRef = useRef(false);
@@ -523,7 +519,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                         color: 'rgba(255, 255, 255, 0.9)',
                         fontWeight: 400
                     }}>
-                        {selectedDescriptions.length} of 4 selected. {isAdmin ? 'Click on a card to remove.' : 'Only admin can modify selections.'}
+                        {selectedDescriptions.length} selected. {isAdmin ? 'Click on a card to remove.' : 'Only admin can modify selections.'}
                     </p>
                   </div>
                   <div className="selected-descriptions-count" style={{
@@ -539,7 +535,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                   }}>
-                    {selectedDescriptions.length}/4
+                    {selectedDescriptions.length}
                     </div>
                   </div>
                 </div>
@@ -782,7 +778,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
               
               {!loadingData && selectedDescriptions.length === 0 && (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                  Please select up to 4 descriptions to view data and visuals
+                  Please select descriptions to view data and visuals
                 </div>
               )}
 
@@ -794,15 +790,16 @@ const EconomyDashboard = ({ onMenuClick }) => {
 
               {!loadingData && selectedDescriptions.length > 0 && dashboardData.length > 0 && viewMode === 'visuals' ? (
               <div className="dashboard-charts-grid">
-                {/* Chart 1: Top-Left - First Selected Description */}
-                {selectedDescriptions[0] && (() => {
-                  const option = chartOptions[0] || 'country';
+                {/* Dynamically render charts for all selected descriptions */}
+                {selectedDescriptions.map((description, index) => {
+                  const chartIndex = index;
+                  const option = chartOptions[chartIndex] || 'country';
                   let chartData = [];
                   let labels = [];
                   
                   if (option === 'country') {
                     const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[0] && item.CountryName && item.ReportedValue)
+                      .filter(item => item.Description === description && item.CountryName && item.ReportedValue)
                       .reduce((acc, item) => {
                         const country = item.CountryName;
                         if (!acc[country]) {
@@ -815,7 +812,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                     labels = chartData.map(d => d.label);
                   } else if (option === 'year') {
                     const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[0] && item.ProcessedFYYear && item.ReportedValue)
+                      .filter(item => item.Description === description && item.ProcessedFYYear && item.ReportedValue)
                       .reduce((acc, item) => {
                         const year = item.ProcessedFYYear;
                         if (!acc[year]) {
@@ -831,83 +828,12 @@ const EconomyDashboard = ({ onMenuClick }) => {
                   const maxValue = Math.max(...chartData.map(d => d.value), 1);
                   
                   return (
-                <div className="dashboard-chart-card">
+                    <div key={chartIndex} className="dashboard-chart-card">
                       <div className="chart-header">
-                        <h3 className="chart-title">{selectedDescriptions[0]}</h3>
+                        <h3 className="chart-title">{description}</h3>
                         <select
                           value={option}
-                          onChange={(e) => setChartOptions({ ...chartOptions, 0: e.target.value })}
-                          className="chart-dimension-select"
-                        >
-                          <option value="country">Country by Value</option>
-                          <option value="year">Year by Value</option>
-                        </select>
-                      </div>
-                  <div className="chart-container">
-                    <div className="bar-chart-vertical">
-                          {chartData.length > 0 ? chartData.map((item, index) => (
-                        <div key={index} className="bar-item">
-                          <div className="bar-wrapper">
-                            <div 
-                              className="bar-vertical" 
-                                  style={{ height: `${(item.value / maxValue) * 100}%` }}
-                                >
-                                  <span className="bar-value-top">{item.value.toFixed(1)}</span>
-                                </div>
-                              </div>
-                              <div className="bar-label-bottom" style={{ fontSize: '11px' }}>
-                                {item.label.length > 12 ? item.label.substring(0, 12) + '...' : item.label}
-                              </div>
-                            </div>
-                          )) : (
-                            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data available</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Chart 2: Top-Right - Second Selected Description */}
-                {selectedDescriptions[1] && (() => {
-                  const option = chartOptions[1] || 'country';
-                  let chartData = [];
-                  
-                  if (option === 'country') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[1] && item.CountryName && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const country = item.CountryName;
-                        if (!acc[country]) {
-                          acc[country] = { label: country, value: 0 };
-                        }
-                        acc[country].value += parseFloat(item.ReportedValue) || 0;
-                        return acc;
-                      }, {});
-                    chartData = Object.values(data).sort((a, b) => b.value - a.value).slice(0, 7);
-                  } else if (option === 'year') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[1] && item.ProcessedFYYear && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const year = item.ProcessedFYYear;
-                        if (!acc[year]) {
-                          acc[year] = { label: year, value: 0 };
-                        }
-                        acc[year].value += parseFloat(item.ReportedValue) || 0;
-                        return acc;
-                      }, {});
-                    chartData = Object.values(data).sort((a, b) => a.label.localeCompare(b.label));
-                  }
-                  
-                  const maxValue = Math.max(...chartData.map(d => d.value), 1);
-                  
-                  return (
-                <div className="dashboard-chart-card">
-                      <div className="chart-header">
-                        <h3 className="chart-title">{selectedDescriptions[1]}</h3>
-                        <select
-                          value={option}
-                          onChange={(e) => setChartOptions({ ...chartOptions, 1: e.target.value })}
+                          onChange={(e) => setChartOptions({ ...chartOptions, [chartIndex]: e.target.value })}
                           className="chart-dimension-select"
                         >
                           <option value="country">Country by Value</option>
@@ -916,8 +842,8 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       </div>
                       <div className="chart-container">
                         <div className="bar-chart-vertical">
-                          {chartData.length > 0 ? chartData.map((item, index) => (
-                            <div key={index} className="bar-item">
+                          {chartData.length > 0 ? chartData.map((item, itemIndex) => (
+                            <div key={itemIndex} className="bar-item">
                               <div className="bar-wrapper">
                                 <div 
                                   className="bar-vertical" 
@@ -935,199 +861,9 @@ const EconomyDashboard = ({ onMenuClick }) => {
                           )}
                         </div>
                       </div>
-                        </div>
-                  );
-                })()}
-
-                {/* Chart 3: Bottom-Left - Third Selected Description */}
-                {selectedDescriptions[2] && (() => {
-                  const option = chartOptions[2] || 'category';
-                  let chartData = [];
-                  
-                  if (option === 'country') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[2] && item.CountryName && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const country = item.CountryName;
-                        if (!acc[country]) {
-                          acc[country] = { label: country, value: 0, items: [] };
-                        }
-                        const value = parseFloat(item.ReportedValue) || 0;
-                        acc[country].value += value;
-                        acc[country].items.push({ subLabel: item.ProcessedFYYear || 'N/A', value });
-                        return acc;
-                      }, {});
-                    chartData = Object.values(data).sort((a, b) => b.value - a.value).slice(0, 6);
-                  } else if (option === 'year') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[2] && item.ProcessedFYYear && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const year = item.ProcessedFYYear;
-                        if (!acc[year]) {
-                          acc[year] = { label: year, value: 0, items: [] };
-                        }
-                        const value = parseFloat(item.ReportedValue) || 0;
-                        acc[year].value += value;
-                        acc[year].items.push({ subLabel: item.CountryName || 'N/A', value });
-                        return acc;
-                      }, {});
-                    chartData = Object.values(data).sort((a, b) => a.label.localeCompare(b.label));
-                  }
-                  
-                  const totalValue = chartData.reduce((sum, c) => sum + c.value, 1);
-                  const colors = ['#4CAF50', '#E0E0E0', '#64B5F6', '#FF9800', '#BA68C8'];
-                  const sizeClasses = ['treemap-large', 'treemap-medium', 'treemap-medium', 'treemap-small', 'treemap-small'];
-                  
-                  return (
-                    <div className="dashboard-chart-card">
-                      <div className="chart-header">
-                        <h3 className="chart-title">{selectedDescriptions[2]}</h3>
-                        <select
-                          value={option}
-                          onChange={(e) => setChartOptions({ ...chartOptions, 2: e.target.value })}
-                          className="chart-dimension-select"
-                        >
-                          <option value="country">Country by Value</option>
-                          <option value="year">Year by Value</option>
-                        </select>
-                      </div>
-                      <div className="chart-container">
-                        <div className="treemap-container">
-                          {chartData.length > 0 ? chartData.slice(0, 6).map((item, index) => {
-                            const percentage = (item.value / totalValue) * 100;
-                            const sizeClass = index < sizeClasses.length ? sizeClasses[index] : 'treemap-small';
-                            const color = colors[index % colors.length];
-                            
-                            return (
-                              <div 
-                                key={index} 
-                                className={`treemap-item ${sizeClass}`} 
-                                style={{ backgroundColor: color }}
-                              >
-                                <div className="treemap-label">{item.label.length > 20 ? item.label.substring(0, 20) + '...' : item.label}</div>
-                        <div className="treemap-sub">
-                                  {item.items.slice(0, 2).map((subItem, subIndex) => (
-                                    <div key={subIndex} className="treemap-sub-item">
-                                      {subItem.subLabel || 'N/A'}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }) : (
-                            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data available</div>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   );
-                })()}
-
-                {/* Chart 4: Bottom-Right - Fourth Selected Description */}
-                {selectedDescriptions[3] && (() => {
-                  const option = chartOptions[3] || 'premium';
-                  let chartData = [];
-                  
-                  if (option === 'country') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[3] && item.CountryName && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const country = item.CountryName;
-                        if (!acc[country]) {
-                          acc[country] = 0;
-                        }
-                        acc[country] += parseFloat(item.ReportedValue) || 0;
-                        return acc;
-                      }, {});
-                    chartData = Object.entries(data)
-                      .map(([name, value]) => ({ name, value }))
-                      .sort((a, b) => b.value - a.value)
-                      .slice(0, 5);
-                  } else if (option === 'year') {
-                    const data = dashboardData
-                      .filter(item => item.Description === selectedDescriptions[3] && item.ProcessedFYYear && item.ReportedValue)
-                      .reduce((acc, item) => {
-                        const year = item.ProcessedFYYear;
-                        if (!acc[year]) {
-                          acc[year] = 0;
-                        }
-                        acc[year] += parseFloat(item.ReportedValue) || 0;
-                        return acc;
-                      }, {});
-                    chartData = Object.entries(data)
-                      .map(([name, value]) => ({ name, value }))
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .slice(0, 5);
-                  }
-                  
-                  const totalValue = chartData.reduce((sum, p) => sum + p.value, 1);
-                  
-                  // Calculate pie chart segments
-                  const radius = 80;
-                  const circumference = 2 * Math.PI * radius;
-                  const colors = ['#64B5F6', '#BA68C8', '#FF9800', '#4CAF50', '#E0E0E0'];
-                  let offset = 0;
-                  
-                  return (
-                <div className="dashboard-chart-card">
-                      <div className="chart-header">
-                        <h3 className="chart-title">{selectedDescriptions[3]}</h3>
-                        <select
-                          value={option}
-                          onChange={(e) => setChartOptions({ ...chartOptions, 3: e.target.value })}
-                          className="chart-dimension-select"
-                        >
-                          <option value="country">Country by Value</option>
-                          <option value="year">Year by Value</option>
-                        </select>
-                      </div>
-                  <div className="chart-container">
-                    <div className="pie-chart-container">
-                          {chartData.length > 0 ? (
-                            <>
-                              <svg className="pie-chart" viewBox="0 0 200 200">
-                                {chartData.map((item, index) => {
-                                  const percentage = (item.value / totalValue) * 100;
-                                  const length = (percentage / 100) * circumference;
-                                  const currentOffset = offset;
-                                  offset -= length;
-                        
-                        return (
-                            <circle
-                                      key={index}
-                              cx="100"
-                              cy="100"
-                              r={radius}
-                              fill="none"
-                                      stroke={colors[index % colors.length]}
-                              strokeWidth="40"
-                                      strokeDasharray={`${length} ${circumference}`}
-                                      strokeDashoffset={currentOffset}
-                              transform="rotate(-90 100 100)"
-                            />
-                                  );
-                                })}
-                          </svg>
-                      <div className="pie-legend">
-                                {chartData.map((item, index) => {
-                                  const percentage = ((item.value / totalValue) * 100).toFixed(1);
-                                  return (
-                                    <div key={index} className="legend-item">
-                                      <div className="legend-color" style={{ backgroundColor: colors[index % colors.length] }}></div>
-                                      <span>{item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name} - {percentage}%</span>
-                        </div>
-                                  );
-                                })}
-                        </div>
-                            </>
-                          ) : (
-                            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data available</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
+                })}
               </div>
               ) : (
               // Data Table View - Pivot Format

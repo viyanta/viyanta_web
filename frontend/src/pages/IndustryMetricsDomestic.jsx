@@ -41,7 +41,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [formData, setFormData] = useState({
     ProcessedPeriodType: '',
-    ProcessedFYYear: '',
+    ProcessedFYYear: [], // Changed to array for multi-select
     DataType: 'Domestic',
     CountryName: '',
     PremiumTypeLongName: '',
@@ -83,6 +83,9 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const fetchingPremiumTypesRef = useRef(false);
   const fetchingCategoriesRef = useRef(false);
   const fetchingDataRef = useRef(false);
+  const fetchingDescriptionsRef = useRef(false);
+  const lastPathRef = useRef('');
+  const lastNavigationPathRef = useRef('');
 
   // Load Industry selected descriptions from backend on mount
   useEffect(() => {
@@ -100,10 +103,39 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
 
     loadSelectedDescriptions();
 
-    // Refresh every 30 seconds
+    // Refresh every 30 seconds (reduced frequency to prevent excessive calls)
     const refreshInterval = setInterval(loadSelectedDescriptions, 30000);
-    return () => clearInterval(refreshInterval);
+    
+    // Also refresh when page becomes visible (user navigates back to this page)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadSelectedDescriptions();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
+
+  // Refresh descriptions when navigating to this page (only once per navigation)
+  useEffect(() => {
+    if (location.pathname.includes('/industry-metrics-domestic') && lastPathRef.current !== location.pathname) {
+      lastPathRef.current = location.pathname;
+      const loadSelectedDescriptions = async () => {
+        try {
+          const descriptions = await ApiService.getSelectedDescriptionsIndustry();
+          const newDescriptions = Array.isArray(descriptions) ? descriptions : [];
+          setSelectedDescriptions(newDescriptions);
+        } catch (error) {
+          console.error('Error loading Industry selected descriptions:', error);
+        }
+      };
+      loadSelectedDescriptions();
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -194,6 +226,9 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
 
   // Fetch descriptions when both Category and Sub Category are selected
   useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingDescriptionsRef.current) return;
+    
     const fetchDescriptions = async () => {
       if (!selectedPremiumType || !selectedCategory) {
         setDescriptions([]);
@@ -201,6 +236,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
         return;
       }
 
+      fetchingDescriptionsRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -216,11 +252,17 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
         setDescriptions([]);
       } finally {
         setLoading(false);
+        fetchingDescriptionsRef.current = false;
       }
     };
 
     fetchDescriptions();
   }, [selectedPremiumType, selectedCategory]);
+
+  // Check if current description is selected in dashboard (defined before fetchIndustryData)
+  const isDescriptionSelectedInDashboard = useMemo(() => {
+    return selectedDescription && selectedDescriptions.includes(selectedDescription);
+  }, [selectedDescription, selectedDescriptions]);
 
   // Fetch industry data when Category, Sub Category, and Description are all selected
   const fetchIndustryData = useCallback(async () => {
@@ -280,7 +322,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       setLoading(false);
       fetchingDataRef.current = false;
     }
-  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin]);
+  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin, isDescriptionSelectedInDashboard, selectedDescriptions]);
 
   // Handle row selection for dashboard
   const handleRowSelection = async (rowId, isSelected) => {
@@ -361,19 +403,14 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       selectAllCheckboxRef.current.indeterminate = someRowsSelected && !allRowsSelected;
     }
   }, [someRowsSelected, allRowsSelected]);
-  
-  // Check if current description is selected in dashboard
-  const isDescriptionSelectedInDashboard = useMemo(() => {
-    return selectedDescription && selectedDescriptions.includes(selectedDescription);
-  }, [selectedDescription, selectedDescriptions]);
 
   // Clear selected row IDs if current description is removed from dashboard
   useEffect(() => {
     if (selectedDescription && !selectedDescriptions.includes(selectedDescription)) {
       // Description was removed from dashboard, clear selected row IDs
       setSelectedRowIds(new Set());
-      // Refetch data to ensure checkboxes reflect cleared state
-      if (selectedPremiumType && selectedCategory) {
+      // Refetch data to ensure checkboxes reflect cleared state only if not already fetching
+      if (selectedPremiumType && selectedCategory && !fetchingDataRef.current) {
         fetchIndustryData();
       }
     }
@@ -385,13 +422,14 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
 
   // Refresh data only when navigating to this page (not on filter changes)
   useEffect(() => {
-    if (location.pathname.includes('/industry-metrics-domestic')) {
+    if (location.pathname.includes('/industry-metrics-domestic') && lastNavigationPathRef.current !== location.pathname) {
+      lastNavigationPathRef.current = location.pathname;
       // Reset refs to allow fresh fetch
       fetchingDataRef.current = false;
       fetchingCategoriesRef.current = false;
       
       // Only refresh if all filters (Category, Sub Category, and Description) are selected and we're on the page
-      if (selectedPremiumType && selectedCategory && selectedDescription) {
+      if (selectedPremiumType && selectedCategory && selectedDescription && !fetchingDataRef.current) {
         const timer = setTimeout(() => {
           if (!fetchingDataRef.current) {
             fetchIndustryData();
@@ -486,7 +524,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
 
   // Transform data into pivot table format grouped by PeriodType for non-admin users
   const pivotTableData = useMemo(() => {
-    if (isAdmin || !filteredData || filteredData.length === 0) {
+    if (isAdmin || !sortedData || sortedData.length === 0) {
       return {};
     }
 
@@ -494,7 +532,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       // Group by ProcessedPeriodType
       const groupedByPeriodType = {};
       
-      filteredData.forEach(item => {
+      sortedData.forEach(item => {
         if (!item) return;
         const periodType = item.ProcessedPeriodType || 'Other';
         if (!groupedByPeriodType[periodType]) {
@@ -518,8 +556,10 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
         // Get all unique periods (columns) - sorted
         const periods = [...new Set(groupData.map(item => item?.ProcessedFYYear || '').filter(p => p))].sort();
         
-        // Get all unique descriptions (rows)
-        const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))];
+        // Get all unique descriptions (rows) - sorted
+        const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))].sort((a, b) => {
+          return (a || '').toLowerCase().localeCompare((b || '').toLowerCase());
+        });
         
         // Create pivot structure: { description: { period: value, unit: unit } }
         const pivot = {};
@@ -564,7 +604,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       console.error('Error creating pivot table data:', error);
       return {};
     }
-  }, [filteredData, isAdmin, selectedPremiumType, selectedCategory]);
+  }, [sortedData, isAdmin, selectedPremiumType, selectedCategory]);
 
   // Fetch unique values for form fields
   const fetchUniqueValues = useCallback(async () => {
@@ -652,7 +692,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const handleAddNew = async () => {
     setFormData({
       ProcessedPeriodType: '',
-      ProcessedFYYear: '',
+      ProcessedFYYear: [], // Array for multi-select
       DataType: 'Domestic',
       CountryName: '',
       PremiumTypeLongName: '',
@@ -688,7 +728,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
     
     setFormData({
       ProcessedPeriodType: record.ProcessedPeriodType || '',
-      ProcessedFYYear: record.ProcessedFYYear || '',
+      ProcessedFYYear: record.ProcessedFYYear ? [record.ProcessedFYYear] : [], // Single year as array for edit
       DataType: record.DataType || 'Domestic',
       CountryName: record.CountryName || '',
       PremiumTypeLongName: premiumTypeValue,
@@ -786,13 +826,36 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       };
 
       if (editingRecord) {
-        // Update existing record
-        await ApiService.updateIndustryDataIndustry(editingRecord.id, submitData);
+        // Update existing record - use first year from array
+        const updateData = {
+          ...submitData,
+          ProcessedFYYear: submitData.ProcessedFYYear[0] || ''
+        };
+        await ApiService.updateIndustryDataIndustry(editingRecord.id, updateData);
         setSuccessMessage('Record updated successfully!');
       } else {
-        // Create new record
-        await ApiService.createIndustryDataIndustry(submitData);
-        setSuccessMessage('Record added successfully!');
+        // Create multiple records - one for each selected year
+        const selectedYears = Array.isArray(submitData.ProcessedFYYear) && submitData.ProcessedFYYear.length > 0
+          ? submitData.ProcessedFYYear
+          : [];
+        
+        if (selectedYears.length === 0) {
+          setError('Please select at least one Processed FY Year');
+          setLoading(false);
+          return;
+        }
+
+        // Create records for each selected year
+        const createPromises = selectedYears.map(year => {
+          const recordData = {
+            ...submitData,
+            ProcessedFYYear: year
+          };
+          return ApiService.createIndustryDataIndustry(recordData);
+        });
+
+        await Promise.all(createPromises);
+        setSuccessMessage(`Successfully added ${selectedYears.length} record(s)!`);
       }
 
       setShowAddModal(false);
@@ -990,13 +1053,13 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     className += ' inactive';
                   }
                   return (
-                    <button
-                      key={tab}
+                  <button
+                    key={tab}
                       onClick={() => isActive && handleTabClick(tab)}
                       className={className}
-                    >
-                      {tab}
-                    </button>
+                  >
+                    {tab}
+                  </button>
                   );
                 })}
               </div>
@@ -1424,11 +1487,11 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                 </div>
               ) : isAdmin ? (
                 // For admin users, show regular table
-                <div className="table-container">
-                  <table className="industry-metrics-table">
-                    <thead>
-                      <tr>
-                        {isAdmin && <th>Status</th>}
+              <div className="table-container">
+                <table className="industry-metrics-table">
+                  <thead>
+                    <tr>
+                      {isAdmin && <th>Status</th>}
                         {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
                         {isAdmin && (
                           <th style={{ 
@@ -1476,50 +1539,81 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                         <th>ReportedValue</th>
                         <th>Category Long Name</th>
                         <th>Sub Category Long Name</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading && (
-                        <tr>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading && (
+                      <tr>
                           <td colSpan={isAdmin ? 11 : 8} className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
-                            Loading data...
-                          </td>
-                        </tr>
-                      )}
+                          Loading data...
+                        </td>
+                      </tr>
+                    )}
                       {!loading && sortedData.length > 0 ? (
                         sortedData.map((row, index) => (
                         <tr key={row.id || index}>
                           {isAdmin && (
                             <td>
-                              <label style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                gap: '8px'
-                              }}>
+                              <label
+                                style={{
+                                  position: 'relative',
+                                  display: 'inline-block',
+                                  width: '50px',
+                                  height: '24px',
+                                  cursor: 'pointer'
+                                }}
+                              >
                                 <input
                                   type="checkbox"
                                   checked={row.IsActive === 1 || row.IsActive === true}
-                                  onChange={() => handleStatusToggle(row)}
+                                  onChange={async (e) => {
+                                    const newStatus = e.target.checked;
+                                    try {
+                                      await ApiService.updateIndustryData(row.id, { IsActive: newStatus });
+                                      // Update local state
+                                      setFilteredData(prevData =>
+                                        prevData.map(item =>
+                                          item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                        )
+                                      );
+                                    } catch (err) {
+                                      console.error('Error updating status:', err);
+                                      alert('Failed to update status. Please try again.');
+                                    }
+                                  }}
                                   style={{
-                                    width: '40px',
-                                    height: '20px',
-                                    cursor: 'pointer',
-                                    appearance: 'none',
-                                    backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#28a745' : '#dc3545',
-                                    borderRadius: '10px',
-                                    position: 'relative',
-                                    transition: 'background-color 0.3s',
-                                    outline: 'none'
+                                    opacity: 0,
+                                    width: 0,
+                                    height: 0
                                   }}
                                 />
-                                <span style={{ 
-                                  fontSize: '12px', 
-                                  color: (row.IsActive === 1 || row.IsActive === true) ? '#28a745' : '#dc3545',
-                                  fontWeight: '500'
-                                }}>
-                                  {(row.IsActive === 1 || row.IsActive === true) ? 'Active' : 'Inactive'}
+                                <span
+                                  style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
+                                    borderRadius: '24px',
+                                    transition: 'background-color 0.3s',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      position: 'absolute',
+                                      content: '""',
+                                      height: '18px',
+                                      width: '18px',
+                                      left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
+                                      bottom: '3px',
+                                      backgroundColor: 'white',
+                                      borderRadius: '50%',
+                                      transition: 'left 0.3s',
+                                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                  />
                                 </span>
                               </label>
                             </td>
@@ -1891,57 +1985,155 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     <option value="__ADD_NEW__">--- Add New ---</option>
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.ProcessedPeriodType}
-                    onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                <input
+                  type="text"
+                  value={formData.ProcessedPeriodType}
+                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
                     placeholder="Enter new Processed Period Type..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                     onBlur={() => {
                       if (!formData.ProcessedPeriodType.trim()) {
                         setShowCustomInputs(prev => ({ ...prev, ProcessedPeriodType: false }));
                       }
                     }}
-                  />
+                />
                 )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Processed FY Year:
+                  Processed FY Year {editingRecord ? '' : '(Select Multiple)'}:
                 </label>
                 {!showCustomInputs.ProcessedFYYear ? (
-                  <select
-                    value={formData.ProcessedFYYear}
-                    onChange={(e) => {
-                      if (e.target.value === '__ADD_NEW__') {
-                        setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
-                        setFormData({ ...formData, ProcessedFYYear: '' });
-                      } else {
-                        setFormData({ ...formData, ProcessedFYYear: e.target.value });
-                      }
-                    }}
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                  >
-                    <option value="">Select Processed FY Year...</option>
-                    {uniqueValues.ProcessedFYYear.map((value, index) => (
-                      <option key={index} value={value}>{value}</option>
-                    ))}
-                    <option value="__ADD_NEW__">--- Add New ---</option>
-                  </select>
+                  <div style={{ 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px', 
+                    padding: '8px', 
+                    maxHeight: '200px', 
+                    overflowY: 'auto',
+                    backgroundColor: '#fff'
+                  }}>
+                    {editingRecord ? (
+                      // Single select for editing
+                      <select
+                        value={formData.ProcessedFYYear[0] || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__ADD_NEW__') {
+                            setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                            setFormData({ ...formData, ProcessedFYYear: [] });
+                          } else {
+                            setFormData({ ...formData, ProcessedFYYear: [e.target.value] });
+                          }
+                        }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                      >
+                        <option value="">Select Processed FY Year...</option>
+                        {uniqueValues.ProcessedFYYear.map((value, index) => (
+                          <option key={index} value={value}>{value}</option>
+                        ))}
+                        <option value="__ADD_NEW__">--- Add New ---</option>
+                      </select>
+                    ) : (
+                      // Multi-select checkboxes for adding new
+                      <>
+                        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.ProcessedFYYear.length === uniqueValues.ProcessedFYYear.length && uniqueValues.ProcessedFYYear.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, ProcessedFYYear: [...uniqueValues.ProcessedFYYear] });
+                              } else {
+                                setFormData({ ...formData, ProcessedFYYear: [] });
+                              }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <label style={{ cursor: 'pointer', fontWeight: '500' }}>Select All</label>
+                        </div>
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '8px' }}>
+                          {uniqueValues.ProcessedFYYear.map((value, index) => (
+                            <div key={index} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={formData.ProcessedFYYear.includes(value)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, ProcessedFYYear: [...formData.ProcessedFYYear, value] });
+                                  } else {
+                                    setFormData({ ...formData, ProcessedFYYear: formData.ProcessedFYYear.filter(y => y !== value) });
+                                  }
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <label style={{ cursor: 'pointer', flex: 1 }}>{value}</label>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                              setFormData({ ...formData, ProcessedFYYear: [] });
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#f3f4f6',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '13px'
+                            }}
+                          >
+                            --- Add New ---
+                          </button>
+                        </div>
+                        {formData.ProcessedFYYear.length > 0 && (
+                          <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '4px', fontSize: '13px' }}>
+                            {formData.ProcessedFYYear.length} year(s) selected
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.ProcessedFYYear}
-                    onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
-                    placeholder="Enter new Processed FY Year..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                    onBlur={() => {
-                      if (!formData.ProcessedFYYear.trim()) {
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.ProcessedFYYear.join(', ')}
+                      onChange={(e) => {
+                        const years = e.target.value.split(',').map(y => y.trim()).filter(y => y);
+                        setFormData({ ...formData, ProcessedFYYear: years });
+                      }}
+                      placeholder="Enter new Processed FY Year (comma-separated for multiple)..."
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginBottom: '8px' }}
+                      onBlur={() => {
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
                         setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
-                      }
-                    }}
-                  />
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setFormData({ ...formData, ProcessedFYYear: [] });
+                        }
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#f3f4f6',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '13px'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -1982,18 +2174,18 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     <option value="__ADD_NEW__">--- Add New ---</option>
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.CountryName}
-                    onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                <input
+                  type="text"
+                  value={formData.CountryName}
+                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
                     placeholder="Enter new Country Name..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                     onBlur={() => {
                       if (!formData.CountryName.trim()) {
                         setShowCustomInputs(prev => ({ ...prev, CountryName: false }));
                       }
                     }}
-                  />
+                />
                 )}
               </div>
 
@@ -2118,17 +2310,17 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     <option value="__ADD_NEW__">--- Add New ---</option>
                   </select>
                 ) : (
-                  <textarea
-                    value={formData.Description}
-                    onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                <textarea
+                  value={formData.Description}
+                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
                     placeholder="Enter new Description..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
                     onBlur={() => {
                       if (!formData.Description.trim()) {
                         setShowCustomInputs(prev => ({ ...prev, Description: false }));
                       }
                     }}
-                  />
+                />
                 )}
               </div>
 
@@ -2156,18 +2348,18 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     <option value="__ADD_NEW__">--- Add New ---</option>
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.ReportedUnit}
-                    onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                <input
+                  type="text"
+                  value={formData.ReportedUnit}
+                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
                     placeholder="Enter new Reported Unit..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                     onBlur={() => {
                       if (!formData.ReportedUnit.trim()) {
                         setShowCustomInputs(prev => ({ ...prev, ReportedUnit: false }));
                       }
                     }}
-                  />
+                />
                 )}
               </div>
 
@@ -2195,18 +2387,18 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                     <option value="__ADD_NEW__">--- Add New ---</option>
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.ReportedValue}
-                    onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                <input
+                  type="text"
+                  value={formData.ReportedValue}
+                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
                     placeholder="Enter new Reported Value..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                     onBlur={() => {
                       if (!formData.ReportedValue.trim()) {
                         setShowCustomInputs(prev => ({ ...prev, ReportedValue: false }));
                       }
                     }}
-                  />
+                />
                 )}
               </div>
 

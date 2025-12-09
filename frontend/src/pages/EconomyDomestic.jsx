@@ -42,7 +42,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [formData, setFormData] = useState({
     ProcessedPeriodType: '',
-    ProcessedFYYear: '',
+    ProcessedFYYear: [], // Changed to array for multi-select
     DataType: 'Domestic',
     CountryName: '',
     PremiumTypeLongName: '',
@@ -84,6 +84,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
   const fetchingCategoriesRef = useRef(false);
   const fetchingDescriptionsRef = useRef(false);
   const fetchingDataRef = useRef(false);
+  const lastNavigationPathRef = useRef('');
 
   useEffect(() => {
     const handleResize = () => {
@@ -367,13 +368,13 @@ const EconomyDomestic = ({ onMenuClick }) => {
   useEffect(() => {
     if (selectedDescription && !selectedDescriptions.includes(selectedDescription)) {
       setSelectedRowIds(new Set());
-      // Refetch data to update checkboxes immediately
-      if (selectedPremiumType && selectedCategory) {
+      // Refetch data to update checkboxes immediately only if not already fetching
+      if (selectedPremiumType && selectedCategory && !fetchingDataRef.current) {
         fetchingDataRef.current = false; // Reset ref to allow refetch
         fetchEconomyData();
       }
     }
-  }, [selectedDescriptions, selectedDescription, selectedPremiumType, selectedCategory]);
+  }, [selectedDescriptions, selectedDescription, selectedPremiumType, selectedCategory, fetchEconomyData]);
 
   useEffect(() => {
     fetchEconomyData();
@@ -381,14 +382,15 @@ const EconomyDomestic = ({ onMenuClick }) => {
 
   // Refresh data only when navigating to this page (not on filter changes)
   useEffect(() => {
-    if (location.pathname.includes('/economy-domestic')) {
+    if (location.pathname.includes('/economy-domestic') && lastNavigationPathRef.current !== location.pathname) {
+      lastNavigationPathRef.current = location.pathname;
       // Reset refs to allow fresh fetch
       fetchingDataRef.current = false;
       fetchingCategoriesRef.current = false;
       
       // Only refresh if all filters are selected and we're on the page
       // Don't trigger on filter changes - that's handled by fetchEconomyData useEffect above
-      if (selectedPremiumType && selectedCategory && selectedDescription) {
+      if (selectedPremiumType && selectedCategory && selectedDescription && !fetchingDataRef.current) {
         const timer = setTimeout(() => {
           if (!fetchingDataRef.current) {
             fetchEconomyData();
@@ -647,7 +649,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
   const handleAdd = async () => {
     setFormData({
       ProcessedPeriodType: '',
-      ProcessedFYYear: '',
+      ProcessedFYYear: [], // Array for multi-select
       DataType: 'Domestic',
       CountryName: '',
       PremiumTypeLongName: '',
@@ -683,7 +685,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
     
     setFormData({
       ProcessedPeriodType: record.ProcessedPeriodType || '',
-      ProcessedFYYear: record.ProcessedFYYear || '',
+      ProcessedFYYear: record.ProcessedFYYear ? [record.ProcessedFYYear] : [], // Single year as array for edit
       DataType: record.DataType || 'Domestic',
       CountryName: record.CountryName || '',
       PremiumTypeLongName: premiumTypeValue,
@@ -828,13 +830,36 @@ const EconomyDomestic = ({ onMenuClick }) => {
       const newCategory = formData.CategoryLongName;
       
       if (editingRecord) {
-        // Update existing record
-        await ApiService.updateEconomyData(editingRecord.id, formData);
+        // Update existing record - use first year from array
+        const updateData = {
+          ...formData,
+          ProcessedFYYear: formData.ProcessedFYYear[0] || ''
+        };
+        await ApiService.updateEconomyData(editingRecord.id, updateData);
         setSuccessMessage('Record updated successfully!');
       } else {
-        // Create new record
-        await ApiService.createEconomyData(formData);
-        setSuccessMessage('Record added successfully!');
+        // Create multiple records - one for each selected year
+        const selectedYears = Array.isArray(formData.ProcessedFYYear) && formData.ProcessedFYYear.length > 0
+          ? formData.ProcessedFYYear
+          : [];
+        
+        if (selectedYears.length === 0) {
+          setError('Please select at least one Processed FY Year');
+          setLoading(false);
+          return;
+        }
+
+        // Create records for each selected year
+        const createPromises = selectedYears.map(year => {
+          const recordData = {
+            ...formData,
+            ProcessedFYYear: year
+          };
+          return ApiService.createEconomyData(recordData);
+        });
+
+        await Promise.all(createPromises);
+        setSuccessMessage(`Successfully added ${selectedYears.length} record(s)!`);
       }
 
       setShowAddModal(false);
@@ -1927,40 +1952,138 @@ const EconomyDomestic = ({ onMenuClick }) => {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Processed FY Year:
+                  Processed FY Year {editingRecord ? '' : '(Select Multiple)'}:
                 </label>
                 {!showCustomInputs.ProcessedFYYear ? (
-                  <select
-                    value={formData.ProcessedFYYear}
-                    onChange={(e) => {
-                      if (e.target.value === '__ADD_NEW__') {
-                        setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
-                        setFormData({ ...formData, ProcessedFYYear: '' });
-                      } else {
-                        setFormData({ ...formData, ProcessedFYYear: e.target.value });
-                      }
-                    }}
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                  >
-                    <option value="">Select Processed FY Year...</option>
-                    {uniqueValues.ProcessedFYYear.map((value, index) => (
-                      <option key={index} value={value}>{value}</option>
-                    ))}
-                    <option value="__ADD_NEW__">--- Add New ---</option>
-                  </select>
+                  <div style={{ 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px', 
+                    padding: '8px', 
+                    maxHeight: '200px', 
+                    overflowY: 'auto',
+                    backgroundColor: '#fff'
+                  }}>
+                    {editingRecord ? (
+                      // Single select for editing
+                      <select
+                        value={formData.ProcessedFYYear[0] || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__ADD_NEW__') {
+                            setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                            setFormData({ ...formData, ProcessedFYYear: [] });
+                          } else {
+                            setFormData({ ...formData, ProcessedFYYear: [e.target.value] });
+                          }
+                        }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                      >
+                        <option value="">Select Processed FY Year...</option>
+                        {uniqueValues.ProcessedFYYear.map((value, index) => (
+                          <option key={index} value={value}>{value}</option>
+                        ))}
+                        <option value="__ADD_NEW__">--- Add New ---</option>
+                      </select>
+                    ) : (
+                      // Multi-select checkboxes for adding new
+                      <>
+                        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.ProcessedFYYear.length === uniqueValues.ProcessedFYYear.length && uniqueValues.ProcessedFYYear.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, ProcessedFYYear: [...uniqueValues.ProcessedFYYear] });
+                              } else {
+                                setFormData({ ...formData, ProcessedFYYear: [] });
+                              }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <label style={{ cursor: 'pointer', fontWeight: '500' }}>Select All</label>
+                        </div>
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '8px' }}>
+                          {uniqueValues.ProcessedFYYear.map((value, index) => (
+                            <div key={index} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={formData.ProcessedFYYear.includes(value)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, ProcessedFYYear: [...formData.ProcessedFYYear, value] });
+                                  } else {
+                                    setFormData({ ...formData, ProcessedFYYear: formData.ProcessedFYYear.filter(y => y !== value) });
+                                  }
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <label style={{ cursor: 'pointer', flex: 1 }}>{value}</label>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                              setFormData({ ...formData, ProcessedFYYear: [] });
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#f3f4f6',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '13px'
+                            }}
+                          >
+                            --- Add New ---
+                          </button>
+                        </div>
+                        {formData.ProcessedFYYear.length > 0 && (
+                          <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '4px', fontSize: '13px' }}>
+                            {formData.ProcessedFYYear.length} year(s) selected
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 ) : (
-                  <input
-                    type="text"
-                    value={formData.ProcessedFYYear}
-                    onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
-                    placeholder="Enter new Processed FY Year..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                    onBlur={() => {
-                      if (!formData.ProcessedFYYear.trim()) {
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.ProcessedFYYear.join(', ')}
+                      onChange={(e) => {
+                        const years = e.target.value.split(',').map(y => y.trim()).filter(y => y);
+                        setFormData({ ...formData, ProcessedFYYear: years });
+                      }}
+                      placeholder="Enter new Processed FY Year (comma-separated for multiple)..."
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginBottom: '8px' }}
+                      onBlur={() => {
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
                         setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
-                      }
-                    }}
-                  />
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setFormData({ ...formData, ProcessedFYYear: [] });
+                        }
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#f3f4f6',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '13px'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
 
