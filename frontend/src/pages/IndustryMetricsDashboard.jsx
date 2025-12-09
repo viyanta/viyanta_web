@@ -15,15 +15,17 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
   const { 
     isNavItemActive, 
     activeNavItems, 
-    selectedSidebarItem, 
-    selectedDescriptions = [], 
-    setSelectedDescriptions 
+    selectedSidebarItem
   } = navigationContext || {};
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [viewMode, setViewMode] = useState('visuals'); // 'data' or 'visuals'
   const [dashboardData, setDashboardData] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
-  const [selectedCategoryPremium, setSelectedCategoryPremium] = useState(''); // Filter: "Category - Premium"
+  // Industry-specific selected descriptions (separate from Economy)
+  const [selectedDescriptions, setSelectedDescriptions] = useState([]);
+  const [loadingDescriptions, setLoadingDescriptions] = useState(true);
+  const [selectedPremium, setSelectedPremium] = useState(''); // Filter: Premium only
+  const [selectedCategory, setSelectedCategory] = useState(''); // Filter: Category (depends on Premium)
   const [chartOptions, setChartOptions] = useState({
     0: 'country', // Chart 1 option
     1: 'country', // Chart 2 option
@@ -44,6 +46,31 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
 
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
+
+  // Load Industry selected descriptions from backend on mount
+  useEffect(() => {
+    const loadSelectedDescriptions = async () => {
+      try {
+        setLoadingDescriptions(true);
+        const descriptions = await ApiService.getSelectedDescriptionsIndustry();
+        const newDescriptions = Array.isArray(descriptions) ? descriptions : [];
+        setSelectedDescriptions(newDescriptions);
+        console.log('✅ Industry selected descriptions loaded:', newDescriptions);
+      } catch (error) {
+        console.error('Error loading Industry selected descriptions from backend:', error);
+        setSelectedDescriptions([]);
+      } finally {
+        setLoadingDescriptions(false);
+      }
+    };
+
+    // Load immediately
+    loadSelectedDescriptions();
+
+    // Refresh every 30 seconds to get updates
+    const refreshInterval = setInterval(loadSelectedDescriptions, 30000);
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   // Set active tab based on current route
   useEffect(() => {
@@ -142,7 +169,7 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
     };
 
     fetchData();
-  }, [selectedDescriptions, location.pathname, activeTab, setSelectedDescriptions]);
+  }, [selectedDescriptions, location.pathname, activeTab]);
 
   // Get selected descriptions with their premium type and category from dashboardData
   const selectedDescriptionsWithContext = useMemo(() => {
@@ -212,38 +239,67 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
     return categoryPremiumColorMap.get(key) || { bg: '#ffffff', border: '#e5e7eb' };
   };
 
-  // Get unique Category + Premium combinations for dropdown filter
-  const categoryPremiumOptions = useMemo(() => {
+  // Get unique Premium types for dropdown filter
+  const premiumOptions = useMemo(() => {
     if (!dashboardData || dashboardData.length === 0) {
       return [];
     }
 
-    const combinations = new Set();
+    const premiums = new Set();
     dashboardData.forEach(item => {
-      if (item && item.CategoryLongName && item.PremiumTypeLongName) {
-        const key = `${item.CategoryLongName} - ${item.PremiumTypeLongName}`;
-        combinations.add(key);
+      if (item && item.PremiumTypeLongName) {
+        premiums.add(item.PremiumTypeLongName);
       }
     });
 
-    return Array.from(combinations).sort();
+    return Array.from(premiums).sort();
   }, [dashboardData]);
 
-  // Transform data into pivot table format grouped by PeriodType, filtered by selected Category+Premium
+  // Get unique Category types filtered by selected Premium
+  const categoryOptions = useMemo(() => {
+    if (!dashboardData || dashboardData.length === 0) {
+      return [];
+    }
+
+    // If no premium is selected, return empty array (category dropdown should be disabled)
+    if (!selectedPremium) {
+      return [];
+    }
+
+    const categories = new Set();
+    dashboardData.forEach(item => {
+      if (item && 
+          item.PremiumTypeLongName === selectedPremium && 
+          item.CategoryLongName) {
+        categories.add(item.CategoryLongName);
+      }
+    });
+
+    return Array.from(categories).sort();
+  }, [dashboardData, selectedPremium]);
+
+  // Reset category when premium changes
+  useEffect(() => {
+    setSelectedCategory('');
+  }, [selectedPremium]);
+
+  // Transform data into pivot table format grouped by PeriodType, filtered by selected Premium
   const pivotTableData = useMemo(() => {
     try {
       if (!dashboardData || dashboardData.length === 0) {
         return {};
       }
 
-      // Filter by selected Category+Premium if a filter is selected
+      // Filter by selected Premium and Category if filters are selected
       let filteredData = dashboardData;
-      if (selectedCategoryPremium) {
-        const [selectedCategory, selectedPremium] = selectedCategoryPremium.split(' - ');
-        filteredData = dashboardData.filter(item => 
-          item && 
-          item.CategoryLongName === selectedCategory && 
-          item.PremiumTypeLongName === selectedPremium
+      if (selectedPremium) {
+        filteredData = filteredData.filter(item => 
+          item && item.PremiumTypeLongName === selectedPremium
+        );
+      }
+      if (selectedCategory) {
+        filteredData = filteredData.filter(item => 
+          item && item.CategoryLongName === selectedCategory
         );
       }
 
@@ -313,7 +369,7 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
       console.error('Error creating pivot table data:', error);
       return {};
     }
-  }, [dashboardData, selectedCategoryPremium]);
+  }, [dashboardData, selectedPremium, selectedCategory]);
 
   // Handle description deselection with API call (admin only)
   const handleDescriptionDeselect = async (description) => {
@@ -325,16 +381,16 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
     const updatedDescriptions = selectedDescriptions.filter(d => d !== description);
     setSelectedDescriptions(updatedDescriptions);
     
-    // Call API to save globally
+    // Call Industry-specific API to save globally
     try {
-      await ApiService.updateSelectedDescriptions(updatedDescriptions, description);
-      console.log(`✅ Description "${description}" deselected successfully - saved globally`);
+      await ApiService.updateSelectedDescriptionsIndustry(updatedDescriptions, description);
+      console.log(`✅ Industry Description "${description}" deselected successfully - saved globally`);
       
       // Refresh from backend to ensure sync
-      const refreshedDescriptions = await ApiService.getSelectedDescriptions();
+      const refreshedDescriptions = await ApiService.getSelectedDescriptionsIndustry();
       setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
     } catch (err) {
-      console.error('Error updating selected descriptions:', err);
+      console.error('Error updating Industry selected descriptions:', err);
       // Revert on error
       setSelectedDescriptions(selectedDescriptions);
       alert('Failed to remove description. Please try again.');
@@ -438,8 +494,8 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
               </div>
             </div>
 
-            {/* Selected Descriptions Display */}
-            {selectedDescriptions.length > 0 && (
+            {/* Selected Descriptions Display - Only for Admin */}
+            {isAdmin && selectedDescriptions.length > 0 && (
               <div className="selected-descriptions-container" style={{
                 marginBottom: '24px',
                 padding: '0',
@@ -1088,8 +1144,8 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
               // Data Table View - Pivot Format
               !loadingData && selectedDescriptions && selectedDescriptions.length > 0 && dashboardData.length > 0 && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
                 <div className="pivot-tables-container">
-                  {/* Category + Premium Filter Dropdown */}
-                  <div className="category-premium-filter" style={{
+                  {/* Premium Filter Dropdown */}
+                  <div className="premium-filter" style={{
                     marginBottom: '20px',
                     display: 'flex',
                     alignItems: 'center',
@@ -1107,12 +1163,12 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
                       minWidth: isMobile ? '100%' : '200px',
                       flex: isMobile ? '1 1 100%' : '0 0 auto'
                     }}>
-                      Filter by Category & Premium:
+                      Filter by Category Long Name:
                     </label>
                     <select
                       className="filter-select-dropdown"
-                      value={selectedCategoryPremium}
-                      onChange={(e) => setSelectedCategoryPremium(e.target.value)}
+                      value={selectedPremium}
+                      onChange={(e) => setSelectedPremium(e.target.value)}
                       style={{
                         flex: isMobile ? '1 1 100%' : '1',
                         maxWidth: isMobile ? '100%' : '400px',
@@ -1129,17 +1185,96 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
                       onFocus={(e) => e.target.style.borderColor = '#3F72AF'}
                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                     >
-                      <option value="">All Categories & Premiums</option>
-                      {categoryPremiumOptions.map((option, index) => (
+                      <option value="">All Premiums</option>
+                      {premiumOptions.map((option, index) => (
                         <option key={index} value={option}>
                           {option}
                         </option>
                       ))}
                     </select>
-                    {selectedCategoryPremium && (
+                    {selectedPremium && (
                       <button
                         className="clear-filter-btn"
-                        onClick={() => setSelectedCategoryPremium('')}
+                        onClick={() => setSelectedPremium('')}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '13px',
+                          backgroundColor: '#ef4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                          transition: 'all 0.2s',
+                          flex: isMobile ? '1 1 100%' : '0 0 auto',
+                          whiteSpace: 'nowrap'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+                      >
+                        Clear Filter
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Category Filter Dropdown - Only enabled when Premium is selected */}
+                  <div className="category-filter" style={{
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    flexWrap: 'wrap',
+                    opacity: selectedPremium ? 1 : 0.6
+                  }}>
+                    <label className="filter-label" style={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      minWidth: isMobile ? '100%' : '200px',
+                      flex: isMobile ? '1 1 100%' : '0 0 auto'
+                    }}>
+                      Filter by Sub Category Long Name:
+                    </label>
+                    <select
+                      className="filter-select-dropdown"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      disabled={!selectedPremium}
+                      style={{
+                        flex: isMobile ? '1 1 100%' : '1',
+                        maxWidth: isMobile ? '100%' : '400px',
+                        padding: '10px 12px',
+                        fontSize: '14px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        backgroundColor: selectedPremium ? '#ffffff' : '#f3f4f6',
+                        color: selectedPremium ? '#111827' : '#9ca3af',
+                        cursor: selectedPremium ? 'pointer' : 'not-allowed',
+                        outline: 'none',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        if (selectedPremium) {
+                          e.target.style.borderColor = '#3F72AF';
+                        }
+                      }}
+                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                    >
+                      <option value="">All Categories</option>
+                      {categoryOptions.map((option, index) => (
+                        <option key={index} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedCategory && (
+                      <button
+                        className="clear-filter-btn"
+                        onClick={() => setSelectedCategory('')}
                         style={{
                           padding: '8px 16px',
                           fontSize: '13px',

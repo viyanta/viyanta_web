@@ -1326,6 +1326,87 @@ saveChartConfigs = async (configs) => {
     return response.data;
   };
 
+  // Get Unique Values for Industry Form Fields
+  getUniqueValuesIndustry = async (dataType, field) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/unique-values?data_type=${dataType}&field=${field}`
+      );
+      return response.data;
+    } catch (err) {
+      // Return empty array if endpoint doesn't exist - DO NOT use economy data
+      console.warn(`Industry unique-values endpoint not available for ${field}, returning empty array`);
+      return [];
+    }
+  };
+
+  // Get Descriptions for Industry
+  getDescriptionsIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+  // Get Selected Row IDs for Industry Dashboard
+  getSelectedRowIdsIndustry = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Row IDs for Industry Dashboard
+  updateSelectedRowIdsIndustry = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // Get Selected Descriptions for Industry Dashboard (separate from Economy)
+  getSelectedDescriptionsIndustry = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/industry/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Descriptions for Industry Dashboard (separate from Economy)
+  updateSelectedDescriptionsIndustry = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-descriptions`, 
+      { 
+        descriptions: descriptions,
+        removed_description: removedDescription
+      }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
   // 7️⃣ Get Industry Dashboard Data
   getIndustryDashboardData = async (descriptions) => {
     const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`, 

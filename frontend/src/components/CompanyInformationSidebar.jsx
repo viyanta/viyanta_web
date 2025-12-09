@@ -47,9 +47,14 @@ function CompanyInformationSidebar() {
                 handleSidebarItemClick(1007, 'Economy');
             }
         } else if (path.includes('/industry-metrics')) {
+            // Always set and update for Industry Metrics pages
             setSelectedItem(1001); // Industry Metrics
+            handleSidebarItemClick(1001, 'Industry Metrics');
         } else if (path.includes('/dashboard') && !path.includes('/economy') && !path.includes('/industry-metrics')) {
             setSelectedItem(1000); // Company Information
+            if (selectedSidebarItem !== 1000) {
+                handleSidebarItemClick(1000, 'Company Information');
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.pathname]);

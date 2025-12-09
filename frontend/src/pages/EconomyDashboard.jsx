@@ -359,6 +359,16 @@ const EconomyDashboard = ({ onMenuClick }) => {
       await ApiService.updateSelectedDescriptions(updatedDescriptions, description);
       console.log(`✅ Description "${description}" deselected successfully - saved globally`);
       
+      // Clear selected row IDs for that description when removed from dashboard
+      try {
+        // Clear selected row IDs for both Domestic and International
+        await ApiService.updateSelectedRowIds('Domestic', description, []);
+        await ApiService.updateSelectedRowIds('International', description, []);
+        console.log(`✅ Cleared selected row IDs for removed description: "${description}"`);
+      } catch (err) {
+        console.error('Error clearing selected row IDs:', err);
+      }
+      
       // Refresh from backend to ensure sync
       const refreshedDescriptions = await ApiService.getSelectedDescriptions();
       setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
@@ -1142,7 +1152,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       minWidth: isMobile ? '100%' : '200px',
                       flex: isMobile ? '1 1 100%' : '0 0 auto'
                     }}>
-                      Filter by Premium:
+                      Filter by Category Long Name:
                     </label>
                     <select
                       className="filter-select-dropdown"
@@ -1216,7 +1226,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
                       minWidth: isMobile ? '100%' : '200px',
                       flex: isMobile ? '1 1 100%' : '0 0 auto'
                     }}>
-                      Filter by Category:
+                      Filter by Sub Category Long Name:
                     </label>
                     <select
                       className="filter-select-dropdown"

@@ -215,6 +215,11 @@ const EconomyDomestic = ({ onMenuClick }) => {
     fetchDescriptions();
   }, [selectedPremiumType, selectedCategory]);
 
+  // Check if current description is selected in dashboard
+  const isDescriptionSelectedInDashboard = useMemo(() => {
+    return selectedDescription && selectedDescriptions.includes(selectedDescription);
+  }, [selectedDescription, selectedDescriptions]);
+
   // Fetch economy data when Description is selected
   const fetchEconomyData = useCallback(async () => {
     if (!selectedPremiumType || !selectedCategory || !selectedDescription) {
@@ -253,12 +258,20 @@ const EconomyDomestic = ({ onMenuClick }) => {
       
       setFilteredData(filtered);
       
-      // Load selected row IDs for dashboard from backend
-      try {
-        const selectedIds = await ApiService.getSelectedRowIds('Domestic', selectedDescription);
-        setSelectedRowIds(new Set(selectedIds));
-      } catch (err) {
-        console.error('Error loading selected row IDs:', err);
+      // Load selected row IDs for dashboard from backend only if description is in dashboard
+      if (isDescriptionSelectedInDashboard) {
+        try {
+          const selectedIds = await ApiService.getSelectedRowIds('Domestic', selectedDescription);
+          // Only set if we got valid data, otherwise start fresh (empty array means no selections)
+          setSelectedRowIds(Array.isArray(selectedIds) && selectedIds.length > 0 ? new Set(selectedIds) : new Set());
+        } catch (err) {
+          console.error('Error loading selected row IDs:', err);
+          // On error, start with empty set
+          setSelectedRowIds(new Set());
+        }
+      } else {
+        // If description is not in dashboard, clear selected row IDs
+        setSelectedRowIds(new Set());
       }
     } catch (err) {
       console.error('❌ Error fetching economy data:', err);
@@ -268,7 +281,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
       setLoading(false);
       fetchingDataRef.current = false;
     }
-  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin]);
+  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin, isDescriptionSelectedInDashboard, selectedDescriptions]);
   
   // Handle row selection for dashboard
   const handleRowSelection = async (rowId, isSelected) => {
@@ -349,11 +362,18 @@ const EconomyDomestic = ({ onMenuClick }) => {
       selectAllCheckboxRef.current.indeterminate = someRowsSelected && !allRowsSelected;
     }
   }, [someRowsSelected, allRowsSelected]);
-  
-  // Check if current description is selected in dashboard
-  const isDescriptionSelectedInDashboard = useMemo(() => {
-    return selectedDescription && selectedDescriptions.includes(selectedDescription);
-  }, [selectedDescription, selectedDescriptions]);
+
+  // Clear selected row IDs if description is removed from dashboard
+  useEffect(() => {
+    if (selectedDescription && !selectedDescriptions.includes(selectedDescription)) {
+      setSelectedRowIds(new Set());
+      // Refetch data to update checkboxes immediately
+      if (selectedPremiumType && selectedCategory) {
+        fetchingDataRef.current = false; // Reset ref to allow refetch
+        fetchEconomyData();
+      }
+    }
+  }, [selectedDescriptions, selectedDescription, selectedPremiumType, selectedCategory]);
 
   useEffect(() => {
     fetchEconomyData();
@@ -425,6 +445,28 @@ const EconomyDomestic = ({ onMenuClick }) => {
     try {
       await ApiService.updateSelectedDescriptions(updatedDescriptions, isRemoving ? description : null);
       console.log(`✅ Description "${description}" ${isRemoving ? 'deselected' : 'selected'} successfully - saved globally`);
+      
+      // If removing description, clear selected row IDs for that description
+      if (isRemoving) {
+        try {
+          // Clear selected row IDs for both Domestic and International
+          await ApiService.updateSelectedRowIds('Domestic', description, []);
+          await ApiService.updateSelectedRowIds('International', description, []);
+          console.log(`✅ Cleared selected row IDs for removed description: "${description}"`);
+          
+          // If the removed description is the currently selected one, clear local state and refetch data
+          if (selectedDescription === description) {
+            setSelectedRowIds(new Set());
+            // Refetch data to update checkboxes immediately
+            if (selectedPremiumType && selectedCategory) {
+              fetchingDataRef.current = false; // Reset ref to allow refetch
+              fetchEconomyData();
+            }
+          }
+        } catch (err) {
+          console.error('Error clearing selected row IDs:', err);
+        }
+      }
       
       // Refresh from backend to ensure sync
       const refreshedDescriptions = await ApiService.getSelectedDescriptions();
