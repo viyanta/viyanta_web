@@ -639,14 +639,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
     const isRemoving = selectedDescriptions.includes(description);
     const updatedDescriptions = isRemoving
       ? selectedDescriptions.filter(d => d !== description)
-      : selectedDescriptions.length >= 4
-        ? (alert('You can select maximum 4 descriptions only.'), selectedDescriptions)
-        : [...selectedDescriptions, description];
-
-    // If max limit reached, don't proceed
-    if (updatedDescriptions === selectedDescriptions && !isRemoving) {
-      return;
-    }
+      : [...selectedDescriptions, description];
 
     // Update local state first for immediate UI update
     setSelectedDescriptions(updatedDescriptions);
@@ -1243,12 +1236,12 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                           Select Descriptions
                         </h3>
                         <p className="description-selection-subtitle">
-                          Choose up to 4 descriptions to visualize in Dashboard
+                          Choose descriptions to visualize in Dashboard
                         </p>
                       </div>
                       {selectedDescriptions && selectedDescriptions.length > 0 && (
                         <div className="description-selection-counter">
-                          {selectedDescriptions.length}/4
+                          {selectedDescriptions.length}
                         </div>
                       )}
                     </div>
@@ -1258,7 +1251,7 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
                   <div className="description-cards-container">
                     {descriptionsWithContext.map((item, index) => {
                       const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
-                      const isDisabled = !isSelected && selectedDescriptions && selectedDescriptions.length >= 4;
+                      const isDisabled = false; // No limit on number of descriptions
                       
                       return (
                         <div
