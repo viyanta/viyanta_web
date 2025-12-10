@@ -14,7 +14,7 @@ from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
     Company, Report, ReportData, EconomyMaster, 
-    DashboardSelectedDescriptions, User, IndustryMaster
+    DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
 )
 
 
@@ -100,6 +100,11 @@ print("   Available endpoints:")
 print("   - GET  /api/economy/health")
 print("   - GET  /api/economy/selected-descriptions")
 print("   - POST /api/economy/update-selected-descriptions")
+
+print("\n✅ Industry router registered with prefix: /api/industry")
+print("   Available endpoints:")
+print("   - GET  /api/industry/selected-descriptions")
+print("   - POST /api/industry/update-selected-descriptions")
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])
