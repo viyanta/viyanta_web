@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
@@ -15,7 +16,7 @@ from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
-    Company, Report, ReportData, EconomyMaster, 
+    Company, EconomyMaster, 
     DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
 )
 
@@ -69,8 +70,29 @@ app.add_middleware(
 )
 
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables with error handling for concurrent DDL operations
+# This is needed when using multiple workers (e.g., hypercorn with --workers)
+try:
+    Base.metadata.create_all(bind=engine)
+except (OperationalError, Exception) as e:
+    # Handle MySQL concurrent DDL error (1684) when multiple workers try to create tables
+    error_str = str(e)
+    # Check for MySQL error 1684 (concurrent DDL) or OperationalError with 1684
+    is_concurrent_ddl = (
+        "1684" in error_str or 
+        "concurrent DDL" in error_str.lower() or
+        "was skipped since its definition is being modified" in error_str
+    )
+    if is_concurrent_ddl:
+        # This is expected when multiple workers start simultaneously
+        # The first worker will create the tables, others will see this error
+        print(f"⚠️  Concurrent DDL operation detected (normal with multiple workers)")
+        print(f"   Error: {error_str[:200]}...")
+        print("   Tables will be created by the first worker that succeeds.")
+    else:
+        # Re-raise other errors as they might be important
+        print(f"❌ Error creating tables: {e}")
+        raise
 
 # Initialize database with default companies
 

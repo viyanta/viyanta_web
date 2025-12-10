@@ -401,7 +401,6 @@ async def delete_economy_row(id: int, db=Depends(get_db)):
     return {"message": f"Record ID {id} deleted successfully!"}
 
 
-<<<<<<< HEAD
 # 4️⃣ Get dashboard data filtered by descriptions (optimized endpoint)
 class DashboardDataRequest(BaseModel):
     descriptions: List[str]
