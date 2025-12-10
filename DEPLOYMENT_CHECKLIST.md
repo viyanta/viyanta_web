@@ -175,3 +175,5 @@ curl -s "$BASE_URL/api/economy/selected-descriptions" | jq .
 
 Save as `test_endpoints.sh`, make executable (`chmod +x test_endpoints.sh`), and run it.
 
+
+

@@ -95,3 +95,5 @@ CREATE TABLE IF NOT EXISTS dashboard_selected_descriptions (
 - The routes have fallback table creation logic, but it's better to ensure the table exists before use
 - Maximum 4 descriptions can be stored (enforced by frontend, not database)
 
+
+
