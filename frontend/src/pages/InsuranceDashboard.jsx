@@ -573,15 +573,16 @@ function InsuranceDashboard({ onMenuClick }) {
               </div>
 
               {/* Insurer Name Dropdown - Right side */}
-              <div style={{
+              <div className="insurer-dropdown-container" style={{
                 display: 'flex',
-                justifyContent: 'flex-end',
+                justifyContent: window.innerWidth <= 768 ? 'center' : 'flex-end',
                 marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
                 padding: window.innerWidth <= 768 ? '0 0.5rem' : '0 1rem'
               }}>
                 <div style={{
                   position: 'relative',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  width: window.innerWidth <= 768 ? '100%' : 'auto'
                 }}>
                   <select
                     value={selectedCompany || ''}
@@ -590,14 +591,16 @@ function InsuranceDashboard({ onMenuClick }) {
                       setSelectedCompany(value);
                       // You can also update the navbar selection if needed
                     }}
+                    className="insurer-select"
                     style={{
-                      padding: '8px 12px',
-                      fontSize: '14px',
+                      padding: 'clamp(8px, 2vw, 12px)',
+                      fontSize: 'clamp(13px, 3vw, 14px)',
                       border: '1px solid #ddd',
                       borderRadius: '6px',
                       backgroundColor: '#f8f9fa',
                       color: '#333',
-                      minWidth: '150px',
+                      minWidth: window.innerWidth <= 768 ? '100%' : '150px',
+                      width: window.innerWidth <= 768 ? '100%' : 'auto',
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -715,21 +718,34 @@ function InsuranceDashboard({ onMenuClick }) {
                   
                   {/* Refresh Button */}
                   <button
+                    className="refresh-companies-btn"
                     onClick={fetchS3Companies}
                     disabled={loadingCompanies}
                     style={{
                       padding: 'clamp(10px, 2.5vw, 12px)',
-                      fontSize: 'clamp(14px, 3vw, 16px)',
+                      fontSize: 'clamp(13px, 3vw, 15px)',
                       border: '1px solid #ccc',
                       borderRadius: '4px',
                       backgroundColor: '#f8f9fa',
                       cursor: loadingCompanies ? 'not-allowed' : 'pointer',
                       color: loadingCompanies ? '#6c757d' : '#495057',
-                      minWidth: window.innerWidth <= 768 ? '100%' : '40px',
+                      minWidth: window.innerWidth <= 768 ? '100%' : 'auto',
                       width: window.innerWidth <= 768 ? '100%' : 'auto',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loadingCompanies) {
+                        e.target.style.backgroundColor = '#e9ecef';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!loadingCompanies) {
+                        e.target.style.backgroundColor = '#f8f9fa';
+                      }
                     }}
                     title="Refresh companies from S3"
                   >

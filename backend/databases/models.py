@@ -432,3 +432,29 @@ class ReportsL2Extracted(Base):
     upto_previous_period = Column(String(50))
 
     created_at = Column(DateTime, server_default=func.now())
+
+
+class DashboardSelectedDescriptions(Base):
+    """Store global selected descriptions for economy dashboard"""
+    __tablename__ = "dashboard_selected_descriptions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(500), nullable=False, unique=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())
+
+
+class DashboardChartConfig(Base):
+    """Store chart configurations (type and dimension) for each description"""
+    __tablename__ = "dashboard_chart_config"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(500), nullable=False, unique=True)
+    chart_type = Column(String(50), nullable=False,
+                        default='bar')  # bar, pie, treemap
+    chart_dimension = Column(String(50), nullable=False,
+                             default='country')  # country, year
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())

@@ -863,6 +863,88 @@ class ApiService {
     return response.json();
   }
 
+  // Get companies from L-Forms API
+  async getLformCompanies() {
+    const response = await fetch(`${API_BASE_URL}/lforms/companies`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get forms for a specific company from L-Forms API
+  async getLformForms(company) {
+    const response = await fetch(`${API_BASE_URL}/lforms/forms?company=${encodeURIComponent(company)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get periods for a specific company and form from L-Forms API
+  async getLformPeriods(company, formNo) {
+    const response = await fetch(`${API_BASE_URL}/lforms/periods?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report types for a specific company, form, and period from L-Forms API
+  async getLformReportTypes(company, formNo, period) {
+    const response = await fetch(`${API_BASE_URL}/lforms/reporttypes?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report data for a specific company, form, period, and optional report type from L-Forms API
+  async getLformData(company, formNo, period, reportType = null) {
+    let url = `${API_BASE_URL}/lforms/data?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`;
+    if (reportType) {
+      url += `&report_type=${encodeURIComponent(reportType)}`;
+    }
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      // Handle specific error cases
+      if (response.status === 404) {
+        // Return empty array for 404 instead of throwing error
+        // This is not really an error - just no data available
+        return [];
+      } else if (response.status === 500) {
+        throw new Error('Server error. Please check the data format.');
+      } else {
+        throw new Error(errorMessage);
+      }
+    }
+
+    return response.json();
+  }
+
   // Create a new company
   async createCompany(companyName) {
     const response = await fetch(`${API_BASE_URL}/companies/`, {
@@ -1059,7 +1141,23 @@ async updateCompany(companyId, updatedName) {
   return response.data;
 };
 
-// 3️⃣ Get Economy Data
+// 3️⃣ Get Descriptions
+ getDescriptions = async (dataType, premiumType, category) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+  );
+  return response.data;
+};
+
+// 3.5️⃣ Get Unique Values for Form Fields
+ getUniqueValues = async (dataType, field) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/economy/unique-values?data_type=${dataType}&field=${field}`
+  );
+  return response.data;
+};
+
+// 4️⃣ Get Economy Data
  getEconomyData = async (dataType, premiumType, category) => {
   const response = await axios.get(
     `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
@@ -1068,21 +1166,117 @@ async updateCompany(companyId, updatedName) {
 };
 
 
-// 4️⃣ Create New Economy Data
+// 5️⃣ Create New Economy Data
 createEconomyData = async (payload) => {
   const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
   return response.data;
 };
 
-// 5️⃣ Update Existing Record by ID
+// 6️⃣ Update Existing Record by ID
 updateEconomyData = async (id, payload) => {
   const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
   return response.data;
 };
 
-// 6️⃣ Delete Record by ID
+// 7️⃣ Delete Record by ID
 deleteEconomyData = async (id) => {
   const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
+  return response.data;
+};
+
+// 8️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+getDashboardData = async (descriptions) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`, 
+    { descriptions: descriptions }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 9️⃣ Get Selected Descriptions (Global for all users)
+getSelectedDescriptions = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+    return response.data.descriptions || [];
+  } catch (error) {
+    console.error('Error fetching selected descriptions:', error);
+    return [];
+  }
+};
+
+// 🔟 Update Selected Descriptions (Save globally - admin only)
+updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
+  const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
+    { 
+      descriptions: descriptions,
+      removed_description: removedDescription
+    }, 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 1️⃣1️⃣ Get Selected Row IDs for Dashboard
+getSelectedRowIds = async (dataType, description) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+    );
+    return response.data.row_ids || [];
+  } catch (error) {
+    console.error('Error fetching selected row IDs:', error);
+    return [];
+  }
+};
+
+// 1️⃣2️⃣ Update Selected Row IDs for Dashboard
+updateSelectedRowIds = async (dataType, description, rowIds) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/economy/update-selected-row-ids`,
+    {
+      data_type: dataType,
+      description: description,
+      row_ids: rowIds
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+};
+
+// 1️⃣3️⃣ Get Chart Configurations
+getChartConfigs = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/economy/chart-configs`);
+    return response.data || {};
+  } catch (error) {
+    console.error('Error fetching chart configs:', error);
+    return {};
+  }
+};
+
+// 1️⃣4️⃣ Save Chart Configurations
+saveChartConfigs = async (configs) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/economy/save-chart-configs`,
+    { configs },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
   return response.data;
 };
 
@@ -1129,6 +1323,100 @@ deleteEconomyData = async (id) => {
   // 6️⃣ Delete Record by ID
   deleteIndustryDataIndustry = async (id) => {
     const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
+    return response.data;
+  };
+
+  // Get Unique Values for Industry Form Fields
+  getUniqueValuesIndustry = async (dataType, field) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/unique-values?data_type=${dataType}&field=${field}`
+      );
+      return response.data;
+    } catch (err) {
+      // Return empty array if endpoint doesn't exist - DO NOT use economy data
+      console.warn(`Industry unique-values endpoint not available for ${field}, returning empty array`);
+      return [];
+    }
+  };
+
+  // Get Descriptions for Industry
+  getDescriptionsIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+  // Get Selected Row IDs for Industry Dashboard
+  getSelectedRowIdsIndustry = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Row IDs for Industry Dashboard
+  updateSelectedRowIdsIndustry = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // Get Selected Descriptions for Industry Dashboard (separate from Economy)
+  getSelectedDescriptionsIndustry = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/industry/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Descriptions for Industry Dashboard (separate from Economy)
+  updateSelectedDescriptionsIndustry = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-descriptions`, 
+      { 
+        descriptions: descriptions,
+        removed_description: removedDescription
+      }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 7️⃣ Get Industry Dashboard Data
+  getIndustryDashboardData = async (descriptions) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`, 
+      { descriptions: descriptions }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
     return response.data;
   };
   

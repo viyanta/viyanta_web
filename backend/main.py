@@ -2,11 +2,12 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
-# from routes.peers import router as peers_router  # Commented out - file doesn't exist
+# from routes.peers import router as peers_router
 from routes.economy import router as economy_router
 from routes.indusrty import router as indusrty_router
 from routes.periods import router as periods_router
@@ -14,6 +15,11 @@ from routes.irdai_monthly import router as irdai_monthly_router
 from routes.company_metrics import router as company_metrics_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
+# Import models to ensure tables are created
+from databases.models import (
+    Company, EconomyMaster, 
+    DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
+)
 
 
 from routes import company
@@ -40,26 +46,54 @@ app = FastAPI(
     ]
 )
 
-# CORS setup
-# Get allowed origins from environment variable or default to localhost for development
-# Default includes both localhost (dev) and production frontend URL
-DEFAULT_ORIGINS = "http://localhost:5173,https://app.viyantainsights.com,http://app.viyantainsights.com"
-ALLOWED_ORIGINS_STR = os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS)
-ALLOWED_ORIGINS = [origin.strip()
-                   for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
+# CORS setup - Allow both development and production origins
+allowed_origins = [
+    "http://localhost:5173",  # Development frontend
+    "http://localhost:3000",  # Alternative dev port
+    "http://localhost:5174",  # Alternative dev port
+]
+
+# Add production origin from environment variable if set
+production_origin = os.getenv("FRONTEND_URL")
+if production_origin:
+    allowed_origins.append(production_origin)
+
+# Also allow all origins in development (can be restricted in production)
+if os.getenv("ENVIRONMENT") != "production":
+    allowed_origins.append("*")
 
 app.add_middleware(
     CORSMiddleware,
-    # Allow frontend origins (configurable via env var)
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=allowed_origins if os.getenv("ENVIRONMENT") == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables with error handling for concurrent DDL operations
+# This is needed when using multiple workers (e.g., hypercorn with --workers)
+try:
+    Base.metadata.create_all(bind=engine)
+except (OperationalError, Exception) as e:
+    # Handle MySQL concurrent DDL error (1684) when multiple workers try to create tables
+    error_str = str(e)
+    # Check for MySQL error 1684 (concurrent DDL) or OperationalError with 1684
+    is_concurrent_ddl = (
+        "1684" in error_str or 
+        "concurrent DDL" in error_str.lower() or
+        "was skipped since its definition is being modified" in error_str
+    )
+    if is_concurrent_ddl:
+        # This is expected when multiple workers start simultaneously
+        # The first worker will create the tables, others will see this error
+        print(f"⚠️  Concurrent DDL operation detected (normal with multiple workers)")
+        print(f"   Error: {error_str[:200]}...")
+        print("   Tables will be created by the first worker that succeeds.")
+    else:
+        # Re-raise other errors as they might be important
+        print(f"❌ Error creating tables: {e}")
+        raise
 
 # Initialize database with default companies
 
@@ -79,7 +113,7 @@ app.include_router(company_l_forms_router,
                    prefix="/api/files", tags=["company_l_forms"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
-# app.include_router(peers_router, prefix="/api", tags=["peers"])  # Commented out - router doesn't exist
+# app.include_router(peers_router, prefix="/api", tags=["peers"])
 app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
 app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
@@ -89,6 +123,18 @@ app.include_router(irdai_monthly_router,
 app.include_router(company_metrics_router,
                    prefix="/api/company-metrics", tags=["Company Metrics"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
+
+# Log registered routes for debugging
+print("✅ Economy router registered with prefix: /api/economy")
+print("   Available endpoints:")
+print("   - GET  /api/economy/health")
+print("   - GET  /api/economy/selected-descriptions")
+print("   - POST /api/economy/update-selected-descriptions")
+
+print("\n✅ Industry router registered with prefix: /api/industry")
+print("   Available endpoints:")
+print("   - GET  /api/industry/selected-descriptions")
+print("   - POST /api/industry/update-selected-descriptions")
 
 
 # app.include_router(pdf_upload_router, prefix="/api", tags=["PDF Processing"])

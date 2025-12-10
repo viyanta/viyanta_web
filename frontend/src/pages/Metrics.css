@@ -1,4 +1,4 @@
-.industry-metrics-domestic-page {
+.metrics-page {
   padding: clamp(10px, 3vw, 20px);
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -45,6 +45,13 @@
   color: #333;
 }
 
+.page-header p {
+  margin: 0;
+  color: #666;
+  font-size: clamp(14px, 3.5vw, 16px);
+  line-height: 1.4;
+}
+
 .main-content-wrapper {
   width: 100%;
   max-width: 100%;
@@ -87,11 +94,15 @@
 .navigation-tabs-container {
   margin-bottom: clamp(15px, 3vw, 20px);
   padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .navigation-tabs {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-start !important;
   align-items: center;
   gap: clamp(8px, 2vw, 12px);
   width: 100%;
@@ -99,6 +110,8 @@
   overflow-y: visible;
   padding-bottom: 5px;
   flex-wrap: wrap;
+  margin: 0;
+  padding-left: 0;
 }
 
 .nav-tab {
@@ -175,18 +188,6 @@
   box-shadow: 0 2px 4px rgba(54, 101, 155, 0.3);
 }
 
-.view-toggle-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: transparent;
-  color: #999;
-}
-
-.view-toggle-btn:disabled:hover {
-  background-color: transparent;
-  color: #999;
-}
-
 /* Filters Section */
 .filters-section {
   display: flex;
@@ -229,184 +230,224 @@
   box-shadow: 0 0 0 3px rgba(54, 101, 155, 0.1);
 }
 
-/* Table Container */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: white;
+/* Insurer Selection */
+.insurer-selection {
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
 }
 
-.industry-metrics-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: clamp(12px, 2.5vw, 14px);
-  min-width: 1000px;
-  table-layout: auto;
-  box-sizing: border-box;
-}
-
-.industry-metrics-table thead {
-  background-color: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.industry-metrics-table th {
-  padding: clamp(12px, 2.5vw, 16px);
-  text-align: left;
+.insurer-selection h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #6c757d;
   font-weight: 600;
-  color: #333;
-  border-bottom: 2px solid #dee2e6;
-  white-space: nowrap;
-  font-size: clamp(12px, 2.5vw, 13px);
 }
 
-.industry-metrics-table td {
-  padding: clamp(10px, 2.5vw, 14px);
-  border-bottom: 1px solid #ddd;
-  color: #555;
-  word-wrap: break-word;
-}
-
-.industry-metrics-table tbody tr:hover {
-  background-color: white;
-}
-
-.industry-metrics-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.no-data {
-  text-align: center;
-  padding: clamp(30px, 6vw, 50px) !important;
-  color: #999;
-  font-style: italic;
-}
-
-/* Visuals Container */
-.visuals-container {
+.insurer-select {
   width: 100%;
-  padding: clamp(10px, 2vw, 20px) 0;
+  padding: clamp(8px, 2vw, 12px);
+  font-size: clamp(13px, 2.5vw, 14px);
+  border: 2px solid #28a745;
+  border-radius: 6px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+  min-height: 44px;
 }
 
-.visuals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: clamp(20px, 3vw, 30px);
+.insurer-select:focus {
+  border-color: #1e7e34;
 }
 
-.visual-card {
-  background: white;
-  border: 1px solid #ddd;
+/* Action Button */
+.action-button-container {
+  text-align: center;
+  margin-bottom: clamp(20px, 4vw, 30px);
+}
+
+.action-button {
+  background-color: var(--main-color);
+  color: white;
+  border: none;
+  padding: clamp(10px, 2.5vw, 15px) clamp(20px, 4vw, 30px);
+  font-size: clamp(14px, 2.5vw, 16px);
+  font-weight: 500;
   border-radius: 8px;
-  padding: clamp(15px, 3vw, 25px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.visual-card h3 {
-  margin: 0 0 clamp(15px, 3vw, 20px) 0;
+.action-button:hover {
+  background-color: #2c5282;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Metrics Display Area */
+.metrics-display-area {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: clamp(15px, 3vw, 20px);
+  border: 1px solid #e9ecef;
+}
+
+.metrics-display-title {
   font-size: clamp(16px, 3vw, 18px);
   font-weight: 600;
-  color: #333;
-  border-bottom: 2px solid var(--main-color);
-  padding-bottom: 10px;
+  color: #2c3e50;
+  margin: 0 0 clamp(10px, 2vw, 15px) 0;
+}
+
+/* Selection Summary */
+.selection-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(10px, 2vw, 15px);
+  margin-bottom: clamp(20px, 3vw, 25px);
+}
+
+.summary-card {
+  background-color: white;
+  padding: clamp(10px, 2vw, 15px);
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.summary-card h4 {
+  margin: 0 0 8px 0;
+  font-size: clamp(13px, 2.5vw, 14px);
+  color: #495057;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: clamp(14px, 2.5vw, 16px);
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+/* Chart Container */
+.chart-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid #e9ecef;
+}
+
+.chart-title {
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 clamp(15px, 3vw, 20px) 0;
+  text-align: center;
 }
 
 .chart-wrapper {
   width: 100%;
-  min-height: 250px;
-}
-
-.bar-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: clamp(10px, 2vw, 15px);
-  height: 250px;
-  padding: 10px 0;
-}
-
-.chart-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  min-width: 60px;
-}
-
-.chart-bar-container {
-  width: 100%;
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  position: relative;
-}
-
-.chart-bar {
-  width: 100%;
-  min-height: 20px;
-  border-radius: 4px 4px 0 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 5px;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.chart-bar:hover {
-  opacity: 0.8;
-  transform: scaleY(1.05);
-}
-
-.bar-value {
-  color: white;
-  font-size: clamp(10px, 2vw, 12px);
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.chart-label {
-  font-size: clamp(10px, 2vw, 12px);
-  color: #666;
-  text-align: center;
-  word-wrap: break-word;
-  max-width: 100%;
-  line-height: 1.2;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(15px, 3vw, 20px);
-}
-
-.stat-item {
-  text-align: center;
-  padding: clamp(15px, 3vw, 20px);
-  background: white;
+  height: clamp(250px, 40vw, 350px);
+  background-color: #f8f9fa;
   border-radius: 8px;
-  border: 1px solid #dee2e6;
+  padding: clamp(15px, 3vw, 20px);
+  border: 1px solid #e9ecef;
+  margin-bottom: clamp(15px, 3vw, 20px);
+  position: relative;
 }
 
-.stat-value {
-  font-size: clamp(24px, 5vw, 32px);
-  font-weight: 700;
-  color: var(--main-color);
-  margin-bottom: 8px;
+.chart-inner {
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+  height: clamp(180px, 30vw, 250px);
+  padding: clamp(10px, 2vw, 15px);
+  position: relative;
 }
 
-.stat-label {
-  font-size: clamp(12px, 2.5vw, 14px);
-  color: #666;
-  font-weight: 500;
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: clamp(15px, 3vw, 20px);
+  margin-top: clamp(10px, 2vw, 15px);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1vw, 6px);
+}
+
+.legend-color {
+  width: clamp(12px, 2vw, 16px);
+  height: clamp(12px, 2vw, 16px);
+  border-radius: 2px;
+}
+
+.legend-label {
+  font-size: clamp(10px, 1.5vw, 12px);
+  color: #6b7280;
+}
+
+/* Data Table */
+.data-table-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid #e9ecef;
+}
+
+.data-table-title {
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 clamp(15px, 3vw, 20px) 0;
+}
+
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  table-layout: auto;
+}
+
+.data-table thead {
+  background-color: #f8f9fa;
+}
+
+.data-table th {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.empty-state {
+  font-size: clamp(14px, 2.5vw, 16px);
+  color: #6c757d;
+  text-align: center;
+  margin: 0;
+  font-style: italic;
 }
 
 /* Responsive Design */
@@ -428,14 +469,10 @@
     min-width: 150px;
     max-width: 180px;
   }
-
-  .visuals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
-  }
 }
 
 @media (max-width: 1024px) {
-  .industry-metrics-domestic-page {
+  .metrics-page {
     padding: clamp(8px, 1.5vw, 15px);
   }
 
@@ -452,19 +489,10 @@
   .main-content-area {
     padding: clamp(12px, 2vw, 20px);
   }
-
-  .industry-metrics-table {
-    font-size: clamp(11px, 1.8vw, 13px);
-  }
-
-  .visuals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-    gap: clamp(12px, 2vw, 18px);
-  }
 }
 
 @media (max-width: 968px) {
-  .industry-metrics-domestic-page {
+  .metrics-page {
     padding: clamp(8px, 2vw, 15px);
   }
 
@@ -496,15 +524,17 @@
 
   .navigation-tabs-container {
     margin-bottom: clamp(12px, 2.5vw, 18px);
+    justify-content: flex-start !important;
   }
 
   .navigation-tabs {
-    justify-content: flex-start;
+    justify-content: flex-start !important;
     align-items: center;
     gap: clamp(6px, 1.5vw, 10px);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    padding-left: 0;
   }
 
   .nav-tab {
@@ -551,100 +581,13 @@
     font-size: clamp(13px, 2.8vw, 15px);
   }
 
-  .table-container {
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    border-radius: 4px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .industry-metrics-table {
-    font-size: clamp(11px, 2vw, 13px);
-    min-width: 700px;
-    width: 100%;
-    table-layout: auto;
-  }
-
-  .industry-metrics-table th,
-  .industry-metrics-table td {
-    padding: clamp(6px, 1.5vw, 10px);
-    font-size: clamp(10px, 1.8vw, 12px);
-  }
-
-  .industry-metrics-table th {
-    font-size: clamp(11px, 2vw, 12px);
-  }
-
-  .visuals-grid {
-    grid-template-columns: 1fr;
-    gap: clamp(15px, 3vw, 20px);
-  }
-
-  .visual-card {
-    padding: clamp(12px, 2.5vw, 18px);
-  }
-
-  .visual-card h3 {
-    font-size: clamp(14px, 2.8vw, 16px);
-    margin-bottom: clamp(12px, 2.5vw, 16px);
-  }
-
-  .chart-wrapper {
-    min-height: clamp(180px, 45vw, 250px);
-    padding: clamp(6px, 1.5vw, 10px) 0;
-  }
-
-  .bar-chart {
-    min-height: clamp(180px, 45vw, 250px);
-    height: clamp(180px, 45vw, 250px);
-    gap: clamp(6px, 1.5vw, 10px);
-    padding: clamp(6px, 1.5vw, 10px) clamp(4px, 1vw, 8px);
-  }
-
-  .chart-item {
-    min-width: clamp(40px, 10vw, 60px);
-    gap: clamp(5px, 1.2vw, 8px);
-  }
-
-  .chart-bar-container {
-    max-height: clamp(160px, 40vw, 220px);
-  }
-
-  .chart-bar {
-    min-width: clamp(30px, 8vw, 50px);
-  }
-
-  .bar-value {
-    font-size: clamp(8px, 1.5vw, 10px);
-  }
-
-  .chart-label {
-    font-size: clamp(8px, 1.5vw, 10px);
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(10px, 2vw, 15px);
-  }
-
-  .stat-item {
-    padding: clamp(12px, 2.5vw, 16px);
-  }
-
-  .stat-value {
-    font-size: clamp(20px, 4vw, 28px);
-  }
-
-  .stat-label {
-    font-size: clamp(11px, 2vw, 13px);
+  .insurer-select {
+    min-height: 44px;
   }
 }
 
 @media (max-width: 768px) {
-  .industry-metrics-domestic-page {
+  .metrics-page {
     padding: 8px;
   }
 
@@ -662,10 +605,11 @@
   }
 
   .navigation-tabs {
-    justify-content: flex-start;
+    justify-content: flex-start !important;
     align-items: center;
     gap: 4px;
     padding-bottom: 3px;
+    padding-left: 0;
   }
 
   .nav-tab {
@@ -674,81 +618,13 @@
     min-height: 30px;
   }
 
-  .industry-metrics-table {
-    font-size: 10px;
-    min-width: 600px;
-  }
-
-  .industry-metrics-table th,
-  .industry-metrics-table td {
-    padding: 5px;
-    font-size: 9px;
-  }
-
-  .industry-metrics-table th {
-    font-size: 10px;
-  }
-
-  .visuals-grid {
-    gap: 12px;
-  }
-
-  .visual-card {
-    padding: 10px;
-  }
-
-  .chart-wrapper {
-    min-height: 160px;
-  }
-
-  .bar-chart {
-    min-height: 160px;
-    height: 160px;
-    gap: 4px;
-    padding: 5px 3px;
-  }
-
-  .chart-item {
-    min-width: 35px;
-    gap: 4px;
-  }
-
-  .chart-bar-container {
-    max-height: 140px;
-  }
-
-  .chart-bar {
-    min-width: 25px;
-  }
-
-  .bar-value {
-    font-size: 7px;
-  }
-
-  .chart-label {
-    font-size: 7px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .stat-item {
-    padding: 10px;
-  }
-
-  .stat-value {
-    font-size: 18px;
-  }
-
-  .stat-label {
-    font-size: 10px;
+  .chart-inner {
+    overflow-x: auto;
   }
 }
 
 @media (max-width: 480px) {
-  .industry-metrics-domestic-page {
+  .metrics-page {
     padding: 5px;
   }
 
@@ -761,9 +637,10 @@
   }
 
   .navigation-tabs {
-    justify-content: flex-start;
+    justify-content: flex-start !important;
     align-items: center;
     gap: 3px;
+    padding-left: 0;
   }
 
   .nav-tab {
@@ -775,30 +652,6 @@
   .view-toggle-btn {
     padding: 5px 12px;
     font-size: 10px;
-  }
-
-  .industry-metrics-table {
-    min-width: 500px;
-    font-size: 9px;
-  }
-
-  .industry-metrics-table th,
-  .industry-metrics-table td {
-    padding: 4px;
-    font-size: 8px;
-  }
-
-  .chart-wrapper {
-    min-height: 140px;
-  }
-
-  .bar-chart {
-    min-height: 140px;
-    height: 140px;
-  }
-
-  .chart-bar-container {
-    max-height: 120px;
   }
 }
 
