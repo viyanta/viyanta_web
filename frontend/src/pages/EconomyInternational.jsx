@@ -1,23 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api';
 import './EconomyInternational.css';
 
 const EconomyInternational = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
+  const location = useLocation();
+  const navigationContext = useNavigation();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin || false;
+  const { 
+    isNavItemActive, 
+    activeNavItems, 
+    selectedSidebarItem, 
+    selectedDescriptions = [], 
+    setSelectedDescriptions 
+  } = navigationContext || {};
+  const [activeTab, setActiveTab] = useState('International'); // Track which tab is selected
   const [selectedPremiumType, setSelectedPremiumType] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDescription, setSelectedDescription] = useState('');
   const [selectedPeriodType, setSelectedPeriodType] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
+  const [selectedRowIds, setSelectedRowIds] = useState(new Set()); // Track which row IDs are selected for dashboard
   
   // API data states
   const [premiumTypes, setPremiumTypes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [descriptions, setDescriptions] = useState([]); // Descriptions for dropdown
+  const [modalCategories, setModalCategories] = useState([]); // Categories for modal dropdown
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -26,19 +42,49 @@ const EconomyInternational = ({ onMenuClick }) => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [formData, setFormData] = useState({
     ProcessedPeriodType: '',
-    ProcessedFYYear: '',
+    ProcessedFYYear: [], // Changed to array for multi-select
     DataType: 'International',
     CountryName: '',
     PremiumTypeLongName: '',
     CategoryLongName: '',
     Description: '',
     ReportedUnit: '',
-    ReportedValue: ''
+    ReportedValue: '',
+    IsActive: true
   });
   const [successMessage, setSuccessMessage] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
+  const [showCustomPremiumType, setShowCustomPremiumType] = useState(false);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [selectedPremiumTypeOption, setSelectedPremiumTypeOption] = useState('');
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
+  
+  // Unique values for dropdowns
+  const [uniqueValues, setUniqueValues] = useState({
+    ProcessedPeriodType: [],
+    ProcessedFYYear: [],
+    CountryName: [],
+    Description: [],
+    ReportedUnit: [],
+    ReportedValue: []
+  });
+  const [showCustomInputs, setShowCustomInputs] = useState({
+    ProcessedPeriodType: false,
+    ProcessedFYYear: false,
+    CountryName: false,
+    Description: false,
+    ReportedUnit: false,
+    ReportedValue: false
+  });
+  
+  // Refs to prevent duplicate API calls
+  const fetchingPremiumTypesRef = useRef(false);
+  const fetchingCategoriesRef = useRef(false);
+  const fetchingDescriptionsRef = useRef(false);
+  const fetchingDataRef = useRef(false);
+  const lastNavigationPathRef = useRef('');
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,9 +104,18 @@ const EconomyInternational = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Fetch premium types from API when component loads (when International tab is clicked)
+  // Fetch premium types from API when component loads or when navigating to this page
   useEffect(() => {
+    // Only fetch if we're on the international page
+    if (!location.pathname.includes('/economy-international')) {
+      return;
+    }
+
+    // Prevent duplicate calls
+    if (fetchingPremiumTypesRef.current) return;
+    
     const fetchPremiumTypes = async () => {
+      fetchingPremiumTypesRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -76,15 +131,19 @@ const EconomyInternational = ({ onMenuClick }) => {
         setPremiumTypes([]);
       } finally {
         setLoading(false);
+        fetchingPremiumTypesRef.current = false;
       }
     };
 
-    // Fetch immediately when component loads (when International tab is clicked)
+    // Fetch when on the international page
     fetchPremiumTypes();
-  }, []);
+  }, [location.pathname]);
 
   // Fetch categories when premium type is selected
   useEffect(() => {
+    // Prevent duplicate calls
+    if (fetchingCategoriesRef.current) return;
+    
     const fetchCategories = async () => {
       if (!selectedPremiumType) {
         setCategories([]);
@@ -92,6 +151,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         return;
       }
 
+      fetchingCategoriesRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -101,78 +161,568 @@ const EconomyInternational = ({ onMenuClick }) => {
         console.log('✅ Categories received from API:', data);
         console.log('📊 Number of categories:', data?.length || 0);
         setCategories(data || []);
-        // Reset category selection when premium type changes
+        // Reset category and description selection when premium type changes
         setSelectedCategory('');
+        setSelectedDescription('');
+        setDescriptions([]);
       } catch (err) {
         console.error('❌ Error fetching categories:', err);
         setError('Failed to load categories. Please try again.');
         setCategories([]);
       } finally {
         setLoading(false);
+        fetchingCategoriesRef.current = false;
       }
     };
 
     fetchCategories();
   }, [selectedPremiumType]);
 
-  // Fetch economy data when both premium type and category are selected
+  // Fetch descriptions when both Category and Sub Category are selected
   useEffect(() => {
-    const fetchEconomyData = async () => {
+    // Prevent duplicate calls
+    if (fetchingDescriptionsRef.current) return;
+    
+    const fetchDescriptions = async () => {
       if (!selectedPremiumType || !selectedCategory) {
+        setDescriptions([]);
+        setSelectedDescription('');
         setFilteredData([]);
         return;
       }
 
+      fetchingDescriptionsRef.current = true;
       setLoading(true);
       setError(null);
       try {
-        // Call API: http://localhost:8000/api/economy/data?data_type=International&premium={selectedPremiumType}&category={selectedCategory}
-        console.log(`🔵 Calling Economy Data API: /api/economy/data?data_type=International&premium=${selectedPremiumType}&category=${selectedCategory}`);
-        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
-        console.log('✅ Economy data received from API:', data);
-        console.log('📊 Number of records:', data?.length || 0);
-        setFilteredData(data || []);
+        // Fetch descriptions from API endpoint
+        console.log(`🔵 Fetching descriptions for Category: ${selectedPremiumType}, Sub Category: ${selectedCategory}`);
+        const descriptions = await ApiService.getDescriptions('International', selectedPremiumType, selectedCategory);
+        
+        console.log('✅ Descriptions received from API:', descriptions);
+        setDescriptions(descriptions || []);
+        // Reset description selection when category/subcategory changes
+        setSelectedDescription('');
       } catch (err) {
-        console.error('❌ Error fetching economy data:', err);
-        setError('Failed to load economy data. Please try again.');
-        setFilteredData([]);
+        console.error('❌ Error fetching descriptions:', err);
+        setError('Failed to load descriptions. Please try again.');
+        setDescriptions([]);
       } finally {
         setLoading(false);
+        fetchingDescriptionsRef.current = false;
       }
     };
 
-    fetchEconomyData();
+    fetchDescriptions();
   }, [selectedPremiumType, selectedCategory]);
 
+  // Check if current description is selected in dashboard
+  const isDescriptionSelectedInDashboard = useMemo(() => {
+    return selectedDescription && selectedDescriptions.includes(selectedDescription);
+  }, [selectedDescription, selectedDescriptions]);
+
+  // Fetch economy data when Description is selected
+  const fetchEconomyData = useCallback(async () => {
+    if (!selectedPremiumType || !selectedCategory || !selectedDescription) {
+      setFilteredData([]);
+      setLoading(false);
+      return;
+    }
+
+    // Prevent duplicate calls only if already fetching
+    if (fetchingDataRef.current) {
+      return;
+    }
+
+    fetchingDataRef.current = true;
+    setLoading(true);
+    setError(null);
+    try {
+      // Call API: http://localhost:8000/api/economy/data?data_type=International&premium={selectedPremiumType}&category={selectedCategory}
+      console.log(`🔵 Calling Economy Data API: /api/economy/data?data_type=International&premium=${selectedPremiumType}&category=${selectedCategory}`);
+      const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+      console.log('✅ Economy data received from API:', data);
+      console.log('📊 Number of records:', data?.length || 0);
+      
+      // Filter data by selected Description
+      let filtered = (data || []).filter(row => row.Description === selectedDescription);
+      
+      // Filter data based on admin status:
+      // - Admin: Show all records (active and inactive)
+      // - Non-admin: Only show active records (IsActive === 1 or IsActive === true)
+      if (!isAdmin) {
+        filtered = filtered.filter(row => row.IsActive === 1 || row.IsActive === true);
+        console.log('🔒 Non-admin user: Filtered to active records only. Count:', filtered.length);
+      } else {
+        console.log('👑 Admin user: Showing all records (active and inactive). Count:', filtered.length);
+      }
+      
+      setFilteredData(filtered);
+      
+      // Load selected row IDs for dashboard from backend only if description is in dashboard
+      if (isDescriptionSelectedInDashboard) {
+        try {
+          const selectedIds = await ApiService.getSelectedRowIds('International', selectedDescription);
+          // Only set if we got valid data, otherwise start fresh (empty array means no selections)
+          setSelectedRowIds(Array.isArray(selectedIds) && selectedIds.length > 0 ? new Set(selectedIds) : new Set());
+        } catch (err) {
+          console.error('Error loading selected row IDs:', err);
+          // On error, start with empty set
+          setSelectedRowIds(new Set());
+        }
+      } else {
+        // If description is not in dashboard, clear selected row IDs
+        setSelectedRowIds(new Set());
+      }
+    } catch (err) {
+      console.error('❌ Error fetching economy data:', err);
+      setError('Failed to load economy data. Please try again.');
+      setFilteredData([]);
+    } finally {
+      setLoading(false);
+      fetchingDataRef.current = false;
+    }
+  }, [selectedPremiumType, selectedCategory, selectedDescription, isAdmin, isDescriptionSelectedInDashboard, selectedDescriptions]);
+  
+  // Handle row selection for dashboard
+  const handleRowSelection = async (rowId, isSelected) => {
+    try {
+      const newSelectedIds = new Set(selectedRowIds);
+      if (isSelected) {
+        newSelectedIds.add(rowId);
+      } else {
+        newSelectedIds.delete(rowId);
+      }
+      setSelectedRowIds(newSelectedIds);
+      
+      // Save to backend - ensure row IDs are numbers
+      const rowIdsArray = Array.from(newSelectedIds).map(id => Number(id));
+      console.log(`💾 Saving ${rowIdsArray.length} selected row IDs for "${selectedDescription}":`, rowIdsArray);
+      await ApiService.updateSelectedRowIds('International', selectedDescription, rowIdsArray);
+      console.log('✅ Row IDs saved successfully');
+    } catch (err) {
+      console.error('❌ Error updating selected row IDs:', err);
+      alert('Failed to update selection. Please try again.');
+      // Revert on error
+      setSelectedRowIds(new Set(selectedRowIds));
+    }
+  };
+  
+  // Handle select all for dashboard
+  const handleSelectAll = async (selectAll) => {
+    try {
+      if (selectAll) {
+        // Select all visible rows
+        const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+        const newSelectedIds = new Set(allRowIds);
+        setSelectedRowIds(newSelectedIds);
+        
+        // Save to backend - ensure row IDs are numbers
+        const rowIdsArray = allRowIds.map(id => Number(id));
+        console.log(`💾 Saving ${rowIdsArray.length} selected row IDs (Select All) for "${selectedDescription}":`, rowIdsArray);
+        await ApiService.updateSelectedRowIds('International', selectedDescription, rowIdsArray);
+        console.log('✅ All row IDs saved successfully');
+      } else {
+        // Deselect all
+        setSelectedRowIds(new Set());
+        
+        // Save to backend
+        console.log(`💾 Clearing all selected row IDs for "${selectedDescription}"`);
+        await ApiService.updateSelectedRowIds('International', selectedDescription, []);
+        console.log('✅ Row IDs cleared successfully');
+      }
+    } catch (err) {
+      console.error('❌ Error updating selected row IDs:', err);
+      alert('Failed to update selection. Please try again.');
+      // Revert on error
+      setSelectedRowIds(new Set(selectedRowIds));
+    }
+  };
+  
+  // Check if all rows are selected
+  const allRowsSelected = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return false;
+    const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+    return allRowIds.length > 0 && allRowIds.every(id => selectedRowIds.has(id));
+  }, [filteredData, selectedRowIds]);
+  
+  // Check if some rows are selected (for indeterminate state)
+  const someRowsSelected = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return false;
+    const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
+    const selectedCount = allRowIds.filter(id => selectedRowIds.has(id)).length;
+    return selectedCount > 0 && selectedCount < allRowIds.length;
+  }, [filteredData, selectedRowIds]);
+  
+  // Ref for select all checkbox
+  const selectAllCheckboxRef = useRef(null);
+  
+  // Update indeterminate state of select all checkbox
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate = someRowsSelected && !allRowsSelected;
+    }
+  }, [someRowsSelected, allRowsSelected]);
+
+  // Clear selected row IDs if description is removed from dashboard
+  useEffect(() => {
+    if (selectedDescription && !selectedDescriptions.includes(selectedDescription)) {
+      setSelectedRowIds(new Set());
+      // Refetch data to update checkboxes immediately only if not already fetching
+      if (selectedPremiumType && selectedCategory && !fetchingDataRef.current) {
+        fetchingDataRef.current = false; // Reset ref to allow refetch
+        fetchEconomyData();
+      }
+    }
+  }, [selectedDescriptions, selectedDescription, selectedPremiumType, selectedCategory, fetchEconomyData]);
+
+  useEffect(() => {
+    fetchEconomyData();
+  }, [fetchEconomyData]);
+
+  // Refresh data only when navigating to this page (not on filter changes)
+  useEffect(() => {
+    if (location.pathname.includes('/economy-international') && lastNavigationPathRef.current !== location.pathname) {
+      lastNavigationPathRef.current = location.pathname;
+      // Reset refs to allow fresh fetch
+      fetchingDataRef.current = false;
+      fetchingCategoriesRef.current = false;
+      
+      // Only refresh if all filters are selected and we're on the page
+      // Don't trigger on filter changes - that's handled by fetchEconomyData useEffect above
+      if (selectedPremiumType && selectedCategory && selectedDescription && !fetchingDataRef.current) {
+        const timer = setTimeout(() => {
+          if (!fetchingDataRef.current) {
+            fetchEconomyData();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+    // Only depend on location.pathname, not on selectedPremiumType or selectedCategory
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Get unique descriptions with their premium type and category
+  const descriptionsWithContext = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return [];
+    
+    const descriptionMap = new Map();
+    filteredData.forEach(item => {
+      const description = item.Description || '';
+      if (description) {
+        if (!descriptionMap.has(description)) {
+          descriptionMap.set(description, {
+            description: description,
+            premiumType: item.PremiumTypeLongName || '',
+            category: item.CategoryLongName || ''
+          });
+        }
+      }
+    });
+    
+    return Array.from(descriptionMap.values());
+  }, [filteredData]);
+
+  // Handle description toggle - Save globally via API (admin only)
+  const handleDescriptionToggle = async (description) => {
+    if (!isAdmin) {
+      return; // Only admin can toggle descriptions
+    }
+
+    const isRemoving = selectedDescriptions.includes(description);
+    const updatedDescriptions = isRemoving
+      ? selectedDescriptions.filter(d => d !== description)
+      : [...selectedDescriptions, description];
+
+    // If no change, don't proceed
+    if (updatedDescriptions === selectedDescriptions && !isRemoving) {
+      return;
+    }
+
+    // Update local state first for immediate UI update
+    setSelectedDescriptions(updatedDescriptions);
+
+    // Call API to save globally
+    try {
+      await ApiService.updateSelectedDescriptions(updatedDescriptions, isRemoving ? description : null);
+      console.log(`✅ Description "${description}" ${isRemoving ? 'deselected' : 'selected'} successfully - saved globally`);
+      
+      // If removing description, clear selected row IDs for that description
+      if (isRemoving) {
+        try {
+          // Clear selected row IDs for both Domestic and International
+          await ApiService.updateSelectedRowIds('Domestic', description, []);
+          await ApiService.updateSelectedRowIds('International', description, []);
+          console.log(`✅ Cleared selected row IDs for removed description: "${description}"`);
+          
+          // If the removed description is the currently selected one, clear local state and refetch data
+          if (selectedDescription === description) {
+            setSelectedRowIds(new Set());
+            // Refetch data to update checkboxes immediately
+            if (selectedPremiumType && selectedCategory) {
+              fetchingDataRef.current = false; // Reset ref to allow refetch
+              fetchEconomyData();
+            }
+          }
+        } catch (err) {
+          console.error('Error clearing selected row IDs:', err);
+        }
+      }
+      
+      // Refresh from backend to ensure sync
+      const refreshedDescriptions = await ApiService.getSelectedDescriptions();
+      setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
+    } catch (err) {
+      console.error('Error updating selected descriptions:', err);
+      // Revert on error
+      setSelectedDescriptions(selectedDescriptions);
+      alert('Failed to update selection. Please try again.');
+    }
+  };
+
+  // Sort data in ascending order: Description, ProcessedPeriodType, CountryName, ProcessedFYYear, ReportedUnit
+  const sortedData = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) return filteredData;
+    
+    // Sort by multiple fields in ascending order
+    const sorted = [...filteredData].sort((a, b) => {
+      // 1. Sort by Description (Asc)
+      const descA = (a.Description || '').toLowerCase();
+      const descB = (b.Description || '').toLowerCase();
+      if (descA !== descB) {
+        return descA.localeCompare(descB);
+      }
+      
+      // 2. Sort by ProcessedPeriodType (Asc)
+      const periodA = (a.ProcessedPeriodType || '').toLowerCase();
+      const periodB = (b.ProcessedPeriodType || '').toLowerCase();
+      if (periodA !== periodB) {
+        return periodA.localeCompare(periodB);
+      }
+      
+      // 3. Sort by CountryName (Asc)
+      const countryA = (a.CountryName || '').toLowerCase();
+      const countryB = (b.CountryName || '').toLowerCase();
+      if (countryA !== countryB) {
+        return countryA.localeCompare(countryB);
+      }
+      
+      // 4. Sort by ProcessedFYYear (Asc)
+      const yearA = a.ProcessedFYYear || '';
+      const yearB = b.ProcessedFYYear || '';
+      const numA = parseInt(yearA);
+      const numB = parseInt(yearB);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        if (numA !== numB) {
+          return numA - numB;
+        }
+      } else {
+        const yearCompare = yearA.localeCompare(yearB);
+        if (yearCompare !== 0) {
+          return yearCompare;
+        }
+      }
+      
+      // 5. Sort by ReportedUnit (Asc)
+      const unitA = (a.ReportedUnit || '').toLowerCase();
+      const unitB = (b.ReportedUnit || '').toLowerCase();
+      return unitA.localeCompare(unitB);
+    });
+    
+    return sorted;
+  }, [filteredData]);
+
+  // Transform data into pivot table format grouped by PeriodType for non-admin users
+  const pivotTableData = useMemo(() => {
+    if (isAdmin || !filteredData || filteredData.length === 0) {
+      return {};
+    }
+
+    try {
+      // Group by ProcessedPeriodType
+      const groupedByPeriodType = {};
+      
+      filteredData.forEach(item => {
+        if (!item) return;
+        const periodType = item.ProcessedPeriodType || 'Other';
+        if (!groupedByPeriodType[periodType]) {
+          groupedByPeriodType[periodType] = [];
+        }
+        groupedByPeriodType[periodType].push(item);
+      });
+
+      // Transform each group into pivot format
+      const pivotData = {};
+      
+      Object.keys(groupedByPeriodType).forEach(periodType => {
+        const groupData = groupedByPeriodType[periodType];
+        if (!groupData || groupData.length === 0) return;
+        
+        // Get category and subcategory from first item (should be same for all items in a periodType group)
+        const firstItem = groupData[0];
+        const categoryName = firstItem?.CategoryLongName || selectedCategory || '';
+        const subCategoryName = firstItem?.SubCategoryLongName || '';
+        
+        // Get all unique periods (columns) - sorted
+        const periods = [...new Set(groupData.map(item => item?.ProcessedFYYear || '').filter(p => p))].sort();
+        
+        // Get all unique descriptions (rows)
+        const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))];
+        
+        // Create pivot structure: { description: { period: value, unit: unit } }
+        const pivot = {};
+        const units = {}; // Store unit for each description
+        const descriptionMetadata = {}; // Store category and subcategory for each description
+        
+        descriptions.forEach(desc => {
+          if (!desc) return;
+          pivot[desc] = {};
+          groupData.forEach(item => {
+            if (item && item.Description === desc) {
+              const period = item.ProcessedFYYear || '';
+              pivot[desc][period] = item.ReportedValue || '-';
+              // Store unit (assuming same unit for all periods of a description)
+              if (!units[desc] && item.ReportedUnit) {
+                units[desc] = item.ReportedUnit;
+              }
+              // Store category and subcategory metadata
+              if (!descriptionMetadata[desc]) {
+                descriptionMetadata[desc] = {
+                  category: item.CategoryLongName || categoryName || '',
+                  subCategory: item.SubCategoryLongName || subCategoryName || ''
+                };
+              }
+            }
+          });
+        });
+        
+        pivotData[periodType] = {
+          periods: periods || [],
+          descriptions: descriptions || [],
+          pivot: pivot || {},
+          units: units || {},
+          descriptionMetadata: descriptionMetadata || {},
+          categoryName: categoryName,
+          subCategoryName: subCategoryName
+        };
+      });
+
+      return pivotData;
+    } catch (error) {
+      console.error('Error creating pivot table data:', error);
+      return {};
+    }
+  }, [filteredData, isAdmin]);
+
+  // Fetch unique values for form fields
+  const fetchUniqueValues = useCallback(async () => {
+    try {
+      const fields = ['ProcessedPeriodType', 'ProcessedFYYear', 'CountryName', 'Description', 'ReportedUnit', 'ReportedValue'];
+      const values = {};
+      
+      for (const field of fields) {
+        try {
+          const data = await ApiService.getUniqueValues('International', field);
+          values[field] = data || [];
+        } catch (err) {
+          console.error(`Error fetching unique values for ${field}:`, err);
+          values[field] = [];
+        }
+      }
+      
+      setUniqueValues(values);
+    } catch (err) {
+      console.error('Error fetching unique values:', err);
+    }
+  }, []);
+
   // CRUD Handler Functions
-  const handleAdd = () => {
+  const handleAdd = async () => {
     setFormData({
       ProcessedPeriodType: '',
-      ProcessedFYYear: '',
+      ProcessedFYYear: [], // Array for multi-select
       DataType: 'International',
       CountryName: '',
       PremiumTypeLongName: '',
       CategoryLongName: '',
       Description: '',
       ReportedUnit: '',
-      ReportedValue: ''
+      ReportedValue: '',
+      IsActive: true
     });
     setEditingRecord(null);
+    setShowCustomPremiumType(false);
+    setShowCustomCategory(false);
+    setSelectedPremiumTypeOption('');
+    setSelectedCategoryOption('');
+    setModalCategories([]);
+    setShowCustomInputs({
+      ProcessedPeriodType: false,
+      ProcessedFYYear: false,
+      CountryName: false,
+      Description: false,
+      ReportedUnit: false,
+      ReportedValue: false
+    });
+    
+    // Fetch unique values when opening modal
+    await fetchUniqueValues();
     setShowAddModal(true);
   };
 
-  const handleEdit = (record) => {
+  const handleEdit = async (record) => {
+    const premiumTypeValue = record.PremiumTypeLongName || '';
+    const categoryValue = record.CategoryLongName || '';
+    
     setFormData({
       ProcessedPeriodType: record.ProcessedPeriodType || '',
-      ProcessedFYYear: record.ProcessedFYYear || '',
+      ProcessedFYYear: record.ProcessedFYYear ? [record.ProcessedFYYear] : [], // Single year as array for edit
       DataType: record.DataType || 'International',
       CountryName: record.CountryName || '',
-      PremiumTypeLongName: record.PremiumTypeLongName || '',
-      CategoryLongName: record.CategoryLongName || '',
+      PremiumTypeLongName: premiumTypeValue,
+      CategoryLongName: categoryValue,
       Description: record.Description || '',
       ReportedUnit: record.ReportedUnit || '',
-      ReportedValue: record.ReportedValue || ''
+      ReportedValue: record.ReportedValue || '',
+      IsActive: record.IsActive !== undefined ? record.IsActive : true
     });
+    
+    // Check if the values exist in the dropdowns
+    const isPremiumTypeInList = premiumTypes.includes(premiumTypeValue);
+    const isCategoryInList = categories.includes(categoryValue);
+    
+    setShowCustomPremiumType(!isPremiumTypeInList && premiumTypeValue !== '');
+    setShowCustomCategory(!isCategoryInList && categoryValue !== '');
+    setSelectedPremiumTypeOption(isPremiumTypeInList ? premiumTypeValue : '');
+    setSelectedCategoryOption(isCategoryInList ? categoryValue : '');
+    
+    // Check if other fields exist in unique values
+    setShowCustomInputs({
+      ProcessedPeriodType: !uniqueValues.ProcessedPeriodType.includes(record.ProcessedPeriodType || '') && (record.ProcessedPeriodType || '') !== '',
+      ProcessedFYYear: !uniqueValues.ProcessedFYYear.includes(record.ProcessedFYYear || '') && (record.ProcessedFYYear || '') !== '',
+      CountryName: !uniqueValues.CountryName.includes(record.CountryName || '') && (record.CountryName || '') !== '',
+      Description: !uniqueValues.Description.includes(record.Description || '') && (record.Description || '') !== '',
+      ReportedUnit: !uniqueValues.ReportedUnit.includes(record.ReportedUnit || '') && (record.ReportedUnit || '') !== '',
+      ReportedValue: !uniqueValues.ReportedValue.includes(record.ReportedValue || '') && (record.ReportedValue || '') !== ''
+    });
+    
+    // Fetch categories for the premium type if it exists
+    if (premiumTypeValue && isPremiumTypeInList) {
+      try {
+        const categoryData = await ApiService.getCategories('International', premiumTypeValue);
+        setModalCategories(categoryData || []);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setModalCategories([]);
+      }
+    } else {
+      setModalCategories([]);
+    }
+    
+    // Fetch unique values when opening edit modal
+    await fetchUniqueValues();
+    
     setEditingRecord(record);
     setShowAddModal(true);
   };
@@ -188,15 +738,65 @@ const EconomyInternational = ({ onMenuClick }) => {
     setLoading(true);
     setError(null);
     try {
+      const deletedPremiumType = recordToDelete.PremiumTypeLongName;
+      const deletedCategory = recordToDelete.CategoryLongName;
+      
       await ApiService.deleteEconomyData(recordToDelete.id);
       setSuccessMessage('Record deleted successfully!');
       setShowDeleteConfirm(false);
       setRecordToDelete(null);
-      // Refresh data
-      if (selectedPremiumType && selectedCategory) {
-        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
-        setFilteredData(data || []);
+      
+      // Refresh premium types dropdown
+      try {
+        const updatedPremiumTypes = await ApiService.getPremiumTypes('International');
+        setPremiumTypes(updatedPremiumTypes || []);
+        
+        // If the deleted record's premium type is no longer in the list, remove it from selection
+        if (deletedPremiumType && !updatedPremiumTypes.includes(deletedPremiumType)) {
+          if (selectedPremiumType === deletedPremiumType) {
+            setSelectedPremiumType('');
+            setSelectedCategory('');
+            setCategories([]);
+            setFilteredData([]);
+          }
+        }
+      } catch (err) {
+        console.error('Error refreshing premium types:', err);
       }
+      
+      // Refresh categories dropdown if premium type is still selected
+      if (selectedPremiumType && selectedPremiumType === deletedPremiumType) {
+        try {
+          const updatedCategories = await ApiService.getCategories('International', selectedPremiumType);
+          setCategories(updatedCategories || []);
+          
+          // If the deleted record's category is no longer in the list, remove it from selection
+          if (deletedCategory && !updatedCategories.includes(deletedCategory)) {
+            if (selectedCategory === deletedCategory) {
+              setSelectedCategory('');
+              setFilteredData([]);
+            }
+          }
+        } catch (err) {
+          console.error('Error refreshing categories:', err);
+        }
+      }
+      
+      // Refresh data if filters are still selected
+      if (selectedPremiumType && selectedCategory && selectedDescription) {
+        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+        // Filter by selected Description
+        const filtered = (data || []).filter(row => row.Description === selectedDescription);
+        // Filter by admin status
+        const finalData = !isAdmin 
+          ? filtered.filter(row => row.IsActive === 1 || row.IsActive === true)
+          : filtered;
+        setFilteredData(finalData);
+      } else {
+        // Clear data if filters were cleared
+        setFilteredData([]);
+      }
+      
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error deleting record:', err);
@@ -218,22 +818,104 @@ const EconomyInternational = ({ onMenuClick }) => {
     setSuccessMessage(null);
 
     try {
+      const newPremiumType = formData.PremiumTypeLongName;
+      const newCategory = formData.CategoryLongName;
+      
       if (editingRecord) {
-        // Update existing record
-        await ApiService.updateEconomyData(editingRecord.id, formData);
+        // Update existing record - use first year from array
+        const updateData = {
+          ...formData,
+          ProcessedFYYear: formData.ProcessedFYYear[0] || ''
+        };
+        await ApiService.updateEconomyData(editingRecord.id, updateData);
         setSuccessMessage('Record updated successfully!');
       } else {
-        // Create new record
-        await ApiService.createEconomyData(formData);
-        setSuccessMessage('Record added successfully!');
+        // Create multiple records - one for each selected year
+        const selectedYears = Array.isArray(formData.ProcessedFYYear) && formData.ProcessedFYYear.length > 0
+          ? formData.ProcessedFYYear
+          : [];
+        
+        if (selectedYears.length === 0) {
+          setError('Please select at least one Processed FY Year');
+          setLoading(false);
+          return;
+        }
+
+        // Create records for each selected year
+        const createPromises = selectedYears.map(year => {
+          const recordData = {
+            ...formData,
+            ProcessedFYYear: year
+          };
+          return ApiService.createEconomyData(recordData);
+        });
+
+        await Promise.all(createPromises);
+        setSuccessMessage(`Successfully added ${selectedYears.length} record(s)!`);
       }
 
       setShowAddModal(false);
-      // Refresh data
-      if (selectedPremiumType && selectedCategory) {
-        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
-        setFilteredData(data || []);
+      setEditingRecord(null);
+      setShowCustomPremiumType(false);
+      setShowCustomCategory(false);
+      setSelectedPremiumTypeOption('');
+      setSelectedCategoryOption('');
+      setModalCategories([]);
+      
+      // Refresh premium types dropdown
+      try {
+        const updatedPremiumTypes = await ApiService.getPremiumTypes('International');
+        setPremiumTypes(updatedPremiumTypes || []);
+        
+        // If new premium type was added and it's not in the list, add it
+        if (newPremiumType && !updatedPremiumTypes.includes(newPremiumType)) {
+          setPremiumTypes([...updatedPremiumTypes, newPremiumType]);
+        }
+      } catch (err) {
+        console.error('Error refreshing premium types:', err);
       }
+      
+      // Refresh categories dropdown if premium type is selected
+      if (selectedPremiumType || newPremiumType) {
+        try {
+          const premiumTypeToUse = selectedPremiumType || newPremiumType;
+          const updatedCategories = await ApiService.getCategories('International', premiumTypeToUse);
+          setCategories(updatedCategories || []);
+          
+          // If new category was added and it's not in the list, add it
+          if (newCategory && !updatedCategories.includes(newCategory)) {
+            setCategories([...updatedCategories, newCategory]);
+          }
+        } catch (err) {
+          console.error('Error refreshing categories:', err);
+        }
+      }
+      
+      // Refresh data if filters are selected
+      if (selectedPremiumType && selectedCategory && selectedDescription) {
+        const data = await ApiService.getEconomyData('International', selectedPremiumType, selectedCategory);
+        // Filter by selected Description
+        const filtered = (data || []).filter(row => row.Description === selectedDescription);
+        // Filter by admin status
+        const finalData = !isAdmin 
+          ? filtered.filter(row => row.IsActive === 1 || row.IsActive === true)
+          : filtered;
+        setFilteredData(finalData);
+      } else if (newPremiumType && newCategory) {
+        // If new record was added with new premium/category, fetch descriptions first
+        const data = await ApiService.getEconomyData('International', newPremiumType, newCategory);
+        const uniqueDescriptions = [...new Set(
+          (data || [])
+            .map(item => item.Description)
+            .filter(desc => desc && desc.trim() !== '')
+        )].sort();
+        setDescriptions(uniqueDescriptions);
+        setSelectedPremiumType(newPremiumType);
+        setSelectedCategory(newCategory);
+        // Don't set filteredData here - wait for Description to be selected
+        setFilteredData([]);
+      }
+      
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error saving record:', err);
@@ -253,6 +935,7 @@ const EconomyInternational = ({ onMenuClick }) => {
     }
     
     if (tab === 'Dashboard') {
+      setActiveTab('Dashboard');
       // Check which sidebar item is selected
       if (selectedSidebarItem === 1001) { // Industry Metrics
         navigate('/industry-metrics-dashboard');
@@ -260,8 +943,10 @@ const EconomyInternational = ({ onMenuClick }) => {
         navigate('/economy-dashboard');
       }
     } else if (tab === 'Domestic') {
+      setActiveTab('Domestic');
       navigate('/economy-domestic');
     } else if (tab === 'International') {
+      setActiveTab('International');
       // Stay on current page
       return;
     } else if (tab === 'Background') {
@@ -314,18 +999,62 @@ const EconomyInternational = ({ onMenuClick }) => {
 
           {/* Main Content Area */}
           <div className="main-content-area">
+            {/* Breadcrumb */}
+            <div className="breadcrumb" style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'clamp(6px, 1.5vw, 8px)',
+              fontSize: 'clamp(13px, 2.5vw, 14px)',
+              marginBottom: 'clamp(10px, 2vw, 15px)',
+              flexWrap: 'wrap'
+            }}>
+              <span 
+                onClick={() => handleTabClick('Dashboard')}
+                style={{ 
+                  color: '#36659b', 
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.textDecoration = 'underline';
+                  e.target.style.color = '#2d5280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.textDecoration = 'none';
+                  e.target.style.color = '#36659b';
+                }}
+              >
+                Economy
+              </span>
+              <span className="breadcrumb-separator" style={{ color: '#999' }}>{'>>'}</span>
+              <span className="breadcrumb-current" style={{ color: '#36659b', fontWeight: '500' }}>International</span>
+            </div>
+
             {/* Navigation Tabs */}
             <div className="navigation-tabs-container">
               <div className="navigation-tabs">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => handleTabClick(tab)}
-                    className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+                {tabs.map((tab) => {
+                  const isActive = isNavItemActive(tab);
+                  const isSelected = activeTab === tab;
+                  // Build className: only selected tab gets 'selected' class
+                  let className = 'nav-tab';
+                  if (isActive) {
+                    className += isSelected ? ' active selected' : ' active';
+                  } else {
+                    className += ' inactive';
+                  }
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => isActive && handleTabClick(tab)}
+                      className={className}
+                    >
+                      {tab}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -374,10 +1103,11 @@ const EconomyInternational = ({ onMenuClick }) => {
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-              <button
-                onClick={handleAdd}
+            {/* Action Buttons - Only visible to Admin */}
+            {isAdmin && (
+              <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleAdd}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#36659b',
@@ -404,15 +1134,16 @@ const EconomyInternational = ({ onMenuClick }) => {
                   e.target.style.boxShadow = '0 2px 4px rgba(54, 101, 155, 0.2)';
                 }}
               >
-                <span>+</span>
-                <span>Add New Record</span>
-              </button>
-            </div>
+                  <span>+</span>
+                  <span>Add New Record</span>
+                </button>
+              </div>
+            )}
 
             {/* Filter Dropdowns */}
             <div className="filters-section">
               <div className="filter-group">
-                <label htmlFor="premium-type">Select Premium Type Long name</label>
+                <label htmlFor="premium-type">Select Category Long Name</label>
                 <select
                   id="premium-type"
                   value={selectedPremiumType}
@@ -420,7 +1151,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                   className="filter-select"
                   disabled={loading}
                 >
-                  <option value="">Select Premium Type...</option>
+                  <option value="">Select Category...</option>
                   {premiumTypes.length > 0 ? (
                     premiumTypes.map((type, index) => (
                     <option key={index} value={type}>{type}</option>
@@ -432,7 +1163,7 @@ const EconomyInternational = ({ onMenuClick }) => {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="category">Select Category Long Name</label>
+                <label htmlFor="category">Select Sub Category Long Name</label>
                 <select
                   id="category"
                   value={selectedCategory}
@@ -440,7 +1171,7 @@ const EconomyInternational = ({ onMenuClick }) => {
                   className="filter-select"
                   disabled={loading || !selectedPremiumType}
                 >
-                  <option value="">Select Category...</option>
+                  <option value="">Select Sub Category...</option>
                   {categories.length > 0 ? (
                     categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
@@ -451,7 +1182,32 @@ const EconomyInternational = ({ onMenuClick }) => {
                 </select>
                 {!selectedPremiumType && (
                   <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Please select a Premium Type first
+                    Please select a Category first
+                  </small>
+                )}
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="description">Select Description</label>
+                <select
+                  id="description"
+                  value={selectedDescription}
+                  onChange={(e) => setSelectedDescription(e.target.value)}
+                  className="filter-select"
+                  disabled={loading || !selectedPremiumType || !selectedCategory}
+                >
+                  <option value="">Select Description...</option>
+                  {descriptions.length > 0 ? (
+                    descriptions.map((desc, index) => (
+                    <option key={index} value={desc}>{desc}</option>
+                    ))
+                  ) : (
+                    selectedPremiumType && selectedCategory && !loading && <option value="" disabled>No descriptions available</option>
+                  )}
+                </select>
+                {(!selectedPremiumType || !selectedCategory) && (
+                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Please select Category and Sub Category first
                   </small>
                 )}
               </div>
@@ -459,125 +1215,519 @@ const EconomyInternational = ({ onMenuClick }) => {
               {loading && (
                 <div style={{ padding: '10px', color: '#666' }}>
                   Loading...
-              </div>
+                </div>
               )}
             </div>
 
+            {/* Description Selection Section - Only visible to Admin */}
+            {isAdmin && selectedPremiumType && selectedCategory && selectedDescription && descriptionsWithContext.length > 0 && (
+              <div className="description-selection-container">
+                <div className="description-selection-card">
+                  {/* Header Section */}
+                  <div className="description-selection-header">
+                    <div className="description-selection-header-content">
+                      <div>
+                        <h3 className="description-selection-title">
+                          Select Descriptions
+                        </h3>
+                        <p className="description-selection-subtitle">
+                          Choose descriptions to visualize in Dashboard
+                        </p>
+                      </div>
+                      {selectedDescriptions && selectedDescriptions.length > 0 && (
+                        <div className="description-selection-counter">
+                          {selectedDescriptions.length}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Cards Container */}
+                  <div className="description-cards-container">
+                    {descriptionsWithContext.map((item, index) => {
+                      const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
+                      const isDisabled = false; // No limit on number of descriptions
+                      
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => !isDisabled && handleDescriptionToggle(item.description)}
+                          className={`description-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                          onMouseEnter={(e) => {
+                            if (!isDisabled && !isMobile) {
+                              e.currentTarget.style.borderColor = '#3F72AF';
+                              e.currentTarget.style.boxShadow = '0 12px 24px rgba(63, 114, 175, 0.2), 0 0 0 4px rgba(63, 114, 175, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(-4px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isDisabled && !isMobile) {
+                              e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
+                              e.currentTarget.style.boxShadow = isSelected 
+                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)' 
+                                : '0 2px 4px rgba(0, 0, 0, 0.06)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          {/* Custom Checkbox */}
+                          <div className="description-checkbox">
+                            <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
+                              {isSelected && (
+                                <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path 
+                                    d="M13.3333 4L6 11.3333L2.66667 8" 
+                                    stroke="white" 
+                                    strokeWidth="2.5" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Description Text */}
+                          <div className="description-text">
+                            <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
+                              {item.description}
+                            </div>
+                          </div>
+                          
+                          {/* Selection Indicator */}
+                          {isSelected && (
+                            <div className="description-indicator" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+
             {/* Data Table or Visuals */}
             {viewMode === 'data' ? (
-              <div className="table-container">
-                <table className="economy-table">
-                  <thead>
-                    <tr>
-                      <th>ProcessedPeriodType</th>
-                      <th>ProcessedFYYear</th>
-                      <th>DataType</th>
-                      <th>CountryName</th>
-                      <th>PremiumTypeLongName</th>
-                      <th>CategoryLongName</th>
-                      <th>Description</th>
-                      <th>ReportedUnit</th>
-                      <th>ReportedValue</th>
-                      <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
+              // For non-admin users, show pivot tables grouped by ProcessedPeriodType
+              !isAdmin && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+                <div className="pivot-tables-container" style={{ marginTop: '20px' }}>
+                  {Object.keys(pivotTableData).sort().map(periodType => {
+                    const periodData = pivotTableData[periodType];
+                    if (!periodData) return null;
+                    
+                    const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, categoryName = '', subCategoryName = '' } = periodData;
+                    
+                    if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
+                      return null;
+                    }
+
+                    // Use category and subcategory from periodData (stored at periodType level)
+                    const displayCategoryName = categoryName || selectedCategory || '';
+                    const displaySubCategoryName = subCategoryName || '';
+                    
+                    // Build breadcrumb: Category Long Name >> Sub Category Long Name >> Period Type
+                    const categoryLongName = selectedPremiumType || '';
+                    const subCategoryLongName = selectedCategory || displayCategoryName || '';
+                    const breadcrumbParts = [];
+                    if (categoryLongName) breadcrumbParts.push(categoryLongName);
+                    if (subCategoryLongName) breadcrumbParts.push(subCategoryLongName);
+                    if (periodType) breadcrumbParts.push(periodType);
+                    const breadcrumbText = breadcrumbParts.join(' >> ');
+
+                    return (
+                      <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
+                        <h3 className="period-type-title" style={{ 
+                          marginBottom: '16px', 
+                          fontSize: '18px', 
+                          fontWeight: '600', 
+                          color: '#111827',
+                          paddingBottom: '8px',
+                          borderBottom: '2px solid #3F72AF'
+                        }}>
+                          {breadcrumbText}
+                        </h3>
+                        <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                          <table className="data-table pivot-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr>
+                                <th className="pivot-table-header-desc" style={{ 
+                                  position: 'sticky', 
+                                  left: 0, 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '200px' : '300px', 
+                                  textAlign: 'left',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Description
+                                </th>
+                                <th className="pivot-table-header-unit" style={{ 
+                                  position: 'sticky', 
+                                  left: isMobile ? '200px' : '300px', 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '60px' : '80px', 
+                                  textAlign: 'center',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Period Unit
+                                </th>
+                                <th className="pivot-table-header-period-type" style={{ 
+                                  position: 'sticky', 
+                                  left: isMobile ? '260px' : '380px', 
+                                  backgroundColor: '#3F72AF', 
+                                  color: '#ffffff',
+                                  zIndex: 10, 
+                                  minWidth: isMobile ? '80px' : '100px', 
+                                  textAlign: 'center',
+                                  padding: '12px',
+                                  border: '1px solid #2c5a8a'
+                                }}>
+                                  Period
+                                </th>
+                                {periods.map(period => (
+                                  <th key={period} className="pivot-table-header-period" style={{ 
+                                    minWidth: isMobile ? '80px' : '100px', 
+                                    textAlign: 'center',
+                                    backgroundColor: '#3F72AF',
+                                    color: '#ffffff',
+                                    padding: '12px',
+                                    border: '1px solid #2c5a8a'
+                                  }}>
+                                    {period}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {descriptions.map((desc, descIndex) => {
+                                const descMetadata = descriptionMetadata[desc] || {};
+                                
+                                return (
+                                  <tr key={descIndex} style={{
+                                    backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                    borderBottom: '1px solid #e5e7eb'
+                                  }}>
+                                    <td className="pivot-table-cell-desc" style={{ 
+                                      position: 'sticky', 
+                                      left: 0, 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      minWidth: isMobile ? '200px' : '300px',
+                                      fontWeight: '500'
+                                    }}>
+                                      {desc}
+                                    </td>
+                                    <td className="pivot-table-cell-unit" style={{ 
+                                      position: 'sticky', 
+                                      left: isMobile ? '200px' : '300px', 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      fontSize: '12px',
+                                      color: '#6b7280',
+                                      whiteSpace: 'nowrap',
+                                      textAlign: 'center'
+                                    }}>
+                                      {units[desc] || '-'}
+                                    </td>
+                                    <td className="pivot-table-cell-period-type" style={{ 
+                                      position: 'sticky', 
+                                      left: isMobile ? '260px' : '380px', 
+                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                      zIndex: 5,
+                                      padding: '12px',
+                                      borderRight: '2px solid #e5e7eb',
+                                      fontSize: '12px',
+                                      color: '#374151',
+                                      whiteSpace: 'nowrap',
+                                      textAlign: 'center',
+                                      fontWeight: '500'
+                                    }}>
+                                      {periodType}
+                                    </td>
+                                    {periods.map(period => (
+                                      <td key={period} className="pivot-table-cell-data" style={{ 
+                                        textAlign: 'right', 
+                                        padding: '12px',
+                                        borderRight: '1px solid #e5e7eb',
+                                        backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                        fontSize: '13px',
+                                        whiteSpace: 'nowrap'
+                                      }}>
+                                        {pivot[desc] && pivot[desc][period] !== undefined 
+                                          ? pivot[desc][period] 
+                                          : '-'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : isAdmin ? (
+                // For admin users, show regular table
+                <div className="table-container">
+                  <table className="economy-table">
+                    <thead>
                       <tr>
-                        <td colSpan="10" className="no-data">Loading data...</td>
-                      </tr>
-                    ) : filteredData.length > 0 ? (
-                      filteredData.map((row, index) => (
-                        <tr key={row.id || index}>
-                          <td>{row.ProcessedPeriodType || '-'}</td>
-                          <td>{row.ProcessedFYYear || '-'}</td>
-                          <td>{row.DataType || '-'}</td>
-                          <td>{row.CountryName || '-'}</td>
-                          <td>{row.PremiumTypeLongName || '-'}</td>
-                          <td>{row.CategoryLongName || '-'}</td>
-                          <td>{row.Description || '-'}</td>
-                          <td>{row.ReportedUnit || '-'}</td>
-                          <td>{row.ReportedValue || '-'}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                              <button
-                                onClick={() => handleEdit(row)}
-                                style={{
-                                  padding: '6px 12px',
-                                  backgroundColor: '#007bff',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontSize: '13px',
-                                  fontWeight: '500',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  transition: 'all 0.2s ease',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.target.style.backgroundColor = '#0056b3';
-                                  e.target.style.transform = 'translateY(-1px)';
-                                  e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.target.style.backgroundColor = '#007bff';
-                                  e.target.style.transform = 'translateY(0)';
-                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                }}
-                              >
-                                <span>✏️</span>
-                                <span>Edit</span>
-                              </button>
-                            <button
-                              onClick={() => handleDelete(row)}
-                              style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#dc3545',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.target.style.backgroundColor = '#c82333';
-                                e.target.style.transform = 'translateY(-1px)';
-                                e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = '#dc3545';
-                                e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                              }}
-                            >
-                              <span>🗑️</span>
-                              <span>Delete</span>
-                            </button>
+                        {isAdmin && <th>Status</th>}
+                        {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
+                        {isAdmin && (
+                          <th style={{ 
+                            textAlign: 'center', 
+                            minWidth: '120px',
+                            opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                          }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ 
+                                color: isDescriptionSelectedInDashboard ? '#333' : '#999',
+                                fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
+                              }}>
+                                Select for Dashboard
+                              </span>
+                              {!isDescriptionSelectedInDashboard && selectedDescription && (
+                                <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
+                                  Select in Dashboard first
+                                </span>
+                              )}
+                              {filteredData && filteredData.length > 0 && isDescriptionSelectedInDashboard && (
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={allRowsSelected}
+                                    ref={selectAllCheckboxRef}
+                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                    style={{
+                                      width: '16px',
+                                      height: '16px',
+                                      cursor: 'pointer'
+                                    }}
+                                    title={allRowsSelected ? 'Deselect all' : someRowsSelected ? 'Select all' : 'Select all'}
+                                  />
+                                  <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
+                                </label>
+                              )}
                             </div>
+                          </th>
+                        )}
+                        <th>Description</th>
+                        <th>ProcessedPeriodType</th>
+                        <th>CountryName</th>
+                        <th>ProcessedFYYear</th>
+                        <th>ReportedUnit</th>
+                        <th>ReportedValue</th>
+                        <th>CategoryLongName</th>
+                        <th>SubCategoryLongName</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan={isAdmin ? 11 : 8} className="no-data">Loading data...</td>
+                        </tr>
+                      ) : sortedData.length > 0 ? (
+                        sortedData.map((row, index) => (
+                          <tr key={row.id || index}>
+                            {isAdmin && (
+                              <td>
+                                <label
+                                  style={{
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '50px',
+                                    height: '24px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={row.IsActive === 1 || row.IsActive === true}
+                                    onChange={async (e) => {
+                                      const newStatus = e.target.checked;
+                                      try {
+                                        await ApiService.updateEconomyData(row.id, { IsActive: newStatus });
+                                        // Update local state
+                                        setFilteredData(prevData =>
+                                          prevData.map(item =>
+                                            item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                          )
+                                        );
+                                      } catch (err) {
+                                        console.error('Error updating status:', err);
+                                        alert('Failed to update status. Please try again.');
+                                      }
+                                    }}
+                                    style={{
+                                      opacity: 0,
+                                      width: 0,
+                                      height: 0
+                                    }}
+                                  />
+                                  <span
+                                    style={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
+                                      borderRadius: '24px',
+                                      transition: 'background-color 0.3s',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '18px',
+                                        width: '18px',
+                                        left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
+                                        bottom: '3px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        transition: 'left 0.3s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      }}
+                                    />
+                                  </span>
+                                </label>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                  <button
+                                    onClick={() => handleEdit(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#007bff',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#0056b3';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#007bff';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>✏️</span>
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#c82333';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#dc3545';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>🗑️</span>
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td style={{ 
+                                textAlign: 'center',
+                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRowIds.has(row.id)}
+                                  onChange={(e) => handleRowSelection(row.id, e.target.checked)}
+                                  disabled={!isDescriptionSelectedInDashboard}
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
+                                    opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                                  }}
+                                  title={isDescriptionSelectedInDashboard 
+                                    ? "Select this row to display in dashboard" 
+                                    : "Please select this description in the Dashboard first"}
+                                />
+                              </td>
+                            )}
+                            <td>{row.Description || '-'}</td>
+                            <td>{row.ProcessedPeriodType || '-'}</td>
+                            <td>{row.CountryName || '-'}</td>
+                            <td>{row.ProcessedFYYear || '-'}</td>
+                            <td>{row.ReportedUnit || '-'}</td>
+                            <td>{row.ReportedValue || '-'}</td>
+                            <td>{row.PremiumTypeLongName || '-'}</td>
+                            <td>{row.CategoryLongName || '-'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={isAdmin ? 11 : 8} className="no-data">
+                            {!selectedPremiumType || !selectedCategory || !selectedDescription
+                              ? 'Please select Category, Sub Category, and Description to view data'
+                              : 'No data available for selected filters'}
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="10" className="no-data">
-                          {selectedPremiumType && selectedCategory 
-                            ? 'No data available for selected filters' 
-                            : 'Please select Premium Type and Category to view data'}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                // For non-admin users without pivot data, show message
+                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                  {!selectedPremiumType || !selectedCategory || !selectedDescription
+                    ? 'Please select Category, Sub Category, and Description to view data'
+                    : 'No data available for selected filters'}
+                </div>
+              )
             ) : (
               <div className="visuals-container">
                 <div className="visuals-grid">
@@ -809,6 +1959,11 @@ const EconomyInternational = ({ onMenuClick }) => {
             if (e.target === e.currentTarget) {
               setShowAddModal(false);
               setEditingRecord(null);
+              setShowCustomPremiumType(false);
+              setShowCustomCategory(false);
+              setSelectedPremiumTypeOption('');
+              setSelectedCategoryOption('');
+              setModalCategories([]);
             }
           }}
         >
@@ -832,6 +1987,19 @@ const EconomyInternational = ({ onMenuClick }) => {
                 onClick={() => {
                   setShowAddModal(false);
                   setEditingRecord(null);
+                  setShowCustomPremiumType(false);
+                  setShowCustomCategory(false);
+                  setSelectedPremiumTypeOption('');
+                  setSelectedCategoryOption('');
+                  setModalCategories([]);
+                  setShowCustomInputs({
+                    ProcessedPeriodType: false,
+                    ProcessedFYYear: false,
+                    CountryName: false,
+                    Description: false,
+                    ReportedUnit: false,
+                    ReportedValue: false
+                  });
                 }}
                 style={{
                   background: 'none',
@@ -865,24 +2033,176 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Processed Period Type:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ProcessedPeriodType}
-                  onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ProcessedPeriodType ? (
+                  <select
+                    value={formData.ProcessedPeriodType}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedPeriodType: true }));
+                        setFormData({ ...formData, ProcessedPeriodType: '' });
+                      } else {
+                        setFormData({ ...formData, ProcessedPeriodType: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Processed Period Type...</option>
+                    {uniqueValues.ProcessedPeriodType.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ProcessedPeriodType}
+                    onChange={(e) => setFormData({ ...formData, ProcessedPeriodType: e.target.value })}
+                    placeholder="Enter new Processed Period Type..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ProcessedPeriodType.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedPeriodType: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Processed FY Year:
+                  Processed FY Year {editingRecord ? '' : '(Select Multiple)'}:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ProcessedFYYear}
-                  onChange={(e) => setFormData({ ...formData, ProcessedFYYear: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ProcessedFYYear ? (
+                  <div style={{ 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px', 
+                    padding: '8px', 
+                    maxHeight: '200px', 
+                    overflowY: 'auto',
+                    backgroundColor: '#fff'
+                  }}>
+                    {editingRecord ? (
+                      // Single select for editing
+                      <select
+                        value={formData.ProcessedFYYear[0] || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__ADD_NEW__') {
+                            setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                            setFormData({ ...formData, ProcessedFYYear: [] });
+                          } else {
+                            setFormData({ ...formData, ProcessedFYYear: [e.target.value] });
+                          }
+                        }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                      >
+                        <option value="">Select Processed FY Year...</option>
+                        {uniqueValues.ProcessedFYYear.map((value, index) => (
+                          <option key={index} value={value}>{value}</option>
+                        ))}
+                        <option value="__ADD_NEW__">--- Add New ---</option>
+                      </select>
+                    ) : (
+                      // Multi-select checkboxes for adding new
+                      <>
+                        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.ProcessedFYYear.length === uniqueValues.ProcessedFYYear.length && uniqueValues.ProcessedFYYear.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, ProcessedFYYear: [...uniqueValues.ProcessedFYYear] });
+                              } else {
+                                setFormData({ ...formData, ProcessedFYYear: [] });
+                              }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <label style={{ cursor: 'pointer', fontWeight: '500' }}>Select All</label>
+                        </div>
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '8px' }}>
+                          {uniqueValues.ProcessedFYYear.map((value, index) => (
+                            <div key={index} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={formData.ProcessedFYYear.includes(value)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, ProcessedFYYear: [...formData.ProcessedFYYear, value] });
+                                  } else {
+                                    setFormData({ ...formData, ProcessedFYYear: formData.ProcessedFYYear.filter(y => y !== value) });
+                                  }
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <label style={{ cursor: 'pointer', flex: 1 }}>{value}</label>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: true }));
+                              setFormData({ ...formData, ProcessedFYYear: [] });
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#f3f4f6',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '13px'
+                            }}
+                          >
+                            --- Add New ---
+                          </button>
+                        </div>
+                        {formData.ProcessedFYYear.length > 0 && (
+                          <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '4px', fontSize: '13px' }}>
+                            {formData.ProcessedFYYear.length} year(s) selected
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.ProcessedFYYear.join(', ')}
+                      onChange={(e) => {
+                        const years = e.target.value.split(',').map(y => y.trim()).filter(y => y);
+                        setFormData({ ...formData, ProcessedFYYear: years });
+                      }}
+                      placeholder="Enter new Processed FY Year (comma-separated for multiple)..."
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginBottom: '8px' }}
+                      onBlur={() => {
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomInputs(prev => ({ ...prev, ProcessedFYYear: false }));
+                        if (formData.ProcessedFYYear.length === 0) {
+                          setFormData({ ...formData, ProcessedFYYear: [] });
+                        }
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#f3f4f6',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '13px'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
@@ -902,29 +2222,38 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Country Name:
                 </label>
-                <input
-                  type="text"
-                  value={formData.CountryName}
-                  onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Premium Type Long Name:
-                </label>
-                <input
-                  type="text"
-                  value={formData.PremiumTypeLongName}
-                  onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
-                  placeholder="Enter Premium Type Long Name..."
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-                {premiumTypes.length > 0 && (
-                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                    Suggestions: {premiumTypes.slice(0, 3).join(', ')}{premiumTypes.length > 3 ? '...' : ''}
-                  </small>
+                {!showCustomInputs.CountryName ? (
+                  <select
+                    value={formData.CountryName}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, CountryName: true }));
+                        setFormData({ ...formData, CountryName: '' });
+                      } else {
+                        setFormData({ ...formData, CountryName: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Country Name...</option>
+                    {uniqueValues.CountryName.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.CountryName}
+                    onChange={(e) => setFormData({ ...formData, CountryName: e.target.value })}
+                    placeholder="Enter new Country Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.CountryName.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, CountryName: false }));
+                      }
+                    }}
+                  />
                 )}
               </div>
 
@@ -932,17 +2261,96 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Category Long Name:
                 </label>
-                <input
-                  type="text"
-                  value={formData.CategoryLongName}
-                  onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
-                  placeholder="Enter Category Long Name..."
+                <select
+                  value={selectedPremiumTypeOption}
+                  onChange={async (e) => {
+                    const value = e.target.value;
+                    setSelectedPremiumTypeOption(value);
+                    if (value === '__ADD_NEW__') {
+                      setShowCustomPremiumType(true);
+                      setFormData({ ...formData, PremiumTypeLongName: '' });
+                      setModalCategories([]);
+                      setSelectedCategoryOption('');
+                    } else {
+                      setShowCustomPremiumType(false);
+                      setFormData({ ...formData, PremiumTypeLongName: value });
+                      // Fetch categories for the selected premium type
+                      try {
+                        const categoryData = await ApiService.getCategories('International', value);
+                        setModalCategories(categoryData || []);
+                        setSelectedCategoryOption('');
+                        setFormData(prev => ({ ...prev, CategoryLongName: '' }));
+                      } catch (err) {
+                        console.error('Error fetching categories:', err);
+                        setModalCategories([]);
+                      }
+                    }
+                  }}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-                {categories.length > 0 && (
-                  <small style={{ color: '#666', fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                    Suggestions: {categories.slice(0, 3).join(', ')}{categories.length > 3 ? '...' : ''}
+                >
+                  <option value="">Select Category...</option>
+                  {premiumTypes.map((type, index) => (
+                    <option key={index} value={type}>{type}</option>
+                  ))}
+                  <option value="__ADD_NEW__">--- Add New Category ---</option>
+                </select>
+                {showCustomPremiumType && (
+                  <input
+                    type="text"
+                    value={formData.PremiumTypeLongName}
+                    onChange={(e) => setFormData({ ...formData, PremiumTypeLongName: e.target.value })}
+                    placeholder="Enter new Category Long Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
+                  />
+                )}
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Category Long Name:
+                </label>
+                <select
+                  value={selectedCategoryOption}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedCategoryOption(value);
+                    if (value === '__ADD_NEW__') {
+                      setShowCustomCategory(true);
+                      setFormData({ ...formData, CategoryLongName: '' });
+                    } else {
+                      setShowCustomCategory(false);
+                      setFormData({ ...formData, CategoryLongName: value });
+                    }
+                  }}
+                  disabled={!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())}
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ddd',
+                    backgroundColor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? '#f5f5f5' : 'white',
+                    cursor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <option value="">Select Sub Category...</option>
+                  {modalCategories.map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                  ))}
+                  <option value="__ADD_NEW__">--- Add New Sub Category ---</option>
+                </select>
+                {(!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) && (
+                  <small style={{ display: 'block', marginTop: '4px', color: '#999', fontSize: '12px' }}>
+                    {showCustomPremiumType ? 'Please enter a Category first' : 'Please select a Category first'}
                   </small>
+                )}
+                {showCustomCategory && (
+                  <input
+                    type="text"
+                    value={formData.CategoryLongName}
+                    onChange={(e) => setFormData({ ...formData, CategoryLongName: e.target.value })}
+                    placeholder="Enter new Sub Category Long Name..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', marginTop: '8px' }}
+                  />
                 )}
               </div>
 
@@ -950,36 +2358,118 @@ const EconomyInternational = ({ onMenuClick }) => {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Description:
                 </label>
-                <textarea
-                  value={formData.Description}
-                  onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
-                />
+                {!showCustomInputs.Description ? (
+                  <select
+                    value={formData.Description}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, Description: true }));
+                        setFormData({ ...formData, Description: '' });
+                      } else {
+                        setFormData({ ...formData, Description: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Description...</option>
+                    {uniqueValues.Description.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <textarea
+                    value={formData.Description}
+                    onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                    placeholder="Enter new Description..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minHeight: '60px' }}
+                    onBlur={() => {
+                      if (!formData.Description.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, Description: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Reported Unit:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ReportedUnit}
-                  onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ReportedUnit ? (
+                  <select
+                    value={formData.ReportedUnit}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedUnit: true }));
+                        setFormData({ ...formData, ReportedUnit: '' });
+                      } else {
+                        setFormData({ ...formData, ReportedUnit: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Reported Unit...</option>
+                    {uniqueValues.ReportedUnit.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ReportedUnit}
+                    onChange={(e) => setFormData({ ...formData, ReportedUnit: e.target.value })}
+                    placeholder="Enter new Reported Unit..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ReportedUnit.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedUnit: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Reported Value:
                 </label>
-                <input
-                  type="text"
-                  value={formData.ReportedValue}
-                  onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                {!showCustomInputs.ReportedValue ? (
+                  <select
+                    value={formData.ReportedValue}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedValue: true }));
+                        setFormData({ ...formData, ReportedValue: '' });
+                      } else {
+                        setFormData({ ...formData, ReportedValue: e.target.value });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                  >
+                    <option value="">Select Reported Value...</option>
+                    {uniqueValues.ReportedValue.map((value, index) => (
+                      <option key={index} value={value}>{value}</option>
+                    ))}
+                    <option value="__ADD_NEW__">--- Add New ---</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.ReportedValue}
+                    onChange={(e) => setFormData({ ...formData, ReportedValue: e.target.value })}
+                    placeholder="Enter new Reported Value..."
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    onBlur={() => {
+                      if (!formData.ReportedValue.trim()) {
+                        setShowCustomInputs(prev => ({ ...prev, ReportedValue: false }));
+                      }
+                    }}
+                  />
+                )}
               </div>
+
 
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button
@@ -987,6 +2477,10 @@ const EconomyInternational = ({ onMenuClick }) => {
                   onClick={() => {
                     setShowAddModal(false);
                     setEditingRecord(null);
+                    setShowCustomPremiumType(false);
+                    setShowCustomCategory(false);
+                    setSelectedPremiumTypeOption('');
+                    setSelectedCategoryOption('');
                   }}
                   style={{
                     padding: '10px 20px',

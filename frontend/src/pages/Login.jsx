@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { loginWithGoogle, loginWithEmailPassword, subscribeToAuthChanges } from "../firebase/auth";
+import { 
+  loginWithGoogle, 
+  loginWithEmailPassword, 
+  subscribeToAuthChanges,
+  sendOTPLink,
+  checkEmailLink,
+  signInWithOTPLink,
+  sendEmailVerificationLink,
+  sendLoginLink,
+  logout
+} from "../firebase/auth";
+import auth from "../firebase/auth";
 import "./Login.css";
 
 function Login() {
@@ -11,10 +22,184 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showSignupSuccess, setShowSignupSuccess] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
+    // Check if user is returning from email verification (after clicking CONTINUE)
+    const handleEmailVerificationReturn = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const emailVerified = urlParams.get('emailVerified');
+      const verifiedEmail = urlParams.get('email');
+      
+      // Check if coming from email verification CONTINUE button
+      if (emailVerified === 'true' && verifiedEmail) {
+        setLoading(true);
+        try {
+          console.log('✅ Email verification completed. Email:', verifiedEmail);
+          
+          // Check if password was already verified (user came from login flow)
+          const pendingEmail = window.localStorage.getItem('pendingLoginEmail');
+          const pendingPassword = window.localStorage.getItem('pendingLoginPassword');
+          const passwordVerified = window.localStorage.getItem('passwordVerified');
+          const timestamp = window.localStorage.getItem('pendingVerificationTimestamp');
+          
+          // Check if verification request is not too old (within 1 hour)
+          const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 3600000; // 1 hour
+          
+          if (pendingEmail && pendingPassword && passwordVerified === 'true' && 
+              pendingEmail === verifiedEmail && isRecent) {
+            // Password was verified earlier - automatically log them in now
+            console.log('🔄 Auto-logging in user after email verification...');
+            
+            try {
+              // Decode password and log them in
+              const password = atob(pendingPassword); // Base64 decode
+              
+              // Log them in with email and password
+              await loginWithEmailPassword(verifiedEmail, password);
+              console.log('✅ User automatically logged in after email verification!');
+              
+              // Clear stored data immediately after login
+              window.localStorage.removeItem('pendingLoginEmail');
+              window.localStorage.removeItem('pendingLoginPassword');
+              window.localStorage.removeItem('passwordVerified');
+              window.localStorage.removeItem('pendingVerificationTimestamp');
+              
+              // Clear URL parameters
+              window.history.replaceState({}, document.title, '/login');
+              
+              setSuccessMessage("✅ Email verified! Logging you in...");
+              
+              // Redirect to dashboard - auth state change will handle this
+              setTimeout(() => {
+                navigate('/insurance-dashboard', { replace: true });
+              }, 500);
+              return;
+            } catch (loginErr) {
+              console.error("❌ Auto-login failed after email verification:", loginErr);
+              setError("Email verified but auto-login failed. Please enter your password to complete login.");
+              setEmail(verifiedEmail);
+              // Clear stored password on error
+              window.localStorage.removeItem('pendingLoginPassword');
+            }
+          } else {
+            // Normal email verification (not from login flow) or expired
+            if (!isRecent && timestamp) {
+              setError("Email verification link expired. Please login again.");
+              window.localStorage.removeItem('pendingLoginEmail');
+              window.localStorage.removeItem('pendingLoginPassword');
+              window.localStorage.removeItem('passwordVerified');
+              window.localStorage.removeItem('pendingVerificationTimestamp');
+            } else {
+              setSuccessMessage("Email verified! Please log in with your email and password.");
+              setEmail(verifiedEmail);
+            }
+          }
+          
+          // Clear URL parameters
+          window.history.replaceState({}, document.title, '/login');
+        } catch (err) {
+          console.error("Error handling email verification return:", err);
+          setError("Failed to process email verification. Please try logging in again.");
+          window.localStorage.removeItem('pendingLoginEmail');
+          window.localStorage.removeItem('pendingLoginPassword');
+          window.localStorage.removeItem('passwordVerified');
+          window.localStorage.removeItem('pendingVerificationTimestamp');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    // Check for direct verification action code in URL
+    const handleDirectVerification = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get('mode');
+      const oobCode = urlParams.get('oobCode');
+      
+      if (mode === 'verifyEmail' && oobCode) {
+        setLoading(true);
+        try {
+          // Import applyActionCode to verify the email
+          const { applyActionCode } = await import('firebase/auth');
+          
+          // Apply the verification code to verify email
+          await applyActionCode(auth, oobCode);
+          console.log('✅ Email verified successfully via action code!');
+          
+          // After verification, redirect to login with verified flag to auto-login
+          const pendingEmail = window.localStorage.getItem('pendingLoginEmail');
+          if (pendingEmail) {
+            // Redirect to login page with verification flag - will auto-login
+            window.location.href = `/login?emailVerified=true&email=${encodeURIComponent(pendingEmail)}`;
+          } else {
+            window.location.href = '/login?emailVerified=true';
+          }
+        } catch (err) {
+          console.error("Email verification failed:", err);
+          setError("Failed to verify email. The link may have expired. Please try logging in again.");
+          window.localStorage.removeItem('pendingLoginEmail');
+          window.localStorage.removeItem('passwordVerified');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    // Check for passwordless sign-in links (primary method)
+    const handlePasswordlessSignIn = async () => {
+      try {
+        if (checkEmailLink()) {
+          setLoading(true);
+          try {
+            const storedEmail = window.localStorage.getItem('emailForSignIn');
+            if (storedEmail) {
+              console.log('🔗 Passwordless sign-in link detected. Signing in...');
+              await signInWithOTPLink(storedEmail);
+              console.log('✅ Successfully signed in with passwordless link!');
+              setSuccessMessage("Successfully signed in! Redirecting to app...");
+              
+              // Force navigation to dashboard (auth state change should handle this, but ensure it happens)
+              setTimeout(() => {
+                navigate('/insurance-dashboard');
+              }, 500);
+            } else {
+              console.error('❌ No stored email found for passwordless sign-in');
+              setError("Email not found. Please request a new login link.");
+            }
+          } catch (err) {
+            console.error("❌ Passwordless sign-in failed:", err);
+            console.error("Error code:", err.code);
+            console.error("Error message:", err.message);
+            setError(`Failed to sign in with login link: ${err.message || 'Unknown error'}. Please try again.`);
+          } finally {
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking email link:", err);
+        // Don't break the component if checkEmailLink fails
+      }
+    };
+
+    // Run all handlers with error handling to prevent breaking the component
+    try {
+      handleEmailVerificationReturn().catch(err => {
+        console.error("Error in handleEmailVerificationReturn:", err);
+      });
+      handleDirectVerification().catch(err => {
+        console.error("Error in handleDirectVerification:", err);
+      });
+      handlePasswordlessSignIn().catch(err => {
+        console.error("Error in handlePasswordlessSignIn:", err);
+      });
+    } catch (err) {
+      console.error("Error in useEffect handlers:", err);
+    }
+
     // Check if user came from agreement rejection
     if (location.state?.fromAgreementRejection) {
       setShowRejectionMessage(true);
@@ -59,6 +244,7 @@ function Login() {
     setLoading(true);
     setError("");
     setShowRejectionMessage(false);
+    setSuccessMessage("");
 
     // Basic validation
     if (!email || !password) {
@@ -76,12 +262,57 @@ function Login() {
     }
 
     try {
-      console.log("Attempting login with email:", email);
+      // Step 1: Verify email and password are correct
+      console.log("Verifying email and password:", email);
       const userCredential = await loginWithEmailPassword(email.trim(), password);
-      console.log("Login successful:", userCredential.user);
-      navigate("/insurance-dashboard");  // redirect
+      const user = userCredential.user;
+      
+      // Step 2: Store password temporarily (encrypted in memory) for auto-login after email verification
+      // We'll use this to log them in after they click the email link
+      const tempPassword = password; // Store temporarily for auto-login after email verification
+      
+      // Step 3: Send email verification link
+      console.log("Password verified. Sending email verification link to:", email);
+      try {
+        // Send email verification link
+        await sendEmailVerificationLink(user, email.trim());
+        
+        // Step 4: ALWAYS log out user - they MUST click email link to complete login
+        await logout();
+        
+        // Step 5: Store email and password (temporarily) for auto-login after email verification
+        // Password will be cleared after successful login
+        window.localStorage.setItem('pendingLoginEmail', email.trim());
+        window.localStorage.setItem('pendingLoginPassword', btoa(tempPassword)); // Base64 encode (not secure but temporary)
+        window.localStorage.setItem('passwordVerified', 'true');
+        window.localStorage.setItem('pendingVerificationTimestamp', Date.now().toString());
+        
+        setOtpSent(true);
+        setSuccessMessage(`Password verified! Email verification link sent to ${email}. Please check your inbox (and spam folder) and click the link to complete login and access the app.`);
+        console.log("✅ Success message displayed. Email should arrive in 1-5 minutes.");
+      } catch (linkError) {
+        // If email verification fails, log out and show error
+        await logout();
+        window.localStorage.removeItem('pendingLoginEmail');
+        window.localStorage.removeItem('pendingLoginPassword');
+        window.localStorage.removeItem('passwordVerified');
+        window.localStorage.removeItem('pendingVerificationTimestamp');
+        
+        console.error("❌ FAILED to send email verification link:", linkError);
+        console.error("Error code:", linkError.code);
+        console.error("Error message:", linkError.message);
+        
+        if (linkError.code === 'auth/too-many-requests' || linkError.code === 'auth/quota-exceeded') {
+          setError('⚠️ Daily quota exceeded for email verification. Please wait until tomorrow or upgrade Firebase plan.');
+        } else if (linkError.code === 'auth/invalid-email') {
+          setError('Invalid email address. Please check your email and try again.');
+        } else {
+          setError(`❌ Failed to send verification link. Error: ${linkError.code || 'Unknown'}. Check browser console (F12) for details.`);
+        }
+        return;
+      }
     } catch (err) {
-      console.error("Email login failed:", err);
+      console.error("Login verification failed:", err);
       console.error("Error code:", err.code);
       console.error("Error message:", err.message);
       
@@ -111,6 +342,48 @@ function Login() {
       }
       
       setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    setShowRejectionMessage(false);
+
+    try {
+      await sendOTPLink(email);
+      setOtpSent(true);
+      setSuccessMessage(`Magic link sent to ${email}! Please check your inbox and click the link to sign in.`);
+    } catch (err) {
+      console.error("Failed to send OTP link:", err);
+      let errorMessage = "Failed to send magic link. Please try again.";
+      
+      if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -177,6 +450,26 @@ function Login() {
                 </div>
               )}
 
+              {/* Info Message */}
+              {!otpSent && (
+                <div style={{ 
+                  marginBottom: '1rem', 
+                  padding: '0.75rem',
+                  backgroundColor: '#e7f3ff',
+                  borderRadius: '4px',
+                  border: '1px solid #b3d9ff'
+                }}>
+                  <p style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#0066cc', 
+                    margin: 0,
+                    lineHeight: '1.4'
+                  }}>
+                    🔐 <strong>Secure Login:</strong> Enter your email and password. We'll verify your credentials and send a magic link to your email. Click the link to complete login.
+                  </p>
+                </div>
+              )}
+
               {/* Email/Password Login Form */}
               <form className="email-login-form" onSubmit={handleEmailLogin}>
                 <div className="email-login-form-group">
@@ -187,7 +480,7 @@ function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="email-login-input"
                     required
-                    disabled={loading}
+                    disabled={loading || otpSent}
                   />
                 </div>
 
@@ -209,7 +502,7 @@ function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="email-login-input"
                     required
-                    disabled={loading}
+                    disabled={loading || otpSent}
                   />
                 </div>
 
@@ -224,13 +517,48 @@ function Login() {
                   </div>
                 )}
 
+                {successMessage && (
+                  <div style={{ 
+                    padding: '0.75rem',
+                    marginBottom: '1rem',
+                    backgroundColor: '#d4edda',
+                    borderRadius: '4px',
+                    border: '1px solid #c3e6cb'
+                  }}>
+                    <p style={{ color: '#28a745', fontSize: '0.875rem', margin: 0 }}>
+                      {successMessage}
+                    </p>
+                  </div>
+                )}
+
                 <button 
                   type="submit" 
                   className="email-login-button"
-                  disabled={loading}
+                  disabled={loading || otpSent}
                 >
-                  {loading ? "Logging in..." : "Login"}
+                  {loading ? (otpSent ? "Link Sent!" : "Verifying...") : otpSent ? "Link Sent! Check Email" : "Login"}
                 </button>
+
+                {otpSent && (
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <p style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#666', 
+                      textAlign: 'center',
+                      marginBottom: '0.25rem'
+                    }}>
+                      ✅ Password verified! Check your email inbox for the magic link.
+                    </p>
+                    <p style={{ 
+                      fontSize: '0.7rem', 
+                      color: '#999', 
+                      textAlign: 'center',
+                      margin: 0
+                    }}>
+                      Click the link in your email to complete login and open the app.
+                    </p>
+                  </div>
+                )}
               </form>
 
               {/* Divider */}

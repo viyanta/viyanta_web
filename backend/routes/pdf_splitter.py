@@ -1365,7 +1365,6 @@ async def extract_form_data(
         # Include more context in the error
         context_info = f"Company: {company_name}, PDF: {pdf_name}, Split: {split_filename}"
         detailed_error = f"{error_msg} | Context: {context_info}"
-
         raise HTTPException(status_code=500, detail=detailed_error)
 
 
