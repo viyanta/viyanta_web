@@ -1428,29 +1428,32 @@ saveChartConfigs = async (configs) => {
   // =====================
 
   // 1️⃣ Company Dropdown
-  getCompanies = async () => {
+  getCompaniesForLForms = async () => {
     const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
     return res.data;
   };
 
-  // 2️⃣ Form Dropdown
-  getForms = async (company) => {
-    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
-      params: { company }
-    });
-    return res.data;
-  };
+  
 
-  // 3️⃣ Period Dropdown
-  getPeriods = async (company, form_no) => {
+  // 2️⃣ Period Dropdown
+  getPeriodsForLForms = async (company, form_no) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
       params: { company, form_no }
     });
     return res.data;
   };
 
+
+  // 3️⃣ Form Dropdown
+  getFormsForLForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
+
   // 4️⃣ Report Type Dropdown
-  getReportTypes = async (company, form_no, period) => {
+  getReportTypesForLForms = async (company, form_no, period) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
       params: { company, form_no, period }
     });
@@ -1458,12 +1461,76 @@ saveChartConfigs = async (configs) => {
   };
 
   // 5️⃣ Final Table Data
-  getReportData = async (company, form_no, period, report_type = null) => {
+  getReportDataForLForms = async (company, form_no, period, report_type = null) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
       params: { company, form_no, period, report_type }
     });
     return res.data;
   };
+
+
+  
+  // =====================
+  // PERIOD SELECTION APIs
+  // =====================
+   // 1️⃣ Get all Financial Years
+   getFinancialYears = async () => {
+    const response = await axios.get(`${API_BASE_URL}/periods/years`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Period Types (Q1, HY, etc.) for a selected FY
+  getPeriodTypes = async (year) => {
+    const response = await axios.get(`${API_BASE_URL}/periods/types?year=${encodeURIComponent(year)}`);
+    return response.data;
+  };
+
+  // 3️⃣ Get Period Ranges (Apr 2021-Jun 2021...)
+  getPeriodRanges = async (year, periodType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/ranges?year=${encodeURIComponent(year)}&period_type=${encodeURIComponent(periodType)}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Monthly Period Breakdown (dd-mm-yyyy format)
+  getMonthlyPeriods = async (rangeValue) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/months?range_value=${encodeURIComponent(rangeValue)}`
+    );
+    return response.data;
+  };
+
+
+  // ==========================
+  // IRDAI MONTHLY DATA APIs 
+  // ==========================
+
+  // 1️⃣ Get Available Report Months
+  getIrdaiReportMonths = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/months`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Insurers for a Selected Month
+  getIrdaiInsurers = async (reportMonth) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
+      params: { report_month: reportMonth },
+    });
+    return response.data.insurers;
+  };
+
+  // 3️⃣ Get Detailed Data For Selected Insurer
+  getIrdaiInsurerDetails = async (reportMonth, insurerName) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/details`, {
+      params: {
+        report_month: reportMonth,
+        insurer_name: insurerName,
+      },
+    });
+    return response.data; // includes both total + category rows
+  };
+  
 }
 
 export default new ApiService();

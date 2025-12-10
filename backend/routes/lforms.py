@@ -2,155 +2,135 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from databases.database import get_db
-from databases.models import Company, Report
+from databases.models import Company, ReportModels
 import json
 
 router = APIRouter()
 
-# 1️⃣ Get distinct companies that have reports
+# Utility: Convert company name into table key format
 
 
+def get_table_name(company: str):
+    key = company.lower().replace(" ", "_")
+    model = ReportModels.get(key)
+    if not model:
+        raise HTTPException(
+            status_code=404, detail=f"No table found for {company}")
+    return model.__tablename__
+
+
+# 1️⃣ Get all companies
 @router.get("/companies")
 def get_companies(db: Session = Depends(get_db)):
-    query = text("""
-        SELECT DISTINCT c.name 
-        FROM company c
-        JOIN reports r ON c.id = r.company_id
-        ORDER BY c.name;
-    """)
-    result = db.execute(query).fetchall()
-    return [row[0] for row in result]
+    result = db.query(Company).order_by(Company.name).all()
+    return [c.name for c in result]
 
 
-# 2️⃣ Get distinct Form Numbers by company
-@router.get("/forms")
-def get_forms(company: str, db: Session = Depends(get_db)):
-    query = text("""
-        SELECT DISTINCT form_no
-        FROM reports
-        WHERE company = :company
-        ORDER BY form_no;
-    """)
-    result = db.execute(query, {"company": company}).fetchall()
-    return [row[0] for row in result]
-
-
-# 3️⃣ Get distinct Periods by company + form
+# 🔹 2️⃣ Get distinct periods for company
 @router.get("/periods")
-def get_periods(company: str, form_no: str, db: Session = Depends(get_db)):
-    query = text("""
+def get_periods(company: str, db: Session = Depends(get_db)):
+    table = get_table_name(company)
+    sql = text(f"""
         SELECT DISTINCT period
-        FROM reports
-        WHERE company = :company
-        AND form_no = :form_no
+        FROM {table}
         ORDER BY period;
     """)
-    result = db.execute(
-        query, {"company": company, "form_no": form_no}).fetchall()
-    return [row[0] for row in result]
+    return [row[0] for row in db.execute(sql).fetchall()]
 
 
-# 4️⃣ Get distinct ReportTypes by company + form + period
+# 🔹 3️⃣ Get distinct L-Forms by company + period
+@router.get("/lforms")
+def get_lforms(company: str, period: str, db: Session = Depends(get_db)):
+    table = get_table_name(company)
+    sql = text(f"""
+        SELECT DISTINCT form_no
+        FROM {table}
+        WHERE period = :period
+        ORDER BY form_no;
+    """)
+    return [row[0] for row in db.execute(sql, {"period": period}).fetchall()]
+
+
+# 🔹 4️⃣ Get Report Types dynamically
 @router.get("/reporttypes")
-def get_report_types(company: str, form_no: str, period: str, db: Session = Depends(get_db)):
-    query = text("""
+def get_report_types(company: str, form_no: str, period: str,
+                     db: Session = Depends(get_db)):
+    table = get_table_name(company)
+    sql = text(f"""
         SELECT DISTINCT ReportType
-        FROM reports
-        WHERE company = :company
-        AND form_no = :form_no
+        FROM {table}
+        WHERE form_no = :form_no
         AND period = :period
         AND ReportType IS NOT NULL
-        AND ReportType <> '';
+        AND ReportType <> ''
     """)
-    result = db.execute(query, {
-        "company": company,
-        "form_no": form_no,
-        "period": period
-    }).fetchall()
-    return [row[0] for row in result]
+    return [row[0] for row in db.execute(sql,
+                                         {"form_no": form_no, "period": period}).fetchall()]
 
 
-# 5️⃣ Final data: dynamic datarows using recursive CTE
+# 5️⃣ Extract Final JSON table rows dynamically
 @router.get("/data")
-def get_report_data(
-    company: str,
-    form_no: str,
-    period: str,
-    report_type: str | None = None,
-    db: Session = Depends(get_db)
-):
-    # Step 1: fetch the report row to get id + flat_headers
-    base_sql = """
+def get_report_data(company: str, form_no: str, period: str,
+                    report_type: str | None = None,
+                    db: Session = Depends(get_db)):
+
+    table = get_table_name(company)
+
+    # Step 1: Fetch metadata row
+    q = f"""
         SELECT id, flat_headers
-        FROM reports
-        WHERE company = :company
-        AND form_no = :form_no
+        FROM {table}
+        WHERE form_no = :form_no
         AND period = :period
     """
-    params = {"company": company, "form_no": form_no, "period": period}
+    params = {"form_no": form_no, "period": period}
 
     if report_type:
-        base_sql += " AND ReportType = :report_type"
+        q += " AND ReportType = :report_type"
         params["report_type"] = report_type
 
-    row = db.execute(text(base_sql), params).fetchone()
+    row = db.execute(text(q), params).fetchone()
     if not row:
-        raise HTTPException(status_code=404, detail="No matching report found")
+        raise HTTPException(404, "No matching report found")
 
-    report_id = row[0]
-    flat_headers_raw = row[1]
+    report_id, headers_raw = row
 
-    # Step 2: ensure flat_headers is a Python list
-    if isinstance(flat_headers_raw, str):
-        try:
-            headers = json.loads(flat_headers_raw)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=500, detail="Invalid flat_headers JSON in DB")
-    else:
-        # If SQLAlchemy JSON type already gave list
-        headers = flat_headers_raw
+    # Step 2: Parse JSON headers
+    try:
+        headers = json.loads(headers_raw) if isinstance(
+            headers_raw, str) else headers_raw
+    except:
+        raise HTTPException(500, "Bad flat_headers JSON")
 
-    if not isinstance(headers, list) or not headers:
-        raise HTTPException(
-            status_code=500, detail="flat_headers must be a non-empty list")
+    if not headers:
+        raise HTTPException(500, "Headers empty")
 
-    # Step 3: build dynamic JSON_EXTRACT columns
-    select_fields = []
-    for h in headers:
-        # escape double quotes in header, just in case
-        safe_h = str(h).replace('"', '\\"')
-        select_fields.append(
-            f'JSON_UNQUOTE(JSON_EXTRACT(item, \'$."{safe_h}"\')) AS `{safe_h}`'
-        )
+    # Step 3: Create JSON_EXTRACT projection
+    json_cols = ", ".join(
+        f'JSON_UNQUOTE(JSON_EXTRACT(item, \'$."{h}"\')) AS `{h}`' for h in headers
+    )
 
-    dynamic_cols = ", ".join(select_fields)
-
-    # Step 4: recursive CTE over data_rows JSON array
+    # Step 4: Recursively extract JSON rows
     sql = text(f"""
         WITH RECURSIVE cte AS (
             SELECT 
                 0 AS idx,
-                JSON_EXTRACT(data_rows, '$[0]') AS item,
-                id AS report_id
-            FROM reports
-            WHERE id = :report_id
+                JSON_EXTRACT(data_rows, '$[0]') AS item
+            FROM {table}
+            WHERE id = :id
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 idx + 1,
-                JSON_EXTRACT(r.data_rows, CONCAT('$[', idx + 1, ']')),
-                r.id
+                JSON_EXTRACT(t.data_rows, CONCAT('$[', idx + 1, ']'))
             FROM cte
-            JOIN reports r ON r.id = cte.report_id
-            WHERE JSON_EXTRACT(r.data_rows, CONCAT('$[', idx + 1, ']')) IS NOT NULL
+            JOIN {table} t ON t.id = :id
+            WHERE JSON_EXTRACT(t.data_rows, CONCAT('$[', idx + 1, ']')) IS NOT NULL
         )
-        SELECT {dynamic_cols}
+        SELECT {json_cols}
         FROM cte;
     """)
 
-    result = db.execute(sql, {"report_id": report_id}).mappings().all()
-
-    # Step 5: return only datarows (no metadata)
-    return [dict(row) for row in result]
+    result = db.execute(sql, {"id": report_id}).mappings().all()
+    return [dict(r) for r in result]

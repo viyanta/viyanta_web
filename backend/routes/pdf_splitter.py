@@ -14,6 +14,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from services.pdf_splitter import PDFSplitterService
 
+
 # Load environment variables
 load_dotenv()
 
@@ -28,8 +29,11 @@ BASE_DIR = Path(__file__).parent.parent
 FORM_PREFERENCES_FILE = BASE_DIR / "form_preferences.json"
 
 # Pydantic models for form preferences
+
+
 class FormPreferencesRequest(BaseModel):
     enabled_forms: List[str]
+
 
 def load_form_preferences() -> Dict:
     """Load form preferences from JSON file"""
@@ -42,6 +46,7 @@ def load_form_preferences() -> Dict:
             return {}
     return {}
 
+
 def save_form_preferences(prefs: Dict):
     """Save form preferences to JSON file"""
     try:
@@ -49,7 +54,8 @@ def save_form_preferences(prefs: Dict):
             json.dump(prefs, f, indent=2)
     except Exception as e:
         print(f"Error saving form preferences: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.post("/upload-and-split")
@@ -1023,96 +1029,310 @@ async def extract_form_data(
             f"📊 Normalized data length: {len(normalized_data) if isinstance(normalized_data, list) else 'N/A'}")
 
         try:
-            from databases.models import Companies, Report, ReportData
+            from databases.models import Company, ReportModels
             from databases.database import SessionLocal
+            from sqlalchemy.exc import IntegrityError
 
             print(f"[DB] Creating database session...")
             db = SessionLocal()
 
-            # 1. Find or create company
-            print(f"[DB] Looking for company: {company_name}")
-            company_obj = db.query(Companies).filter_by(
-                companyname=company_name).first()
+            try:
+                # 1. Find or create company
+                print(f"[DB] Looking for company: {company_name}")
+                company_obj = db.query(Company).filter_by(
+                    name=company_name).first()
+                if not company_obj:
+                    print(f"[DB] Company not found, creating new entry...")
+                    company_obj = Company(name=company_name)
+                    db.add(company_obj)
+                    db.commit()
+                    db.refresh(company_obj)
+                    print(
+                        f"[DB] ✅ Created company with ID: {company_obj.id}")
+                else:
+                    print(
+                        f"[DB] ✅ Found existing company with ID: {company_obj.id}")
+            except IntegrityError as ie:
+                print(
+                    f"⚠️ Company creation integrity error (might already exist): {ie}")
+                db.rollback()
+                # Try to fetch again after rollback
+                company_obj = db.query(Company).filter_by(
+                    name=company_name).first()
+                if not company_obj:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to create or fetch company: {company_name}"
+                    )
+
+            # 2. Group normalized_data by Period and insert separate rows for each unique period
+            print(f"[DB] Grouping data by Period for storage...")
+
+            # Group tables by period
+            period_groups = {}
+            if isinstance(normalized_data, list):
+                for table in normalized_data:
+                    period = table.get("Period", str(datetime.now().date()))
+                    if period not in period_groups:
+                        period_groups[period] = []
+                    period_groups[period].append(table)
+
+                print(
+                    f"[DB] Found {len(period_groups)} unique periods: {list(period_groups.keys())}")
+
+            # If no data, create a single default entry
+            if not period_groups:
+                period_groups[str(datetime.now().date())] = []
+                print(f"[DB] No data found, using current date as period")
+
+            # 1️⃣ Resolve company DB record for foreign key
+            company_obj = db.query(Company).filter_by(
+                name=company_name).first()
             if not company_obj:
-                print(f"[DB] Company not found, creating new entry...")
-                company_obj = Companies(companyname=company_name)
+                company_obj = Company(name=company_name)
                 db.add(company_obj)
                 db.commit()
                 db.refresh(company_obj)
-                print(
-                    f"[DB] ✅ Created company with ID: {company_obj.companyid}")
+
+            # 2️⃣ Convert company name to table key
+            table_key = company_name.lower().replace(" ", "_")
+            report_model = ReportModels.get(table_key)
+
+            if not report_model:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"No table found for company: {company_name}"
+                )
+
+            # Extract ReportType (Standalone/Consolidated)
+            report_type = None
+            match = re.search(r'\s([SC])\s*FY', pdf_name, re.IGNORECASE)
+
+            if match:
+                type_code = match.group(1).upper()
+                report_type = "Standalone" if type_code == "S" else "Consolidated"
             else:
+                report_type = "Standalone"  # Optional fallback
+
+            # 3️⃣ Insert one row per unique period
+            report_objects = []
+            for report_period, tables_for_period in period_groups.items():
                 print(
-                    f"[DB] ✅ Found existing company with ID: {company_obj.companyid}")
+                    f"[DB] Creating Report entry for period: {report_period}")
 
-            # 2. Insert into Report
-            report_period = None
-            currency = None
-            registration_number = None
-            title = None
-            pages_used = None
-            flat_headers = None
-            data_rows = None
+                # Combine all rows from tables with same period
+                combined_rows = []
+                currency = None
+                registration_number = None
+                title = None
+                pages_used = None
+                flat_headers = None
 
-            print(f"[DB] Extracting metadata from normalized_data...")
-            if isinstance(normalized_data, list) and len(normalized_data) > 0:
-                first_row = normalized_data[0]
-                report_period = first_row.get("Period")
-                currency = first_row.get("Currency")
-                registration_number = first_row.get("RegistrationNumber")
-                title = first_row.get("Title")
-                pages_used = first_row.get("PagesUsed")
-                flat_headers = first_row.get("FlatHeaders")
-                data_rows = first_row.get("Rows")
+                for table in tables_for_period:
+                    # Extract metadata from first table in this period group
+                    if not currency:
+                        currency = table.get("Currency")
+                        registration_number = table.get("RegistrationNumber")
+                        title = table.get("Title")
+                        pages_used = table.get("PagesUsed")
+                        flat_headers = table.get("FlatHeaders")
+
+                    # Combine all rows
+                    table_rows = table.get("Rows", [])
+                    combined_rows.extend(table_rows)
+
                 print(
-                    f"[DB] Extracted metadata - Period: {report_period}, Currency: {currency}, Title: {title}")
+                    f"[DB] Combined {len(combined_rows)} rows for period: {report_period}")
 
-            if not report_period:
-                report_period = str(datetime.now().date())
-                print(
-                    f"[DB] No period found, using current date: {report_period}")
+                try:
+                    report_obj = report_model(
+                        company=company_name,
+                        company_id=company_obj.id,
+                        ReportType=report_type,
+                        pdf_name=pdf_name,
+                        registration_number=registration_number,
+                        form_no=form_code,
+                        title=title,
+                        period=str(report_period),
+                        currency=currency,
+                        pages_used=pages_used,
+                        source_pdf=split_filename,
+                        flat_headers=flat_headers,
+                        data_rows=combined_rows
+                    )
 
-            print(f"[DB] Creating Report entry...")
-            report_obj = Report(
-                company=company_name,
-                pdf_name=pdf_name,
-                registration_number=str(
-                    registration_number) if registration_number else None,
-                form_no=form_code,
-                title=str(title) if title else None,
-                period=str(report_period),
-                currency=str(currency) if currency else None,
-                pages_used=str(pages_used) if pages_used else None,
-                source_pdf=split_filename,
-                flat_headers=flat_headers,
-                data_rows=data_rows
-            )
-            db.add(report_obj)
-            db.commit()
-            db.refresh(report_obj)
-            print(f"[DB] ✅ Created Report with ID: {report_obj.id}")
+                    db.add(report_obj)
+                    db.commit()
+                    db.refresh(report_obj)
+                    report_objects.append(report_obj)
+
+                    print(
+                        f"[DB] ✅ Created Report with ID: {report_obj.id} for period: {report_period}")
+                except IntegrityError as ie:
+                    print(
+                        f"⚠️ Period Master or Report integrity error for period '{report_period}': {ie}")
+                    db.rollback()
+                    # Try to find existing report instead
+                    existing_report = db.query(report_model).filter_by(
+                        company_id=company_obj.id,
+                        form_no=form_code,
+                        period=str(report_period),
+                        source_pdf=split_filename
+                    ).first()
+
+                    if existing_report:
+                        print(
+                            f"[DB] ℹ️ Found existing report with ID: {existing_report.id}, updating data...")
+                        # Update existing report
+                        existing_report.data_rows = combined_rows
+                        existing_report.flat_headers = flat_headers
+                        existing_report.pages_used = pages_used
+                        db.commit()
+                        db.refresh(existing_report)
+                        report_objects.append(existing_report)
+                        print(
+                            f"[DB] ✅ Updated existing Report ID: {existing_report.id}")
+                    else:
+                        print(
+                            f"[DB] ❌ Could not create or find report for period: {report_period}")
+                        continue
+
+            print(
+                f"[DB] ✅ Total {len(report_objects)} Report rows created (one per unique period)")
+            # -------------------------------------------------------
+            #  EXTRA INSERTION INTO L-FORM TABLE (reports_l1 / l2 / etc.)
+            # -------------------------------------------------------
+            try:
+
+                def normalize_lform_key(form_code: str) -> str:
+                    fc = form_code.upper().strip()
+
+                    # Special cases first
+                    special_forms = {
+                        r'L[-\s]?6A.*': "l6a",
+                        r'L[-\s]?9A.*': "l9a",
+                        r'L[-\s]?14A.*': "l14a",
+                        r'L[-\s]?25\(I\).*': "l25_i",
+                        r'L[-\s]?25\(II\).*': "l25_ii",
+                    }
+                    for pattern, key in special_forms.items():
+                        if re.match(pattern, fc, re.IGNORECASE):
+                            return key.lower()
+
+                    # General fallback (L-1, L-8A, L-10B etc)
+                    match = re.match(r"L[-\s]?(\d+[A-Z]?)", fc, re.IGNORECASE)
+                    if match:
+                        base = match.group(1).lower()
+                        return f"l{base}"
+
+                    # no match = return as-is
+                    return fc.lower()
+
+                # ------------------------------------------------------------------
+                # INSERT THIS right before report_model lookup
+                # ------------------------------------------------------------------
+                # Normalize form code to detect correct L-form table
+                lform_key = normalize_lform_key(
+                    form_code)  # <= most important change
+
+                print(f"[DB] Normalized L-Form Key: {lform_key}")
+
+                # Prefer L-form table → fallback to company table
+                table_key = None
+
+                if lform_key in ReportModels:
+                    table_key = lform_key  # L-forms first priority
+                    print(f"[DB] 🚀 Using L-Form Table: reports_{table_key}")
+                else:
+                    # Default to company table
+                    table_key = company_name.lower().replace(" ", "_")
+                    print(f"[DB] 🏢 Using Company Table: reports_{table_key}")
+
+                report_model = ReportModels.get(table_key)
+                if not report_model:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"No report table found for key: {table_key}"
+                    )
+
+                # Store one row per period in L-form table
+                if lform_key not in ReportModels:
+                    print(
+                        f"[DB] ⚠️ No matching L-Form table found for: {form_code}")
+                else:
+                    lform_model = ReportModels[lform_key]
+
+                    # Insert into L-form table for each period
+                    for report_period, tables_for_period in period_groups.items():
+                        # Combine rows for this period
+                        combined_rows = []
+                        currency = None
+                        registration_number = None
+                        title = None
+                        pages_used = None
+                        flat_headers = None
+
+                        for table in tables_for_period:
+                            if not currency:
+                                currency = table.get("Currency")
+                                registration_number = table.get(
+                                    "RegistrationNumber")
+                                title = table.get("Title")
+                                pages_used = table.get("PagesUsed")
+                                flat_headers = table.get("FlatHeaders")
+
+                            table_rows = table.get("Rows", [])
+                            combined_rows.extend(table_rows)
+
+                        try:
+                            lform_obj = lform_model(
+                                company=company_name,
+                                company_id=company_obj.id,
+                                ReportType=report_type,
+                                pdf_name=pdf_name,
+                                registration_number=registration_number,
+                                form_no=form_code,
+                                title=title,
+                                period=str(report_period),
+                                currency=currency,
+                                pages_used=pages_used,
+                                source_pdf=split_filename,
+                                flat_headers=flat_headers,
+                                data_rows=combined_rows
+                            )
+                            db.add(lform_obj)
+                            db.commit()
+                            print(
+                                f"[DB] 📌 Also stored into L-Form table: {lform_key} for period: {report_period}")
+                        except IntegrityError as ie:
+                            print(
+                                f"⚠️ L-Form table integrity error for period '{report_period}': {ie}")
+                            db.rollback()
+                            # Try to find and update existing
+                            existing_lform = db.query(lform_model).filter_by(
+                                company_id=company_obj.id,
+                                form_no=form_code,
+                                period=str(report_period),
+                                source_pdf=split_filename
+                            ).first()
+
+                            if existing_lform:
+                                print(
+                                    f"[DB] ℹ️ Found existing L-form report, updating data...")
+                                existing_lform.data_rows = combined_rows
+                                existing_lform.flat_headers = flat_headers
+                                db.commit()
+                                print(f"[DB] ✅ Updated existing L-Form report")
+                            else:
+                                print(
+                                    f"[DB] ⚠️ Could not create or find L-form report")
+            except Exception as lf_exc:
+                print(f"❌ Failed to store into L-Form table: {lf_exc}")
 
             # 3. Insert each row into ReportData
             print(
                 f"[DB] Attempting to store {len(normalized_data)} rows in reportdata for reportid={report_obj.id}")
             inserted_count = 0
-            for idx, row in enumerate(normalized_data):
-                try:
-                    db.add(ReportData(
-                        reportid=report_obj.id,
-                        pdf_name=pdf_name,
-                        formno=row.get("Form No") or form_code,
-                        title=row.get("Title") or "",
-                        datarow=row
-                    ))
-                    inserted_count += 1
-                except Exception as row_exc:
-                    print(f"[DB] ❌ Failed to add row {idx}: {row_exc}")
-                    if idx == 0:  # Print first row details for debugging
-                        print(
-                            f"[DB] Row content: {json.dumps(row, indent=2)[:500]}")
-
-            db.commit()
             print(
                 f"[DB] ✅ Successfully inserted {inserted_count} rows into reportdata for reportid={report_obj.id}")
             db.close()
@@ -1158,7 +1378,7 @@ async def get_form_preferences(company_name: str, pdf_name: str):
     try:
         prefs = load_form_preferences()
         key = f"{company_name}_{pdf_name}"
-        
+
         # Check if key exists in preferences (None means no preferences saved yet)
         if key in prefs:
             enabled_forms = prefs[key]
@@ -1178,7 +1398,8 @@ async def get_form_preferences(company_name: str, pdf_name: str):
                 }
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get preferences: {str(e)}")
 
 
 @router.post("/companies/{company_name}/pdfs/{pdf_name}/form-preferences")
@@ -1195,7 +1416,7 @@ async def set_form_preferences(
         key = f"{company_name}_{pdf_name}"
         prefs[key] = request.enabled_forms
         save_form_preferences(prefs)
-        
+
         return {
             "success": True,
             "message": f"Form preferences saved for {company_name}/{pdf_name}",
@@ -1204,13 +1425,16 @@ async def set_form_preferences(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 # Data edits storage (using JSON file for simplicity)
 DATA_EDITS_FILE = BASE_DIR / "data_edits.json"
 
 # Pydantic models for data edits
+
+
 class CellEditRequest(BaseModel):
     form_name: str
     record_index: int
@@ -1218,8 +1442,10 @@ class CellEditRequest(BaseModel):
     header: str
     value: str
 
+
 class BulkEditRequest(BaseModel):
     edits: List[CellEditRequest]
+
 
 def load_data_edits() -> Dict:
     """Load data edits from JSON file"""
@@ -1232,6 +1458,7 @@ def load_data_edits() -> Dict:
             return {}
     return {}
 
+
 def save_data_edits(edits: Dict):
     """Save data edits to JSON file"""
     try:
@@ -1239,7 +1466,8 @@ def save_data_edits(edits: Dict):
             json.dump(edits, f, indent=2)
     except Exception as e:
         print(f"Error saving data edits: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to save edits: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save edits: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1251,7 +1479,7 @@ async def get_data_edits(company_name: str, pdf_name: str):
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
         pdf_edits = edits.get(key, {})
-        
+
         return {
             "success": True,
             "data": {
@@ -1259,7 +1487,8 @@ async def get_data_edits(company_name: str, pdf_name: str):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get edits: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get edits: {str(e)}")
 
 
 @router.post("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1274,10 +1503,10 @@ async def save_data_edit(
     try:
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
-        
+
         if key not in edits:
             edits[key] = {}
-        
+
         # Create edit key: form_recordIndex_rowIndex_header
         edit_key = f"{request.form_name}_{request.record_index}_{request.row_index}_{request.header}"
         edits[key][edit_key] = {
@@ -1288,9 +1517,9 @@ async def save_data_edit(
             "value": request.value,
             "edited_at": datetime.now().isoformat()
         }
-        
+
         save_data_edits(edits)
-        
+
         return {
             "success": True,
             "message": f"Cell edit saved for {company_name}/{pdf_name}",
@@ -1299,7 +1528,8 @@ async def save_data_edit(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save edit: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save edit: {str(e)}")
 
 
 @router.delete("/companies/{company_name}/pdfs/{pdf_name}/data-edits")
@@ -1317,19 +1547,20 @@ async def delete_data_edit(
     try:
         edits = load_data_edits()
         key = f"{company_name}_{pdf_name}"
-        
+
         if key in edits:
             edit_key = f"{form_name}_{record_index}_{row_index}_{header}"
             if edit_key in edits[key]:
                 del edits[key][edit_key]
                 save_data_edits(edits)
-        
+
         return {
             "success": True,
             "message": "Edit deleted successfully"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete edit: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete edit: {str(e)}")
 
 
 @router.get("/companies/{company_name}/pdfs/{pdf_name}/splits/{split_filename}/extraction")

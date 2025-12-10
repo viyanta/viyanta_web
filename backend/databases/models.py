@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, Text, DateTime, JSON, ForeignKey, Boolean, Date
+    Column, Integer, BigInteger, String, DateTime, DECIMAL, JSON, ForeignKey, Text, Boolean, Date
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -12,23 +12,19 @@ class Company(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), nullable=False, unique=True)
 
-    # 1 company -> many reports
-    reports = relationship("Report", back_populates="company_obj")
 
+# =================================================================
+# Dynamic per-company Reports Table Models
+# =================================================================
 
-class Report(Base):
-    __tablename__ = "reports"
+class ReportsBase(Base):
+    __abstract__ = True  # Do not create a table for this class
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-
-    # existing text column (we are keeping it)
     company = Column(String(255), nullable=False)
+    company_id = Column(Integer, ForeignKey("company.id"), nullable=False)
 
-    # new FK column
-    company_id = Column(Integer, ForeignKey("company.id"), nullable=True)
-
-    ReportType = Column(String(100), nullable=True)
-
+    ReportType = Column(String(100))
     pdf_name = Column(String(512))
     registration_number = Column(String(255))
     form_no = Column(String(50), nullable=False)
@@ -37,32 +33,92 @@ class Report(Base):
     currency = Column(String(50))
     pages_used = Column(Integer)
     source_pdf = Column(String(255))
-    flat_headers = Column(JSON)      # stored as JSON/longtext in DB
+    flat_headers = Column(JSON)
     data_rows = Column(JSON, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
-    # relationships
-    company_obj = relationship("Company", back_populates="reports")
-    rows = relationship("ReportData", back_populates="report",
-                        cascade="all, delete-orphan")
+
+# Company-based report tables
+company_tables = [
+    "acko_life",
+    "aditya_birla_sun_life",
+    "ageas_federal_life",
+    "aviva_life",
+    "axis_max_life",
+    "bajaj_allianz_life",
+    "bandhan_life",
+    "bharti_axa_life",
+    "canara_hsbc_life",
+    "creditaccess_life",
+    "edelweiss_tokio_life",
+    "future_generali_india_life",
+    "go_digit_life",
+    "hdfc_life",
+    "icici_prudential_life",
+    "indiafirst_life",
+    "kotak_life",
+    "lic_of_india_life",
+    "pnb_metlife_life",
+    "pramerica_life",
+    "reliance_nippon_life",
+    "sbi_life",
+    "shriram_life",
+    "starunion_daichi_life",
+    "tata_aig_life"
+]
+
+ReportModels = {}
+
+for table in company_tables:
+    class_name = "".join(word.capitalize() for word in table.split("_"))
+    ReportModels[table] = type(
+        f"Reports{class_name}",
+        (ReportsBase,),
+        {"__tablename__": f"reports_{table}"}
+    )
 
 
-class ReportData(Base):
-    __tablename__ = "reportdata"
+# =================================================================
+# Dynamic L-Form Based Tables: reports_l1 to reports_l45 and extras
+# =================================================================
 
-    DataID = Column(Integer, primary_key=True, autoincrement=True)
-    ReportID = Column(BigInteger, ForeignKey("reports.id"), nullable=False)
+# Base set: L1 to L45
+lform_tables = [f"l{i}" for i in range(1, 46)]
 
-    ReportType = Column(String(100), nullable=True)
+# Additional complex L-Form IDs
+extra_forms = [
+    "L6A",
+    "L9A",
+    "L14A",
+    "L25(i)",
+    "L25(ii)"
+]
 
-    pdf_name = Column(String(512))
-    FormNo = Column(String(50))
-    Title = Column(String(255))
-    DataRow = Column(JSON, nullable=False)
+# Normalize extra form names for SQL table compatibility
 
-    # relationship back to Report
-    report = relationship("Report", back_populates="rows")
 
+def normalize_lform(lform):
+    return lform.lower().replace("(", "_").replace(")", "").replace("-", "").replace("/", "")
+
+
+normalized_extra_tables = [normalize_lform(form) for form in extra_forms]
+
+# Complete table list
+lform_tables += normalized_extra_tables
+
+# Register Report models dynamically
+for table in lform_tables:
+    class_name = f"Reports{table.upper()}"  # e.g., ReportsL6A, ReportsL25_I
+    ReportModels[table] = type(
+        class_name,
+        (ReportsBase,),
+        {"__tablename__": f"reports_{table}"}
+    )
+
+
+# =================================================================
+# Other tables you already have
+# =================================================================
 
 class EconomyMaster(Base):
     __tablename__ = "economy_master"
@@ -220,6 +276,108 @@ class IndustryMaster(Base):
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(50), nullable=True)
     IsActive = Column(Boolean, default=True, nullable=False)
+
+
+class PeriodMaster(Base):
+    __tablename__ = "period_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # FY & financial period mapping
+    ProcessedFYYear = Column(String(10), nullable=True)
+    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
+    PeriodType = Column(String(20), nullable=True)  # Q1/Q2/Q3/Q4/HY/9M/FY
+    LFormsMarking = Column(String(10), nullable=True)
+
+    # Unique normalized financial period range (ex: Apr 2022-Mar 2023)
+    # Increased from 50 to 255 to accommodate longer period descriptions
+    ProcessedFinancialYearPeriodWithMonth = Column(
+        String(255), nullable=False, unique=True
+    )
+
+    # Original text extracted (before normalization)
+    raw_text = Column(String(255), nullable=True)
+
+    # Actual start & end date
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    # Relationship to monthly_period_master
+    monthly_mappings = relationship(
+        "MonthlyPeriodMaster",
+        back_populates="period_master_ref",
+        cascade="all, delete-orphan"
+    )
+
+
+class MonthlyPeriodMaster(Base):
+    __tablename__ = "monthly_period_master"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    ProcessedPeriodShortDate = Column(Date, nullable=False)  # Start of month
+    ProcessedPeriodEndDate = Column(Date, nullable=False)    # End of month
+    ProcessedPreviousPeriod = Column(Date, nullable=True)
+
+    ProcessedFYYear = Column(String(10), nullable=True)
+    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
+    ProcessedFinancialYearPeriodWithMonth = Column(String(50), nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    # Link to PeriodMaster
+    period_id = Column(Integer, ForeignKey("period_master.id"), nullable=True)
+
+    period_master_ref = relationship(
+        "PeriodMaster", back_populates="monthly_mappings")
+
+
+class IRDAIData(Base):
+    __tablename__ = "irdai_data"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+
+    report_month = Column(Date, nullable=False)
+    insurer_name = Column(String(255), nullable=False)
+    category = Column(String(255), nullable=False)
+
+    # First Year Premium
+    fyp_prev = Column(DECIMAL(18, 2))
+    fyp_current = Column(DECIMAL(18, 2))
+    fyp_growth = Column(DECIMAL(18, 2))
+    fyp_ytd_prev = Column(DECIMAL(18, 2))
+    fyp_ytd_current = Column(DECIMAL(18, 2))
+    fyp_growth_ytd = Column(DECIMAL(18, 2))
+    fyp_market_share = Column(DECIMAL(18, 2))
+
+    # No. of Policies / Schemes
+    pol_prev = Column(DECIMAL(18, 2))
+    pol_current = Column(DECIMAL(18, 2))
+    pol_growth = Column(DECIMAL(18, 2))
+    pol_ytd_prev = Column(DECIMAL(18, 2))
+    pol_ytd_current = Column(DECIMAL(18, 2))
+    pol_growth_ytd = Column(DECIMAL(18, 2))
+    pol_market_share = Column(DECIMAL(18, 2))
+
+    # No. of Lives Covered under Group Schemes
+    lives_prev = Column(DECIMAL(18, 2))
+    lives_current = Column(DECIMAL(18, 2))
+    lives_growth = Column(DECIMAL(18, 2))
+    lives_ytd_prev = Column(DECIMAL(18, 2))
+    lives_ytd_current = Column(DECIMAL(18, 2))
+    lives_growth_ytd = Column(DECIMAL(18, 2))
+    lives_market_share = Column(DECIMAL(18, 2))
+
+    # Sum Assured
+    sa_prev = Column(DECIMAL(18, 2))
+    sa_current = Column(DECIMAL(18, 2))
+    sa_growth = Column(DECIMAL(18, 2))
+    sa_ytd_prev = Column(DECIMAL(18, 2))
+    sa_ytd_current = Column(DECIMAL(18, 2))
+    sa_growth_ytd = Column(DECIMAL(18, 2))
+    sa_market_share = Column(DECIMAL(18, 2))
 
 
 class Companies(Base):
