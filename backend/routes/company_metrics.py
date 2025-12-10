@@ -115,3 +115,130 @@ def get_details(company: str, premium_type: str, category: str, description: str
         "count": len(rows),
         "data": [dict(zip(columns, row)) for row in rows]
     }
+
+
+# 6️⃣ Get Record by ID
+
+@router.get("/get/{id}")
+def get_record(id: int, db=Depends(get_db)):
+    query = text("SELECT * FROM company_metrics WHERE id = :id")
+    result = db.execute(query, {"id": id}).fetchone()
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    columns = result.keys()
+    return dict(zip(columns, result))
+
+
+# 7️⃣ Create New Record
+@router.post("/create")
+def create_record(data: dict, db=Depends(get_db)):
+
+    query = text("""
+        INSERT INTO company_metrics (
+            CompanyInsurerShortName,
+            PremiumTypeLongName,
+            CategoryLongName,
+            Description,
+            ReportedUnit,
+            ReportedValue
+        )
+        VALUES (
+            :company,
+            :premium_type,
+            :category,
+            :description,
+            :unit,
+            :value
+        )
+    """)
+
+    db.execute(query, {
+        "company": data.get("CompanyInsurerShortName"),
+        "premium_type": data.get("PremiumTypeLongName"),
+        "category": data.get("CategoryLongName"),
+        "description": data.get("Description"),
+        "unit": data.get("ReportedUnit"),
+        "value": data.get("ReportedValue")
+    })
+
+    db.commit()
+
+    return {"message": "Record created successfully"}
+
+
+# 8️⃣ Update Existing Record
+@router.put("/update/{id}")
+def update_record(id: int, data: dict, db=Depends(get_db)):
+
+    query = text("""
+        UPDATE company_metrics SET
+            CompanyInsurerShortName = :company,
+            PremiumTypeLongName = :premium_type,
+            CategoryLongName = :category,
+            Description = :description,
+            ReportedUnit = :unit,
+            ReportedValue = :value
+        WHERE id = :id
+    """)
+
+    result = db.execute(query, {
+        "id": id,
+        "company": data.get("CompanyInsurerShortName"),
+        "premium_type": data.get("PremiumTypeLongName"),
+        "category": data.get("CategoryLongName"),
+        "description": data.get("Description"),
+        "unit": data.get("ReportedUnit"),
+        "value": data.get("ReportedValue")
+    })
+
+    db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    return {"message": "Record updated successfully"}
+
+# 9️⃣ Patch Existing Record
+
+
+@router.patch("/patch/{id}")
+def patch_record(id: int, data: dict, db=Depends(get_db)):
+
+    set_clauses = []
+    params = {"id": id}
+
+    for key, value in data.items():
+        set_clauses.append(f"{key} = :{key}")
+        params[key] = value
+
+    if not set_clauses:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    query = text(f"""
+        UPDATE company_metrics
+        SET {', '.join(set_clauses)}
+        WHERE id = :id
+    """)
+
+    result = db.execute(query, params)
+    db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    return {"message": "Record patched successfully"}
+
+
+# 1️⃣0️⃣ Delete Record
+@router.delete("/delete/{id}")
+def delete_record(id: int, db=Depends(get_db)):
+    query = text("DELETE FROM company_metrics WHERE id = :id")
+    result = db.execute(query, {"id": id})
+    db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    return {"message": "Record deleted successfully"}
