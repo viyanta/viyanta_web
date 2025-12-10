@@ -1,3 +1,5 @@
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Text, DateTime, func
 from sqlalchemy import (
     Column, Integer, BigInteger, String, DateTime, DECIMAL, JSON, ForeignKey, Text, Boolean, Date
 )
@@ -387,6 +389,51 @@ class Companies(Base):
     companyname = Column(String(255), unique=True, nullable=False)
 
 
+Base = declarative_base()
+
+
+class CompanyMetrics(Base):
+    __tablename__ = "company_metrics"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+
+    CompanyInsurerShortName = Column(String(100), nullable=True)
+    ProcessedPeriodType = Column(String(50), nullable=True)
+    ProcessedFYYear = Column(String(20), nullable=True)
+    DataType = Column(String(50), nullable=True)
+    CountryName = Column(String(50), nullable=True)
+    PremiumTypeLongName = Column(String(200), nullable=True)
+    CategoryLongName = Column(String(200), nullable=True)
+    Description = Column(Text, nullable=True)
+    ReportedUnit = Column(String(50), nullable=True)
+    ReportedValue = Column(String(100), nullable=True)
+    Datachheck = Column(String(100), nullable=True)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())
+
+
+class ReportsL2Extracted(Base):
+    __tablename__ = "reports_l2_extracted"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    report_id = Column(BigInteger, ForeignKey("reports_l2.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("company.id"), nullable=False)
+    row_index = Column(Integer)
+
+    particulars = Column(Text)
+    schedule = Column(String(100))
+
+    for_current_period = Column(String(50))
+    upto_current_period = Column(String(50))
+    for_previous_period = Column(String(50))
+    upto_previous_period = Column(String(50))
+
+    created_at = Column(DateTime, server_default=func.now())
+
+
 class DashboardSelectedDescriptions(Base):
     """Store global selected descriptions for economy dashboard"""
     __tablename__ = "dashboard_selected_descriptions"
@@ -394,7 +441,8 @@ class DashboardSelectedDescriptions(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(500), nullable=False, unique=True)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())
 
 
 class DashboardChartConfig(Base):
@@ -403,7 +451,10 @@ class DashboardChartConfig(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(500), nullable=False, unique=True)
-    chart_type = Column(String(50), nullable=False, default='bar')  # bar, pie, treemap
-    chart_dimension = Column(String(50), nullable=False, default='country')  # country, year
+    chart_type = Column(String(50), nullable=False,
+                        default='bar')  # bar, pie, treemap
+    chart_dimension = Column(String(50), nullable=False,
+                             default='country')  # country, year
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now())

@@ -1530,6 +1530,94 @@ saveChartConfigs = async (configs) => {
     });
     return response.data; // includes both total + category rows
   };
+
+  // ================================
+  // COMPANY METRICS APIs 
+  // ================================
+
+  // 1️⃣ Get All Companies
+  getCompanies = async () => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/companies`);
+    return response.data.companies;
+  };
+
+  // 2️⃣ Get Premium Types for a Company
+  getPremiumTypes = async (company) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
+      params: { company },
+    });
+    return response.data.premium_types;
+  };
+
+  // 3️⃣ Get Categories for Company + Premium Type
+  getCategories = async (company, premiumType) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
+      params: {
+        company,
+        premium_type: premiumType,
+      },
+    });
+    return response.data.categories;
+  };
+
+  // 4️⃣ Get Descriptions for Company + Premium Type + Category
+  getDescriptions = async (company, premiumType, category) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+      },
+    });
+    return response.data.descriptions;
+  };
+
+  // 5️⃣ Get Full Details for the Selected Filters
+  getMetricDetails = async (company, premiumType, category, description) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+        description,
+      },
+    });
+    return response.data; // full record list
+  };
+
+  // ================================
+  // CRUD APIs 
+  // ================================
+
+  // 🟢 Create new record
+  createMetric = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/company-metrics/create`, payload);
+    return response.data;
+  };
+
+  // 🔵 Get a single record by ID
+  getMetricById = async (id) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/get/${id}`);
+    return response.data;
+  };
+
+  // 🟡 Full Update
+  updateMetric = async (id, payload) => {
+    const response = await axios.put(`${API_BASE_URL}/company-metrics/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 🟣 Patch (partial update)
+  patchMetric = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/company-metrics/patch/${id}`, payload);
+    return response.data;
+  };
+
+  // 🔴 Delete record
+  deleteMetric = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
+    return response.data;
+  };
   
 }
 
