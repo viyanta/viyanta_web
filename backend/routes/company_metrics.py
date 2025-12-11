@@ -112,8 +112,17 @@ def get_details(company: str, premium_type: str, category: str, description: str
     )
 
     rows = result.fetchall()
+
+    # Return empty payload (200) when no data is found to avoid 404 in clients
     if not rows:
-        raise HTTPException(status_code=404, detail="No data found")
+        return {
+            "company": company,
+            "premium_type": premium_type,
+            "category": category,
+            "description": description,
+            "count": 0,
+            "data": []
+        }
 
     columns = result.keys()
     return {
@@ -275,18 +284,16 @@ def delete_record(id: int, db=Depends(get_db)):
         check_result = db.execute(check_query, {"id": id})
         existing_record = check_result.fetchone()
         
-        if not existing_record:
-            raise HTTPException(status_code=404, detail=f"Record with ID {id} not found")
-        
-        # Delete the record
+        # Delete the record (even if missing, for idempotency)
         query = text("DELETE FROM company_metrics WHERE id = :id")
         result = db.execute(query, {"id": id})
         db.commit()
 
         if result.rowcount == 0:
-            raise HTTPException(status_code=404, detail=f"Record with ID {id} not found or already deleted")
+            # Graceful, idempotent delete
+            return {"message": f"Record with ID {id} not found or already deleted", "id": id, "deleted": False}
 
-        return {"message": "Record deleted successfully", "id": id}
+        return {"message": "Record deleted successfully", "id": id, "deleted": True}
     except HTTPException:
         raise
     except Exception as e:
