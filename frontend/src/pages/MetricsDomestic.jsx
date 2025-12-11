@@ -97,7 +97,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       setError(null);
       try {
         console.log('🔵 Calling Company Metrics API: /api/company-metrics/companies');
-        const companies = await ApiService.getCompanies();
+        const companies = await ApiService.getCompaniesforMetrics();
         console.log('✅ Companies (Insurers) received:', companies);
         const companiesList = companies || [];
         setInsurers(companiesList);

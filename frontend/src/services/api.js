@@ -1536,13 +1536,13 @@ saveChartConfigs = async (configs) => {
   // ================================
 
   // 1️⃣ Get All Companies
-  getCompanies = async () => {
+  getCompaniesforMetrics = async () => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/companies`);
     return response.data.companies;
   };
 
   // 2️⃣ Get Premium Types for a Company
-  getCompanyPremiumTypes = async (company) => {
+  getCompanyPremiumTypesforMetrics = async (company) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
       params: { company },
     });
@@ -1550,7 +1550,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 3️⃣ Get Categories for Company + Premium Type
-  getCompanyCategories = async (company, premiumType) => {
+  getCompanyCategoriesforMetrics = async (company, premiumType) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
       params: {
         company,
@@ -1561,7 +1561,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 4️⃣ Get Descriptions for Company + Premium Type + Category
-  getCompanyDescriptions = async (company, premiumType, category) => {
+  getCompanyDescriptionsforMetrics = async (company, premiumType, category) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
       params: {
         company,

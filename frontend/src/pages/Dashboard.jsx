@@ -40,8 +40,20 @@ const Dashboard = ({ onMenuClick }) => {
       try {
         const data = await ApiService.getCompanies();
         if (!isMounted) return;
-        // Api returns array; fall back to empty array
-        setCompanies(Array.isArray(data) ? data : []);
+        // Normalize to string names
+        const normalized =
+          Array.isArray(data)
+            ? data
+                .map((c) =>
+                  typeof c === 'string' ? c : (c && (c.name || c.CompanyInsurerShortName)) || ''
+                )
+                .filter(Boolean)
+            : [];
+        setCompanies(normalized);
+        // If current selection is not in the refreshed list, clear it
+        if (selectedCompany && !normalized.includes(selectedCompany)) {
+          setSelectedCompany('');
+        }
       } catch (err) {
         console.error('Error fetching insurers for Dashboard:', err);
         if (isMounted) {
