@@ -1428,29 +1428,32 @@ saveChartConfigs = async (configs) => {
   // =====================
 
   // 1️⃣ Company Dropdown
-  getCompanies = async () => {
+  getCompaniesForLForms = async () => {
     const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
     return res.data;
   };
 
-  // 2️⃣ Form Dropdown
-  getForms = async (company) => {
-    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
-      params: { company }
-    });
-    return res.data;
-  };
+  
 
-  // 3️⃣ Period Dropdown
-  getPeriods = async (company, form_no) => {
+  // 2️⃣ Period Dropdown
+  getPeriodsForLForms = async (company, form_no) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
       params: { company, form_no }
     });
     return res.data;
   };
 
+
+  // 3️⃣ Form Dropdown
+  getFormsForLForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
+
   // 4️⃣ Report Type Dropdown
-  getReportTypes = async (company, form_no, period) => {
+  getReportTypesForLForms = async (company, form_no, period) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
       params: { company, form_no, period }
     });
@@ -1458,12 +1461,292 @@ saveChartConfigs = async (configs) => {
   };
 
   // 5️⃣ Final Table Data
-  getReportData = async (company, form_no, period, report_type = null) => {
+  getReportDataForLForms = async (company, form_no, period, report_type = null) => {
     const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
       params: { company, form_no, period, report_type }
     });
     return res.data;
   };
+
+
+  
+  // =====================
+  // PERIOD SELECTION APIs
+  // =====================
+   // 1️⃣ Get all Financial Years
+   getFinancialYears = async () => {
+    const response = await axios.get(`${API_BASE_URL}/periods/years`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Period Types (Q1, HY, etc.) for a selected FY
+  getPeriodTypes = async (year) => {
+    const response = await axios.get(`${API_BASE_URL}/periods/types?year=${encodeURIComponent(year)}`);
+    return response.data;
+  };
+
+  // 3️⃣ Get Period Ranges (Apr 2021-Jun 2021...)
+  getPeriodRanges = async (year, periodType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/ranges?year=${encodeURIComponent(year)}&period_type=${encodeURIComponent(periodType)}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Monthly Period Breakdown (dd-mm-yyyy format)
+  getMonthlyPeriods = async (rangeValue) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/months?range_value=${encodeURIComponent(rangeValue)}`
+    );
+    return response.data;
+  };
+
+
+  // ==========================
+  // IRDAI MONTHLY DATA APIs 
+  // ==========================
+
+  // 1️⃣ Get Available Report Months
+  getIrdaiReportMonths = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/months`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Insurers for a Selected Month
+  getIrdaiInsurers = async (reportMonth) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
+      params: { report_month: reportMonth },
+    });
+    return response.data.insurers;
+  };
+
+  // 3️⃣ Get Detailed Data For Selected Insurer
+  getIrdaiInsurerDetails = async (reportMonth, insurerName) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/details`, {
+      params: {
+        report_month: reportMonth,
+        insurer_name: insurerName,
+      },
+    });
+    return response.data; // includes both total + category rows
+  };
+
+  // ================================
+  // COMPANY METRICS APIs 
+  // ================================
+
+  // 1️⃣ Get All Companies
+  getCompanies = async () => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/companies`);
+    return response.data.companies;
+  };
+
+  // 2️⃣ Get Premium Types for a Company
+  getCompanyPremiumTypes = async (company) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
+      params: { company },
+    });
+    return response.data.premium_types;
+  };
+
+  // 3️⃣ Get Categories for Company + Premium Type
+  getCompanyCategories = async (company, premiumType) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
+      params: {
+        company,
+        premium_type: premiumType,
+      },
+    });
+    return response.data.categories;
+  };
+
+  // 4️⃣ Get Descriptions for Company + Premium Type + Category
+  getCompanyDescriptions = async (company, premiumType, category) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+      },
+    });
+    return response.data.descriptions;
+  };
+
+  // 5️⃣ Get Full Details for the Selected Filters
+  getMetricDetails = async (company, premiumType, category, description) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+        description,
+      },
+    });
+    return response.data; // full record list
+  };
+
+  // ================================
+  // CRUD APIs 
+  // ================================
+
+  // 🟢 Create new record
+  createMetric = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/company-metrics/create`, payload);
+    return response.data;
+  };
+
+  // 🔵 Get a single record by ID
+  getMetricById = async (id) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/get/${id}`);
+    return response.data;
+  };
+
+  // 🟡 Full Update
+  updateMetric = async (id, payload) => {
+    const response = await axios.put(`${API_BASE_URL}/company-metrics/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 🟣 Patch (partial update)
+  patchMetric = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/company-metrics/patch/${id}`, payload);
+    return response.data;
+  };
+
+  // 🔴 Delete record
+  deleteMetric = async (id) => {
+    try {
+      if (!id) {
+        throw new Error('Record ID is required');
+      }
+      const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in deleteMetric:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          throw new Error('Record not found. It may have already been deleted.');
+        } else if (error.response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        throw new Error(error.response.data?.detail || `Failed to delete record: ${error.response.statusText}`);
+      } else if (error.request) {
+        // Request was made but no response received
+        throw new Error('No response from server. Please check if the backend server is running.');
+      } else {
+        // Error setting up the request
+        throw new Error(`Error setting up delete request: ${error.message}`);
+      }
+    }
+  };
+
+  // 🔵 Get Unique Values for Form Fields
+  getCompanyMetricUniqueValues = async (company, field) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/unique-values`, {
+      params: { company, field },
+    });
+    return response.data;
+  };
+
+  // ================================
+  // METRICS DASHBOARD APIs
+  // ================================
+
+  // 1️⃣ Get Dashboard Data for Selected Descriptions (Metrics)
+  getMetricsDashboardData = async (descriptions) => {
+    try {
+      if (!descriptions || !Array.isArray(descriptions) || descriptions.length === 0) {
+        return [];
+      }
+      
+      const response = await axios.post(`${API_BASE_URL}/company-metrics/dashboard-data`, 
+        { descriptions: descriptions }, 
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Error in getMetricsDashboardData:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          console.error('Endpoint /api/company-metrics/dashboard-data not found. Please check backend route registration.');
+        }
+        throw error;
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response from server for dashboard-data endpoint.');
+        throw error;
+      } else {
+        // Error setting up the request
+        console.error('Error setting up dashboard-data request:', error.message);
+        throw error;
+      }
+    }
+  };
+
+  // 2️⃣ Get Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  getSelectedDescriptionsMetrics = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // 3️⃣ Update Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  updateSelectedDescriptionsMetrics = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
+      { 
+        descriptions: descriptions,
+        removed_description: removedDescription
+      }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Selected Row IDs for Metrics Dashboard
+  getSelectedRowIdsMetrics = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // 5️⃣ Update Selected Row IDs for Metrics Dashboard
+  updateSelectedRowIdsMetrics = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+  
 }
 
 export default new ApiService();

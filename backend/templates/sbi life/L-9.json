@@ -1,0 +1,46 @@
+{
+  "Form No": "L-9",
+  "Title": "PATTERN OF SHAREHOLDING SCHEDULE",
+  "Company": "BAJAJ ALLIANZ LIFE INSURANCE COMPANY LIMITED",
+  "SubTitle": "Schedules forming part of financial statements",
+  "Registration_Number": "116",
+  "Date_of_Registration": "3 August 2001",
+  "Currency": "Numbers",
+  "Headers": {
+    "Shareholder": [
+      "Shareholder"
+    ],
+    "As_at_Current_Year_Number_of_Shares": [
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}",
+      "Number of",
+      "Shares"
+    ],
+    "As_at_Current_Year_Percentage_of_Holding": [
+      "As at 31 December",
+      "{QUARTER_END_DATE_YEAR}",
+      "% of",
+      "Holding"
+    ],
+    "As_at_Previous_Year_Number_of_Shares": [
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}",
+      "Number of",
+      "Shares"
+    ],
+    "As_at_Previous_Year_Percentage_of_Holding": [
+      "As at 31 December",
+      "{PREVIOUS_QUARTER_END_YEAR}",
+      "% of",
+      "Holding"
+    ]
+  },
+  "FlatHeaders": [
+    "Shareholder",
+    "As_at_Current_Year_Number_of_Shares",
+    "As_at_Current_Year_Percentage_of_Holding",
+    "As_at_Previous_Year_Number_of_Shares",
+    "As_at_Previous_Year_Percentage_of_Holding"
+  ],
+  "Rows": []
+}

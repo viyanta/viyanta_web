@@ -7,13 +7,39 @@
   "Date_of_Registration": "3 August 2001",
   "Currency": "Rs. in Lakhs",
   "Headers": {
-    "Particulars": ["Particulars"],
-    "As_at_31_December_Current_Year": ["As at 31", "December", "{QUARTER_END_DATE_YEAR}"],
-    "As_at_31_December_Previous_Year": ["As at 31", "December", "{PREVIOUS_QUARTER_END_YEAR}"]
+    "sr no": [
+      "sr no"
+    ],
+    "Particulars": [
+      "Particulars"
+    ],
+    "As_at_31_December_Current_Year1": [
+      "As at 31",
+      "December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "As_at_31_December_Current_Year": [
+      "As at 31",
+      "December",
+      "{QUARTER_END_DATE_YEAR}"
+    ],
+    "As_at_31_December_Previous_Year1": [
+      "As at 31",
+      "December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ],
+    "As_at_31_December_Previous_Year": [
+      "As at 31",
+      "December",
+      "{PREVIOUS_QUARTER_END_YEAR}"
+    ]
   },
   "FlatHeaders": [
+    "sr no",
     "Particulars",
+    "As_at_31_December_Current_Year1",
     "As_at_31_December_Current_Year",
+    "As_at_31_December_Previous_Year1",
     "As_at_31_December_Previous_Year"
   ],
   "Rows": []

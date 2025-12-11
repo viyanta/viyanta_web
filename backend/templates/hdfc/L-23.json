@@ -7,6 +7,9 @@
   "Date_of_Registration": "3 August 2001",
   "Currency": "Rs. in Lakhs",
   "Headers": {
+    "sr_no": [
+      "Sr. No."
+    ],
     "Particulars": [
       "Particulars"
     ],
@@ -20,6 +23,7 @@
     ]
   },
   "FlatHeaders": [
+    "sr_no",
     "Particulars",
     " Up to the Quarter_Current_Year",
     " Up to the Quarter_Previous_Year"

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import ApiService from '../services/api';
 import './Dashboard.css';
 
 const Dashboard = ({ onMenuClick }) => {
@@ -11,6 +12,8 @@ const Dashboard = ({ onMenuClick }) => {
   const [selectedType, setSelectedType] = useState('Factsheet');
   const [activeView, setActiveView] = useState('Visuals');
   const [selectedCompany, setSelectedCompany] = useState('');
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   const frequencyOptions = ['Yearly', 'Quarterly', 'Monthly'];
   const typeOptions = ['Products', 'Business', 'Factsheet', 'People'];
@@ -28,8 +31,41 @@ const Dashboard = ({ onMenuClick }) => {
   // Filter to show only active tabs, preserving order from activeNavItems
   const tabs = activeNavItems.filter(tab => allTabs.includes(tab));
 
-  // Handle tab clicks
+  // Fetch insurers from company metrics API and populate dropdown
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCompanies = async () => {
+      setLoadingCompanies(true);
+      try {
+        const data = await ApiService.getCompanies();
+        if (!isMounted) return;
+        // Api returns array; fall back to empty array
+        setCompanies(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error fetching insurers for Dashboard:', err);
+        if (isMounted) {
+          setCompanies([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingCompanies(false);
+        }
+      }
+    };
+
+    fetchCompanies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle tab clicks (require insurer selection)
   const handleTabClick = (tab) => {
+    if (!selectedCompany) {
+      return;
+    }
     // Only allow clicks on active items
     if (!isNavItemActive(tab)) {
       return;
@@ -203,6 +239,12 @@ const Dashboard = ({ onMenuClick }) => {
                 onChange={(e) => {
                   const value = e.target.value;
                   setSelectedCompany(value);
+                  // Persist selection so MetricsDomestic can pick it up
+                  if (value) {
+                    localStorage.setItem('selectedInsurer', value);
+                  } else {
+                    localStorage.removeItem('selectedInsurer');
+                  }
                 }}
                 style={{
                   width: '100%',
@@ -216,12 +258,14 @@ const Dashboard = ({ onMenuClick }) => {
                   outline: 'none'
                 }}
               >
-                <option value="">Select Insurer...</option>
-                <option value="hdfc">HDFC Life</option>
-                <option value="sbi">SBI Life</option>
-                <option value="icici">ICICI Prudential</option>
-                <option value="lic">LIC</option>
-                <option value="bajaj">Bajaj Allianz</option>
+                <option value="">
+                  {loadingCompanies ? 'Loading insurers...' : 'Select Insurer...'}
+                </option>
+                {companies.map((insurer) => (
+                  <option key={insurer} value={insurer}>
+                    {insurer}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -240,33 +284,37 @@ const Dashboard = ({ onMenuClick }) => {
               paddingBottom: '5px',
               justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
             }}>
-              {tabs.map((tab) => (
-            <button
-                  key={tab}
-                  onClick={() => handleTabClick(tab)}
-                  className={`nav-tab ${isNavItemActive(tab) ? 'active' : 'inactive'}`}
-              style={{
-                padding: tabs.length <= 3 ? 'clamp(8px, 2vw, 10px) clamp(15px, 3vw, 18px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px)',
-                fontSize: tabs.length <= 3 ? 'clamp(13px, 2.5vw, 15px)' : 'clamp(12px, 2.5vw, 13px)',
-                whiteSpace: 'nowrap',
-                textAlign: 'center',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: isNavItemActive(tab) ? 'var(--main-color)' : 'transparent',
-                color: isNavItemActive(tab) ? 'white' : '#666',
-                fontWeight: isNavItemActive(tab) ? '600' : '400',
-                cursor: isNavItemActive(tab) ? 'pointer' : 'not-allowed',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: tabs.length <= 3 ? '36px' : '32px',
-                opacity: isNavItemActive(tab) ? 1 : 0.5
-              }}
-                >
-                  {tab}
-            </button>
-          ))}
+              {tabs.map((tab) => {
+                const enabled = !!selectedCompany && isNavItemActive(tab);
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => enabled && handleTabClick(tab)}
+                    disabled={!enabled}
+                    className={`nav-tab ${enabled ? 'active' : 'inactive'}`}
+                    style={{
+                      padding: tabs.length <= 3 ? 'clamp(8px, 2vw, 10px) clamp(15px, 3vw, 18px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px)',
+                      fontSize: tabs.length <= 3 ? 'clamp(13px, 2.5vw, 15px)' : 'clamp(12px, 2.5vw, 13px)',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'center',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: enabled ? 'var(--main-color)' : 'transparent',
+                      color: enabled ? 'white' : '#666',
+                      fontWeight: enabled ? '600' : '400',
+                      cursor: enabled ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: tabs.length <= 3 ? '36px' : '32px',
+                      opacity: enabled ? 1 : 0.5
+                    }}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
         </div>
             </div>
 

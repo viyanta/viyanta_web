@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 from routes.download import router as download_router
 from routes.dropdown import router as dropdown_router
 from routes.company_lforms import router as company_l_forms_router
@@ -9,11 +10,14 @@ from routes.pdf_splitter import router as pdf_splitter_router
 # from routes.peers import router as peers_router
 from routes.economy import router as economy_router
 from routes.indusrty import router as indusrty_router
+from routes.periods import router as periods_router
+from routes.irdai_monthly import router as irdai_monthly_router
+from routes.company_metrics import router as company_metrics_router
 from routes.lforms import router as lform_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
-    Company, Report, ReportData, EconomyMaster, 
+    Company, EconomyMaster, 
     DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
 )
 
@@ -47,8 +51,29 @@ print("DEBUG S3_BUCKET_NAME:***************************",
       os.getenv("S3_BUCKET_NAME"))
 # =======
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables with error handling for concurrent DDL operations
+# This is needed when using multiple workers (e.g., hypercorn with --workers)
+try:
+    Base.metadata.create_all(bind=engine)
+except (OperationalError, Exception) as e:
+    # Handle MySQL concurrent DDL error (1684) when multiple workers try to create tables
+    error_str = str(e)
+    # Check for MySQL error 1684 (concurrent DDL) or OperationalError with 1684
+    is_concurrent_ddl = (
+        "1684" in error_str or 
+        "concurrent DDL" in error_str.lower() or
+        "was skipped since its definition is being modified" in error_str
+    )
+    if is_concurrent_ddl:
+        # This is expected when multiple workers start simultaneously
+        # The first worker will create the tables, others will see this error
+        print(f"⚠️  Concurrent DDL operation detected (normal with multiple workers)")
+        print(f"   Error: {error_str[:200]}...")
+        print("   Tables will be created by the first worker that succeeds.")
+    else:
+        # Re-raise other errors as they might be important
+        print(f"❌ Error creating tables: {e}")
+        raise
 
 # Initialize database with default companies
 
@@ -73,6 +98,11 @@ app.include_router(pdf_splitter_router,
 app.include_router(company.router, prefix="/api")
 app.include_router(economy_router, prefix="/api/economy", tags=["Economy"])
 app.include_router(indusrty_router, prefix="/api/industry", tags=["Industry"])
+app.include_router(periods_router, prefix="/api/periods", tags=["Periods"])
+app.include_router(irdai_monthly_router,
+                   prefix="/api/irdai-monthly", tags=["IRDAI Monthly"])
+app.include_router(company_metrics_router,
+                   prefix="/api/company-metrics", tags=["Company Metrics"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 
 # Log registered routes for debugging
