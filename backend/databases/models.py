@@ -280,6 +280,9 @@ class IndustryMaster(Base):
     IsActive = Column(Boolean, default=True, nullable=False)
 
 
+<< << << < HEAD
+
+
 class PeriodMaster(Base):
     __tablename__ = "period_master"
 
@@ -433,6 +436,10 @@ class DashboardSelectedDescriptions(Base):
     updated_at = Column(DateTime)
 
 
+== == == =
+>>>>>> > 458e585 (changes in economy from server)
+
+
 class Companies(Base):
     __tablename__ = "companies"
 
@@ -440,6 +447,7 @@ class Companies(Base):
     companyname = Column(String(255), unique=True, nullable=False)
 
 
+<< << << < HEAD
 Base = declarative_base()
 
 
@@ -488,6 +496,10 @@ class ReportsL2Extracted(Base):
     upto_previous_period = Column(String(50))
 
     created_at = Column(DateTime, server_default=func.now())
+
+
+== == == =
+>>>>>> > 458e585 (changes in economy from server)
 
 
 class DashboardSelectedDescriptions(Base):
