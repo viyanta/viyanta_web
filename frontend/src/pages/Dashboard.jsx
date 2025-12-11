@@ -38,7 +38,7 @@ const Dashboard = ({ onMenuClick }) => {
     const fetchCompanies = async () => {
       setLoadingCompanies(true);
       try {
-        const data = await ApiService.getCompanies();
+        const data = await ApiService.getCompaniesforMetrics();
         if (!isMounted) return;
         // Normalize to string names
         const normalized =
