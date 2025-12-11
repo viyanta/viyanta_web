@@ -150,7 +150,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       try {
         console.log(`🔵 Calling Company Premium Types API for: ${selectedInsurer}`);
         // Get premium types - these will be used as "Category Long Name"
-        const premiumTypes = await ApiService.getCompanyPremiumTypes(selectedInsurer);
+        const premiumTypes = await ApiService.getCompanyPremiumTypesforMetrics(selectedInsurer);
         console.log('✅ Premium types (Category Long Name) received:', premiumTypes);
         setCategories(premiumTypes || []);
         
@@ -193,7 +193,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       try {
         console.log(`🔵 Fetching sub categories (Categories) for Premium Type: ${selectedCategory}`);
         // Get categories for the selected premium type - these will be used as "Sub Category Long Name"
-        const categoriesData = await ApiService.getCompanyCategories(selectedInsurer, selectedCategory);
+        const categoriesData = await ApiService.getCompanyCategoriesforMetrics(selectedInsurer, selectedCategory);
         console.log('✅ Sub categories (Categories) received:', categoriesData);
         setSubCategories(categoriesData || []);
         
@@ -232,7 +232,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       try {
         console.log(`🔵 Fetching descriptions for Premium Type: ${selectedCategory}, Category: ${selectedSubCategory}`);
         // Get descriptions for the selected premium type and category
-        const descriptionsData = await ApiService.getCompanyDescriptions(
+        const descriptionsData = await ApiService.getCompanyDescriptionsforMetrics(
           selectedInsurer, 
           selectedCategory, // Premium Type
           selectedSubCategory // Category (CategoryLongName)
