@@ -9,6 +9,7 @@ import PDFSplitterWorkflow from '../components/PDFSplitterWorkflow';
 import apiService from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary';
+import StandardPageLayout from '../components/StandardPageLayout';
 
 const SmartPDFExtraction = ({ onMenuClick }) => {
   const { user } = useAuth();
@@ -18,14 +19,12 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   const [activeTab, setActiveTab] = useState('new_template'); // 'new_template'
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // New upload state
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [folderName, setFolderName] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-
-
 
   // Handle file selection for new upload
   const handleFileSelect = (event) => {
@@ -52,10 +51,10 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
     try {
       // Use the new upload endpoint with S3 structure and Gemini verification
       const response = await apiService.uploadFolderFilesNew(selectedFiles, folderName.trim(), user.id);
-      
+
       console.log('Upload response:', response);
 
-      
+
       // Refresh upload history
       // await loadUploadHistory(user.id);
 
@@ -97,24 +96,6 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   };
 
   // Styles
-  const containerStyle = {
-    minHeight: '100vh',
-    background: 'var(--bg-gradient)',
-    padding: '1rem',
-    paddingTop: '1.5rem',
-    width: '100%',
-    maxWidth: '100%',
-    boxSizing: 'border-box',
-    overflow: 'visible'
-  };
-
-  const headerStyle = {
-    marginBottom: '1.5rem',
-    textAlign: 'left',
-    color: 'var(--text-color-dark)',
-    marginTop: '0'
-  };
-
   const tabsWrapperStyle = {
     marginBottom: '1.5rem',
     display: 'flex',
@@ -130,7 +111,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
     gap: '4px',
     border: '1px solid var(--border-color)',
     flexWrap: 'wrap',
-  
+
   };
 
   const activeTabStyle = {
@@ -186,51 +167,13 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
   };
 
   return (
-    <div style={containerStyle}>
-      {/* Header */}
-      <div style={headerStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          {/* Hamburger Menu Icon */}
-          <button
-            onClick={() => { onMenuClick && onMenuClick(); }}
-            aria-label="Toggle sidebar"
-            style={{
-              background: 'rgba(63, 114, 175, 0.1)',
-              border: '1px solid rgba(63, 114, 175, 0.3)',
-              color: 'var(--main-color)',
-              borderRadius: '6px',
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              minWidth: '36px',
-              minHeight: '36px'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(63, 114, 175, 0.2)';
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(63, 114, 175, 0.1)';
-              e.target.style.transform = 'scale(1)';
-            }}
-          >
-            ☰
-          </button>
-          <h1 style={{ 
-            margin: 0,
-            fontSize: 'clamp(18px, 5vw, 28px)',
-            lineHeight: '1.3',
-            paddingTop: '0'
-          }}>Smart PDF Table Extraction (Admin Only)</h1>
-        </div>
-        <p style={{ color: 'var(--text-color-light)', marginTop: '0.25rem' }}>
-          Upload, extract, verify, and analyze table data from PDF documents with S3 storage and AI-powered Gemini verification
-        </p>
-      </div>
+    <StandardPageLayout
+      title="Smart PDF Table Extraction (Admin Only)"
+      onMenuClick={onMenuClick}
+    >
+      <p style={{ color: 'var(--text-color-light)', marginTop: '0', marginBottom: '1.5rem' }}>
+        Upload, extract, verify, and analyze table data from PDF documents with S3 storage and AI-powered Gemini verification
+      </p>
 
       {/* Tabs */}
       <div style={tabsWrapperStyle}>
@@ -239,9 +182,9 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
             style={{ ... (activeTab === 'new_template' ? activeTabStyle : inactiveTabStyle), color: 'var(--text-color-dark)' }}
             onClick={() => setActiveTab('new_template')}
           >
-            � PDF Split & Extract
+            📋 PDF Split & Extract
           </button>
-        
+
         </div>
       </div>
 
@@ -277,7 +220,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
             <p style={{ color: 'var(--text-color-light)', marginBottom: '1.5rem' }}>
               Upload PDF files to the new S3 structure with automatic extraction and AI verification using Gemini API.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* Folder Name Input */}
               <div>
@@ -350,23 +293,23 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
 
               {/* Upload Progress */}
               {isUploading && (
-                <div style={{ 
-                  background: 'var(--bg-color-light)', 
-                  padding: '1rem', 
+                <div style={{
+                  background: 'var(--bg-color-light)',
+                  padding: '1rem',
                   borderRadius: '8px',
                   textAlign: 'center'
                 }}>
                   <p>Processing files with Gemini verification...</p>
-                  <div style={{ 
-                    width: '100%', 
-                    height: '8px', 
-                    backgroundColor: 'var(--border-color)', 
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: 'var(--border-color)',
                     borderRadius: '4px',
                     overflow: 'hidden'
                   }}>
-                    <div style={{ 
-                      width: `${uploadProgress}%`, 
-                      height: '100%', 
+                    <div style={{
+                      width: `${uploadProgress}%`,
+                      height: '100%',
                       backgroundColor: 'var(--main-color)',
                       transition: 'width 0.3s ease'
                     }} />
@@ -380,13 +323,13 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
         {/* Extract Tab */}
         {/* New PDF Split & Extract Tab */}
         {activeTab === 'new_template' && (
-         <ErrorBoundary>
-         <PDFSplitterWorkflow user={user} />
-       </ErrorBoundary>
+          <ErrorBoundary>
+            <PDFSplitterWorkflow user={user} />
+          </ErrorBoundary>
         )}
 
       </div>
-    </div>
+    </StandardPageLayout>
   );
 };
 
