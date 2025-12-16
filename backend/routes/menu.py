@@ -29,7 +29,7 @@ FEATURE_FIELDS = [
 def get_main_menus(
     product_key: str = Query(
         ..., description="digits_life, digits_non_life, digits_plus, assure_life, assure_non_life, assure_plus"),
-    user_id: int = Query(..., description="Logged-in user ID"),
+    user_id: str = Query(..., description="Logged-in user ID"),
     db: Session = Depends(get_db)
 ):
     user = (
@@ -75,7 +75,7 @@ def get_main_menus(
 def get_sub_menus(
     main_menu_id: int,
     product_key: str = Query(...),
-    user_id: int = Query(...),
+    user_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
     user = (
