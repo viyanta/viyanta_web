@@ -14,10 +14,12 @@ from routes.periods import router as periods_router
 from routes.irdai_monthly import router as irdai_monthly_router
 from routes.company_metrics import router as company_metrics_router
 from routes.lforms import router as lform_router
+from routes.menu import router as menu_router
+from routes.user import router as user_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
-    Company, EconomyMaster, 
+    Company, EconomyMaster,
     DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
 )
 
@@ -64,7 +66,8 @@ if os.getenv("ENVIRONMENT") != "production":
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if os.getenv("ENVIRONMENT") == "production" else ["*"],
+    allow_origins=allowed_origins if os.getenv(
+        "ENVIRONMENT") == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,7 +83,7 @@ except (OperationalError, Exception) as e:
     error_str = str(e)
     # Check for MySQL error 1684 (concurrent DDL) or OperationalError with 1684
     is_concurrent_ddl = (
-        "1684" in error_str or 
+        "1684" in error_str or
         "concurrent DDL" in error_str.lower() or
         "was skipped since its definition is being modified" in error_str
     )
@@ -123,6 +126,8 @@ app.include_router(irdai_monthly_router,
 app.include_router(company_metrics_router,
                    prefix="/api/company-metrics", tags=["Company Metrics"])
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
+app.include_router(menu_router, prefix="/api/menu", tags=["Menu"])
+app.include_router(user_router, prefix="/api/user", tags=["User"])
 
 # Log registered routes for debugging
 print("✅ Economy router registered with prefix: /api/economy")

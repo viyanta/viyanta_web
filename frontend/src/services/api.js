@@ -1573,7 +1573,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 5️⃣ Get Full Details for the Selected Filters
-  getMetricDetails = async (company, premiumType, category, description) => {
+  getMetricDetailsforMetrics = async (company, premiumType, category, description) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
       params: {
         company,
