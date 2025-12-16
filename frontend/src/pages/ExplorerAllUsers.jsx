@@ -1718,7 +1718,10 @@ function ExplorerAllUsers({ onMenuClick }) {
 
     // All Companies View
     const AllCompaniesView = () => {
-        if (companiesData.length === 0) {
+        // Filter out any null or undefined companies
+        const validCompanies = companiesData.filter(company => company && company.name);
+        
+        if (validCompanies.length === 0) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏢</div>
@@ -1737,7 +1740,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                     marginBottom: '2rem'
                 }}>
-                    {companiesData.map((company) => (
+                    {validCompanies.map((company) => (
                         <div
                             key={company.id || company.name}
                             onClick={() => {
@@ -2635,7 +2638,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                     fontWeight: '600',
                                                     border: '1px solid #bbdefb'
                                                 }}>
-                                                    📄 Pages Used: {record.PagesUsed}
+                                                    📄 Pages Used: {record.PagesUsed} heading : {record.Heading}
                                                 </span>
                                             )}
                                         </h6>
@@ -2674,6 +2677,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
                                                 {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
                                                 {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                                                {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
                                             </div>
                                         )}
 

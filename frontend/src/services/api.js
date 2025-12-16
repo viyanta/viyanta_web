@@ -1536,13 +1536,13 @@ saveChartConfigs = async (configs) => {
   // ================================
 
   // 1️⃣ Get All Companies
-  getCompanies = async () => {
+  getCompaniesforMetrics = async () => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/companies`);
     return response.data.companies;
   };
 
   // 2️⃣ Get Premium Types for a Company
-  getPremiumTypes = async (company) => {
+  getPremiumTypesforMetrics = async (company) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
       params: { company },
     });
@@ -1550,7 +1550,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 3️⃣ Get Categories for Company + Premium Type
-  getCategories = async (company, premiumType) => {
+  getCategoriesforMetrics = async (company, premiumType) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
       params: {
         company,
@@ -1561,7 +1561,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 4️⃣ Get Descriptions for Company + Premium Type + Category
-  getDescriptions = async (company, premiumType, category) => {
+  getDescriptionsforMetrics = async (company, premiumType, category) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
       params: {
         company,
@@ -1573,7 +1573,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 5️⃣ Get Full Details for the Selected Filters
-  getMetricDetails = async (company, premiumType, category, description) => {
+  getMetricDetailsforMetrics = async (company, premiumType, category, description) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
       params: {
         company,
@@ -1618,6 +1618,84 @@ saveChartConfigs = async (configs) => {
     const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
     return response.data;
   };
+
+
+// ================================
+// USER APIs
+// ================================
+
+/**
+ * 1️⃣ Get User Details by Email (login / profile load)
+ */
+getUserByEmail = async (email) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/users/email/${email}`
+  );
+  return response.data;
+};
+
+/**
+ * 2️⃣ Get All Users (admin screens)
+ */
+getAllUsers = async () => {
+  const response = await axios.get(`${API_BASE_URL}/users`);
+  return response.data;
+};
+
+/**
+ * 3️⃣ Get Active Users
+ */
+getActiveUsers = async () => {
+  const response = await axios.get(`${API_BASE_URL}/users/active`);
+  return response.data;
+};
+
+// ================================
+// MENU APIs (USER + PRODUCT BASED)
+// ================================
+
+/**
+ * 4️⃣ Get Main Menus
+ * @param {string} userId - UserID from user_master (varchar)
+ * @param {string} productKey - DIGITS_LIFE / DIGITS_NON_LIFE / etc
+ */
+getMainMenus = async (userId, productKey) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/menu/main-menus`,
+    {
+      params: {
+        user_id: userId,
+        product_key: productKey,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * 5️⃣ Get Sub Menus for Selected Main Menu
+ * @param {number} mainMenuId
+ * @param {string} userId
+ * @param {string} productKey
+ */
+getSubMenus = async (
+  mainMenuId,
+  userId,
+  productKey
+) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/menu/sub-menus/${mainMenuId}`,
+    {
+      params: {
+        user_id: userId,
+        product_key: productKey,
+      },
+    }
+  );
+
+  return response.data;
+};
   
 }
 
