@@ -479,6 +479,41 @@ function InsuranceDashboard({ onMenuClick }) {
       }}
       sidebar={<CompanyInformationSidebar />}
     >
+      {/* Breadcrumb Navigation */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '20px',
+        fontSize: '14px',
+        fontWeight: '500'
+      }}>
+        <span
+          className="breadcrumb-link"
+          onClick={() => {
+            setActiveTab('Dashboard');
+            navigate('/dashboard');
+          }}
+          style={{
+            color: '#36659b',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.textDecoration = 'underline';
+            e.target.style.color = '#2d5280';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.textDecoration = 'none';
+            e.target.style.color = '#36659b';
+          }}
+        >
+          Insurance Dashboard
+        </span>
+        <span className="breadcrumb-separator" style={{ color: '#999', margin: '0 8px' }}>{'>>'}</span>
+        <span className="breadcrumb-current" style={{ color: '#36659b', fontWeight: '500' }}>{activeTab}</span>
+      </div>
+
       {/* Show Background Page when Background tab is active */}
       {activeTab === 'Background' ? (
         <BackgroundPage

@@ -100,9 +100,16 @@
   gap: clamp(8px, 2vw, 12px);
   width: 100%;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   padding-bottom: 5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  /* Changed from wrap to nowrap */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.navigation-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab {
@@ -180,28 +187,29 @@
   }
 }
 
-@media (max-width: 1024px) {
-  .standard-page-layout {
-    padding: clamp(8px, 1.5vw, 15px);
-  }
-
-  .content-layout {
-    gap: clamp(8px, 1.5vw, 12px);
-  }
-
-  .sidebar-container {
-    width: clamp(140px, 15vw, 160px);
-    min-width: 140px;
-    max-width: 160px;
-  }
-
-  .main-content-area {
-    padding: clamp(12px, 2vw, 20px);
-    margin-right: clamp(55px, 5.5vw, 75px);
-  }
+/* Navigation Tabs - Make them scrollable on small screens instead of wrapping awkwardly */
+.navigation-tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: clamp(8px, 2vw, 12px);
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 5px;
+  flex-wrap: nowrap;
+  /* Prevent stacking */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-@media (max-width: 768px) {
+.navigation-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* ... existing styles ... */
+
+@media (max-width: 1024px) {
   .content-layout {
     flex-direction: column;
   }
@@ -210,9 +218,12 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    margin-bottom: 15px;
+    /* Add space between sidebar and content */
   }
 
   .main-content-area {
     margin-right: 0;
+    padding: clamp(12px, 2vw, 20px);
   }
 }

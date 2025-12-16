@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
+import './CompanyInformationSidebar.css';
 
 function CompanyInformationSidebar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -24,7 +25,7 @@ function CompanyInformationSidebar() {
         };
 
         window.addEventListener('storage', handleStorageChange);
-        
+
         // Also listen for custom theme change events
         const handleThemeChange = (e) => {
             setIsDarkMode(e.detail.isDarkMode);
@@ -55,6 +56,11 @@ function CompanyInformationSidebar() {
             if (selectedSidebarItem !== 1000) {
                 handleSidebarItemClick(1000, 'Company Information');
             }
+        } else if (path.includes('/irdai-monthly-data')) {
+            setSelectedItem(1006); // IRDAI Monthly Data
+            if (selectedSidebarItem !== 1006) {
+                handleSidebarItemClick(1006, 'IRDAI Monthly Data');
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.pathname]);
@@ -83,67 +89,37 @@ function CompanyInformationSidebar() {
     };
 
     return (
-        <div style={{
-            flex: '0 0 220px',
-            backgroundColor: 'white',
-            border: '1px solid #e0e0e0',
-            borderRadius: '6px',
-            height: 'fit-content',
-            marginBottom: '0',
-            position: 'static',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            minWidth: '220px',
-            maxWidth: '220px'
-        }}>
-            <div style={{ padding: 0 }}>
-                {getVisibleMenuItems().map((item, index) => (
-                    <div 
-                        key={item.id}
-                        style={{
-                            padding: '8px 12px',
-                            color: (selectedItem === item.id || selectedSidebarItem === item.id) ? '#ffffff' : '#495057',
-                            backgroundColor: (selectedItem === item.id || selectedSidebarItem === item.id) ? '#36659b' : 'transparent',
-                            fontSize: item.id === 1000 ? '13px' : '12px',
-                            fontWeight: item.id === 1000 ? '600' : 'normal',
-                            borderBottom: index < getVisibleMenuItems().length - 1 ? '1px solid #f1f3f4' : 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            minHeight: '32px'
-                        }}
-                        onMouseEnter={(e) => {
-                            const isSelected = selectedItem === item.id || selectedSidebarItem === item.id;
-                            if (!isSelected) {
-                                e.target.style.backgroundColor = '#f8f9fa';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            const isSelected = selectedItem === item.id || selectedSidebarItem === item.id;
-                            if (!isSelected) {
-                                e.target.style.backgroundColor = 'transparent';
-                            } else {
-                                e.target.style.backgroundColor = '#36659b';
-                            }
-                        }}
-                        onClick={() => {
-                            setSelectedItem(item.id);
-                            handleSidebarItemClick(item.id, item.name);
-                            
-                            // Navigate based on sidebar item
-                            if (item.id === 1007) { // Economy
-                                navigate('/economy-dashboard');
-                            } else if (item.id === 1001) { // Industry Metrics
-                                navigate('/industry-metrics-dashboard');
-                            } else if (item.id === 1000) { // Company Information
-                                navigate('/dashboard');
-                            }
-                            // Add more navigation cases as needed
-                        }}
-                    >
-                        {item.name}
-                    </div>
-                ))}
+        <div className="company-info-sidebar">
+            <div className="sidebar-content-wrapper">
+                {getVisibleMenuItems().map((item) => {
+                    const isSelected = selectedItem === item.id || selectedSidebarItem === item.id;
+                    const isHeader = item.id === 1000;
+
+                    return (
+                        <div
+                            key={item.id}
+                            className={`sidebar-menu-item ${isSelected ? 'selected' : ''} ${isHeader ? 'header-item' : ''}`}
+                            onClick={() => {
+                                setSelectedItem(item.id);
+                                handleSidebarItemClick(item.id, item.name);
+
+                                // Navigate based on sidebar item
+                                if (item.id === 1007) { // Economy
+                                    navigate('/economy-dashboard');
+                                } else if (item.id === 1001) { // Industry Metrics
+                                    navigate('/industry-metrics-dashboard');
+                                } else if (item.id === 1000) { // Company Information
+                                    navigate('/dashboard');
+                                } else if (item.id === 1006) { // IRDAI Monthly Data
+                                    navigate('/irdai-monthly-data');
+                                }
+                                // Add more navigation cases as needed
+                            }}
+                        >
+                            {item.name}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

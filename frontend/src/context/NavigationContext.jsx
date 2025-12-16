@@ -14,7 +14,7 @@ export const useNavigation = () => {
 export const NavigationProvider = ({ children }) => {
   const [activeNavItems, setActiveNavItems] = useState(['Dashboard']); // Default active items
   const [selectedSidebarItem, setSelectedSidebarItem] = useState(null);
-  
+
   // Load selectedDescriptions from backend API (global for all users)
   const [selectedDescriptions, setSelectedDescriptionsState] = useState([]);
   const [loadingDescriptions, setLoadingDescriptions] = useState(true);
@@ -26,12 +26,12 @@ export const NavigationProvider = ({ children }) => {
         setLoadingDescriptions(true);
         const descriptions = await ApiService.getSelectedDescriptions();
         const newDescriptions = Array.isArray(descriptions) ? descriptions : [];
-        
+
         // Only update state if descriptions actually changed (prevents unnecessary re-renders)
         setSelectedDescriptionsState(prev => {
           const prevSorted = [...prev].sort().join(',');
           const newSorted = [...newDescriptions].sort().join(',');
-          
+
           if (prevSorted !== newSorted) {
             console.log('✅ Selected descriptions updated from backend:', newDescriptions);
             return newDescriptions;
@@ -73,7 +73,7 @@ export const NavigationProvider = ({ children }) => {
 
   // Define which horizontal nav items should be active for each sidebar selection
   const getActiveItemsForSidebarSelection = (sidebarItemId) => {
-    switch(sidebarItemId) {
+    switch (sidebarItemId) {
       case 1000: // Company Information
         return ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'];
       case 1001: // Industry Metrics
@@ -87,7 +87,18 @@ export const NavigationProvider = ({ children }) => {
       case 1005: // Screener
         return ['Screener Inputs', 'Screener Output Sheets'];
       case 1006: // IRDAI Monthly Data
-        return ['Dashboard', 'Analytics', 'Peers', 'Documents'];
+        return [
+          'Dashboard',
+          'Companywise',
+          'Premium wise',
+          'Market Share',
+          'Growth',
+          'Monthwise',
+          'Pvt Vs Public',
+          'Analytics',
+          'Documents',
+          'Peers'
+        ];
       case 1007: // Economy
         return ['Dashboard', 'Domestic', 'International'];
       default:
