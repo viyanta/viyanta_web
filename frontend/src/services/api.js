@@ -1542,7 +1542,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 2️⃣ Get Premium Types for a Company
-  getPremiumTypesforMetrics = async (company) => {
+  getCompanyPremiumTypesforMetrics = async (company) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
       params: { company },
     });
@@ -1550,7 +1550,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 3️⃣ Get Categories for Company + Premium Type
-  getCategoriesforMetrics = async (company, premiumType) => {
+  getCompanyCategoriesforMetrics = async (company, premiumType) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
       params: {
         company,
@@ -1561,7 +1561,7 @@ saveChartConfigs = async (configs) => {
   };
 
   // 4️⃣ Get Descriptions for Company + Premium Type + Category
-  getDescriptionsforMetrics = async (company, premiumType, category) => {
+  getCompanyDescriptionsforMetrics = async (company, premiumType, category) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
       params: {
         company,
@@ -1615,87 +1615,137 @@ saveChartConfigs = async (configs) => {
 
   // 🔴 Delete record
   deleteMetric = async (id) => {
-    const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
+    try {
+      if (!id) {
+        throw new Error('Record ID is required');
+      }
+      const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in deleteMetric:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          throw new Error('Record not found. It may have already been deleted.');
+        } else if (error.response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        throw new Error(error.response.data?.detail || `Failed to delete record: ${error.response.statusText}`);
+      } else if (error.request) {
+        // Request was made but no response received
+        throw new Error('No response from server. Please check if the backend server is running.');
+      } else {
+        // Error setting up the request
+        throw new Error(`Error setting up delete request: ${error.message}`);
+      }
+    }
+  };
+
+  // 🔵 Get Unique Values for Form Fields
+  getCompanyMetricUniqueValues = async (company, field) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/unique-values`, {
+      params: { company, field },
+    });
     return response.data;
   };
 
+  // ================================
+  // METRICS DASHBOARD APIs
+  // ================================
 
-// ================================
-// USER APIs
-// ================================
-
-/**
- * 1️⃣ Get User Details by Email (login / profile load)
- */
-getUserByEmail = async (email) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/users/email/${email}`
-  );
-  return response.data;
-};
-
-/**
- * 2️⃣ Get All Users (admin screens)
- */
-getAllUsers = async () => {
-  const response = await axios.get(`${API_BASE_URL}/users`);
-  return response.data;
-};
-
-/**
- * 3️⃣ Get Active Users
- */
-getActiveUsers = async () => {
-  const response = await axios.get(`${API_BASE_URL}/users/active`);
-  return response.data;
-};
-
-// ================================
-// MENU APIs (USER + PRODUCT BASED)
-// ================================
-
-/**
- * 4️⃣ Get Main Menus
- * @param {string} userId - UserID from user_master (varchar)
- * @param {string} productKey - DIGITS_LIFE / DIGITS_NON_LIFE / etc
- */
-getMainMenus = async (userId, productKey) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/menu/main-menus`,
-    {
-      params: {
-        user_id: userId,
-        product_key: productKey,
-      },
+  // 1️⃣ Get Dashboard Data for Selected Descriptions (Metrics)
+  getMetricsDashboardData = async (descriptions) => {
+    try {
+      if (!descriptions || !Array.isArray(descriptions) || descriptions.length === 0) {
+        return [];
+      }
+      
+      const response = await axios.post(`${API_BASE_URL}/company-metrics/dashboard-data`, 
+        { descriptions: descriptions }, 
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Error in getMetricsDashboardData:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          console.error('Endpoint /api/company-metrics/dashboard-data not found. Please check backend route registration.');
+        }
+        throw error;
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response from server for dashboard-data endpoint.');
+        throw error;
+      } else {
+        // Error setting up the request
+        console.error('Error setting up dashboard-data request:', error.message);
+        throw error;
+      }
     }
-  );
+  };
 
-  return response.data;
-};
-
-/**
- * 5️⃣ Get Sub Menus for Selected Main Menu
- * @param {number} mainMenuId
- * @param {string} userId
- * @param {string} productKey
- */
-getSubMenus = async (
-  mainMenuId,
-  userId,
-  productKey
-) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/menu/sub-menus/${mainMenuId}`,
-    {
-      params: {
-        user_id: userId,
-        product_key: productKey,
-      },
+  // 2️⃣ Get Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  getSelectedDescriptionsMetrics = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
     }
-  );
+  };
 
-  return response.data;
-};
+  // 3️⃣ Update Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  updateSelectedDescriptionsMetrics = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
+      { 
+        descriptions: descriptions,
+        removed_description: removedDescription
+      }, 
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Selected Row IDs for Metrics Dashboard
+  getSelectedRowIdsMetrics = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // 5️⃣ Update Selected Row IDs for Metrics Dashboard
+  updateSelectedRowIdsMetrics = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
   
 }
 
