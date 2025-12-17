@@ -285,28 +285,32 @@ class PeriodMaster(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    # FY & financial period mapping
-    ProcessedFYYear = Column(String(10), nullable=True)
-    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
-    PeriodType = Column(String(20), nullable=True)  # Q1/Q2/Q3/Q4/HY/9M/FY
+    # Financial year info
+    ProcessedFYYear = Column(String(10), nullable=True)              # FY2024
+    ProcessedFinancialYearPeriod = Column(
+        String(20), nullable=True)  # 2023-2024
+
+    # Q1/Q2/Q3/Q4/H1/H2/9M/FY
+    PeriodType = Column(String(20), nullable=False)
+
+    # Optional IRDAI marking
     LFormsMarking = Column(String(10), nullable=True)
 
-    # Unique normalized financial period range (ex: Apr 2022-Mar 2023)
-    # Increased from 50 to 255 to accommodate longer period descriptions
+    # Unique human-readable period
     ProcessedFinancialYearPeriodWithMonth = Column(
         String(255), nullable=False, unique=True
     )
 
-    # Original text extracted (before normalization)
+    # Original extracted text
     raw_text = Column(String(255), nullable=True)
 
-    # Actual start & end date
+    # Actual date range
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
 
     is_active = Column(Boolean, default=True)
 
-    # Relationship to monthly_period_master
+    # Relationship: One Quarter → Many Months
     monthly_mappings = relationship(
         "MonthlyPeriodMaster",
         back_populates="period_master_ref",
@@ -319,33 +323,45 @@ class MonthlyPeriodMaster(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    ProcessedPeriodShortDate = Column(Date, nullable=False)  # Start of month
-    ProcessedPeriodEndDate = Column(Date, nullable=False)    # End of month
+    # Month boundaries
+    ProcessedPeriodShortDate = Column(Date, nullable=False)  # 1st day
+    ProcessedPeriodEndDate = Column(Date, nullable=False)    # Last day
     ProcessedPreviousPeriod = Column(Date, nullable=True)
 
+    # FY info (denormalized for faster filters)
     ProcessedFYYear = Column(String(10), nullable=True)
     ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
     ProcessedFinancialYearPeriodWithMonth = Column(String(50), nullable=True)
 
     is_active = Column(Boolean, default=True)
 
-    # Link to PeriodMaster
-    period_id = Column(Integer, ForeignKey("period_master.id"), nullable=True)
+    # FK → Quarter (period_master.id where PeriodType = Q1–Q4)
+    period_id = Column(
+        Integer,
+        ForeignKey("period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
 
     period_master_ref = relationship(
-        "PeriodMaster", back_populates="monthly_mappings")
+        "PeriodMaster",
+        back_populates="monthly_mappings"
+    )
 
 
 class IRDAIData(Base):
-    __tablename__ = "irdai_data"
+    __tablename__ = "irdai_monthly_data"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
 
+    # Reporting month (usually month end date)
     report_month = Column(Date, nullable=False)
+
     insurer_name = Column(String(255), nullable=False)
     category = Column(String(255), nullable=False)
 
+    # --------------------
     # First Year Premium
+    # --------------------
     fyp_prev = Column(DECIMAL(18, 2))
     fyp_current = Column(DECIMAL(18, 2))
     fyp_growth = Column(DECIMAL(18, 2))
@@ -354,7 +370,9 @@ class IRDAIData(Base):
     fyp_growth_ytd = Column(DECIMAL(18, 2))
     fyp_market_share = Column(DECIMAL(18, 2))
 
-    # No. of Policies / Schemes
+    # --------------------
+    # No. of Policies
+    # --------------------
     pol_prev = Column(DECIMAL(18, 2))
     pol_current = Column(DECIMAL(18, 2))
     pol_growth = Column(DECIMAL(18, 2))
@@ -363,7 +381,9 @@ class IRDAIData(Base):
     pol_growth_ytd = Column(DECIMAL(18, 2))
     pol_market_share = Column(DECIMAL(18, 2))
 
-    # No. of Lives Covered under Group Schemes
+    # --------------------
+    # Lives Covered
+    # --------------------
     lives_prev = Column(DECIMAL(18, 2))
     lives_current = Column(DECIMAL(18, 2))
     lives_growth = Column(DECIMAL(18, 2))
@@ -372,7 +392,9 @@ class IRDAIData(Base):
     lives_growth_ytd = Column(DECIMAL(18, 2))
     lives_market_share = Column(DECIMAL(18, 2))
 
+    # --------------------
     # Sum Assured
+    # --------------------
     sa_prev = Column(DECIMAL(18, 2))
     sa_current = Column(DECIMAL(18, 2))
     sa_growth = Column(DECIMAL(18, 2))
@@ -380,6 +402,24 @@ class IRDAIData(Base):
     sa_ytd_current = Column(DECIMAL(18, 2))
     sa_growth_ytd = Column(DECIMAL(18, 2))
     sa_market_share = Column(DECIMAL(18, 2))
+
+    # --------------------
+    # Period Links
+    # --------------------
+    monthly_period_id = Column(
+        Integer,
+        ForeignKey("monthly_period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    quarter_period_id = Column(
+        Integer,
+        ForeignKey("period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    monthly_period_ref = relationship("MonthlyPeriodMaster")
+    quarter_period_ref = relationship("PeriodMaster")
 
 
 class Companies(Base):

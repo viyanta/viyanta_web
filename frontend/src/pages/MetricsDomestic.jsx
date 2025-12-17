@@ -7,8 +7,7 @@ import './EconomyDomestic.css';
 
 const MetricsDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
+  const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('Domestic Metrics');
   const [selectedInsurer, setSelectedInsurer] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');

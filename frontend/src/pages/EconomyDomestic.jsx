@@ -10,8 +10,7 @@ const EconomyDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationContext = useNavigation();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
+  const { user, isAdmin } = useAuth();
   const { 
     isNavItemActive, 
     activeNavItems, 
