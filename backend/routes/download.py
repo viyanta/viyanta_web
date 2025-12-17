@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from .database import get_file_by_id
+from .database import get_file_by_id, get_file_stats, get_all_files
 import os
 
 router = APIRouter()
@@ -141,4 +141,24 @@ async def download_parquet_file(file_id: str):
         raise HTTPException(
             status_code=500, detail=f"Download failed: {str(e)}")
 
-    pass
+
+@router.get("/stats")
+async def get_stats():
+    """Get file processing statistics"""
+    try:
+        stats = get_file_stats()
+        return {"success": True, "stats": stats}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch stats: {str(e)}")
+
+
+@router.get("/files")
+async def get_files():
+    """Get all files list"""
+    try:
+        files = get_all_files()
+        return {"success": True, "files": files}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch files: {str(e)}")
