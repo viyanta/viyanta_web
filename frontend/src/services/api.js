@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable or relative URL for production
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
 
 class ApiService {
@@ -36,7 +36,7 @@ class ApiService {
 
     if (!response.ok) {
       let msg = 'Folder upload failed';
-      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      try { const err = await response.json(); msg = err.detail || msg; } catch { }
       throw new Error(msg);
     }
 
@@ -53,7 +53,7 @@ class ApiService {
 
     if (!response.ok) {
       let msg = 'Failed to create ZIP';
-      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      try { const err = await response.json(); msg = err.detail || msg; } catch { }
       throw new Error(msg);
     }
 
@@ -63,7 +63,7 @@ class ApiService {
   // PDF Table Extraction Methods
   async extractBulkPDFs(files, extractMode = 'both') {
     const formData = new FormData();
-    
+
     files.forEach(file => {
       formData.append('files', file);
     });
@@ -105,7 +105,7 @@ class ApiService {
 
   async getJobStatus(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/status/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch job status');
     }
@@ -115,7 +115,7 @@ class ApiService {
 
   async getJobResults(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/results/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch job results');
     }
@@ -125,7 +125,7 @@ class ApiService {
 
   async downloadJobResults(jobId, format = 'json') {
     const response = await fetch(`${API_BASE_URL}/extraction/download/${jobId}?format=${format}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download results');
     }
@@ -135,7 +135,7 @@ class ApiService {
 
   async listJobFiles(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/files/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to list job files');
     }
@@ -145,7 +145,7 @@ class ApiService {
 
   async downloadSpecificFile(jobId, filename) {
     const response = await fetch(`${API_BASE_URL}/extraction/file/${jobId}/${filename}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download file');
     }
@@ -155,7 +155,7 @@ class ApiService {
 
   async listAllJobs() {
     const response = await fetch(`${API_BASE_URL}/extraction/jobs`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to list jobs');
     }
@@ -179,7 +179,7 @@ class ApiService {
 
   async downloadOriginalFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/original/${fileId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download file');
     }
@@ -189,7 +189,7 @@ class ApiService {
 
   async downloadParquetFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/parquet/${fileId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download parquet file');
     }
@@ -200,7 +200,7 @@ class ApiService {
   async previewFile(fileId, full = false) {
     const url = `${API_BASE_URL}/files/preview/${fileId}${full ? '?full=true' : ''}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error('Failed to preview file');
     }
@@ -211,7 +211,7 @@ class ApiService {
   async previewOriginalFile(fileId, full = false) {
     const url = `${API_BASE_URL}/files/preview/original/${fileId}${full ? '?full=true' : ''}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error('Failed to preview original file');
     }
@@ -221,7 +221,7 @@ class ApiService {
 
   async getDropdownData() {
     const response = await fetch(`${API_BASE_URL}/files/dropdown-data`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch dropdown data');
     }
@@ -230,7 +230,7 @@ class ApiService {
 
   async getS3Companies() {
     const response = await fetch(`${API_BASE_URL}/files/s3-companies`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch S3 companies');
     }
@@ -239,7 +239,7 @@ class ApiService {
 
   async getCompanyData(companyName) {
     const response = await fetch(`${API_BASE_URL}/files/company-data/${encodeURIComponent(companyName)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch company data');
     }
@@ -265,7 +265,7 @@ class ApiService {
 
   async getCompanyLforms(companyName) {
     const response = await fetch(`${API_BASE_URL}/files/company-lforms/${encodeURIComponent(companyName)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch company L-forms');
     }
@@ -275,7 +275,7 @@ class ApiService {
 
   async getCompaniesByLform(lform) {
     const response = await fetch(`${API_BASE_URL}/peers/companies-by-lform?lform=${encodeURIComponent(lform)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch companies by L-Form');
     }
@@ -300,7 +300,7 @@ class ApiService {
     return response.json();
   }
 
- 
+
 
   async saveUserExtractionHistory(userId, extractionData) {
     const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
@@ -338,7 +338,7 @@ class ApiService {
   // Updated extraction methods with user context
   async extractBulkPDFsWithUser(files, extractMode = 'both', userId = null) {
     const formData = new FormData();
-    
+
     files.forEach(file => {
       formData.append('files', file);
     });
@@ -402,6 +402,22 @@ class ApiService {
     }
   }
 
+  async getStats() {
+    const response = await fetch(`${API_BASE_URL}/files/stats`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+    return response.json();
+  }
+
+  async getFiles() {
+    const response = await fetch(`${API_BASE_URL}/files/files`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch files');
+    }
+    return response.json();
+  }
+
   getApiOrigin() {
     try {
       const url = new URL(API_BASE_URL);
@@ -434,7 +450,7 @@ class ApiService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('mode', mode);
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -445,9 +461,9 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     formData.append('user_id', userId);
-    
+
     // Use a default folder name if not provided
     if (!folderName) {
       folderName = `upload_${new Date().toISOString().split('T')[0]}`;
@@ -472,7 +488,7 @@ class ApiService {
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('mode', mode);
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -483,9 +499,9 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     formData.append('user_id', userId);
-    
+
     // Use a default folder name if not provided
     if (!folderName) {
       folderName = `upload_${new Date().toISOString().split('T')[0]}`;
@@ -508,7 +524,7 @@ class ApiService {
   // Mode 3: Folder upload for tables only (fast)
   async uploadFolderTables(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required for folder table upload');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -519,7 +535,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -541,7 +557,7 @@ class ApiService {
   // Mode 4: Folder upload for text only (ultra-fast)
   async uploadFolderText(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required for folder text upload');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -552,7 +568,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -572,7 +588,7 @@ class ApiService {
   }
 
   // === NEW USER-BASED FOLDER MANAGEMENT ===
-  
+
   async getUserFolders(userId = null) {
     // Get user from localStorage if not provided
     if (!userId) {
@@ -584,7 +600,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/user_folders/${userId}`, {
       method: 'GET',
       headers: {
@@ -599,7 +615,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getUserFolderFiles(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/user_folder_files/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'GET',
@@ -615,7 +631,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getUserJsonData(userId, folderName, filename) {
     const response = await fetch(`${API_BASE_URL}/user_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
       method: 'GET',
@@ -631,7 +647,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async deleteUserFolder(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/user_folder/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'DELETE',
@@ -664,7 +680,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getAllUsersFolderFiles(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/all_users_files/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'GET',
@@ -680,7 +696,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getAllUsersJsonData(userId, folderName, filename) {
     const response = await fetch(`${API_BASE_URL}/all_users_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
       method: 'GET',
@@ -698,11 +714,11 @@ class ApiService {
   }
 
   // === NEW S3 STRUCTURE METHODS (with Gemini verification) ===
-  
+
   // Upload folder with new S3 structure and Gemini verification
   async uploadFolderFilesNew(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -713,7 +729,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -817,8 +833,8 @@ class ApiService {
   }
 
   // === UPLOAD HISTORY METHODS ===
-  
- 
+
+
 
   // Save upload to history
   async saveToUploadHistory(uploadData, userId = null) {
@@ -832,7 +848,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/upload-history/${userId}`, {
       method: 'POST',
       headers: {
@@ -929,7 +945,7 @@ class ApiService {
         // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
-      
+
       // Handle specific error cases
       if (response.status === 404) {
         // Return empty array for 404 instead of throwing error
@@ -978,23 +994,23 @@ class ApiService {
   }
 
 
-// Update/Edit a company
-async updateCompany(companyId, updatedName) {
-  const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
-    method: 'PUT', // or 'PATCH' depending on your backend
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
-  });
+  // Update/Edit a company
+  async updateCompany(companyId, updatedName) {
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+      method: 'PUT', // or 'PATCH' depending on your backend
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   }
-
-  return response.json();
-}
 
 
   // === LEGACY METHODS (kept for compatibility) ===
@@ -1097,12 +1113,12 @@ async updateCompany(companyId, updatedName) {
     formData.append('pdf_name', pdfName);
     formData.append('split_filename', splitFilename);
     formData.append('user_id', userId);
-    
+
     const response = await fetch(`${API_BASE_URL}/pdf-splitter/extract-form`, {
       method: 'POST',
       body: formData
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Form extraction failed');
@@ -1115,7 +1131,7 @@ async updateCompany(companyId, updatedName) {
     const response = await fetch(
       `${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFilename)}/extraction`
     );
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to get extracted data');
@@ -1128,157 +1144,157 @@ async updateCompany(companyId, updatedName) {
   // ECONOMY APIs
   // =====================
   // 1️⃣ Get Premium Types
- getPremiumTypes = async (dataType) => {
-  const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
-  return response.data;
-};
+  getPremiumTypes = async (dataType) => {
+    const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
+    return response.data;
+  };
 
-// 2️⃣ Get Categories
- getCategories = async (dataType, premiumType) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/economy/categories?data_type=${dataType}&premium=${premiumType}`
-  );
-  return response.data;
-};
-
-// 3️⃣ Get Descriptions
- getDescriptions = async (dataType, premiumType, category) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/economy/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
-  );
-  return response.data;
-};
-
-// 3.5️⃣ Get Unique Values for Form Fields
- getUniqueValues = async (dataType, field) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/economy/unique-values?data_type=${dataType}&field=${field}`
-  );
-  return response.data;
-};
-
-// 4️⃣ Get Economy Data
- getEconomyData = async (dataType, premiumType, category) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
-  );
-  return response.data;
-};
-
-
-// 5️⃣ Create New Economy Data
-createEconomyData = async (payload) => {
-  const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
-  return response.data;
-};
-
-// 6️⃣ Update Existing Record by ID
-updateEconomyData = async (id, payload) => {
-  const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
-  return response.data;
-};
-
-// 7️⃣ Delete Record by ID
-deleteEconomyData = async (id) => {
-  const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
-  return response.data;
-};
-
-// 8️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
-getDashboardData = async (descriptions) => {
-  const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`, 
-    { descriptions: descriptions }, 
-    {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-  return response.data;
-};
-
-// 9️⃣ Get Selected Descriptions (Global for all users)
-getSelectedDescriptions = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
-    return response.data.descriptions || [];
-  } catch (error) {
-    console.error('Error fetching selected descriptions:', error);
-    return [];
-  }
-};
-
-// 🔟 Update Selected Descriptions (Save globally - admin only)
-updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
-  const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
-    { 
-      descriptions: descriptions,
-      removed_description: removedDescription
-    }, 
-    {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-  return response.data;
-};
-
-// 1️⃣1️⃣ Get Selected Row IDs for Dashboard
-getSelectedRowIds = async (dataType, description) => {
-  try {
+  // 2️⃣ Get Categories
+  getCategories = async (dataType, premiumType) => {
     const response = await axios.get(
-      `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      `${API_BASE_URL}/economy/categories?data_type=${dataType}&premium=${premiumType}`
     );
-    return response.data.row_ids || [];
-  } catch (error) {
-    console.error('Error fetching selected row IDs:', error);
-    return [];
-  }
-};
+    return response.data;
+  };
 
-// 1️⃣2️⃣ Update Selected Row IDs for Dashboard
-updateSelectedRowIds = async (dataType, description, rowIds) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/economy/update-selected-row-ids`,
-    {
-      data_type: dataType,
-      description: description,
-      row_ids: rowIds
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json'
+  // 3️⃣ Get Descriptions
+  getDescriptions = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+  // 3.5️⃣ Get Unique Values for Form Fields
+  getUniqueValues = async (dataType, field) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/unique-values?data_type=${dataType}&field=${field}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Economy Data
+  getEconomyData = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+
+  // 5️⃣ Create New Economy Data
+  createEconomyData = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
+    return response.data;
+  };
+
+  // 6️⃣ Update Existing Record by ID
+  updateEconomyData = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 7️⃣ Delete Record by ID
+  deleteEconomyData = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
+    return response.data;
+  };
+
+  // 8️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+  getDashboardData = async (descriptions) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`,
+      { descriptions: descriptions },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
+    );
+    return response.data;
+  };
+
+  // 9️⃣ Get Selected Descriptions (Global for all users)
+  getSelectedDescriptions = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
     }
-  );
-  return response.data;
-};
+  };
 
-// 1️⃣3️⃣ Get Chart Configurations
-getChartConfigs = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/economy/chart-configs`);
-    return response.data || {};
-  } catch (error) {
-    console.error('Error fetching chart configs:', error);
-    return {};
-  }
-};
-
-// 1️⃣4️⃣ Save Chart Configurations
-saveChartConfigs = async (configs) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/economy/save-chart-configs`,
-    { configs },
-    {
-      headers: {
-        'Content-Type': 'application/json'
+  // 🔟 Update Selected Descriptions (Save globally - admin only)
+  updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`,
+      {
+        descriptions: descriptions,
+        removed_description: removedDescription
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
+    );
+    return response.data;
+  };
+
+  // 1️⃣1️⃣ Get Selected Row IDs for Dashboard
+  getSelectedRowIds = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
     }
-  );
-  return response.data;
-};
+  };
+
+  // 1️⃣2️⃣ Update Selected Row IDs for Dashboard
+  updateSelectedRowIds = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 1️⃣3️⃣ Get Chart Configurations
+  getChartConfigs = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/chart-configs`);
+      return response.data || {};
+    } catch (error) {
+      console.error('Error fetching chart configs:', error);
+      return {};
+    }
+  };
+
+  // 1️⃣4️⃣ Save Chart Configurations
+  saveChartConfigs = async (configs) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/save-chart-configs`,
+      { configs },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
 
 
 
@@ -1290,36 +1306,36 @@ saveChartConfigs = async (configs) => {
     const response = await axios.get(`${API_BASE_URL}/industry/premium-types?data_type=${dataType}`);
     return response.data;
   };
-  
+
   // 2️⃣ Get Categories
-   getCategoriesIndustry = async (dataType, premiumType) => {
+  getCategoriesIndustry = async (dataType, premiumType) => {
     const response = await axios.get(
       `${API_BASE_URL}/industry/categories?data_type=${dataType}&premium=${premiumType}`
     );
     return response.data;
   };
-  
+
   // 3️⃣ Get Industry Data
-   getIndustryDataIndustry = async (dataType, premiumType, category) => {
+  getIndustryDataIndustry = async (dataType, premiumType, category) => {
     const response = await axios.get(
       `${API_BASE_URL}/industry/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
     );
     return response.data;
   };
-  
-  
+
+
   // 4️⃣ Create New Industry Data
   createIndustryDataIndustry = async (payload) => {
     const response = await axios.post(`${API_BASE_URL}/industry/add`, payload);
     return response.data;
   };
-  
+
   // 5️⃣ Update Existing Record by ID
   updateIndustryDataIndustry = async (id, payload) => {
     const response = await axios.patch(`${API_BASE_URL}/industry/update/${id}`, payload);
     return response.data;
   };
-  
+
   // 6️⃣ Delete Record by ID
   deleteIndustryDataIndustry = async (id) => {
     const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
@@ -1393,11 +1409,11 @@ saveChartConfigs = async (configs) => {
   // Update Selected Descriptions for Industry Dashboard (separate from Economy)
   updateSelectedDescriptionsIndustry = async (descriptions, removedDescription = null) => {
     const response = await axios.post(
-      `${API_BASE_URL}/industry/update-selected-descriptions`, 
-      { 
+      `${API_BASE_URL}/industry/update-selected-descriptions`,
+      {
         descriptions: descriptions,
         removed_description: removedDescription
-      }, 
+      },
       {
         headers: {
           'Content-Type': 'application/json'
@@ -1409,8 +1425,8 @@ saveChartConfigs = async (configs) => {
 
   // 7️⃣ Get Industry Dashboard Data
   getIndustryDashboardData = async (descriptions) => {
-    const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`, 
-      { descriptions: descriptions }, 
+    const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`,
+      { descriptions: descriptions },
       {
         headers: {
           'Content-Type': 'application/json'
@@ -1419,7 +1435,7 @@ saveChartConfigs = async (configs) => {
     );
     return response.data;
   };
-  
+
 
 
 
@@ -1433,7 +1449,7 @@ saveChartConfigs = async (configs) => {
     return res.data;
   };
 
-  
+
 
   // 2️⃣ Period Dropdown
   getPeriodsForLForms = async (company, form_no) => {
@@ -1469,12 +1485,12 @@ saveChartConfigs = async (configs) => {
   };
 
 
-  
+
   // =====================
   // PERIOD SELECTION APIs
   // =====================
-   // 1️⃣ Get all Financial Years
-   getFinancialYears = async () => {
+  // 1️⃣ Get all Financial Years
+  getFinancialYears = async () => {
     const response = await axios.get(`${API_BASE_URL}/periods/years`);
     return response.data;
   };
@@ -1573,7 +1589,8 @@ saveChartConfigs = async (configs) => {
   };
 
   // 5️⃣ Get Full Details for the Selected Filters
-  getMetricDetailsforMetrics = async (company, premiumType, category, description) => {
+  // 5️⃣ Get Full Details for the Selected Filters
+  getMetricDetails = async (company, premiumType, category, description) => {
     const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
       params: {
         company,
@@ -1659,9 +1676,9 @@ saveChartConfigs = async (configs) => {
       if (!descriptions || !Array.isArray(descriptions) || descriptions.length === 0) {
         return [];
       }
-      
-      const response = await axios.post(`${API_BASE_URL}/company-metrics/dashboard-data`, 
-        { descriptions: descriptions }, 
+
+      const response = await axios.post(`${API_BASE_URL}/company-metrics/dashboard-data`,
+        { descriptions: descriptions },
         {
           headers: {
             'Content-Type': 'application/json'
@@ -1702,11 +1719,11 @@ saveChartConfigs = async (configs) => {
 
   // 3️⃣ Update Selected Descriptions for Metrics Dashboard (uses same table as Economy)
   updateSelectedDescriptionsMetrics = async (descriptions, removedDescription = null) => {
-    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`, 
-      { 
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`,
+      {
         descriptions: descriptions,
         removed_description: removedDescription
-      }, 
+      },
       {
         headers: {
           'Content-Type': 'application/json'
@@ -1746,7 +1763,7 @@ saveChartConfigs = async (configs) => {
     );
     return response.data;
   };
-  
+
 }
 
 export default new ApiService();
