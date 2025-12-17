@@ -50,6 +50,8 @@ import IrdaiMonthlyData from './pages/IrdaiMonthlyData.jsx'
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
 
+import AdminPanel from './components/AdminPanel';
+
 // Component to prevent duplicate windows per user (email-based)
 // function DuplicateWindowPreventer() {
 //   const { user, loading } = useAuth();

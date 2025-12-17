@@ -5,6 +5,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
 
 class ApiService {
+
+
+  // ================================
+  // AUTH
+  // ================================
+  login = async (payload) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      payload
+    );
+    return response.data;
+  };
+
+  
   // Legacy file upload methods
   async uploadFile(file) {
     const formData = new FormData();
