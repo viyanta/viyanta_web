@@ -16,6 +16,8 @@ from routes.company_metrics import router as company_metrics_router
 from routes.lforms import router as lform_router
 from routes.menu import router as menu_router
 from routes.user import router as user_router
+from routes.auth import router as auth_router
+from routes.admin import router as admin_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
@@ -128,6 +130,8 @@ app.include_router(company_metrics_router,
 app.include_router(lform_router, prefix="/api/lforms", tags=["Lforms"])
 app.include_router(menu_router, prefix="/api/menu", tags=["Menu"])
 app.include_router(user_router, prefix="/api/user", tags=["User"])
+app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 
 # Log registered routes for debugging
 print("✅ Economy router registered with prefix: /api/economy")

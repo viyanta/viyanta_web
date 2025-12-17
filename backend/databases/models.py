@@ -622,7 +622,7 @@ class UserMaster(Base):
     UserType = Column(String(100))
     UserDetail = Column(String(255))
 
-    UserID = Column(BigInteger, unique=True, index=True)
+    UserID = Column(String(100), unique=True, index=True)
     UserLoginEmailName = Column(String(255), unique=True, index=True)
     UserPassword = Column(String(255))
 

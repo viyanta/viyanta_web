@@ -13,12 +13,16 @@ PRODUCTS = {
 def can_user_access_product(user, product_key: str) -> bool:
     """
     Central access control for product-based menus
+    Handles both uppercase and lowercase product keys for flexibility
     """
     # Master admin override
     if getattr(user, "IsMasterAdmin", False):
         return True
 
-    flag_name = PRODUCTS.get(product_key)
+    # Normalize product key to uppercase to handle case-insensitive input
+    normalized_key = product_key.upper()
+    
+    flag_name = PRODUCTS.get(normalized_key)
     if not flag_name:
         return False
 

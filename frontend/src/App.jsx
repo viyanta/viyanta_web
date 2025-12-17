@@ -37,6 +37,8 @@ import MetricsDomestic from './pages/MetricsDomestic.jsx'
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
 
+import AdminPanel from './components/AdminPanel';
+
 // Component to prevent duplicate windows per user (email-based)
 // function DuplicateWindowPreventer() {
 //   const { user, loading } = useAuth();
@@ -432,9 +434,14 @@ function App() {
                         <Route path="/smart-extraction" element={
                           <AdminRoute>
                             <SmartPDFExtraction onMenuClick={openSidebar} />
+            
                           </AdminRoute>
                         } />
-                        {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
+                        <Route path="/admin" element={
+                          <AdminRoute>
+                            <AdminPanel onMenuClick={openSidebar} />
+                          </AdminRoute>
+                        } />
                         <Route path="/insurance-dashboard" element={
                           <InsuranceDashboard 
                             onMenuClick={openSidebar} 
