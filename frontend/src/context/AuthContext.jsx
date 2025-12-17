@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         };
         setUser(userData);
         console.log('Firebase user authenticated:', userData);
-        
+
         // Check if user has previously accepted the agreement
         const hasAcceptedAgreement = localStorage.getItem(`agreement_accepted_${authUser.uid}`);
         setAgreementAccepted(hasAcceptedAgreement === 'true');
