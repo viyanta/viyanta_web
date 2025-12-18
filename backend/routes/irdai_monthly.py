@@ -187,7 +187,13 @@ def get_premium_type_summary(
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
           AND insurer_name NOT IN ('Private Total', 'Grand Total')
-          AND category <> insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
 
         GROUP BY insurer_type, category
         ORDER BY insurer_type, category
@@ -202,6 +208,7 @@ def get_premium_type_summary(
 # ======================================================
 # 5️⃣ METRIC-WISE PREMIUM BREAKUP
 # ======================================================
+
 @router.get("/dashboard/metric-wise-premium")
 def get_metric_wise_premium_breakup(
     start_date: str,
@@ -213,7 +220,13 @@ def get_metric_wise_premium_breakup(
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
           AND insurer_name NOT IN ('Private Total', 'Grand Total')
-          AND category <> insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
         GROUP BY category
 
         UNION ALL
@@ -222,7 +235,13 @@ def get_metric_wise_premium_breakup(
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
           AND insurer_name NOT IN ('Private Total', 'Grand Total')
-          AND category <> insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
         GROUP BY category
 
         UNION ALL
@@ -231,7 +250,13 @@ def get_metric_wise_premium_breakup(
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
           AND insurer_name NOT IN ('Private Total', 'Grand Total')
-          AND category <> insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
         GROUP BY category
 
         UNION ALL
@@ -240,13 +265,98 @@ def get_metric_wise_premium_breakup(
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
           AND insurer_name NOT IN ('Private Total', 'Grand Total')
-          AND category <> insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
         GROUP BY category
 
         ORDER BY metric, premium_type
     """)
 
     return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# ======================================================
+# COMPANYWISE Page
+# 6️⃣ INSURER LIST
+@router.get("/company/insurers")
+def get_company_list(db: Session = Depends(get_db)):
+    sql = text("""
+        SELECT DISTINCT insurer_name
+        FROM irdai_monthly_data
+        WHERE insurer_name NOT IN ('Private Total', 'Grand Total')
+        ORDER BY insurer_name
+    """)
+    rows = db.execute(sql).fetchall()
+    return [{"label": r[0], "value": r[0]} for r in rows]
+
+
+# 7️⃣ COMPANY TOTALS
+@router.get("/company/totals")
+def get_company_totals(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category = insurer_name
+    """)
+
+    r = db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().first()
+
+    return {
+        "FYP": r["fyp"] or 0,
+        "SA": r["sa"] or 0,
+        "NOP": r["nop"] or 0,
+        "NOL": r["nol"] or 0
+    }
+
+
+# 8️⃣ COMPANY PREMIUM TYPE BREAKUP
+@router.get("/company/premium-type")
+def get_company_premium_type_breakup(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          category AS premium_type,
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category <> insurer_name
+        GROUP BY category
+        ORDER BY category
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
         "start_date": start_date,
         "end_date": end_date
     }).mappings().all()
