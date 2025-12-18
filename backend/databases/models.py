@@ -355,6 +355,7 @@ class IRDAIData(Base):
 
     # Reporting month (usually month end date)
     report_month = Column(Date, nullable=False)
+    month_year = Column(String(10), nullable=True)
 
     insurer_name = Column(String(255), nullable=False)
     category = Column(String(255), nullable=False)
