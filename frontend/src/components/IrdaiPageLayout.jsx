@@ -13,11 +13,11 @@ const IrdaiPageLayout = ({ activeTab, children }) => {
     const tabRoutes = useMemo(() => ({
         'Dashboard': '/irdai-monthly-dashboard',
         'Companywise': '/irdai-companywise',
-        'Premium wise': '/irdai-premium-wise',
-        'Market Share': '/irdai-market-share',
+        'Premiumwise': '/irdai-premium-wise',
+        'Marketshare': '/irdai-market-share',
         'Growth': '/irdai-growth',
         'Monthwise': '/irdai-monthwise',
-        'Pvt Vs Public': '/irdai-pvt-vs-public',
+        'Pvt Vs. Public': '/irdai-pvt-vs-public',
         'Analytics': '/irdai-analytics',
         'Documents': '/irdai-documents',
         'Peers': '/irdai-peers'

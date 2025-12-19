@@ -10,8 +10,7 @@ import StandardPageLayout from '../components/StandardPageLayout';
 function Metrics({ onMenuClick }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
+  const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [viewMode, setViewMode] = useState('visuals'); // 'data' or 'visuals'
   const [dashboardData, setDashboardData] = useState([]);

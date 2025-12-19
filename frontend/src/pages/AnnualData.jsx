@@ -10,12 +10,12 @@ function AnnualData({ onMenuClick }) {
   const [selectedYear, setSelectedYear] = useState('');
 
   const allTabs = [
-    'Dashboard', 'Background', 'L Forms', 'Metrics', 
+    'Dashboard', 'Background', 'L Forms', 'Metrics',
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
     'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
-    'Irdai Monthly Data'
+    'Irdai Monthly Data', 'Irdai Monthly'
   ];
 
   // Filter to show only active tabs
@@ -27,7 +27,7 @@ function AnnualData({ onMenuClick }) {
     if (!isNavItemActive(tab)) {
       return;
     }
-    
+
     if (tab === 'Dashboard') {
       navigate('/dashboard');
     } else if (tab === 'Background') {
@@ -68,10 +68,10 @@ function AnnualData({ onMenuClick }) {
       navigate('/economy-domestic');
     } else if (tab === 'International') {
       navigate('/economy-international');
-    } else if (tab === 'Irdai Monthly Data') {
+    } else if (tab === 'Irdai Monthly Data' || tab === 'Irdai Monthly') {
       // Navigate to IRDAI Monthly Data page if route exists
       console.log('Irdai Monthly Data clicked');
-      // navigate('/irdai-monthly-data'); // Uncomment when route is available
+      navigate('/irdai-monthly-data');
     } else {
       console.log(`Clicked ${tab} tab`);
     }
@@ -88,21 +88,21 @@ function AnnualData({ onMenuClick }) {
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Annual Data Header */}
-      <div style={{ 
+      <div style={{
         marginBottom: 'clamp(1.5rem, 4vw, 2rem)',
         padding: '0 clamp(10px, 3vw, 20px)'
       }}>
-        <div style={{ 
+        <div style={{
           marginBottom: 'clamp(15px, 3vw, 20px)'
         }}>
           {/* Annual Data Title */}
-          <div style={{ 
+          <div style={{
             marginBottom: 'clamp(15px, 3vw, 20px)'
           }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 'clamp(0.5rem, 2vw, 1rem)', 
+              gap: 'clamp(0.5rem, 2vw, 1rem)',
               marginBottom: 'clamp(0.5rem, 2vw, 1rem)',
               flexWrap: 'wrap'
             }}>
@@ -415,7 +415,7 @@ function AnnualData({ onMenuClick }) {
               }}>
                 Annual Data Summary
               </h3>
-              
+
               {selectedCompany && selectedYear ? (
                 <div style={{
                   display: 'grid',

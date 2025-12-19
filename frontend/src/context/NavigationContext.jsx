@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import ApiService from '../services/api';
+import { useAuth } from './AuthContext';
 
 const NavigationContext = createContext();
 
@@ -14,6 +15,7 @@ export const useNavigation = () => {
 export const NavigationProvider = ({ children }) => {
   const [activeNavItems, setActiveNavItems] = useState(['Dashboard']); // Default active items
   const [selectedSidebarItem, setSelectedSidebarItem] = useState(null);
+  const { userId, selectedProduct } = useAuth();
 
   // Load selectedDescriptions from backend API (global for all users)
   const [selectedDescriptions, setSelectedDescriptionsState] = useState([]);
@@ -75,8 +77,10 @@ export const NavigationProvider = ({ children }) => {
   const getActiveItemsForSidebarSelection = (sidebarItemId) => {
     switch (sidebarItemId) {
       case 1000: // Company Information
+      case 101:
         return ['Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News'];
       case 1001: // Industry Metrics
+      case 301:
         return ['Dashboard', 'Domestic Metrics', 'International Metrics', 'Documents', 'News'];
       case 1002: // Industry Aggregates
         return ['L Forms', 'Annual Data', 'Irdai Monthly Data'];
@@ -87,30 +91,53 @@ export const NavigationProvider = ({ children }) => {
       case 1005: // Screener
         return ['Screener Inputs', 'Screener Output Sheets'];
       case 1006: // IRDAI Monthly Data
+      case 201:
         return [
           'Dashboard',
           'Companywise',
-          'Premium wise',
-          'Market Share',
+          'Premiumwise',
+          'Marketshare',
           'Growth',
           'Monthwise',
-          'Pvt Vs Public',
+          'Pvt Vs. Public',
           'Analytics',
           'Documents',
           'Peers'
         ];
       case 1007: // Economy
+      case 801:
         return ['Dashboard', 'Domestic', 'International'];
       default:
         return ['Dashboard'];
     }
   };
 
-  const handleSidebarItemClick = (itemId, itemName) => {
+  const [activeSubMenuData, setActiveSubMenuData] = useState([]); // Store full sub-menu feature data
+
+  const handleSidebarItemClick = async (itemId, itemName) => {
     setSelectedSidebarItem(itemId);
+
+    // Attempt to fetch dynamic sub-menus from API
+    if (userId && selectedProduct) {
+      try {
+        const data = await ApiService.getSubMenus(itemId, selectedProduct, userId);
+        if (data && data.submenus && Array.isArray(data.submenus)) {
+          const apiNavItems = data.submenus.map(sm => sm.SubMenuName);
+          setActiveNavItems(apiNavItems);
+          setActiveSubMenuData(data.submenus); // Store full data with features
+          console.log(`Sidebar item ${itemName} selected. Active nav items (API):`, apiNavItems);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to fetch dynamic sub-menus, falling back to static config:', error);
+      }
+    }
+
+    // Fallback to static config
     const newActiveItems = getActiveItemsForSidebarSelection(itemId);
     setActiveNavItems(newActiveItems);
-    console.log(`Sidebar item ${itemName} selected. Active nav items:`, newActiveItems);
+    setActiveSubMenuData([]); // Clear dynamic features on fallback
+    console.log(`Sidebar item ${itemName} selected. Active nav items (Static):`, newActiveItems);
   };
 
   const isNavItemActive = (navItemName) => {
@@ -124,7 +151,8 @@ export const NavigationProvider = ({ children }) => {
     isNavItemActive,
     setActiveNavItems,
     selectedDescriptions,
-    setSelectedDescriptions
+    setSelectedDescriptions,
+    activeSubMenuData // features for the current submenus
   };
 
   return (

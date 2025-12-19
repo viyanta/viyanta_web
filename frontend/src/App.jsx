@@ -431,6 +431,11 @@ function App() {
                       >
                         <Routes>
                           <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
+                          <Route path="/admin" element={
+                            <AdminRoute>
+                              <AdminPanel />
+                            </AdminRoute>
+                          } />
                           <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
                           <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
                           <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
@@ -444,11 +449,7 @@ function App() {
                           <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
                           <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
                           <Route path="/subscription" element={<Subscription onMenuClick={openSidebar} />} />
-                          <Route path="/smart-extraction" element={
-                            <AdminRoute>
-                              <SmartPDFExtraction onMenuClick={openSidebar} />
-                            </AdminRoute>
-                          } />
+                          <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
                           {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
                           <Route path="/insurance-dashboard" element={
                             <InsuranceDashboard

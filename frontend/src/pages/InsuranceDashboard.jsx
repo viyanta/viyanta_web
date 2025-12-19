@@ -463,7 +463,8 @@ function InsuranceDashboard({ onMenuClick }) {
   const allTabs = [
     'Dashboard', 'Background', 'L Forms', 'Metrics',
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
-    'Domestic', 'International'
+    'Domestic', 'International',
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
   ];
 
   // Filter to show only active tabs

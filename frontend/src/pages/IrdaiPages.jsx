@@ -26,13 +26,13 @@ export const IrdaiCompanywisePage = () => (
 );
 
 export const IrdaiPremiumWisePage = () => (
-    <IrdaiPageLayout activeTab="Premium wise">
+    <IrdaiPageLayout activeTab="Premiumwise">
         <IrdaiPremiumWise />
     </IrdaiPageLayout>
 );
 
 export const IrdaiMarketSharePage = () => (
-    <IrdaiPageLayout activeTab="Market Share">
+    <IrdaiPageLayout activeTab="Marketshare">
         <IrdaiMarketShare />
     </IrdaiPageLayout>
 );
@@ -50,7 +50,7 @@ export const IrdaiMonthwisePage = () => (
 );
 
 export const IrdaiPvtVsPublicPage = () => (
-    <IrdaiPageLayout activeTab="Pvt Vs Public">
+    <IrdaiPageLayout activeTab="Pvt Vs. Public">
         <IrdaiPvtVsPublic />
     </IrdaiPageLayout>
 );

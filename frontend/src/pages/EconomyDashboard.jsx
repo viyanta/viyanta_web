@@ -11,8 +11,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationContext = useNavigation();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
+  const { user, isAdmin } = useAuth();
   const {
     isNavItemActive,
     activeNavItems,
@@ -37,6 +36,7 @@ const EconomyDashboard = ({ onMenuClick }) => {
     'Dashboard', 'Background', 'L Forms', 'Metrics',
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Domestic News', 'International News',
     'Irdai Monthly Data'
   ];
 
@@ -47,13 +47,13 @@ const EconomyDashboard = ({ onMenuClick }) => {
   useEffect(() => {
     const path = location.pathname;
     if (path.includes('/economy-domestic')) {
-      setActiveTab('Domestic');
+      setActiveTab(activeNavItems.includes('Domestic News') ? 'Domestic News' : 'Domestic');
     } else if (path.includes('/economy-international')) {
-      setActiveTab('International');
+      setActiveTab(activeNavItems.includes('International News') ? 'International News' : 'International');
     } else {
       setActiveTab('Dashboard');
     }
-  }, [location.pathname]);
+  }, [location.pathname, activeNavItems]);
 
   // Handle window resize for responsive design
   useEffect(() => {
@@ -390,11 +390,11 @@ const EconomyDashboard = ({ onMenuClick }) => {
         setActiveTab('Dashboard');
         navigate('/economy-dashboard');
       }
-    } else if (tab === 'Domestic') {
-      setActiveTab('Domestic');
+    } else if (tab === 'Domestic' || tab === 'Domestic News') {
+      setActiveTab(tab);
       navigate('/economy-domestic');
-    } else if (tab === 'International') {
-      setActiveTab('International');
+    } else if (tab === 'International' || tab === 'International News') {
+      setActiveTab(tab);
       navigate('/economy-international');
     } else if (tab === 'Background') {
       navigate('/insurance-dashboard?tab=Background');
@@ -413,9 +413,9 @@ const EconomyDashboard = ({ onMenuClick }) => {
     } else if (tab === 'News') {
       navigate('/news');
     } else if (tab === 'Domestic Metrics') {
-      navigate('/industry-metrics-domestic');
+      navigate('/economy-domestic');
     } else if (tab === 'International Metrics') {
-      navigate('/industry-metrics-international');
+      navigate('/economy-international');
     } else {
       console.log(`Clicked ${tab} tab`);
     }

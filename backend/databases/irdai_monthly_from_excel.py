@@ -3,14 +3,14 @@ import mysql.connector
 import math
 
 # ---- CONFIG ----
-excel_path = "FYP Sep 2023.xlsx"
-sheet_name = "as at Sep 2023"  # The sheet with full data
+excel_path = "FYP Sep 2025.xlsx"
+sheet_name = "as at 30th Sep 2025"  # The sheet with full data
 report_month = "2023-09-30"  # September 2023 data
 
 db_config = {
     "host": "localhost",
     "user": "root",
-    "password": "",
+    "password": "StrongPassw0rd@123!",
     "database": "viyanta_web"
 }
 

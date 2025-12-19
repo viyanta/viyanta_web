@@ -7,8 +7,7 @@ import './EconomyDomestic.css';
 
 const MetricsDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
+  const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('Domestic Metrics');
   const [selectedInsurer, setSelectedInsurer] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -16,7 +15,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   const [selectedDescription, setSelectedDescription] = useState('');
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  
+
   // API data states
   const [insurers, setInsurers] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -28,7 +27,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [selectedDescriptions, setSelectedDescriptions] = useState([]); // For dashboard selection
   const [selectedRowIds, setSelectedRowIds] = useState(new Set()); // Track which row IDs are selected for dashboard
-  
+
   // CRUD states
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -47,7 +46,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
     ReportedValue: '',
     IsActive: true
   });
-  
+
   // Economy-style modal states
   const [uniqueValues, setUniqueValues] = useState({
     ProcessedPeriodType: [],
@@ -71,7 +70,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   const [selectedPremiumTypeOption, setSelectedPremiumTypeOption] = useState('');
   const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
   const [modalCategories, setModalCategories] = useState([]);
-  
+
   // Refs to prevent duplicate API calls
   const fetchingInsurersRef = useRef(false);
   const fetchingCategoriesRef = useRef(false);
@@ -90,7 +89,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Fetch companies (insurers) on component mount and auto-select (or use stored selection from Dashboard)
   useEffect(() => {
     if (fetchingInsurersRef.current) return;
-    
+
     const fetchInsurers = async () => {
       fetchingInsurersRef.current = true;
       setLoading(true);
@@ -101,7 +100,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         console.log('✅ Companies (Insurers) received:', companies);
         const companiesList = companies || [];
         setInsurers(companiesList);
-        
+
         // Prefer stored selection from Dashboard, else keep existing, else first
         const stored = localStorage.getItem('selectedInsurer');
         const fallback = companiesList.length > 0 ? companiesList[0] : '';
@@ -132,7 +131,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Category Long Name = Premium Type
   useEffect(() => {
     if (fetchingCategoriesRef.current) return;
-    
+
     const fetchCategories = async () => {
       if (!selectedInsurer) {
         setCategories([]);
@@ -153,7 +152,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         const premiumTypes = await ApiService.getCompanyPremiumTypesforMetrics(selectedInsurer);
         console.log('✅ Premium types (Category Long Name) received:', premiumTypes);
         setCategories(premiumTypes || []);
-        
+
         // Reset dependent dropdowns
         setSelectedCategory('');
         setSelectedSubCategory('');
@@ -177,7 +176,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Sub Category Long Name = Category (CategoryLongName)
   useEffect(() => {
     if (fetchingSubCategoriesRef.current) return;
-    
+
     const fetchSubCategories = async () => {
       if (!selectedInsurer || !selectedCategory) {
         setSubCategories([]);
@@ -196,7 +195,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         const categoriesData = await ApiService.getCompanyCategoriesforMetrics(selectedInsurer, selectedCategory);
         console.log('✅ Sub categories (Categories) received:', categoriesData);
         setSubCategories(categoriesData || []);
-        
+
         // Reset dependent dropdowns
         setSelectedSubCategory('');
         setSelectedDescription('');
@@ -217,7 +216,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Fetch descriptions when category (Premium Type) and sub category (Category) are selected
   useEffect(() => {
     if (fetchingDescriptionsRef.current) return;
-    
+
     const fetchDescriptions = async () => {
       if (!selectedInsurer || !selectedCategory || !selectedSubCategory) {
         setDescriptions([]);
@@ -233,13 +232,13 @@ const MetricsDomestic = ({ onMenuClick }) => {
         console.log(`🔵 Fetching descriptions for Premium Type: ${selectedCategory}, Category: ${selectedSubCategory}`);
         // Get descriptions for the selected premium type and category
         const descriptionsData = await ApiService.getCompanyDescriptionsforMetrics(
-          selectedInsurer, 
+          selectedInsurer,
           selectedCategory, // Premium Type
           selectedSubCategory // Category (CategoryLongName)
         );
         console.log('✅ Descriptions received:', descriptionsData);
         setDescriptions(descriptionsData || []);
-        
+
         // Reset description selection
         setSelectedDescription('');
         setMetricData(null);
@@ -259,7 +258,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Fetch metric details when all selections are made
   useEffect(() => {
     if (fetchingDataRef.current) return;
-    
+
     const fetchMetricDetails = async () => {
       if (!selectedInsurer || !selectedCategory || !selectedSubCategory || !selectedDescription) {
         setMetricData(null);
@@ -279,20 +278,20 @@ const MetricsDomestic = ({ onMenuClick }) => {
           selectedDescription
         );
         console.log('✅ Metric details received:', data);
-        
+
         // Filter data based on admin status:
         // - Admin: Show all records (active and inactive)
         // - Non-admin: Only show active records (IsActive === 1 or IsActive === true)
         if (data && data.data && Array.isArray(data.data)) {
           let filteredData = [...data.data];
-          
+
           if (!isAdmin) {
             filteredData = filteredData.filter(row => row.IsActive === 1 || row.IsActive === true);
             console.log('🔒 Non-admin user: Filtered to active records only. Count:', filteredData.length);
           } else {
             console.log('👑 Admin user: Showing all records (active and inactive). Count:', filteredData.length);
           }
-          
+
           setMetricData({
             ...data,
             data: filteredData,
@@ -336,7 +335,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Create descriptions with context from metricData
   const descriptionsWithContext = useMemo(() => {
     if (!metricData || !metricData.data || metricData.data.length === 0) return [];
-    
+
     const descriptionMap = new Map();
     metricData.data.forEach(item => {
       const description = item.Description || '';
@@ -350,7 +349,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         }
       }
     });
-    
+
     return Array.from(descriptionMap.values());
   }, [metricData]);
 
@@ -363,7 +362,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
     try {
       // Group by ProcessedPeriodType
       const groupedByPeriodType = {};
-      
+
       metricData.data.forEach(item => {
         if (!item) return;
         const periodType = item.ProcessedPeriodType || 'Other';
@@ -375,28 +374,28 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
       // Transform each group into pivot format
       const pivotData = {};
-      
+
       Object.keys(groupedByPeriodType).forEach(periodType => {
         const groupData = groupedByPeriodType[periodType];
         if (!groupData || groupData.length === 0) return;
-        
+
         // Get company, premium type, and category from first item (should be same for all items in a periodType group)
         const firstItem = groupData[0];
         const companyName = firstItem?.CompanyInsurerShortName || '';
         const premiumTypeName = firstItem?.PremiumTypeLongName || selectedCategory || '';
         const categoryName = firstItem?.CategoryLongName || selectedSubCategory || '';
-        
+
         // Get all unique periods (columns) - sorted
         const periods = [...new Set(groupData.map(item => item?.ProcessedFYYear || '').filter(p => p))].sort();
-        
+
         // Get all unique descriptions (rows)
         const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))];
-        
+
         // Create pivot structure: { description: { period: value, unit: unit } }
         const pivot = {};
         const units = {}; // Store unit for each description
         const descriptionMetadata = {}; // Store metadata for each description
-        
+
         descriptions.forEach(desc => {
           if (!desc) return;
           pivot[desc] = {};
@@ -419,7 +418,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
             }
           });
         });
-        
+
         pivotData[periodType] = {
           periods,
           descriptions,
@@ -431,7 +430,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           categoryName
         };
       });
-      
+
       return pivotData;
     } catch (error) {
       console.error('Error creating pivot table data:', error);
@@ -462,7 +461,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
     try {
       await ApiService.updateSelectedDescriptionsMetrics(updatedDescriptions, isRemoving ? description : null);
       console.log(`✅ Description "${description}" ${isRemoving ? 'deselected' : 'selected'} successfully - saved globally`);
-      
+
       // If removing description, clear selected row IDs for that description
       if (isRemoving) {
         try {
@@ -470,7 +469,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           await ApiService.updateSelectedRowIdsMetrics('Domestic', description, []);
           await ApiService.updateSelectedRowIdsMetrics('International', description, []);
           console.log(`✅ Cleared selected row IDs for removed description: "${description}"`);
-          
+
           // If the removed description is the currently selected one, clear local state and refetch data
           if (selectedDescription === description) {
             setSelectedRowIds(new Set());
@@ -484,7 +483,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
                 selectedSubCategory,
                 selectedDescription
               );
-              
+
               if (data && data.data && Array.isArray(data.data)) {
                 let filteredData = [...data.data];
                 if (!isAdmin) {
@@ -502,7 +501,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           console.error('Error clearing selected row IDs:', err);
         }
       }
-      
+
       // Refresh from backend to ensure sync
       const refreshedDescriptions = await ApiService.getSelectedDescriptionsMetrics();
       setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
@@ -517,7 +516,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Handle row selection for dashboard
   const handleRowSelection = async (rowId, isSelected) => {
     if (!isDescriptionSelectedInDashboard) return;
-    
+
     const newSelectedRowIds = new Set(selectedRowIds);
     if (isSelected) {
       newSelectedRowIds.add(rowId);
@@ -525,7 +524,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       newSelectedRowIds.delete(rowId);
     }
     setSelectedRowIds(newSelectedRowIds);
-    
+
     // Save to backend
     try {
       await ApiService.updateSelectedRowIdsMetrics('Domestic', selectedDescription, Array.from(newSelectedRowIds));
@@ -537,7 +536,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
   // Handle select all rows
   const handleSelectAll = async (isSelected) => {
     if (!isDescriptionSelectedInDashboard || !metricData || !metricData.data) return;
-    
+
     const newSelectedRowIds = new Set();
     if (isSelected) {
       metricData.data.forEach(row => {
@@ -547,7 +546,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       });
     }
     setSelectedRowIds(newSelectedRowIds);
-    
+
     // Save to backend
     try {
       await ApiService.updateSelectedRowIdsMetrics('Domestic', selectedDescription, Array.from(newSelectedRowIds));
@@ -563,7 +562,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         setSelectedRowIds(new Set());
         return;
       }
-      
+
       try {
         const rowIds = await ApiService.getSelectedRowIdsMetrics('Domestic', selectedDescription);
         setSelectedRowIds(new Set(Array.isArray(rowIds) ? rowIds : []));
@@ -572,7 +571,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         setSelectedRowIds(new Set());
       }
     };
-    
+
     fetchSelectedRowIds();
   }, [selectedDescription, isDescriptionSelectedInDashboard]);
 
@@ -583,11 +582,11 @@ const MetricsDomestic = ({ onMenuClick }) => {
       console.warn('No company selected for fetching unique values');
       return;
     }
-    
+
     try {
       const fields = ['ProcessedPeriodType', 'ProcessedFYYear', 'CountryName', 'Description', 'ReportedUnit', 'ReportedValue'];
       const values = {};
-      
+
       for (const field of fields) {
         try {
           console.log(`🔵 Fetching unique values for ${field} from company: ${companyToUse}`);
@@ -600,7 +599,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           values[field] = [];
         }
       }
-      
+
       console.log('📊 All unique values fetched:', values);
       setUniqueValues(values);
     } catch (err) {
@@ -616,7 +615,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       setError('No insurers available. Please wait for data to load.');
       return;
     }
-    
+
     setFormData({
       CompanyInsurerShortName: companyName,
       ProcessedPeriodType: '',
@@ -645,7 +644,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       ReportedUnit: false,
       ReportedValue: false
     });
-    
+
     // Fetch unique values when opening modal - ensure company name is set
     await fetchUniqueValues();
     setShowAddModal(true);
@@ -655,7 +654,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
     const premiumTypeValue = record.PremiumTypeLongName || '';
     const categoryValue = record.CategoryLongName || '';
     const companyValue = record.CompanyInsurerShortName || selectedInsurer || '';
-    
+
     setFormData({
       CompanyInsurerShortName: companyValue,
       ProcessedPeriodType: record.ProcessedPeriodType || '',
@@ -669,12 +668,12 @@ const MetricsDomestic = ({ onMenuClick }) => {
       ReportedValue: record.ReportedValue || '',
       IsActive: record.IsActive !== undefined ? record.IsActive : true
     });
-    
+
     // Check if the values exist in the dropdowns
     const isCompanyInList = insurers.includes(companyValue);
     const isPremiumTypeInList = categories.includes(premiumTypeValue);
     const isCategoryInList = subCategories.includes(categoryValue);
-    
+
     setShowCustomInputs({
       CompanyInsurerShortName: !isCompanyInList && companyValue !== '',
       ProcessedPeriodType: !uniqueValues.ProcessedPeriodType.includes(record.ProcessedPeriodType || '') && (record.ProcessedPeriodType || '') !== '',
@@ -684,12 +683,12 @@ const MetricsDomestic = ({ onMenuClick }) => {
       ReportedUnit: !uniqueValues.ReportedUnit.includes(record.ReportedUnit || '') && (record.ReportedUnit || '') !== '',
       ReportedValue: !uniqueValues.ReportedValue.includes(record.ReportedValue || '') && (record.ReportedValue || '') !== ''
     });
-    
+
     setShowCustomPremiumType(!isPremiumTypeInList && premiumTypeValue !== '');
     setShowCustomCategory(!isCategoryInList && categoryValue !== '');
     setSelectedPremiumTypeOption(isPremiumTypeInList ? premiumTypeValue : '');
     setSelectedCategoryOption(isCategoryInList ? categoryValue : '');
-    
+
     // Fetch categories for the premium type if it exists
     if (premiumTypeValue && isPremiumTypeInList) {
       try {
@@ -702,10 +701,10 @@ const MetricsDomestic = ({ onMenuClick }) => {
     } else {
       setModalCategories([]);
     }
-    
+
     // Fetch unique values when opening edit modal
     await fetchUniqueValues();
-    
+
     setEditingRecord(record);
     setShowAddModal(true);
   };
@@ -725,7 +724,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
       setSuccessMessage('Record deleted successfully!');
       setShowDeleteConfirm(false);
       setRecordToDelete(null);
-      
+
       // Refresh data
       if (selectedInsurer && selectedCategory && selectedSubCategory && selectedDescription) {
         const data = await ApiService.getMetricDetails(
@@ -734,15 +733,15 @@ const MetricsDomestic = ({ onMenuClick }) => {
           selectedSubCategory,
           selectedDescription
         );
-        
+
         // Filter data based on admin status
         if (data && data.data && Array.isArray(data.data)) {
           let filteredData = [...data.data];
-          
+
           if (!isAdmin) {
             filteredData = filteredData.filter(row => row.IsActive === 1 || row.IsActive === true);
           }
-          
+
           setMetricData({
             ...data,
             data: filteredData,
@@ -752,7 +751,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           setMetricData(data);
         }
       }
-      
+
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error deleting record:', err);
@@ -779,7 +778,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
     try {
       const newPremiumType = formData.PremiumTypeLongName;
       const newCategory = formData.CategoryLongName;
-      
+
       if (editingRecord) {
         // Update existing record - use first year from array
         const updateData = {
@@ -793,7 +792,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
         const selectedYears = Array.isArray(formData.ProcessedFYYear) && formData.ProcessedFYYear.length > 0
           ? formData.ProcessedFYYear
           : [];
-        
+
         if (selectedYears.length === 0) {
           setError('Please select at least one Processed FY Year');
           setLoading(false);
@@ -829,14 +828,14 @@ const MetricsDomestic = ({ onMenuClick }) => {
         ReportedUnit: false,
         ReportedValue: false
       });
-      
+
       // Refresh categories dropdown if premium type is selected
       if (selectedInsurer && (selectedCategory || newPremiumType)) {
         try {
           const premiumTypeToUse = selectedCategory || newPremiumType;
           const updatedCategories = await ApiService.getCompanyPremiumTypes(selectedInsurer);
           setCategories(updatedCategories || []);
-          
+
           // If new premium type was added and it's not in the list, add it
           if (newPremiumType && !updatedCategories.includes(newPremiumType)) {
             setCategories([...updatedCategories, newPremiumType]);
@@ -845,14 +844,14 @@ const MetricsDomestic = ({ onMenuClick }) => {
           console.error('Error refreshing categories:', err);
         }
       }
-      
+
       // Refresh sub categories dropdown if category is selected
       if (selectedInsurer && selectedCategory && (selectedSubCategory || newCategory)) {
         try {
           const categoryToUse = selectedCategory;
           const updatedSubCategories = await ApiService.getCompanyCategories(selectedInsurer, categoryToUse);
           setSubCategories(updatedSubCategories || []);
-          
+
           // If new category was added and it's not in the list, add it
           if (newCategory && !updatedSubCategories.includes(newCategory)) {
             setSubCategories([...updatedSubCategories, newCategory]);
@@ -861,7 +860,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           console.error('Error refreshing sub categories:', err);
         }
       }
-      
+
       // Refresh data if filters are selected
       if (selectedInsurer && selectedCategory && selectedSubCategory && selectedDescription) {
         const data = await ApiService.getMetricDetails(
@@ -870,15 +869,15 @@ const MetricsDomestic = ({ onMenuClick }) => {
           selectedSubCategory,
           selectedDescription
         );
-        
+
         // Filter data based on admin status
         if (data && data.data && Array.isArray(data.data)) {
           let filteredData = [...data.data];
-          
+
           if (!isAdmin) {
             filteredData = filteredData.filter(row => row.IsActive === 1 || row.IsActive === true);
           }
-          
+
           setMetricData({
             ...data,
             data: filteredData,
@@ -888,7 +887,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
           setMetricData(data);
         }
       }
-      
+
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error saving record:', err);
@@ -946,10 +945,10 @@ const MetricsDomestic = ({ onMenuClick }) => {
               marginBottom: 'clamp(10px, 2vw, 15px)',
               flexWrap: 'wrap'
             }}>
-              <span 
+              <span
                 onClick={() => handleTabClick('Dashboard')}
-                style={{ 
-                  color: '#36659b', 
+                style={{
+                  color: '#36659b',
                   cursor: 'pointer',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease'
@@ -1058,12 +1057,12 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
             {/* Success Message */}
             {successMessage && (
-              <div className="success-message" style={{ 
-                padding: '10px', 
-                margin: '10px 0', 
-                backgroundColor: '#dfd', 
-                color: '#3a3', 
-                borderRadius: '4px' 
+              <div className="success-message" style={{
+                padding: '10px',
+                margin: '10px 0',
+                backgroundColor: '#dfd',
+                color: '#3a3',
+                borderRadius: '4px'
               }}>
                 {successMessage}
               </div>
@@ -1071,12 +1070,12 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
             {/* Error Message */}
             {error && (
-              <div className="error-message" style={{ 
-                padding: '10px', 
-                margin: '10px 0', 
-                backgroundColor: '#fee', 
-                color: '#c33', 
-                borderRadius: '4px' 
+              <div className="error-message" style={{
+                padding: '10px',
+                margin: '10px 0',
+                backgroundColor: '#fee',
+                color: '#c33',
+                borderRadius: '4px'
               }}>
                 {error}
               </div>
@@ -1104,13 +1103,13 @@ const MetricsDomestic = ({ onMenuClick }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Cards Container */}
                   <div className="description-cards-container">
                     {descriptionsWithContext.map((item, index) => {
                       const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
                       const isDisabled = false; // No limit on number of descriptions
-                      
+
                       return (
                         <div
                           key={index}
@@ -1126,8 +1125,8 @@ const MetricsDomestic = ({ onMenuClick }) => {
                           onMouseLeave={(e) => {
                             if (!isDisabled && !isMobile) {
                               e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
-                              e.currentTarget.style.boxShadow = isSelected 
-                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)' 
+                              e.currentTarget.style.boxShadow = isSelected
+                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)'
                                 : '0 2px 4px rgba(0, 0, 0, 0.06)';
                               e.currentTarget.style.transform = 'translateY(0)';
                             }
@@ -1138,25 +1137,25 @@ const MetricsDomestic = ({ onMenuClick }) => {
                             <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
                               {isSelected && (
                                 <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path 
-                                    d="M13.3333 4L6 11.3333L2.66667 8" 
-                                    stroke="white" 
-                                    strokeWidth="2.5" 
-                                    strokeLinecap="round" 
+                                  <path
+                                    d="M13.3333 4L6 11.3333L2.66667 8"
+                                    stroke="white"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
                                     strokeLinejoin="round"
                                   />
                                 </svg>
                               )}
                             </div>
                           </div>
-                          
+
                           {/* Description Text */}
                           <div className="description-text">
                             <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
                               {item.description}
                             </div>
                           </div>
-                          
+
                           {/* Selection Indicator */}
                           {isSelected && (
                             <div className="description-indicator" />
@@ -1215,10 +1214,10 @@ const MetricsDomestic = ({ onMenuClick }) => {
                     {Object.keys(pivotTableData).sort().map(periodType => {
                       const periodData = pivotTableData[periodType];
                       if (!periodData) return null;
-                      
-                      const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, 
-                              companyName = '', premiumTypeName = '', categoryName = '' } = periodData;
-                      
+
+                      const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {},
+                        companyName = '', premiumTypeName = '', categoryName = '' } = periodData;
+
                       if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
                         return null;
                       }
@@ -1227,7 +1226,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
                       const displayCompanyName = companyName || selectedInsurer || '';
                       const displayPremiumTypeName = selectedCategory || premiumTypeName || '';
                       const displayCategoryName = selectedSubCategory || categoryName || '';
-                      
+
                       const breadcrumbParts = [];
                       if (displayCompanyName && displayCompanyName !== 'N/A') breadcrumbParts.push(displayCompanyName);
                       if (displayPremiumTypeName && displayPremiumTypeName !== 'N/A') breadcrumbParts.push(displayPremiumTypeName);
@@ -1237,10 +1236,10 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
                       return (
                         <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
-                          <h3 className="period-type-title" style={{ 
-                            marginBottom: '16px', 
-                            fontSize: '18px', 
-                            fontWeight: '600', 
+                          <h3 className="period-type-title" style={{
+                            marginBottom: '16px',
+                            fontSize: '18px',
+                            fontWeight: '600',
                             color: '#111827',
                             paddingBottom: '8px',
                             borderBottom: '2px solid #3F72AF'
@@ -1251,39 +1250,39 @@ const MetricsDomestic = ({ onMenuClick }) => {
                             <table className="data-table pivot-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                               <thead>
                                 <tr>
-                                  <th className="pivot-table-header-desc" style={{ 
-                                    position: 'sticky', 
-                                    left: 0, 
-                                    backgroundColor: '#3F72AF', 
+                                  <th className="pivot-table-header-desc" style={{
+                                    position: 'sticky',
+                                    left: 0,
+                                    backgroundColor: '#3F72AF',
                                     color: '#ffffff',
-                                    zIndex: 10, 
-                                    minWidth: isMobile ? '200px' : '300px', 
+                                    zIndex: 10,
+                                    minWidth: isMobile ? '200px' : '300px',
                                     textAlign: 'left',
                                     padding: '12px',
                                     border: '1px solid #2c5a8a'
                                   }}>
                                     Description
                                   </th>
-                                  <th className="pivot-table-header-unit" style={{ 
-                                    position: 'sticky', 
-                                    left: isMobile ? '200px' : '300px', 
-                                    backgroundColor: '#3F72AF', 
+                                  <th className="pivot-table-header-unit" style={{
+                                    position: 'sticky',
+                                    left: isMobile ? '200px' : '300px',
+                                    backgroundColor: '#3F72AF',
                                     color: '#ffffff',
-                                    zIndex: 10, 
-                                    minWidth: isMobile ? '60px' : '80px', 
+                                    zIndex: 10,
+                                    minWidth: isMobile ? '60px' : '80px',
                                     textAlign: 'center',
                                     padding: '12px',
                                     border: '1px solid #2c5a8a'
                                   }}>
                                     Period Unit
                                   </th>
-                                  <th className="pivot-table-header-period-type" style={{ 
-                                    position: 'sticky', 
-                                    left: isMobile ? '260px' : '380px', 
-                                    backgroundColor: '#3F72AF', 
+                                  <th className="pivot-table-header-period-type" style={{
+                                    position: 'sticky',
+                                    left: isMobile ? '260px' : '380px',
+                                    backgroundColor: '#3F72AF',
                                     color: '#ffffff',
-                                    zIndex: 10, 
-                                    minWidth: isMobile ? '80px' : '100px', 
+                                    zIndex: 10,
+                                    minWidth: isMobile ? '80px' : '100px',
                                     textAlign: 'center',
                                     padding: '12px',
                                     border: '1px solid #2c5a8a'
@@ -1291,8 +1290,8 @@ const MetricsDomestic = ({ onMenuClick }) => {
                                     Period
                                   </th>
                                   {periods.map(period => (
-                                    <th key={period} className="pivot-table-header-period" style={{ 
-                                      minWidth: isMobile ? '80px' : '100px', 
+                                    <th key={period} className="pivot-table-header-period" style={{
+                                      minWidth: isMobile ? '80px' : '100px',
                                       textAlign: 'center',
                                       backgroundColor: '#3F72AF',
                                       color: '#ffffff',
@@ -1311,9 +1310,9 @@ const MetricsDomestic = ({ onMenuClick }) => {
                                       backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                       borderBottom: '1px solid #e5e7eb'
                                     }}>
-                                      <td className="pivot-table-cell-desc" style={{ 
-                                        position: 'sticky', 
-                                        left: 0, 
+                                      <td className="pivot-table-cell-desc" style={{
+                                        position: 'sticky',
+                                        left: 0,
                                         backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                         zIndex: 5,
                                         padding: '12px',
@@ -1323,9 +1322,9 @@ const MetricsDomestic = ({ onMenuClick }) => {
                                       }}>
                                         {desc}
                                       </td>
-                                      <td className="pivot-table-cell-unit" style={{ 
-                                        position: 'sticky', 
-                                        left: isMobile ? '200px' : '300px', 
+                                      <td className="pivot-table-cell-unit" style={{
+                                        position: 'sticky',
+                                        left: isMobile ? '200px' : '300px',
                                         backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                         zIndex: 5,
                                         padding: '12px',
@@ -1337,9 +1336,9 @@ const MetricsDomestic = ({ onMenuClick }) => {
                                       }}>
                                         {units[desc] || '-'}
                                       </td>
-                                      <td className="pivot-table-cell-period-type" style={{ 
-                                        position: 'sticky', 
-                                        left: isMobile ? '260px' : '380px', 
+                                      <td className="pivot-table-cell-period-type" style={{
+                                        position: 'sticky',
+                                        left: isMobile ? '260px' : '380px',
                                         backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                         zIndex: 5,
                                         padding: '12px',
@@ -1353,16 +1352,16 @@ const MetricsDomestic = ({ onMenuClick }) => {
                                         {periodType}
                                       </td>
                                       {periods.map(period => (
-                                        <td key={period} className="pivot-table-cell-data" style={{ 
-                                          textAlign: 'right', 
+                                        <td key={period} className="pivot-table-cell-data" style={{
+                                          textAlign: 'right',
                                           padding: '12px',
                                           borderRight: '1px solid #e5e7eb',
                                           backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                           fontSize: '13px',
                                           whiteSpace: 'nowrap'
                                         }}>
-                                          {pivot[desc] && pivot[desc][period] !== undefined 
-                                            ? pivot[desc][period] 
+                                          {pivot[desc] && pivot[desc][period] !== undefined
+                                            ? pivot[desc][period]
                                             : '-'}
                                         </td>
                                       ))}
@@ -1378,263 +1377,263 @@ const MetricsDomestic = ({ onMenuClick }) => {
                   </div>
                 ) : (
                   // For admin users or when no pivot data, show regular table
-                metricData && metricData.data && metricData.data.length > 0 ? (
-                  <div className="table-container" style={{ marginTop: '20px' }}>
-                    <table className="economy-table">
-                      <thead>
-                        <tr>
-                          {isAdmin && <th>Status</th>}
-                          {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
-                          {isAdmin && (
-                            <th style={{ 
-                              textAlign: 'center', 
-                              minWidth: '120px',
-                              opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                            }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ 
-                                  color: isDescriptionSelectedInDashboard ? '#333' : '#999',
-                                  fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
-                                }}>
-                                  Select for Dashboard
-                                </span>
-                                {!isDescriptionSelectedInDashboard && selectedDescription && (
-                                  <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
-                                    Select in Dashboard first
-                                  </span>
-                                )}
-                                {metricData && metricData.data && metricData.data.length > 0 && isDescriptionSelectedInDashboard && (
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
-                                    <input
-                                      type="checkbox"
-                                      checked={metricData.data.length > 0 && metricData.data.every(row => row.id && selectedRowIds.has(row.id))}
-                                      onChange={(e) => handleSelectAll(e.target.checked)}
-                                      style={{
-                                        width: '16px',
-                                        height: '16px',
-                                        cursor: 'pointer'
-                                      }}
-                                      title="Select All"
-                                    />
-                                    <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
-                                  </label>
-                                )}
-                              </div>
-                            </th>
-                          )}
-                          <th>Description</th>
-                          <th>ProcessedPeriodType</th>
-                          <th>CountryName</th>
-                          <th>ProcessedFYYear</th>
-                          <th>ReportedUnit</th>
-                          <th>ReportedValue</th>
-                          <th>CategoryLongName</th>
-                          <th>SubCategoryLongName</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {metricData.data.map((row, index) => (
-                          <tr key={row.id || index}>
+                  metricData && metricData.data && metricData.data.length > 0 ? (
+                    <div className="table-container" style={{ marginTop: '20px' }}>
+                      <table className="economy-table">
+                        <thead>
+                          <tr>
+                            {isAdmin && <th>Status</th>}
+                            {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
                             {isAdmin && (
-                              <td>
-                                <label
-                                  style={{
-                                    position: 'relative',
-                                    display: 'inline-block',
-                                    width: '50px',
-                                    height: '24px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined}
-                                    onChange={async (e) => {
-                                      const newStatus = e.target.checked;
-                                      try {
-                                        await ApiService.patchMetric(row.id, { IsActive: newStatus ? 1 : 0 });
-                                        // Update local state
-                                        setMetricData(prevData => {
-                                          if (!prevData || !prevData.data) return prevData;
-                                          return {
-                                            ...prevData,
-                                            data: prevData.data.map(item =>
-                                              item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
-                                            )
-                                          };
-                                        });
-                                      } catch (err) {
-                                        console.error('Error updating status:', err);
-                                        alert('Failed to update status. Please try again.');
-                                      }
-                                    }}
+                              <th style={{
+                                textAlign: 'center',
+                                minWidth: '120px',
+                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                              }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{
+                                    color: isDescriptionSelectedInDashboard ? '#333' : '#999',
+                                    fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
+                                  }}>
+                                    Select for Dashboard
+                                  </span>
+                                  {!isDescriptionSelectedInDashboard && selectedDescription && (
+                                    <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
+                                      Select in Dashboard first
+                                    </span>
+                                  )}
+                                  {metricData && metricData.data && metricData.data.length > 0 && isDescriptionSelectedInDashboard && (
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={metricData.data.length > 0 && metricData.data.every(row => row.id && selectedRowIds.has(row.id))}
+                                        onChange={(e) => handleSelectAll(e.target.checked)}
+                                        style={{
+                                          width: '16px',
+                                          height: '16px',
+                                          cursor: 'pointer'
+                                        }}
+                                        title="Select All"
+                                      />
+                                      <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
+                                    </label>
+                                  )}
+                                </div>
+                              </th>
+                            )}
+                            <th>Description</th>
+                            <th>ProcessedPeriodType</th>
+                            <th>CountryName</th>
+                            <th>ProcessedFYYear</th>
+                            <th>ReportedUnit</th>
+                            <th>ReportedValue</th>
+                            <th>CategoryLongName</th>
+                            <th>SubCategoryLongName</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {metricData.data.map((row, index) => (
+                            <tr key={row.id || index}>
+                              {isAdmin && (
+                                <td>
+                                  <label
                                     style={{
-                                      opacity: 0,
-                                      width: 0,
-                                      height: 0
-                                    }}
-                                  />
-                                  <span
-                                    style={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      bottom: 0,
-                                      backgroundColor: (row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined) ? '#4CAF50' : '#ccc',
-                                      borderRadius: '24px',
-                                      transition: 'background-color 0.3s',
+                                      position: 'relative',
+                                      display: 'inline-block',
+                                      width: '50px',
+                                      height: '24px',
                                       cursor: 'pointer'
                                     }}
                                   >
+                                    <input
+                                      type="checkbox"
+                                      checked={row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined}
+                                      onChange={async (e) => {
+                                        const newStatus = e.target.checked;
+                                        try {
+                                          await ApiService.patchMetric(row.id, { IsActive: newStatus ? 1 : 0 });
+                                          // Update local state
+                                          setMetricData(prevData => {
+                                            if (!prevData || !prevData.data) return prevData;
+                                            return {
+                                              ...prevData,
+                                              data: prevData.data.map(item =>
+                                                item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                              )
+                                            };
+                                          });
+                                        } catch (err) {
+                                          console.error('Error updating status:', err);
+                                          alert('Failed to update status. Please try again.');
+                                        }
+                                      }}
+                                      style={{
+                                        opacity: 0,
+                                        width: 0,
+                                        height: 0
+                                      }}
+                                    />
                                     <span
                                       style={{
                                         position: 'absolute',
-                                        content: '""',
-                                        height: '18px',
-                                        width: '18px',
-                                        left: (row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined) ? '26px' : '3px',
-                                        bottom: '3px',
-                                        backgroundColor: 'white',
-                                        borderRadius: '50%',
-                                        transition: 'left 0.3s',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        backgroundColor: (row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined) ? '#4CAF50' : '#ccc',
+                                        borderRadius: '24px',
+                                        transition: 'background-color 0.3s',
+                                        cursor: 'pointer'
                                       }}
-                                    />
-                                  </span>
-                                </label>
-                              </td>
-                            )}
-                            {isAdmin && (
-                              <td>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                                  <button
-                                    onClick={() => handleEdit(row)}
+                                    >
+                                      <span
+                                        style={{
+                                          position: 'absolute',
+                                          content: '""',
+                                          height: '18px',
+                                          width: '18px',
+                                          left: (row.IsActive === 1 || row.IsActive === true || row.IsActive === undefined) ? '26px' : '3px',
+                                          bottom: '3px',
+                                          backgroundColor: 'white',
+                                          borderRadius: '50%',
+                                          transition: 'left 0.3s',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        }}
+                                      />
+                                    </span>
+                                  </label>
+                                </td>
+                              )}
+                              {isAdmin && (
+                                <td>
+                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                    <button
+                                      onClick={() => handleEdit(row)}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#007bff',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '5px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#0056b3';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = '#007bff';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                      }}
+                                    >
+                                      <span>✏️</span>
+                                      <span>Edit</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(row)}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#dc3545',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '5px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#c82333';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = '#dc3545';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                      }}
+                                    >
+                                      <span>🗑️</span>
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                              {isAdmin && (
+                                <td style={{
+                                  textAlign: 'center',
+                                  opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                                }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedRowIds.has(row.id)}
+                                    onChange={(e) => handleRowSelection(row.id, e.target.checked)}
+                                    disabled={!isDescriptionSelectedInDashboard}
                                     style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#007bff',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '13px',
-                                      fontWeight: '500',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      width: '18px',
+                                      height: '18px',
+                                      cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
+                                      opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
                                     }}
-                                    onMouseEnter={(e) => {
-                                      e.target.style.backgroundColor = '#0056b3';
-                                      e.target.style.transform = 'translateY(-1px)';
-                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.target.style.backgroundColor = '#007bff';
-                                      e.target.style.transform = 'translateY(0)';
-                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                    }}
-                                  >
-                                    <span>✏️</span>
-                                    <span>Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(row)}
-                                    style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#dc3545',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '13px',
-                                      fontWeight: '500',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.target.style.backgroundColor = '#c82333';
-                                      e.target.style.transform = 'translateY(-1px)';
-                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.target.style.backgroundColor = '#dc3545';
-                                      e.target.style.transform = 'translateY(0)';
-                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                    }}
-                                  >
-                                    <span>🗑️</span>
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                            {isAdmin && (
-                              <td style={{ 
-                                textAlign: 'center',
-                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                              }}>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedRowIds.has(row.id)}
-                                  onChange={(e) => handleRowSelection(row.id, e.target.checked)}
-                                  disabled={!isDescriptionSelectedInDashboard}
-                                  style={{
-                                    width: '18px',
-                                    height: '18px',
-                                    cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
-                                    opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                                  }}
-                                  title={isDescriptionSelectedInDashboard 
-                                    ? "Select this row to display in dashboard" 
-                                    : "Please select this description in the Dashboard first"}
-                                />
-                              </td>
-                            )}
-                            <td>{row.Description || '-'}</td>
-                            <td>{row.ProcessedPeriodType || '-'}</td>
-                            <td>{row.CountryName || '-'}</td>
-                            <td>{row.ProcessedFYYear || '-'}</td>
-                            <td>{row.ReportedUnit || '-'}</td>
-                            <td>{row.ReportedValue || '-'}</td>
-                            <td>{row.PremiumTypeLongName || '-'}</td>
-                            <td>{row.CategoryLongName || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  // Fallback messages
-                  !isAdmin && (!pivotTableData || Object.keys(pivotTableData).length === 0) ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                      {!selectedCategory || !selectedSubCategory || !selectedDescription
-                        ? (!selectedCategory && 'Please select a Category Long Name') ||
-                          (selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name') ||
-                          (selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description')
-                        : 'No data available for selected filters'}
-                    </div>
-                  ) : metricData && metricData.count === 0 ? (
-                    <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                      No data found for the selected filters.
-                    </div>
-                  ) : !loading && selectedInsurer && selectedCategory && selectedSubCategory && selectedDescription ? (
-                    <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                      Loading data...
+                                    title={isDescriptionSelectedInDashboard
+                                      ? "Select this row to display in dashboard"
+                                      : "Please select this description in the Dashboard first"}
+                                  />
+                                </td>
+                              )}
+                              <td>{row.Description || '-'}</td>
+                              <td>{row.ProcessedPeriodType || '-'}</td>
+                              <td>{row.CountryName || '-'}</td>
+                              <td>{row.ProcessedFYYear || '-'}</td>
+                              <td>{row.ReportedUnit || '-'}</td>
+                              <td>{row.ReportedValue || '-'}</td>
+                              <td>{row.PremiumTypeLongName || '-'}</td>
+                              <td>{row.CategoryLongName || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   ) : (
-                    <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                      {!selectedCategory && 'Please select a Category Long Name'}
-                      {selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name'}
-                      {selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description'}
-                    </div>
+                    // Fallback messages
+                    !isAdmin && (!pivotTableData || Object.keys(pivotTableData).length === 0) ? (
+                      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                        {!selectedCategory || !selectedSubCategory || !selectedDescription
+                          ? (!selectedCategory && 'Please select a Category Long Name') ||
+                          (selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name') ||
+                          (selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description')
+                          : 'No data available for selected filters'}
+                      </div>
+                    ) : metricData && metricData.count === 0 ? (
+                      <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                        No data found for the selected filters.
+                      </div>
+                    ) : !loading && selectedInsurer && selectedCategory && selectedSubCategory && selectedDescription ? (
+                      <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                        Loading data...
+                      </div>
+                    ) : (
+                      <div className="no-data" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                        {!selectedCategory && 'Please select a Category Long Name'}
+                        {selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name'}
+                        {selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description'}
+                      </div>
+                    )
                   )
                 )
-              )
               ) : (
                 <div className="visuals-container" style={{ marginTop: '20px' }}>
                   {metricData && metricData.data && metricData.data.length > 0 ? (
@@ -1646,11 +1645,11 @@ const MetricsDomestic = ({ onMenuClick }) => {
                     </div>
                   ) : (
                     <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                    {!selectedCategory && 'Please select a Category Long Name'}
-                    {selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name'}
-                    {selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description'}
-                    {selectedCategory && selectedSubCategory && selectedDescription && 'No data available for visualization.'}
-                  </div>
+                      {!selectedCategory && 'Please select a Category Long Name'}
+                      {selectedCategory && !selectedSubCategory && 'Please select a Sub Category Long Name'}
+                      {selectedCategory && selectedSubCategory && !selectedDescription && 'Please select a Description'}
+                      {selectedCategory && selectedSubCategory && selectedDescription && 'No data available for visualization.'}
+                    </div>
                   )}
                 </div>
               )}
@@ -1661,7 +1660,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -1853,11 +1852,11 @@ const MetricsDomestic = ({ onMenuClick }) => {
                   Processed FY Year {editingRecord ? '' : '(Select Multiple)'}:
                 </label>
                 {!showCustomInputs.ProcessedFYYear ? (
-                  <div style={{ 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px', 
-                    padding: '8px', 
-                    maxHeight: '200px', 
+                  <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    maxHeight: '200px',
                     overflowY: 'auto',
                     backgroundColor: '#fff'
                   }}>
@@ -2102,10 +2101,10 @@ const MetricsDomestic = ({ onMenuClick }) => {
                     }
                   }}
                   disabled={!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    borderRadius: '4px', 
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '4px',
                     border: '1px solid #ddd',
                     backgroundColor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? '#f5f5f5' : 'white',
                     cursor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? 'not-allowed' : 'pointer'
@@ -2316,7 +2315,7 @@ const MetricsDomestic = ({ onMenuClick }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && recordToDelete && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,

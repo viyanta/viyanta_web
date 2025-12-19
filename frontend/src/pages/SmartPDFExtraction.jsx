@@ -168,7 +168,7 @@ const SmartPDFExtraction = ({ onMenuClick }) => {
 
   return (
     <StandardPageLayout
-      title="Smart PDF Table Extraction (Admin Only)"
+      title="Smart PDF Table Extraction"
       onMenuClick={onMenuClick}
     >
       <p style={{ color: 'var(--text-color-light)', marginTop: '0', marginBottom: '1.5rem' }}>

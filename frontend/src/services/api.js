@@ -18,7 +18,33 @@ class ApiService {
     return response.data;
   };
 
-  
+  // ================================
+  // MENU
+  // ================================
+  async getMainMenus(userId, productKey) {
+    if (!userId || !productKey) {
+      console.warn('getMainMenus: userId or productKey missing', { userId, productKey });
+      return [];
+    }
+    const response = await fetch(`${API_BASE_URL}/menu/main-menus?user_id=${userId}&product_key=${productKey}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch main menus');
+    }
+    return response.json();
+  }
+
+  async getSubMenus(mainMenuId, productKey, userId) {
+    if (!mainMenuId || !productKey || !userId) {
+      console.warn('getSubMenus: Missing parameters', { mainMenuId, productKey, userId });
+      return [];
+    }
+    const response = await fetch(`${API_BASE_URL}/menu/sub-menus/${mainMenuId}?product_key=${productKey}&user_id=${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch sub menus');
+    }
+    return response.json();
+  }
+
   // Legacy file upload methods
   async uploadFile(file) {
     const formData = new FormData();
