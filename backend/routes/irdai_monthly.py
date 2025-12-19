@@ -360,3 +360,104 @@ def get_company_premium_type_breakup(
         "start_date": start_date,
         "end_date": end_date
     }).mappings().all()
+
+
+# 9️⃣ COMPANY METRIC-WISE PREMIUM BREAKUP
+@router.get("/company/metric-wise-premium")
+def get_company_metric_wise_premium(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        /* ======================
+           FYP
+        ====================== */
+        SELECT
+          'FYP' AS metric,
+          category AS premium_type,
+          SUM(fyp_current) AS value
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           SA
+        ====================== */
+        SELECT
+          'SA',
+          category,
+          SUM(sa_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           NOP
+        ====================== */
+        SELECT
+          'NOP',
+          category,
+          SUM(pol_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           NOL
+        ====================== */
+        SELECT
+          'NOL',
+          category,
+          SUM(lives_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        ORDER BY metric, premium_type
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
