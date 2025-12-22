@@ -1804,6 +1804,72 @@ class ApiService {
     return response.data;
   };
 
+  // ================================
+  // IRDAI Monthly Dashboard
+  // ================================
+  async getDashboardTotals(startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/dashboard/totals`,
+      {
+        params: { start_date: startDate, end_date: endDate }
+      }
+    );
+    return response.data;
+  }
+
+  async getMetricWisePremium(startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/dashboard/metric-wise-premium`,
+      {
+        params: { start_date: startDate, end_date: endDate }
+      }
+    );
+    return response.data;
+  }
+
+  async getInsurers() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  }
+
+  async getCompanyTotals(insurerName, startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/company/totals`,
+      {
+        params: {
+          insurer_name: insurerName,
+          start_date: startDate,
+          end_date: endDate
+        }
+      }
+    );
+    return response.data;
+  }
+
+  async getCompanyMetricWisePremium(insurerName, startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/company/metric-wise-premium`,
+      {
+        params: {
+          insurer_name: insurerName,
+          start_date: startDate,
+          end_date: endDate
+        }
+      }
+    );
+    return response.data;
+  }
+
+  async getIrdaiPeriodTypes() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
+    return response.data;
+  }
+
+  async getIrdaiPeriodOptions(type) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/options?type=${type}`);
+    return response.data;
+  }
+
 }
 
 export default new ApiService();
