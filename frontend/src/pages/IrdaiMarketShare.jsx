@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TabLayout from './IrdaiSharedLayout';
+import api from '../services/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
 const IrdaiMarketShare = () => {
     // Local State
     const [viewMode, setViewMode] = useState('visuals');
     const [periodType, setPeriodType] = useState('Monthly');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
-    const [insurerName, setInsurerName] = useState('Acko Life');
+    const [insurerName, setInsurerName] = useState('');
     const [premiumTypeSelection, setPremiumTypeSelection] = useState('Individual Single Premium');
     const [expandedInsurers, setExpandedInsurers] = useState({});
 
@@ -18,45 +22,174 @@ const IrdaiMarketShare = () => {
         }));
     };
 
-    // Mock Options
-    const periodTypes = ['Monthly', 'Quarterly', 'Halfyearly', 'Annual'];
-    const periods = ['Dec 24', 'Sep 24', 'Jun 24', 'Mar 24'];
-    const insurerNames = ['Acko Life', 'SBI Life', 'HDFC Life', 'LIC'];
-    const premiumTypes = ['Individual Single Premium', 'Group Non-Single', 'Group Yearly'];
+    // State for options
+    const [insurerNames, setInsurerNames] = useState([]);
 
-    // Mock KPI Data
-    const kpiData = [
-        { title: 'First Year Premium', value: '123.45', unit: 'In INR Crs.', color: 'blue' },
-        { title: 'Sum Assured', value: '5,678.90', unit: 'In INR Crs.', color: 'gray' },
-        { title: 'Number of Lives', value: '1,234', unit: 'In Nos.', color: 'green' },
-        { title: 'No of Policies', value: '567', unit: 'In Nos.', color: 'purple' }
-    ];
+    // Fetch Insurers on Mount
+    useEffect(() => {
+        const fetchInsurers = async () => {
+            try {
+                const data = await api.getInsurers();
+                setInsurerNames(data);
+                // Default to first insurer if available and none selected
+                if (data.length > 0 && !insurerName) {
+                    setInsurerName(data[0].value);
+                }
+            } catch (error) {
+                console.error("Failed to fetch insurers", error);
+            }
+        };
+        fetchInsurers();
+    }, []);
 
-    // Mock Market Share Data
-    const marketShareData = [
-        {
-            insurer: 'Acko Life Insurance',
-            values: { premium: '0.02', policies: '0.01', lives: '0.25', sum: '0.07' },
-            subRows: [
-                { type: 'Individual Single Premium', values: { premium: '0.00', policies: '0.00', lives: '', sum: '0.00' } },
-                { type: 'Individual Non-Single Premium', values: { premium: '0.00', policies: '0.01', lives: '', sum: '0.08' } },
-                { type: 'Group Single Premium', values: { premium: '0.03', policies: '0.46', lives: '0.41', sum: '0.18' } },
-                { type: 'Group Non-Single Premium', values: { premium: '0.00', policies: '0.00', lives: '0.00', sum: '0.00' } },
-                { type: 'Group Yearly Renewable Premium', values: { premium: '0.00', policies: '0.00', lives: '0.00', sum: '0.00' } },
-            ]
-        },
-        {
-            insurer: 'Aditya Birla Sun Life',
-            values: { premium: '2.49', policies: '1.13', lives: '1.84', sum: '4.67' },
-            subRows: [
-                { type: 'Individual Single Premium', values: { premium: '1.40', policies: '0.55', lives: '', sum: '1.95' } },
-                { type: 'Individual Non-Single Premium', values: { premium: '3.07', policies: '1.16', lives: '', sum: '2.62' } },
-                { type: 'Group Single Premium', values: { premium: '2.52', policies: '6.27', lives: '2.33', sum: '2.30' } },
-                { type: 'Group Non-Single Premium', values: { premium: '0.56', policies: '0.00', lives: '0.00', sum: '0.00' } },
-                { type: 'Group Yearly Renewable Premium', values: { premium: '1.85', policies: '0.79', lives: '1.14', sum: '7.23' } },
-            ]
-        },
-    ];
+    // State for options
+    const [periodTypes, setPeriodTypes] = useState([]);
+    const [periodOptions, setPeriodOptions] = useState([]);
+    const [loadingPeriods, setLoadingPeriods] = useState(false);
+
+    // Fetch Period Types
+    useEffect(() => {
+        const fetchPeriodTypes = async () => {
+            try {
+                const types = await api.getIrdaiPeriodTypes();
+                setPeriodTypes(types);
+                // Ensure default periodType is valid
+                if (types.length > 0) {
+                    // Check if current periodType is in the new list, if not set to first
+                    const currentExists = types.find(t => t.value === periodType || t.label === periodType);
+                    if (!currentExists) {
+                        setPeriodType(types[0].value);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch period types", error);
+            }
+        };
+        fetchPeriodTypes();
+    }, []);
+
+    // Fetch Period Options when Period Type changes
+    useEffect(() => {
+        const fetchPeriodOptions = async () => {
+            if (!periodType) return;
+            setLoadingPeriods(true);
+            try {
+                let typeValue = periodType;
+                const typeObj = periodTypes.find(t => t.label === periodType || t.value === periodType);
+                if (typeObj) typeValue = typeObj.value;
+
+                const options = await api.getIrdaiPeriodOptions(typeValue);
+                setPeriodOptions(options);
+
+                // Default selection
+                if (options && options.length > 0) {
+                    setSelectedPeriod(options[0].label);
+                } else {
+                    setSelectedPeriod('');
+                }
+            } catch (error) {
+                console.error("Failed to fetch period options", error);
+                setPeriodOptions([]);
+            } finally {
+                setLoadingPeriods(false);
+            }
+        };
+        fetchPeriodOptions();
+    }, [periodType, periodTypes]);
+    // State for options
+    const [premiumTypes, setPremiumTypes] = useState([]);
+
+    // Fetch Premium Types
+    useEffect(() => {
+        const fetchPremiumTypes = async () => {
+            try {
+                const types = await api.getPremiumTypes();
+                // Ensure unique values and proper format
+                const uniqueTypes = [...new Set(types.map(t => t.value || t.label || t))];
+                setPremiumTypes(uniqueTypes);
+
+                // Set default selection if not already set or invalid
+                if (uniqueTypes.length > 0 && !uniqueTypes.includes(premiumTypeSelection)) {
+                    setPremiumTypeSelection(uniqueTypes[0]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch premium types", error);
+            }
+        };
+        fetchPremiumTypes();
+    }, []);
+
+    // Data State
+    const [marketShareData, setMarketShareData] = useState([]);
+    const [kpiData, setKpiData] = useState([
+        { title: 'First Year Premium', value: '0.00', unit: '% Share', color: 'blue' },
+        { title: 'Sum Assured', value: '0.00', unit: '% Share', color: 'gray' },
+        { title: 'Number of Lives', value: '0.00', unit: '% Share', color: 'green' },
+        { title: 'No of Policies', value: '0.00', unit: '% Share', color: 'purple' }
+    ]);
+    const [loadingData, setLoadingData] = useState(false);
+
+    // Fetch Market Share Data
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!insurerName || !selectedPeriod || periodOptions.length === 0) return;
+
+            // Find dates from periodOptions based on selectedPeriod label
+            // (Assuming periodOptions contains objects with {label, start_date, end_date})
+            const periodObj = periodOptions.find(p => (p.label || p) === selectedPeriod);
+            if (!periodObj || !periodObj.start_date) return;
+
+            setLoadingData(true);
+            try {
+                const data = await api.getMarketSharePremiumByInsurer(
+                    insurerName,
+                    periodObj.start_date,
+                    periodObj.end_date
+                );
+
+                // Calculate Totals
+                const totalFyp = data.reduce((acc, curr) => acc + (curr.fyp_pct || 0), 0);
+                const totalSa = data.reduce((acc, curr) => acc + (curr.sa_pct || 0), 0);
+                const totalNol = data.reduce((acc, curr) => acc + (curr.nol_pct || 0), 0);
+                const totalNop = data.reduce((acc, curr) => acc + (curr.nop_pct || 0), 0);
+
+                // Update Table Data
+                const totalRow = {
+                    insurer: insurerName,
+                    values: {
+                        premium: totalFyp.toFixed(2),
+                        policies: totalNop.toFixed(2),
+                        lives: totalNol.toFixed(2),
+                        sum: totalSa.toFixed(2),
+                    },
+                    subRows: data.map(d => ({
+                        type: d.premium_type,
+                        values: {
+                            premium: (d.fyp_pct || 0).toFixed(2),
+                            policies: (d.nop_pct || 0).toFixed(2),
+                            lives: (d.nol_pct || 0).toFixed(2),
+                            sum: (d.sa_pct || 0).toFixed(2),
+                        }
+                    }))
+                };
+                setMarketShareData([totalRow]);
+
+                // Update KPIs
+                setKpiData([
+                    { title: 'First Year Premium', value: totalFyp.toFixed(2) + '%', unit: '% Share', color: 'blue' },
+                    { title: 'Sum Assured', value: totalSa.toFixed(2) + '%', unit: '% Share', color: 'gray' },
+                    { title: 'Number of Lives', value: totalNol.toFixed(2) + '%', unit: '% Share', color: 'green' },
+                    { title: 'No of Policies', value: totalNop.toFixed(2) + '%', unit: '% Share', color: 'purple' }
+                ]);
+
+            } catch (e) {
+                console.error("Failed to fetch market share data", e);
+            } finally {
+                setLoadingData(false);
+            }
+        };
+        fetchData();
+    }, [insurerName, selectedPeriod, periodOptions]);
 
     return (
         <TabLayout
@@ -73,8 +206,8 @@ const IrdaiMarketShare = () => {
                             value={insurerName}
                             onChange={(e) => setInsurerName(e.target.value)}
                         >
-                            {insurerNames.map(name => (
-                                <option key={name} value={name}>{name}</option>
+                            {insurerNames.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </select>
                     </div>
@@ -86,20 +219,20 @@ const IrdaiMarketShare = () => {
                             value={premiumTypeSelection}
                             onChange={(e) => setPremiumTypeSelection(e.target.value)}
                         >
-                            {premiumTypes.map(name => (
-                                <option key={name} value={name}>{name}</option>
+                            {premiumTypes.map((type, idx) => (
+                                <option key={idx} value={type.value || type}>{type.label || type}</option>
                             ))}
                         </select>
                     </div>
                     <div className="period-select-container">
-                        <label className="control-label">Select Period</label>
+                        <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
                             value={periodType}
                             onChange={(e) => setPeriodType(e.target.value)}
                         >
-                            {periodTypes.map(p => (
-                                <option key={p} value={p}>{p}</option>
+                            {periodTypes.map((p, idx) => (
+                                <option key={idx} value={p.value || p}>{p.label || p}</option>
                             ))}
                         </select>
                     </div>
@@ -109,9 +242,10 @@ const IrdaiMarketShare = () => {
                             className="custom-select"
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
+                            disabled={loadingPeriods}
                         >
-                            {periods.map(p => (
-                                <option key={p} value={p}>{p}</option>
+                            {periodOptions.map((p, idx) => (
+                                <option key={idx} value={p.label || p}>{p.label || p}</option>
                             ))}
                         </select>
                     </div>
@@ -130,8 +264,94 @@ const IrdaiMarketShare = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row">
-                        <div className="chart-placeholder" style={{ flex: '2', minHeight: '300px' }}>Treemap Visualization Placeholder</div>
+                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+                        {/* FYP Chart */}
+                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium Breakup (%)</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                        dataKey="type"
+                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                        tick={{ fontSize: 10 }}
+                                        interval={0}
+                                    />
+                                    <YAxis tick={{ fontSize: 12 }} />
+                                    <Tooltip
+                                        formatter={(value) => [`${value}%`, 'Share']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* SA Chart */}
+                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured Breakup (%)</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                        dataKey="type"
+                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                        tick={{ fontSize: 10 }}
+                                        interval={0}
+                                    />
+                                    <YAxis tick={{ fontSize: 12 }} />
+                                    <Tooltip
+                                        formatter={(value) => [`${value}%`, 'Share']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* NOP Chart */}
+                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Policies Breakup (%)</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                        dataKey="type"
+                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                        tick={{ fontSize: 10 }}
+                                        interval={0}
+                                    />
+                                    <YAxis tick={{ fontSize: 12 }} />
+                                    <Tooltip
+                                        formatter={(value) => [`${value}%`, 'Share']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* NOL Chart */}
+                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Lives Breakup (%)</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                        dataKey="type"
+                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                        tick={{ fontSize: 10 }}
+                                        interval={0}
+                                    />
+                                    <YAxis tick={{ fontSize: 12 }} />
+                                    <Tooltip
+                                        formatter={(value) => [`${value}%`, 'Share']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             ) : (

@@ -1587,6 +1587,12 @@ class ApiService {
     return response.data; // includes both total + category rows
   };
 
+  // 4️⃣ Get Premium Types
+  getPremiumTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/types`);
+    return response.data;
+  };
+
   // ================================
   // COMPANY METRICS APIs 
   // ================================
@@ -1860,6 +1866,18 @@ class ApiService {
     return response.data;
   }
 
+  // 1️⃣6️⃣ Monthwise Company All Metrics
+  async getMonthwiseCompanyAllMetrics(insurerName, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/company-all-metrics`, {
+      params: {
+        insurer_name: insurerName,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
   async getIrdaiPeriodTypes() {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
     return response.data;
@@ -1870,6 +1888,64 @@ class ApiService {
     return response.data;
   }
 
+  // 6️⃣ Get Premium Grand Totals
+  async getPremiumGrandTotals(premiumType, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/grand-totals`, {
+      params: {
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 7️⃣ Get Premium Wise Companies
+  async getPremiumWiseCompanies(premiumType, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/companies`, {
+      params: {
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 8️⃣ Get Market Share Premium By Insurer
+  async getMarketSharePremiumByInsurer(insurerName, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/market-share/premium-by-insurer`, {
+      params: {
+        insurer_name: insurerName,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 9️⃣ Get Growth Metric Types
+  async getGrowthMetricTypes() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/growth/metric-types`);
+    return response.data;
+  }
+  // 10️⃣ Get Company List (Insurers)
+  async getCompanyList() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  }
+  // 11️⃣ Get Company Premium Growth
+  async getCompanyPremiumGrowth(insurerName, metric, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/growth/company-premium`, {
+      params: {
+        insurer_name: insurerName,
+        metric: metric,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
 }
 
 export default new ApiService();
