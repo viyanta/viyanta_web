@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 const Breadcrumb = () => {
   const location = useLocation();
-  
+
   // Map routes to display names
   const getPageName = (pathname) => {
     const routeMap = {
@@ -18,12 +18,12 @@ const Breadcrumb = () => {
       '/profile': 'Profile',
       '/login': 'Login'
     };
-    
+
     return routeMap[pathname] || 'Dashboard';
   };
-  
+
   const currentPage = getPageName(location.pathname);
-  
+
   return (
     <div className="breadcrumb">
       <span className="breadcrumb__current">{currentPage}</span>

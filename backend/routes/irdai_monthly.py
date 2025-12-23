@@ -1,66 +1,1173 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
-from databases.database import get_db
-from typing import Optional
+from sqlalchemy.orm import Session
+from databases.database import get_db, DB_TYPE
 
 router = APIRouter()
 
-# 1️⃣ Get Available Report Months (Dropdown 1)
+# ======================================================
+# 1️⃣ PERIOD TYPES
+# ======================================================
 
 
-@router.get("/months")
-def get_months(db=Depends(get_db)):
-    query = text("""
-        SELECT DISTINCT report_month
+@router.get("/period/types")
+def get_period_types():
+    return [
+        {"label": "Monthly", "value": "MONTH"},
+        {"label": "Quarterly", "value": "Q"},
+        {"label": "Halfyearly", "value": "H"},
+        {"label": "Annual", "value": "FY"},
+    ]
+
+
+# ======================================================
+# 2️⃣ PERIOD OPTIONS
+# ======================================================
+@router.get("/period/options")
+def get_period_options(
+    type: str = Query(..., description="MONTH | Q | H | FY"),
+    db: Session = Depends(get_db)
+):
+    if type == "MONTH":
+        sql = text("""
+            SELECT
+              month_year AS label,
+              MIN(report_month) AS start_date,
+              MAX(report_month) AS end_date
+            FROM irdai_monthly_data
+            GROUP BY month_year
+            ORDER BY MAX(report_month) DESC
+        """)
+
+    elif type == "Q":
+        if DB_TYPE == "mysql":
+            sql = text("""
+                SELECT
+                  CONCAT(
+                    DATE_FORMAT(MIN(report_month), '%b %y'),
+                    ' - ',
+                    DATE_FORMAT(MAX(report_month), '%b %y')
+                  ) AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY YEAR(report_month), QUARTER(report_month)
+                ORDER BY MAX(report_month) DESC
+            """)
+        else:
+            # SQLite
+             sql = text("""
+                SELECT
+                  strftime('%m-%Y', MIN(report_month)) || ' - ' || strftime('%m-%Y', MAX(report_month)) AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY strftime('%Y', report_month), (CAST(strftime('%m', report_month) AS INTEGER) + 2) / 3
+                ORDER BY MAX(report_month) DESC
+            """)
+
+    elif type == "H":
+        if DB_TYPE == "mysql":
+            sql = text("""
+                SELECT
+                  MAX(CASE
+                    WHEN MONTH(report_month) BETWEEN 4 AND 9
+                      THEN CONCAT('Apr ', YEAR(report_month), ' - Sep ', YEAR(report_month))
+                    ELSE
+                      CONCAT('Oct ', YEAR(report_month)-1, ' - Mar ', YEAR(report_month))
+                  END) AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY
+                  CASE
+                    WHEN MONTH(report_month) BETWEEN 4 AND 9
+                      THEN CONCAT('H1-', YEAR(report_month))
+                    ELSE
+                      CONCAT('H2-', YEAR(report_month))
+                  END
+                ORDER BY MAX(report_month) DESC
+            """)
+        else:
+            # SQLite
+            sql = text("""
+                SELECT
+                  CASE
+                    WHEN CAST(strftime('%m', report_month) AS INTEGER) BETWEEN 4 AND 9
+                      THEN 'Apr ' || strftime('%Y', report_month) || ' - Sep ' || strftime('%Y', report_month)
+                    ELSE
+                      'Oct ' || CAST(strftime('%Y', report_month, '-1 year') AS TEXT) || ' - Mar ' || strftime('%Y', report_month)
+                  END AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY
+                  CASE
+                    WHEN CAST(strftime('%m', report_month) AS INTEGER) BETWEEN 4 AND 9
+                      THEN 'H1-' || strftime('%Y', report_month)
+                    ELSE
+                      'H2-' || strftime('%Y', report_month)
+                  END
+                ORDER BY MAX(report_month) DESC
+            """)
+
+    elif type == "FY":
+        if DB_TYPE == "mysql":
+            sql = text("""
+                SELECT
+                  CONCAT(
+                    'Apr ', MAX(YEAR(report_month))-1,
+                    ' - Mar ', MAX(YEAR(report_month))
+                  ) AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY YEAR(report_month)
+                ORDER BY MAX(report_month) DESC
+            """)
+        else:
+            # SQLite
+            sql = text("""
+                SELECT
+                  'Apr ' || CAST(strftime('%Y', report_month, '-1 year') AS TEXT) || ' - Mar ' || strftime('%Y', report_month) AS label,
+                  MIN(report_month) AS start_date,
+                  MAX(report_month) AS end_date
+                FROM irdai_monthly_data
+                GROUP BY strftime('%Y', report_month)
+                ORDER BY MAX(report_month) DESC
+            """)
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid period type")
+
+    return db.execute(sql).mappings().all()
+
+
+# ======================================================
+# 3️⃣ DASHBOARD TOTALS (PUBLIC / PRIVATE / GRAND)
+# ======================================================
+@router.get("/dashboard/totals")
+def get_dashboard_totals(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          -- FYP
+          SUM(CASE WHEN insurer_name = 'LIC of India' THEN fyp_current ELSE 0 END)     AS fyp_public,
+          SUM(CASE WHEN insurer_name = 'Private Total' THEN fyp_current ELSE 0 END)   AS fyp_private,
+          SUM(CASE WHEN insurer_name = 'Grand Total' THEN fyp_current ELSE 0 END)     AS fyp_grand,
+
+          -- SA
+          SUM(CASE WHEN insurer_name = 'LIC of India' THEN sa_current ELSE 0 END)     AS sa_public,
+          SUM(CASE WHEN insurer_name = 'Private Total' THEN sa_current ELSE 0 END)   AS sa_private,
+          SUM(CASE WHEN insurer_name = 'Grand Total' THEN sa_current ELSE 0 END)     AS sa_grand,
+
+          -- POLICIES
+          SUM(CASE WHEN insurer_name = 'LIC of India' THEN pol_current ELSE 0 END)    AS nop_public,
+          SUM(CASE WHEN insurer_name = 'Private Total' THEN pol_current ELSE 0 END)  AS nop_private,
+          SUM(CASE WHEN insurer_name = 'Grand Total' THEN pol_current ELSE 0 END)    AS nop_grand,
+
+          -- LIVES
+          SUM(CASE WHEN insurer_name = 'LIC of India' THEN lives_current ELSE 0 END)  AS nol_public,
+          SUM(CASE WHEN insurer_name = 'Private Total' THEN lives_current ELSE 0 END)AS nol_private,
+          SUM(CASE WHEN insurer_name = 'Grand Total' THEN lives_current ELSE 0 END)  AS nol_grand
+
         FROM irdai_monthly_data
-        ORDER BY report_month DESC;
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category = insurer_name
     """)
-    result = db.execute(query).fetchall()
-    return [str(row[0]) for row in result]
+
+    r = db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().first()
+
+    return {
+        "FYP": {
+            "public": r["fyp_public"] or 0,
+            "private": r["fyp_private"] or 0,
+            "grand": r["fyp_grand"] or 0,
+        },
+        "SA": {
+            "public": r["sa_public"] or 0,
+            "private": r["sa_private"] or 0,
+            "grand": r["sa_grand"] or 0,
+        },
+        "NOP": {
+            "public": r["nop_public"] or 0,
+            "private": r["nop_private"] or 0,
+            "grand": r["nop_grand"] or 0,
+        },
+        "NOL": {
+            "public": r["nol_public"] or 0,
+            "private": r["nol_private"] or 0,
+            "grand": r["nol_grand"] or 0,
+        }
+    }
 
 
-# 2️⃣ Get Insurers by Selected Month (Dropdown 2)
-@router.get("/insurers")
-def get_insurers(report_month: str, db=Depends(get_db)):
-    query = text("""
+# ======================================================
+# 4️⃣ PREMIUM TYPE SUMMARY (PUBLIC vs PRIVATE)
+# ======================================================
+@router.get("/dashboard/premium-type-summary")
+def get_premium_type_summary(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          CASE
+            WHEN insurer_name = 'LIC of India' THEN 'Public'
+            ELSE 'Private'
+          END AS insurer_type,
+
+          category AS premium_type,
+
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sum_assured,
+          SUM(lives_current) AS lives,
+          SUM(pol_current)   AS policies
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+
+        GROUP BY insurer_type, category
+        ORDER BY insurer_type, category
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# ======================================================
+# 5️⃣ METRIC-WISE PREMIUM BREAKUP
+# ======================================================
+
+@router.get("/dashboard/metric-wise-premium")
+def get_metric_wise_premium_breakup(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT 'FYP' AS metric, category AS premium_type, SUM(fyp_current) AS value
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        SELECT 'SA', category, SUM(sa_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        SELECT 'NOP', category, SUM(pol_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        SELECT 'NOL', category, SUM(lives_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        ORDER BY metric, premium_type
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# ======================================================
+# COMPANYWISE Page
+# 6️⃣ INSURER LIST
+@router.get("/company/insurers")
+def get_company_list(db: Session = Depends(get_db)):
+    sql = text("""
         SELECT DISTINCT insurer_name
         FROM irdai_monthly_data
-        WHERE report_month = :report_month
-        ORDER BY insurer_name;
+        WHERE insurer_name NOT IN ('Private Total', 'Grand Total')
+        ORDER BY insurer_name
     """)
-
-    result = db.execute(query, {"report_month": report_month}).fetchall()
-    return {"report_month": report_month,
-            "insurers": [row[0] for row in result]}
+    rows = db.execute(sql).fetchall()
+    return [{"label": r[0], "value": r[0]} for r in rows]
 
 
-# 3️⃣ Get Full Data Rows for Selected Insurer & Month
-@router.get("/details")
-def get_insurer_details(report_month: str, insurer_name: str, db=Depends(get_db)):
-    query = text("""
-        SELECT *
+# 7️⃣ COMPANY TOTALS
+@router.get("/company/totals")
+def get_company_totals(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
         FROM irdai_monthly_data
-        WHERE report_month = :report_month
-        AND insurer_name = :insurer_name
-        ORDER BY CASE 
-            WHEN category = insurer_name THEN 0  -- total row first
-            ELSE 1 
-        END, category;
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category = insurer_name
     """)
 
-    result = db.execute(query, {
-        "report_month": report_month,
-        "insurer_name": insurer_name
-    })
-
-    rows = result.fetchall()
-    if not rows:
-        raise HTTPException(status_code=404, detail="No data found")
-
-    columns = result.keys()
-    return {
-        "report_month": report_month,
+    row = db.execute(sql, {
         "insurer_name": insurer_name,
-        "count": len(rows),
-        "data": [dict(zip(columns, row)) for row in rows]
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().first()
+    
+    if not row:
+        return {}
+        
+    # Normalize keys to lowercase to ensure consistency
+    return {k.lower(): v for k, v in row.items()}
+
+
+
+
+# 8️⃣ COMPANY PREMIUM TYPE BREAKUP
+@router.get("/company/premium-type")
+def get_company_premium_type_breakup(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          category AS premium_type,
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category <> insurer_name
+        GROUP BY category
+        ORDER BY category
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 9️⃣ COMPANY METRIC-WISE PREMIUM BREAKUP
+@router.get("/company/metric-wise-premium")
+def get_company_metric_wise_premium(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        /* ======================
+           FYP
+        ====================== */
+        SELECT
+          'FYP' AS metric,
+          category AS premium_type,
+          SUM(fyp_current) AS value
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           SA
+        ====================== */
+        SELECT
+          'SA',
+          category,
+          SUM(sa_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           NOP
+        ====================== */
+        SELECT
+          'NOP',
+          category,
+          SUM(pol_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        UNION ALL
+
+        /* ======================
+           NOL
+        ====================== */
+        SELECT
+          'NOL',
+          category,
+          SUM(lives_current)
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        GROUP BY category
+
+        ORDER BY metric, premium_type
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣0️⃣ PREMIUM TYPES
+
+
+@router.get("/premium/types")
+def get_premium_types():
+    return [
+        {"label": "Individual Single Premium",
+            "value": "Individual Single Premium"},
+        {"label": "Individual Non-Single Premium",
+            "value": "Individual Non-Single Premium"},
+        {"label": "Group Single Premium", "value": "Group Single Premium"},
+        {"label": "Group Non-Single Premium", "value": "Group Non-Single Premium"},
+        {"label": "Group Yearly Renewable Premium",
+            "value": "Group Yearly Renewable Premium"},
+    ]
+
+
+# 1️⃣1️⃣ PREMIUM WISE COMPANIES
+@router.get("/premium/companies")
+def get_premium_wise_companies(
+    premium_type: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category = :premium_type
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+        GROUP BY insurer_name
+        ORDER BY fyp DESC
+    """)
+
+    return db.execute(sql, {
+        "premium_type": premium_type,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣2️⃣ PREMIUM GRAND TOTALS
+@router.get("/premium/grand-totals")
+def get_premium_grand_totals(
+    premium_type: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          SUM(fyp_current)   AS fyp,
+          SUM(sa_current)    AS sa,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category = :premium_type
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+    """)
+
+    r = db.execute(sql, {
+        "premium_type": premium_type,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().first()
+
+    return {
+        "premium_type": premium_type,
+        "FYP": r["fyp"] or 0,
+        "SA": r["sa"] or 0,
+        "NOP": r["nop"] or 0,
+        "NOL": r["nol"] or 0
+    }
+
+
+# 1️⃣3️⃣ COMPANY PREMIUM MARKET SHARE
+@router.get("/market-share/company-premium")
+def get_company_premium_market_share(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        /* =========================
+           COMPANY TOTAL ROWS
+        ========================= */
+        SELECT
+          insurer_name,
+          NULL AS premium_type,
+
+          SUM(fyp_market_share)   AS fyp_pct,
+          SUM(pol_market_share)   AS nop_pct,
+          SUM(lives_market_share) AS nol_pct,
+          SUM(sa_market_share)    AS sa_pct,
+
+          0 AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category = insurer_name
+          AND insurer_name NOT IN ('Private Total', 'Grand Total')
+
+        GROUP BY insurer_name
+
+        UNION ALL
+
+        /* =========================
+           PREMIUM BREAKUP ROWS
+        ========================= */
+        SELECT
+          insurer_name,
+          category AS premium_type,
+
+          SUM(fyp_market_share)   AS fyp_pct,
+          SUM(pol_market_share)   AS nop_pct,
+          SUM(lives_market_share) AS nol_pct,
+          SUM(sa_market_share)    AS sa_pct,
+
+          1 AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+
+        GROUP BY insurer_name, category
+        ORDER BY insurer_name, row_order, premium_type
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣4️⃣ PREMIUM MARKET SHARE BY INSURER
+@router.get("/market-share/premium-by-insurer")
+def get_premium_market_share_by_insurer(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+          category AS premium_type,
+
+          SUM(fyp_market_share)   AS fyp_pct,
+          SUM(pol_market_share)   AS nop_pct,
+          SUM(lives_market_share) AS nol_pct,
+          SUM(sa_market_share)    AS sa_pct,
+
+          1 AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+
+        GROUP BY insurer_name, category
+        ORDER BY category
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣4️⃣ GROWTH METRIC TYPES
+@router.get("/growth/metric-types")
+def get_growth_metric_types():
+    return [
+        {
+            "label": "First Year Premium",
+            "value": "FYP"
+        },
+        {
+            "label": "Sum Assured",
+            "value": "SA"
+        },
+        {
+            "label": "No. of Policies",
+            "value": "NOP"
+        },
+        {
+            "label": "No. of Lives",
+            "value": "NOL"
+        }
+    ]
+
+# 1️⃣5️⃣ COMPANY PREMIUM GROWTH
+
+# 1️⃣5️⃣ COMPANY PREMIUM GROWTH
+
+
+@router.get("/growth/company-premium")
+def get_company_premium_growth(
+    insurer_name: str,
+    metric: str,   # FYP | SA | NOP | NOL
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    metric_map = {
+        "FYP": {
+            "prev": "fyp_prev",
+            "cur": "fyp_current",
+            "growth": "fyp_growth",
+            "ytd_prev": "fyp_ytd_prev",
+            "ytd": "fyp_ytd_current",
+            "ytd_growth": "fyp_growth_ytd",
+            "market_share": "fyp_market_share",
+        },
+        "SA": {
+            "prev": "sa_prev",
+            "cur": "sa_current",
+            "growth": "sa_growth",
+            "ytd_prev": "sa_ytd_prev",
+            "ytd": "sa_ytd_current",
+            "ytd_growth": "sa_growth_ytd",
+            "market_share": "sa_market_share",
+        },
+        "NOP": {
+            "prev": "pol_prev",
+            "cur": "pol_current",
+            "growth": "pol_growth",
+            "ytd_prev": "pol_ytd_prev",
+            "ytd": "pol_ytd_current",
+            "ytd_growth": "pol_growth_ytd",
+            "market_share": "pol_market_share",
+        },
+        "NOL": {
+            "prev": "lives_prev",
+            "cur": "lives_current",
+            "growth": "lives_growth",
+            "ytd_prev": "lives_ytd_prev",
+            "ytd": "lives_ytd_current",
+            "ytd_growth": "lives_growth_ytd",
+            "market_share": "lives_market_share",
+        },
+    }
+
+    if metric not in metric_map:
+        raise HTTPException(status_code=400, detail="Invalid metric")
+
+    m = metric_map[metric]
+
+    sql = text(f"""
+        SELECT
+          insurer_name,
+          category AS premium_type,
+
+          SUM({m["prev"]})         AS previous_value,
+          SUM({m["cur"]})          AS current_value,
+          SUM({m["growth"]})       AS growth_pct,
+
+          SUM({m["ytd_prev"]})     AS ytd_previous_value,
+          SUM({m["ytd"]})          AS ytd_value,
+          SUM({m["ytd_growth"]})   AS ytd_growth_pct,
+
+          SUM({m["market_share"]}) AS market_share,
+
+          CASE
+            WHEN category NOT IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            ) THEN 0   -- TOTAL row
+            ELSE 1
+          END AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND (
+            category NOT IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            )
+            OR category IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            )
+          )
+
+        GROUP BY insurer_name, category
+        ORDER BY row_order, premium_type
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣6️⃣ MONTHWISE COMPANY ALL METRICS
+@router.get("/monthwise/company-all-metrics")
+def get_monthwise_company_all_metrics(
+    insurer_name: str,
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+          category AS premium_type,
+
+          /* ========== FYP ========== */
+          fyp_prev          AS fyp_previous,
+          fyp_current       AS fyp_current,
+          fyp_growth        AS fyp_growth,
+          fyp_ytd_prev      AS fyp_ytd_previous,
+          fyp_ytd_current   AS fyp_ytd_current,
+          fyp_growth_ytd    AS fyp_ytd_growth,
+          fyp_market_share  AS fyp_market_share,
+
+          /* ========== SA ========== */
+          sa_prev           AS sa_previous,
+          sa_current        AS sa_current,
+          sa_growth         AS sa_growth,
+          sa_ytd_prev       AS sa_ytd_previous,
+          sa_ytd_current    AS sa_ytd_current,
+          sa_growth_ytd     AS sa_ytd_growth,
+          sa_market_share   AS sa_market_share,
+
+          /* ========== NOP ========== */
+          pol_prev          AS nop_previous,
+          pol_current       AS nop_current,
+          pol_growth        AS nop_growth,
+          pol_ytd_prev      AS nop_ytd_previous,
+          pol_ytd_current   AS nop_ytd_current,
+          pol_growth_ytd    AS nop_ytd_growth,
+          pol_market_share  AS nop_market_share,
+
+          /* ========== NOL ========== */
+          lives_prev        AS nol_previous,
+          lives_current     AS nol_current,
+          lives_growth      AS nol_growth,
+          lives_ytd_prev    AS nol_ytd_previous,
+          lives_ytd_current AS nol_ytd_current,
+          lives_growth_ytd  AS nol_ytd_growth,
+          lives_market_share AS nol_market_share
+
+        FROM irdai_monthly_data
+        WHERE insurer_name = :insurer_name
+          AND report_month BETWEEN :start_date AND :end_date
+          AND (
+                category NOT IN (
+                  'Individual Single Premium',
+                  'Individual Non-Single Premium',
+                  'Group Single Premium',
+                  'Group Non-Single Premium',
+                  'Group Yearly Renewable Premium'
+                )
+                OR category IN (
+                  'Individual Single Premium',
+                  'Individual Non-Single Premium',
+                  'Group Single Premium',
+                  'Group Non-Single Premium',
+                  'Group Yearly Renewable Premium'
+                )
+          )
+        ORDER BY
+          CASE
+            WHEN category NOT IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            ) THEN 0
+            ELSE 1
+          END,
+          category
+    """)
+
+    return db.execute(sql, {
+        "insurer_name": insurer_name,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+# 1️⃣7️⃣ PRIVATE vs PUBLIC TABLE
+
+
+@router.get("/pvt-vs-public/table")
+def get_pvt_vs_public_table(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+          category AS row_name,
+
+          fyp_current   AS fyp,
+          pol_current   AS nop,
+          lives_current AS nol,
+          sa_current    AS sa,
+
+          CASE
+            WHEN insurer_name = 'Grand Total' THEN 0
+            WHEN insurer_name = 'Private Total' THEN 1
+            WHEN insurer_name = 'LIC of India' THEN 2
+            ELSE 9
+          END AS section_order,
+
+          CASE
+            WHEN category = insurer_name THEN 0
+            ELSE 1
+          END AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name IN (
+            'Grand Total',
+            'Private Total',
+            'LIC of India'
+          )
+          AND (
+            category = insurer_name
+            OR category IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            )
+          )
+
+        ORDER BY
+          section_order,
+          row_order,
+          category
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+@router.get("/pvt-vs-public/summary")
+def get_private_vs_public_summary(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name AS insurer_type,
+
+          /* ========== FYP ========== */
+          fyp_prev,
+          fyp_current,
+          fyp_growth,
+          fyp_ytd_prev,
+          fyp_ytd_current,
+          fyp_growth_ytd,
+          fyp_market_share,
+
+          /* ========== SA ========== */
+          sa_prev,
+          sa_current,
+          sa_growth,
+          sa_ytd_prev,
+          sa_ytd_current,
+          sa_growth_ytd,
+          sa_market_share,
+
+          /* ========== NOP ========== */
+          pol_prev,
+          pol_current,
+          pol_growth,
+          pol_ytd_prev,
+          pol_ytd_current,
+          pol_growth_ytd,
+          pol_market_share,
+
+          /* ========== NOL ========== */
+          lives_prev,
+          lives_current,
+          lives_growth,
+          lives_ytd_prev,
+          lives_ytd_current,
+          lives_growth_ytd,
+          lives_market_share
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND category = insurer_name
+          AND insurer_name IN ('LIC of India', 'Private Total')
+        ORDER BY
+          CASE
+            WHEN insurer_name = 'LIC of India' THEN 0
+            ELSE 1
+          END
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+# 1️⃣7️⃣ PRIVATE vs PUBLIC TABLE
+
+
+@router.get("/pvt-vs-public/table")
+def get_pvt_vs_public_table(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+          category AS row_name,
+
+          fyp_current   AS fyp,
+          pol_current   AS nop,
+          lives_current AS nol,
+          sa_current    AS sa,
+
+          CASE
+            WHEN insurer_name = 'Grand Total' THEN 0
+            WHEN insurer_name = 'Private Total' THEN 1
+            WHEN insurer_name = 'LIC of India' THEN 2
+            ELSE 9
+          END AS section_order,
+
+          CASE
+            WHEN category = insurer_name THEN 0
+            ELSE 1
+          END AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name IN (
+            'Grand Total',
+            'Private Total',
+            'LIC of India'
+          )
+          AND (
+            category = insurer_name
+            OR category IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            )
+          )
+
+        ORDER BY
+          section_order,
+          row_order,
+          category
+    """)
+
+    return db.execute(sql, {
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+
+# 1️⃣8️⃣ PEER INSURERS LIST
+@router.get("/peers/insurers")
+def get_peer_insurers(db: Session = Depends(get_db)):
+    sql = text("""
+        SELECT DISTINCT insurer_name
+        FROM irdai_monthly_data
+        WHERE insurer_name NOT IN ('Grand Total', 'Private Total')
+        ORDER BY insurer_name
+    """)
+    return [r[0] for r in db.execute(sql).all()]
+
+# 1️⃣9️⃣ PEER COMPARISON
+
+
+@router.get("/peers/comparison")
+def get_peer_comparison(
+    insurers: list[str] = Query(...),
+    premium_type: str = Query(...),
+    start_date: str = Query(...),
+    end_date: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    sql = text("""
+        SELECT
+          insurer_name,
+
+          fyp_current   AS fyp,
+          pol_current   AS nop,
+          lives_current AS nol,
+          sa_current    AS sa
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name IN :insurers
+          AND category = :premium_type
+    """)
+
+    rows = db.execute(sql, {
+        "insurers": tuple(insurers),
+        "premium_type": premium_type,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+    # ==============================
+    # PIVOT IN PYTHON (CLEAN + SAFE)
+    # ==============================
+    result = {
+        "First Year Premium": {},
+        "No. of Policies / Schemes": {},
+        "No. of Lives Covered under Group Schemes": {},
+        "Sum Assured": {}
+    }
+
+    for r in rows:
+        result["First Year Premium"][r["insurer_name"]] = r["fyp"]
+        result["No. of Policies / Schemes"][r["insurer_name"]] = r["nop"]
+        result["No. of Lives Covered under Group Schemes"][r["insurer_name"]] = r["nol"]
+        result["Sum Assured"][r["insurer_name"]] = r["sa"]
+
+    return {
+        "premium_type": premium_type,
+        "period": f"{start_date} to {end_date}",
+        "data": result
     }

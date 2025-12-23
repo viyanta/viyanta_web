@@ -1,9 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom';
+import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api'
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar'
 import './Lform.css'
 
 function Lform({ onMenuClick }) {
+    const navigate = useNavigate();
+    const { isNavItemActive } = useNavigation();
+
+    // Define tabs for Industry Aggregates (and potential others)
+    const allTabs = [
+        'L Forms', 'Annual Data', 'Irdai Monthly', 'Irdai Monthly Data'
+    ];
+    // Filter to show only active tabs
+    const tabs = allTabs.filter(tab => isNavItemActive(tab));
+
+    const handleTabClick = (tab) => {
+        if (!isNavItemActive(tab)) return;
+        switch (tab) {
+            case 'L Forms': break;
+            case 'Annual Data': navigate('/annual-data'); break;
+            case 'Irdai Monthly':
+            case 'Irdai Monthly Data':
+                navigate('/irdai-monthly-data');
+                break;
+            default: break;
+        }
+    };
+
     const [selectedValues, setSelectedValues] = useState({
         lform: '',
         period: '',
@@ -25,7 +50,7 @@ function Lform({ onMenuClick }) {
     const [reportData, setReportData] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
     const [errorData, setErrorData] = useState(null);
-    
+
     // Refs to prevent duplicate API calls
     const fetchingCompaniesRef = useRef(false);
     const fetchingFormsRef = useRef(false);
@@ -70,7 +95,7 @@ function Lform({ onMenuClick }) {
     // Fetch companies from API when component loads
     useEffect(() => {
         if (fetchingCompaniesRef.current) return;
-        
+
         const fetchCompanies = async () => {
             fetchingCompaniesRef.current = true;
             setLoadingCompanies(true);
@@ -94,7 +119,7 @@ function Lform({ onMenuClick }) {
     // Fetch forms when company is selected
     useEffect(() => {
         if (fetchingFormsRef.current) return;
-        
+
         const fetchForms = async () => {
             if (!selectedCompany) {
                 setLforms([]);
@@ -132,7 +157,7 @@ function Lform({ onMenuClick }) {
     // Fetch periods when company and lform are selected
     useEffect(() => {
         if (fetchingPeriodsRef.current) return;
-        
+
         const fetchPeriods = async () => {
             if (!selectedCompany || !selectedValues.lform) {
                 setPeriods([]);
@@ -169,7 +194,7 @@ function Lform({ onMenuClick }) {
     // Fetch report types when company, lform, and period are selected
     useEffect(() => {
         if (fetchingReportTypesRef.current) return;
-        
+
         const fetchReportTypes = async () => {
             if (!selectedCompany || !selectedValues.lform || !selectedValues.period) {
                 setReportTypes([]);
@@ -228,20 +253,20 @@ function Lform({ onMenuClick }) {
 
         // Create a unique key for this request to prevent duplicates
         const requestKey = `${selectedCompany}-${selectedValues.lform}-${selectedValues.period}-${selectedValues.reportType || 'null'}`;
-        
+
         // If this is the same request as the last one, skip it
         if (lastDataRequestRef.current === requestKey) {
             return;
         }
-        
+
         // If already fetching, skip
         if (fetchingDataRef.current) {
             return;
         }
-        
+
         lastDataRequestRef.current = requestKey;
         fetchingDataRef.current = true;
-        
+
         const fetchData = async () => {
             setLoadingData(true);
             setErrorData(null);
@@ -252,14 +277,14 @@ function Lform({ onMenuClick }) {
                     period: selectedValues.period,
                     report_type: selectedValues.reportType || null
                 });
-                
+
                 const data = await ApiService.getLformData(
-                    selectedCompany, 
-                    selectedValues.lform, 
+                    selectedCompany,
+                    selectedValues.lform,
                     selectedValues.period,
                     selectedValues.reportType || null
                 );
-                
+
                 console.log('✅ Report data received:', data?.length || 0, 'rows');
                 setReportData(data || []);
                 setErrorData(null); // Clear any previous errors
@@ -301,6 +326,45 @@ function Lform({ onMenuClick }) {
                 <h1>L-Form Data Selection</h1>
             </div>
 
+            {/* Navigation Tabs */}
+            <div className="navigation-tabs-container" style={{
+                marginBottom: 'clamp(15px, 3vw, 20px)',
+                padding: '0 clamp(10px, 3vw, 20px)'
+            }}>
+                <div className="navigation-tabs" style={{
+                    display: 'flex',
+                    gap: tabs.length <= 3 ? 'clamp(15px, 3vw, 20px)' : 'clamp(8px, 2vw, 12px)',
+                    width: '100%',
+                    overflowX: 'auto',
+                    overflowY: 'visible',
+                    paddingBottom: '5px',
+                    justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
+                }}>
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => handleTabClick(tab)}
+                            className={`nav-tab ${tab === 'L Forms' ? 'active' : 'inactive'}`}
+                            style={{
+                                padding: tabs.length <= 3 ? 'clamp(8px, 2vw, 10px) clamp(15px, 3vw, 18px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 2vw, 12px)',
+                                fontSize: tabs.length <= 3 ? 'clamp(13px, 2.5vw, 15px)' : 'clamp(12px, 2.5vw, 13px)',
+                                whiteSpace: 'nowrap',
+                                borderRadius: '6px',
+                                border: 'none',
+                                backgroundColor: tab === 'L Forms' ? 'var(--main-color)' : 'transparent',
+                                color: tab === 'L Forms' ? 'white' : '#666',
+                                fontWeight: tab === 'L Forms' ? '600' : '400',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                minHeight: tabs.length <= 3 ? '36px' : '32px'
+                            }}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <div className="main-content-wrapper">
                 <div className="content-layout">
                     {/* Left Sidebar */}
@@ -314,12 +378,12 @@ function Lform({ onMenuClick }) {
                         <div className="insurer-section">
                             <div className="insurer-dropdown-wrapper">
                                 <label className="insurer-label">Insurer Name</label>
-                    <select
-                        value={selectedCompany || ''}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setSelectedCompany(value);
-                        }}
+                                <select
+                                    value={selectedCompany || ''}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSelectedCompany(value);
+                                    }}
                                     className="insurer-select"
                                     disabled={loadingCompanies}
                                 >
@@ -331,116 +395,116 @@ function Lform({ onMenuClick }) {
                                             {company}
                                         </option>
                                     ))}
-                    </select>
+                                </select>
                                 {errorCompanies && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorCompanies}
                                     </small>
                                 )}
-                </div>
-            </div>
+                            </div>
+                        </div>
 
                         {/* Filters Section */}
                         <div className="filters-section">
-                        {/* Select L Form Dropdown */}
+                            {/* Select L Form Dropdown */}
                             <div className="filter-group">
                                 <label>Select L Form</label>
-                            <select 
-                                value={selectedValues.lform} 
-                                onChange={(e) => handleSelection('lform', e.target.value)}
+                                <select
+                                    value={selectedValues.lform}
+                                    onChange={(e) => handleSelection('lform', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || loadingLforms}
                                 >
                                     <option value="">
-                                        {!selectedCompany 
-                                            ? 'Select a company first' 
-                                            : loadingLforms 
-                                            ? 'Loading forms...' 
-                                            : 'Select L Form...'}
+                                        {!selectedCompany
+                                            ? 'Select a company first'
+                                            : loadingLforms
+                                                ? 'Loading forms...'
+                                                : 'Select L Form...'}
                                     </option>
                                     {lforms.map((form, index) => (
                                         <option key={index} value={form}>{form}</option>
-                                ))}
-                            </select>
+                                    ))}
+                                </select>
                                 {errorLforms && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorLforms}
                                     </small>
                                 )}
-                        </div>
+                            </div>
 
-                        {/* Select Period Dropdown */}
+                            {/* Select Period Dropdown */}
                             <div className="filter-group">
                                 <label>Select Period</label>
-                            <select 
-                                value={selectedValues.period} 
-                                onChange={(e) => handleSelection('period', e.target.value)}
+                                <select
+                                    value={selectedValues.period}
+                                    onChange={(e) => handleSelection('period', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || !selectedValues.lform || loadingPeriods}
                                 >
                                     <option value="">
-                                        {!selectedCompany 
-                                            ? 'Select a company first' 
+                                        {!selectedCompany
+                                            ? 'Select a company first'
                                             : !selectedValues.lform
-                                            ? 'Select an L-Form first'
-                                            : loadingPeriods 
-                                            ? 'Loading periods...' 
-                                            : 'Select Period...'}
+                                                ? 'Select an L-Form first'
+                                                : loadingPeriods
+                                                    ? 'Loading periods...'
+                                                    : 'Select Period...'}
                                     </option>
                                     {periods.map((period, index) => (
                                         <option key={index} value={period}>{period}</option>
-                                ))}
-                            </select>
+                                    ))}
+                                </select>
                                 {errorPeriods && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorPeriods}
                                     </small>
                                 )}
-                        </div>
+                            </div>
 
-                        {/* Select Report Type Dropdown */}
+                            {/* Select Report Type Dropdown */}
                             <div className="filter-group">
                                 <label>Select Report Type</label>
-                            <select 
-                                value={selectedValues.reportType} 
-                                onChange={(e) => handleSelection('reportType', e.target.value)}
+                                <select
+                                    value={selectedValues.reportType}
+                                    onChange={(e) => handleSelection('reportType', e.target.value)}
                                     className="filter-select"
                                     disabled={!selectedCompany || !selectedValues.lform || !selectedValues.period || loadingReportTypes}
                                 >
                                     <option value="">
-                                        {!selectedCompany 
-                                            ? 'Select a company first' 
+                                        {!selectedCompany
+                                            ? 'Select a company first'
                                             : !selectedValues.lform
-                                            ? 'Select an L-Form first'
-                                            : !selectedValues.period
-                                            ? 'Select a period first'
-                                            : loadingReportTypes 
-                                            ? 'Loading report types...' 
-                                            : 'Select...'}
+                                                ? 'Select an L-Form first'
+                                                : !selectedValues.period
+                                                    ? 'Select a period first'
+                                                    : loadingReportTypes
+                                                        ? 'Loading report types...'
+                                                        : 'Select...'}
                                     </option>
                                     {reportTypes.map((reportType, index) => (
                                         <option key={index} value={reportType}>{reportType}</option>
-                                ))}
-                            </select>
+                                    ))}
+                                </select>
                                 {errorReportTypes && (
                                     <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
                                         {errorReportTypes}
                                     </small>
                                 )}
+                            </div>
                         </div>
-                    </div>
 
                         {/* Data Display Section */}
                         {loadingData && (
-                    <div style={{
-                                textAlign: 'center', 
-                                padding: '40px', 
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '40px',
                                 color: '#666',
                                 fontSize: '16px'
                             }}>
                                 Loading data...
-                        </div>
-                    )}
+                            </div>
+                        )}
 
                         {errorData && (
                             <div className="warning-message" style={{ backgroundColor: '#f8d7da', borderColor: '#f5c6cb' }}>
@@ -448,49 +512,49 @@ function Lform({ onMenuClick }) {
                                 <p style={{ color: '#721c24' }}>{errorData}</p>
                             </div>
                         )}
-                        
-                        {!loadingData && !errorData && reportData.length === 0 && 
-                         selectedCompany && selectedValues.lform && selectedValues.period && 
-                         (!reportTypes.length || selectedValues.reportType) && (
-                        <div style={{
-                                textAlign: 'center', 
-                                padding: 'clamp(30px, 6vw, 50px)', 
-                                color: '#666',
-                                fontSize: 'clamp(14px, 2.5vw, 16px)',
-                                backgroundColor: '#f8f9fa',
-                            borderRadius: '8px',
-                            border: '1px solid #dee2e6',
-                                marginTop: 'clamp(20px, 4vw, 30px)'
-                            }}>
-                                <p style={{ margin: 0, fontWeight: '500' }}>
-                                    No data available for the selected criteria.
-                                </p>
-                                <p style={{ margin: '10px 0 0 0', fontSize: 'clamp(12px, 2vw, 14px)', color: '#999' }}>
-                                    Please try selecting different Company, L-Form, Period, or Report Type.
-                                </p>
-                            </div>
-                        )}
+
+                        {!loadingData && !errorData && reportData.length === 0 &&
+                            selectedCompany && selectedValues.lform && selectedValues.period &&
+                            (!reportTypes.length || selectedValues.reportType) && (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: 'clamp(30px, 6vw, 50px)',
+                                    color: '#666',
+                                    fontSize: 'clamp(14px, 2.5vw, 16px)',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: '8px',
+                                    border: '1px solid #dee2e6',
+                                    marginTop: 'clamp(20px, 4vw, 30px)'
+                                }}>
+                                    <p style={{ margin: 0, fontWeight: '500' }}>
+                                        No data available for the selected criteria.
+                                    </p>
+                                    <p style={{ margin: '10px 0 0 0', fontSize: 'clamp(12px, 2vw, 14px)', color: '#999' }}>
+                                        Please try selecting different Company, L-Form, Period, or Report Type.
+                                    </p>
+                                </div>
+                            )}
 
                         {!loadingData && !errorData && reportData.length > 0 && (
                             <div className="data-display-section">
-                            <h2 style={{
+                                <h2 style={{
                                     fontSize: 'clamp(18px, 3.5vw, 22px)',
                                     marginBottom: 'clamp(15px, 3vw, 20px)',
-                                color: '#333',
+                                    color: '#333',
                                     textAlign: 'center',
                                     fontWeight: '600'
-                            }}>
+                                }}>
                                     {selectedCompany} - {selectedValues.lform}
                                     {selectedValues.period && ` - ${selectedValues.period}`}
                                     {selectedValues.reportType && ` (${selectedValues.reportType})`}
-                            </h2>
-                            
+                                </h2>
+
                                 <div className="table-container">
                                     <table className="lform-table">
                                         <thead>
                                             <tr>
                                                 {Object.keys(reportData[0] || {}).map((header, index) => (
-                                                    <th key={index} style={{ 
+                                                    <th key={index} style={{
                                                         textAlign: index === 0 ? 'left' : 'center',
                                                         whiteSpace: 'nowrap'
                                                     }}>
@@ -503,12 +567,12 @@ function Lform({ onMenuClick }) {
                                             {reportData.map((row, rowIndex) => (
                                                 <tr key={rowIndex}>
                                                     {Object.values(row).map((cell, cellIndex) => (
-                                                        <td 
+                                                        <td
                                                             key={cellIndex}
-                                                            style={{ 
+                                                            style={{
                                                                 textAlign: cellIndex === 0 ? 'left' : 'right',
-                                                                fontWeight: cellIndex === 0 && (row[Object.keys(row)[0]]?.toString().toUpperCase().includes('TOTAL') || 
-                                                                                                    row[Object.keys(row)[0]]?.toString().toUpperCase().includes('SUBTOTAL')) ? '600' : '400'
+                                                                fontWeight: cellIndex === 0 && (row[Object.keys(row)[0]]?.toString().toUpperCase().includes('TOTAL') ||
+                                                                    row[Object.keys(row)[0]]?.toString().toUpperCase().includes('SUBTOTAL')) ? '600' : '400'
                                                             }}
                                                         >
                                                             {cell !== null && cell !== undefined ? String(cell) : '-'}
@@ -522,347 +586,347 @@ function Lform({ onMenuClick }) {
                             </div>
                         )}
 
-                        {!loadingData && !errorData && reportData.length === 0 && 
-                         selectedCompany && selectedValues.lform && selectedValues.period && 
-                         reportTypes.length > 0 && !selectedValues.reportType && (
-                            <div style={{
-                                textAlign: 'center', 
-                                padding: 'clamp(30px, 6vw, 50px)', 
-                                color: '#666',
-                                fontSize: 'clamp(14px, 2.5vw, 16px)',
-                                backgroundColor: '#fff3cd',
-                                borderRadius: '8px',
-                                border: '1px solid #ffeaa7',
-                                marginTop: 'clamp(20px, 4vw, 30px)'
-                            }}>
-                                <p style={{ margin: 0, fontWeight: '500' }}>
-                                    Please select a Report Type to view the data.
-                                </p>
-                            </div>
-                        )}
+                        {!loadingData && !errorData && reportData.length === 0 &&
+                            selectedCompany && selectedValues.lform && selectedValues.period &&
+                            reportTypes.length > 0 && !selectedValues.reportType && (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: 'clamp(30px, 6vw, 50px)',
+                                    color: '#666',
+                                    fontSize: 'clamp(14px, 2.5vw, 16px)',
+                                    backgroundColor: '#fff3cd',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ffeaa7',
+                                    marginTop: 'clamp(20px, 4vw, 30px)'
+                                }}>
+                                    <p style={{ margin: 0, fontWeight: '500' }}>
+                                        Please select a Report Type to view the data.
+                                    </p>
+                                </div>
+                            )}
 
                         {/* Old hardcoded L-2 table - removed, using dynamic data display above */}
-                        {false && selectedValues.lform === 'L-2_Profit And Loss Account - L-2-A-Pl' && 
-                         selectedValues.period && 
-                         selectedValues.reportType && (
-                            <div className="data-display-section">
-                                <h2>
-                                    Condensed {selectedValues.reportType} Profit & Loss Account for the quarter ended {selectedValues.period}<br />
-                                    Shareholders' Account (Non-technical Account)
-                                </h2>
-                                
-                                <div className="table-container">
-                                    <table className="lform-table">
-                                    <thead>
-                                            <tr>
-                                                <th>Particulars</th>
-                                                <th style={{ textAlign: 'center' }}>Schedule Ref. Form No.</th>
-                                                <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period}</th>
-                                                <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period === 'Jun 24' ? 'Jun 23' : 'Previous Period'}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                                <td style={{ fontWeight: '600' }}>
-                                                Amounts transferred from the Policyholders Account (Technical Account)
-                                            </td>
-                                                <td style={{ textAlign: 'center' }}>-</td>
-                                                <td style={{ textAlign: 'right' }}>37,960</td>
-                                                <td style={{ textAlign: 'right' }}>29,600</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-                                                Income From Investments
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (a) Interest, Dividends & Rent – Gross
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>15,756</td>
-                                            <td style={{ textAlign: 'right'  }}>17,963</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (b) Profit on sale/redemption of investments
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>17,903</td>
-                                            <td style={{ textAlign: 'right'  }}>1</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (c) (Loss on sale/redemption of investments)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>(9)</td>
-                                            <td style={{ textAlign: 'right'  }}>(383)</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (d) Amortisation of Premium/Discount on Investments (Net)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>(383)</td>
-                                            <td style={{ textAlign: 'right'  }}>(387)</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                Other Income
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>567</td>
-                                            <td style={{ textAlign: 'right'  }}>300</td>
-                                        </tr>
-                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                <strong>Total (A)</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>71,794</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>47,477</strong>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Expense other than those directly related to the insurance business
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>L-6A</td>
-                                            <td style={{ textAlign: 'right'  }}>804</td>
-                                            <td style={{ textAlign: 'right'  }}>399</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Contribution to Policyholders' A/c
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (a) Towards Excess Expenses of Management
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>44,564</td>
-                                            <td style={{ textAlign: 'right'  }}>29,212</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (b) towards deficit funding and others
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>132</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Managerial Remuneration*
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>2,049</td>
-                                            <td style={{ textAlign: 'right'  }}>2,049</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Interest on subordinated debt
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>47</td>
-                                            <td style={{ textAlign: 'right'  }}>3</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Expenses towards CSR activities
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Penalties
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Bad debts written off
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Amount Transferred to Policyholders' Account
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Provisions (Other than taxation)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (a) For diminution in the value of investments (Net)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>3,587</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (b) Provision for doubtful debts
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (c) Others
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                <strong>Total (B)</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>51,051</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>31,795</strong>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Profit/ (Loss) before tax
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>20,743</td>
-                                            <td style={{ textAlign: 'right'  }}>15,682</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Provision for Taxation
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (a) Current tax credit/(charge)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>(158)</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (b) Deferred tax credit/(charge)
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>34</td>
-                                            <td style={{ textAlign: 'right'  }}>(26)</td>
-                                        </tr>
-                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                <strong>Profit/(Loss) after tax</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>20,619</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>15,656</strong>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                Appropriations
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (a) Balance at the beginning of the period
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>480,695</td>
-                                            <td style={{ textAlign: 'right'  }}>407,252</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (b) Interim dividend paid
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (c) Final dividend paid
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>7,906</td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ paddingLeft: '20px'  }}>
-                                                (d) Transfer to reserves/other accounts
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                            <td style={{ textAlign: 'right'  }}>-</td>
-                                        </tr>
-                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <td style={{ fontWeight: '600'  }}>
-                                                <strong>Profit/Loss carried forward to Balance Sheet</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'center'  }}>-</td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>501,314</strong>
-                                            </td>
-                                            <td style={{ textAlign: 'right', fontWeight: '600'  }}>
-                                                <strong>415,002</strong>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                                <div className="table-footer">
-                                <p><strong>Units:</strong> (₹ Lakhs)</p>
-                                <p><strong>*</strong> in excess of the allowable limits as prescribed by IRDAI</p>
-                                <p>The Schedules referred to herein form an integral part of the Condensed Consolidated Profit and Loss Account.</p>
-                            </div>
-                        </div>
-                    )}
+                        {false && selectedValues.lform === 'L-2_Profit And Loss Account - L-2-A-Pl' &&
+                            selectedValues.period &&
+                            selectedValues.reportType && (
+                                <div className="data-display-section">
+                                    <h2>
+                                        Condensed {selectedValues.reportType} Profit & Loss Account for the quarter ended {selectedValues.period}<br />
+                                        Shareholders' Account (Non-technical Account)
+                                    </h2>
 
+                                    <div className="table-container">
+                                        <table className="lform-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Particulars</th>
+                                                    <th style={{ textAlign: 'center' }}>Schedule Ref. Form No.</th>
+                                                    <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period}</th>
+                                                    <th style={{ textAlign: 'center' }}>Quarter ended {selectedValues.period === 'Jun 24' ? 'Jun 23' : 'Previous Period'}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Amounts transferred from the Policyholders Account (Technical Account)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>37,960</td>
+                                                    <td style={{ textAlign: 'right' }}>29,600</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: '600', fontSize: '14px', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+                                                        Income From Investments
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (a) Interest, Dividends & Rent – Gross
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>15,756</td>
+                                                    <td style={{ textAlign: 'right' }}>17,963</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (b) Profit on sale/redemption of investments
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>17,903</td>
+                                                    <td style={{ textAlign: 'right' }}>1</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (c) (Loss on sale/redemption of investments)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>(9)</td>
+                                                    <td style={{ textAlign: 'right' }}>(383)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (d) Amortisation of Premium/Discount on Investments (Net)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>(383)</td>
+                                                    <td style={{ textAlign: 'right' }}>(387)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        Other Income
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>567</td>
+                                                    <td style={{ textAlign: 'right' }}>300</td>
+                                                </tr>
+                                                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        <strong>Total (A)</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>71,794</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>47,477</strong>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Expense other than those directly related to the insurance business
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>L-6A</td>
+                                                    <td style={{ textAlign: 'right' }}>804</td>
+                                                    <td style={{ textAlign: 'right' }}>399</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Contribution to Policyholders' A/c
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (a) Towards Excess Expenses of Management
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>44,564</td>
+                                                    <td style={{ textAlign: 'right' }}>29,212</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (b) towards deficit funding and others
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>132</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Managerial Remuneration*
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>2,049</td>
+                                                    <td style={{ textAlign: 'right' }}>2,049</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Interest on subordinated debt
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>47</td>
+                                                    <td style={{ textAlign: 'right' }}>3</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Expenses towards CSR activities
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Penalties
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Bad debts written off
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Amount Transferred to Policyholders' Account
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Provisions (Other than taxation)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (a) For diminution in the value of investments (Net)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>3,587</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (b) Provision for doubtful debts
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (c) Others
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        <strong>Total (B)</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>51,051</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>31,795</strong>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Profit/ (Loss) before tax
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>20,743</td>
+                                                    <td style={{ textAlign: 'right' }}>15,682</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Provision for Taxation
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (a) Current tax credit/(charge)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>(158)</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (b) Deferred tax credit/(charge)
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>34</td>
+                                                    <td style={{ textAlign: 'right' }}>(26)</td>
+                                                </tr>
+                                                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        <strong>Profit/(Loss) after tax</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>20,619</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>15,656</strong>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        Appropriations
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (a) Balance at the beginning of the period
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>480,695</td>
+                                                    <td style={{ textAlign: 'right' }}>407,252</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (b) Interim dividend paid
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (c) Final dividend paid
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>7,906</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style={{ paddingLeft: '20px' }}>
+                                                        (d) Transfer to reserves/other accounts
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                    <td style={{ textAlign: 'right' }}>-</td>
+                                                </tr>
+                                                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        <strong>Profit/Loss carried forward to Balance Sheet</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>-</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>501,314</strong>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                        <strong>415,002</strong>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="table-footer">
+                                        <p><strong>Units:</strong> (₹ Lakhs)</p>
+                                        <p><strong>*</strong> in excess of the allowable limits as prescribed by IRDAI</p>
+                                        <p>The Schedules referred to herein form an integral part of the Condensed Consolidated Profit and Loss Account.</p>
+                                    </div>
                                 </div>
+                            )}
+
+                    </div>
                 </div>
             </div>
         </div>

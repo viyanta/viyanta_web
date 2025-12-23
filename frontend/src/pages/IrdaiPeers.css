@@ -1,0 +1,242 @@
+.irdai-peers-container {
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.peers-header-section {
+    margin-bottom: 20px;
+}
+
+.peers-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Filters Layout */
+.filters-layout-container {
+    display: flex;
+    justify-content: space-between;
+    /* Push toggle to right */
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: flex-start;
+}
+
+.peers-filters-left-group {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.filters-left-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 200px;
+    /* Reduced specific width */
+    flex-shrink: 0;
+    margin-top: 0;
+    /* To account for the label height on the right side */
+}
+
+/* Previously filters-right-controls, now just for period inputs */
+.filters-period-controls {
+    display: flex;
+    gap: 30px;
+    align-items: flex-end;
+    /* Align to bottom so inputs align with inputs */
+    padding-bottom: 4px;
+}
+
+.peers-toggle-right {
+    padding-top: 23px;
+    /* Align deeply with the inputs roughly, or just top align if needed.
+       In SharedLayout it's top aligned usually.
+       But here the filters are pushed down.
+       Let's assume standard top alignment for the separate container or match input line.
+       If we want it 'same position', it usually means top-right.
+    */
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-label {
+    font-size: 13px;
+    color: #36659b;
+    /* Updated to blue */
+    font-weight: 500;
+}
+
+.peers-dropdown {
+    padding: 8px 12px;
+    border: 1px solid #6b7280;
+    /* Darker border matching screenshot */
+    border-radius: 4px;
+    background-color: #ffffff;
+    font-size: 13px;
+    color: #111827;
+    outline: none;
+    font-weight: 500;
+    height: 38px;
+    /* Fixed height for alignment */
+}
+
+.peers-dropdown.full-width {
+    width: 100%;
+}
+
+.peers-dropdown.small {
+    width: 140px;
+}
+
+
+
+/* Dynamic Title */
+.peers-dynamic-title {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgb(54, 101, 155);
+    /* Updated to specific blue */
+}
+
+.title-separator {
+    margin: 0 8px;
+    color: #6b7280;
+}
+
+.title-date {
+    color: rgb(54, 101, 155);
+}
+
+/* Table */
+.peers-table-container {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+}
+
+.peers-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.peers-comparison-table th {
+    background-color: #f9fafb;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.section-header-row {
+    background-color: #ffffff;
+}
+
+.section-header-cell {
+    padding: 0;
+    border: none;
+}
+
+.premium-type-badge {
+    display: inline-block;
+    background-color: rgb(54, 101, 155);
+    /* Blue matching other headers */
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #ffffff;
+    width: 100%;
+    /* Strip across */
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.col-header-row {
+    background-color: #ffffff;
+}
+
+.col-header {
+    font-weight: 700;
+    color: #374151;
+    padding: 4px 8px;
+}
+
+.data-row td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #4b5563;
+}
+
+.row-label {
+    width: 30%;
+    font-weight: 500;
+    color: #111827;
+}
+
+.row-unit,
+.row-period {
+    width: 5%;
+    text-align: center;
+}
+
+.row-value {
+    text-align: center;
+    /* Center align values */
+}
+
+/* Responsiveness */
+@media (max-width: 992px) {
+    .filters-layout-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .peers-filters-left-group {
+        flex-direction: column;
+        width: 100%;
+        gap: 20px;
+    }
+
+    .filters-left-stack {
+        width: 100%;
+    }
+
+    .filters-period-controls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .peers-toggle-right {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .filters-period-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .peers-dropdown.small {
+        width: 100%;
+    }
+
+    .peers-toggle-right {
+        justify-content: center;
+    }
+}

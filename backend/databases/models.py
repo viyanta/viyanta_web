@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Text, DateTime, func
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, DateTime, DECIMAL, JSON, ForeignKey, Text, Boolean, Date
+    Column, Integer, BigInteger, Float, String, DateTime, DECIMAL, JSON, ForeignKey, Text, Boolean, Date
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -285,28 +285,32 @@ class PeriodMaster(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    # FY & financial period mapping
-    ProcessedFYYear = Column(String(10), nullable=True)
-    ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
-    PeriodType = Column(String(20), nullable=True)  # Q1/Q2/Q3/Q4/HY/9M/FY
+    # Financial year info
+    ProcessedFYYear = Column(String(10), nullable=True)              # FY2024
+    ProcessedFinancialYearPeriod = Column(
+        String(20), nullable=True)  # 2023-2024
+
+    # Q1/Q2/Q3/Q4/H1/H2/9M/FY
+    PeriodType = Column(String(20), nullable=False)
+
+    # Optional IRDAI marking
     LFormsMarking = Column(String(10), nullable=True)
 
-    # Unique normalized financial period range (ex: Apr 2022-Mar 2023)
-    # Increased from 50 to 255 to accommodate longer period descriptions
+    # Unique human-readable period
     ProcessedFinancialYearPeriodWithMonth = Column(
         String(255), nullable=False, unique=True
     )
 
-    # Original text extracted (before normalization)
+    # Original extracted text
     raw_text = Column(String(255), nullable=True)
 
-    # Actual start & end date
+    # Actual date range
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
 
     is_active = Column(Boolean, default=True)
 
-    # Relationship to monthly_period_master
+    # Relationship: One Quarter → Many Months
     monthly_mappings = relationship(
         "MonthlyPeriodMaster",
         back_populates="period_master_ref",
@@ -319,33 +323,46 @@ class MonthlyPeriodMaster(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    ProcessedPeriodShortDate = Column(Date, nullable=False)  # Start of month
-    ProcessedPeriodEndDate = Column(Date, nullable=False)    # End of month
+    # Month boundaries
+    ProcessedPeriodShortDate = Column(Date, nullable=False)  # 1st day
+    ProcessedPeriodEndDate = Column(Date, nullable=False)    # Last day
     ProcessedPreviousPeriod = Column(Date, nullable=True)
 
+    # FY info (denormalized for faster filters)
     ProcessedFYYear = Column(String(10), nullable=True)
     ProcessedFinancialYearPeriod = Column(String(20), nullable=True)
     ProcessedFinancialYearPeriodWithMonth = Column(String(50), nullable=True)
 
     is_active = Column(Boolean, default=True)
 
-    # Link to PeriodMaster
-    period_id = Column(Integer, ForeignKey("period_master.id"), nullable=True)
+    # FK → Quarter (period_master.id where PeriodType = Q1–Q4)
+    period_id = Column(
+        Integer,
+        ForeignKey("period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
 
     period_master_ref = relationship(
-        "PeriodMaster", back_populates="monthly_mappings")
+        "PeriodMaster",
+        back_populates="monthly_mappings"
+    )
 
 
 class IRDAIData(Base):
-    __tablename__ = "irdai_data"
+    __tablename__ = "irdai_monthly_data"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
 
+    # Reporting month (usually month end date)
     report_month = Column(Date, nullable=False)
+    month_year = Column(String(10), nullable=True)
+
     insurer_name = Column(String(255), nullable=False)
     category = Column(String(255), nullable=False)
 
+    # --------------------
     # First Year Premium
+    # --------------------
     fyp_prev = Column(DECIMAL(18, 2))
     fyp_current = Column(DECIMAL(18, 2))
     fyp_growth = Column(DECIMAL(18, 2))
@@ -354,7 +371,9 @@ class IRDAIData(Base):
     fyp_growth_ytd = Column(DECIMAL(18, 2))
     fyp_market_share = Column(DECIMAL(18, 2))
 
-    # No. of Policies / Schemes
+    # --------------------
+    # No. of Policies
+    # --------------------
     pol_prev = Column(DECIMAL(18, 2))
     pol_current = Column(DECIMAL(18, 2))
     pol_growth = Column(DECIMAL(18, 2))
@@ -363,7 +382,9 @@ class IRDAIData(Base):
     pol_growth_ytd = Column(DECIMAL(18, 2))
     pol_market_share = Column(DECIMAL(18, 2))
 
-    # No. of Lives Covered under Group Schemes
+    # --------------------
+    # Lives Covered
+    # --------------------
     lives_prev = Column(DECIMAL(18, 2))
     lives_current = Column(DECIMAL(18, 2))
     lives_growth = Column(DECIMAL(18, 2))
@@ -372,7 +393,9 @@ class IRDAIData(Base):
     lives_growth_ytd = Column(DECIMAL(18, 2))
     lives_market_share = Column(DECIMAL(18, 2))
 
+    # --------------------
     # Sum Assured
+    # --------------------
     sa_prev = Column(DECIMAL(18, 2))
     sa_current = Column(DECIMAL(18, 2))
     sa_growth = Column(DECIMAL(18, 2))
@@ -380,6 +403,24 @@ class IRDAIData(Base):
     sa_ytd_current = Column(DECIMAL(18, 2))
     sa_growth_ytd = Column(DECIMAL(18, 2))
     sa_market_share = Column(DECIMAL(18, 2))
+
+    # --------------------
+    # Period Links
+    # --------------------
+    monthly_period_id = Column(
+        Integer,
+        ForeignKey("monthly_period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    quarter_period_id = Column(
+        Integer,
+        ForeignKey("period_master.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    monthly_period_ref = relationship("MonthlyPeriodMaster")
+    quarter_period_ref = relationship("PeriodMaster")
 
 
 class Companies(Base):
@@ -408,6 +449,7 @@ class CompanyMetrics(Base):
     ReportedUnit = Column(String(50), nullable=True)
     ReportedValue = Column(String(100), nullable=True)
     Datachheck = Column(String(100), nullable=True)
+    IsActive = Column(Boolean, default=True, nullable=False)
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(),
@@ -419,11 +461,15 @@ class ReportsL2Extracted(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
-    report_id = Column(BigInteger, ForeignKey("reports_l2.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("company.id"), nullable=False)
+    # Note: Foreign keys removed to avoid SQLAlchemy metadata resolution issues
+    # with dynamically created models. Relationships are maintained at application level.
+    report_id = Column(BigInteger, nullable=False)
+    company_id = Column(Integer, nullable=False)
     row_index = Column(Integer)
 
     particulars = Column(Text)
+    normalized_text = Column(String(512))  # NLP-normalized text for matching
+    master_row_id = Column(BigInteger)  # References master_mapping.id
     schedule = Column(String(100))
 
     for_current_period = Column(String(50))
@@ -458,3 +504,221 @@ class DashboardChartConfig(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(),
                         onupdate=func.now())
+
+
+# =================================================================
+# Register extracted/detail tables in ReportModels
+# =================================================================
+ReportModels['reports_l2_extracted'] = ReportsL2Extracted
+
+
+class MasterRow(Base):
+    __tablename__ = "master_rows"
+
+    master_row_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    cluster_label = Column(
+        Integer,
+        unique=True,
+        nullable=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=True
+    )
+
+    # Optional relationship (safe to keep)
+    mappings = relationship(
+        "MasterMapping",
+        back_populates="master_row",
+        primaryjoin="MasterRow.cluster_label==foreign(MasterMapping.cluster_label)",
+        viewonly=True
+    )
+
+
+class MasterMapping(Base):
+    __tablename__ = "master_mapping"
+
+    id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=False
+    )
+
+    company_id = Column(
+        Integer,
+        nullable=False
+    )
+
+    form_no = Column(
+        String(20),
+        nullable=False
+    )
+
+    variant_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    normalized_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    cluster_label = Column(
+        Integer,
+        nullable=True
+    )
+
+    similarity_score = Column(
+        Float,
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp()
+    )
+
+    # Logical (not FK-based) relationship
+    master_row = relationship(
+        "MasterRow",
+        primaryjoin="foreign(MasterMapping.cluster_label)==MasterRow.cluster_label",
+        viewonly=True
+    )
+
+
+class MenuMaster(Base):
+    __tablename__ = "menu_master"
+
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+
+    MenuSequenceID = Column(Integer)
+    MainMenuID = Column(Integer, nullable=False)
+    MainMenuName = Column(String(255))
+    IsMainMenuActive = Column(Boolean)
+
+    SubMenuID = Column(Integer, nullable=False, unique=True)
+    SubMenuName = Column(String(255))
+    IsSubMenuActive = Column(Boolean)
+
+    ISsequenceID = Column(Integer)
+    IsSelectCompany = Column(Boolean)
+
+    IsExcelDownload = Column(Boolean)
+    IsPDFDownload = Column(Boolean)
+    IsPrint = Column(Boolean)
+
+    IsDarkTheme = Column(Boolean)
+    IsLightTheme = Column(Boolean)
+
+    IsSettings = Column(Boolean)
+    IsSupportEmail = Column(Boolean)
+    IsTalkToUs = Column(Boolean)
+    IsLogout = Column(Boolean)
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    def __repr__(self):
+        return f"<MenuMaster(MainMenuID={self.MainMenuID}, SubMenuID={self.SubMenuID})>"
+
+
+class UserMaster(Base):
+    __tablename__ = "user_master"
+
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+
+    SerialNumber = Column(Integer)
+
+    UserStartDate = Column(Date)
+    UserEndDate = Column(Date)
+    IsUserActive = Column(Boolean)
+
+    UserType = Column(String(100))
+    UserDetail = Column(String(255))
+
+    UserID = Column(String(100), unique=True, index=True)
+    UserLoginEmailName = Column(String(255), unique=True, index=True)
+    UserPassword = Column(String(255))
+
+    UserLastPwdReset = Column(DateTime)
+    UserPINCaptcha = Column(String(20))
+
+    UserLongName = Column(String(255))
+    UserShortName = Column(String(100))
+
+    UserOrganisation = Column(String(255))
+    UserMobile = Column(String(20))
+    UserTelephone = Column(String(20))
+
+    UserDepartment = Column(String(255))
+    UserAddress = Column(Text)
+    UserCity = Column(String(100))
+    UserState = Column(String(100))
+    UserCountry = Column(String(100))
+
+    IsSubscribedDigitsLife = Column(Boolean)
+    IssubscribedDigitsNonLife = Column(Boolean)
+    IsSubscribedDigitsPlus = Column(Boolean)
+
+    IsSubscribedAssureLife = Column(Boolean)
+    IssubscribedAssureNonLife = Column(Boolean)
+    IsSubscribedAssurePlus = Column(Boolean)
+
+    IsMasterAdmin = Column(Boolean)
+    IsDMSUser = Column(Boolean)
+    IsDMSMenuTemplateID = Column(Integer)
+
+    UserLoginHistory = Column(JSON)
+    UserPreferenceSetting = Column(JSON)
+    UserActivitiestracking = Column(JSON)
+    UserAccessDetails = Column(JSON)
+    UserIPAllowed = Column(JSON)
+
+    ConcurrentUsersAllowedforIPAccess = Column(Integer)
+
+    UserUsageStat = Column(JSON)
+    UserConsentUpdate = Column(JSON)
+
+    UpcomingRenewalDate = Column(Date)
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    def __repr__(self):
+        return f"<UserMaster(UserID={self.UserID}, Email={self.UserLoginEmailName})>"

@@ -2,7 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../utils/Button.jsx'
 import { subscribeToAuthChanges, logout, updateUserProfile } from '../firebase/auth.js'
+import { useAuth } from '../context/AuthContext.jsx'
 import './Profile.css'
+
+const PRODUCTS = {
+  DIGITS_LIFE: 'Digits Life',
+  DIGITS_NON_LIFE: 'Digits Non-Life',
+  DIGITS_PLUS: 'Digits Plus',
+  ASSURE_LIFE: 'Assure Life',
+  ASSURE_NON_LIFE: 'Assure Non-Life',
+  ASSURE_PLUS: 'Assure Plus'
+};
 
 function Profile({ onMenuClick }) {
   const [user, setUser] = useState(null);
@@ -14,6 +24,7 @@ function Profile({ onMenuClick }) {
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const navigate = useNavigate();
+  const { userAccess, isAdmin, selectedProduct, changeProduct, userId } = useAuth();
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((authUser) => {
@@ -263,6 +274,13 @@ function Profile({ onMenuClick }) {
             </div>
 
             <div className="profile-detail-item">
+              <label className="profile-detail-label">User ID</label>
+              <p className="profile-detail-value" style={{ fontFamily: 'monospace', fontSize: '0.9em' }}>
+                {userId || 'Loading...'}
+              </p>
+            </div>
+
+            <div className="profile-detail-item">
               <label className="profile-detail-label">Account Status</label>
               <div className="profile-status">
                 <span className="profile-status-icon">✓</span>
@@ -283,7 +301,75 @@ function Profile({ onMenuClick }) {
                 }
               </p>
             </div>
+
+            {/* Admin Status */}
+            {isAdmin && (
+              <div className="profile-detail-item">
+                <label className="profile-detail-label">Admin Access</label>
+                <div className="profile-admin-badge">
+                  <span className="profile-admin-icon">🔑</span>
+                  <span className="profile-admin-text">MasterAdmin</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Product Access Section */}
+          {userAccess && userAccess.products && (
+            <div className="profile-card" style={{ marginTop: '1.5rem' }}>
+              <div className="profile-card-header">
+                <h2 className="profile-card-title">Product Access</h2>
+                {isAdmin && (
+                  <Button 
+                    variant="primary" 
+                    size="small"
+                    onClick={() => navigate('/admin')}
+                  >
+                    Admin Panel
+                  </Button>
+                )}
+              </div>
+
+              <div className="profile-details">
+                <div className="profile-products-grid">
+                  {Object.entries(PRODUCTS).map(([key, label]) => {
+                    const hasAccess = userAccess.products[key];
+                    const isSelected = selectedProduct === key;
+                    return (
+                      <div 
+                        key={key} 
+                        className={`profile-product-card ${hasAccess ? 'has-access' : 'no-access'} ${isSelected ? 'selected' : ''}`}
+                        onClick={() => hasAccess && changeProduct(key)}
+                        style={{ cursor: hasAccess ? 'pointer' : 'not-allowed' }}
+                      >
+                        <div className="profile-product-header">
+                          <span className="profile-product-icon">
+                            {hasAccess ? (isSelected ? '✓' : '🔓') : '🔒'}
+                          </span>
+                          <h4 className="profile-product-name">{label}</h4>
+                        </div>
+                        <p className="profile-product-status">
+                          {hasAccess ? (isSelected ? 'Active' : 'Available') : 'No Access'}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {selectedProduct && (
+                <div style={{ 
+                  marginTop: '1rem', 
+                  padding: '0.75rem', 
+                  backgroundColor: '#e7f3ff', 
+                  borderRadius: '8px',
+                  color: '#0366d6'
+                }}>
+                  <strong>Currently using:</strong> {PRODUCTS[selectedProduct]}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

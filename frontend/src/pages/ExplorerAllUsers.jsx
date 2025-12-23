@@ -6,6 +6,7 @@ import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
 import SmartTableViewer from '../components/SmartTableViewer.jsx'
 import { subscribeToAuthChanges } from '../firebase/auth.js'
+import StandardPageLayout from '../components/StandardPageLayout';
 
 function ExplorerAllUsers({ onMenuClick }) {
     const { refreshStats } = useStats();
@@ -13,7 +14,7 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [loading, setLoading] = React.useState(false);
     const [user, setUser] = React.useState(null);
     const [authLoading, setAuthLoading] = React.useState(true);
-    
+
     // Companies data state
     const [companiesData, setCompaniesData] = React.useState([]);
     const [selectedCompany, setSelectedCompany] = React.useState(null);
@@ -23,24 +24,24 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [jsonData, setJsonData] = React.useState(null);
     const [jsonLoading, setJsonLoading] = React.useState(false);
     const [view, setView] = React.useState('companies'); // 'companies' | 'folders' | 'files'
-    
+
     // PDF splits data state
     const [pdfSplits, setPdfSplits] = React.useState([]);
     const [isLoadingSplits, setIsLoadingSplits] = React.useState(false);
     const [selectedSplit, setSelectedSplit] = React.useState(null);
     const [splitPdfUrl, setSplitPdfUrl] = React.useState(null);
     const [isLoadingSplitPdf, setIsLoadingSplitPdf] = React.useState(false);
-    
+
     // Form visibility control state - track which forms are enabled/disabled
     const [enabledForms, setEnabledForms] = React.useState(new Set());
     const [showFormSelector, setShowFormSelector] = React.useState(false);
     const [lastPreferencesUpdate, setLastPreferencesUpdate] = React.useState(null);
-    
+
     // Data edits state - track cell edits for admin
     const [dataEdits, setDataEdits] = React.useState({});
     const [editingCell, setEditingCell] = React.useState(null); // {recordIndex, rowIndex, header}
     const [editValue, setEditValue] = React.useState('');
-    
+
     // View mode state - 'pdf' or 'data'
     const [viewMode, setViewMode] = React.useState('pdf');
 
@@ -48,18 +49,18 @@ function ExplorerAllUsers({ onMenuClick }) {
     const [extractedData, setExtractedData] = React.useState(null);
     const [isLoadingExtractedData, setIsLoadingExtractedData] = React.useState(false);
     const [extractedDataError, setExtractedDataError] = React.useState(null);
-    
+
     // Pagination state for extracted data
     const [currentRecordPage, setCurrentRecordPage] = React.useState(1);
     const [recordsPerPage, setRecordsPerPage] = React.useState(10);
     const [searchTerm, setSearchTerm] = React.useState('');
-    
+
     // Process extracted data for pagination
     const processedExtractedData = React.useMemo(() => {
         if (!extractedData) return { headers: [], allRowsData: [], records: [], hasData: false };
-        
+
         console.log('Raw extracted data:', extractedData);
-        
+
         // Handle multiple records (array of data)
         let records = [];
         if (Array.isArray(extractedData)) {
@@ -67,18 +68,18 @@ function ExplorerAllUsers({ onMenuClick }) {
         } else {
             records = [extractedData];
         }
-        
+
         console.log('Processing records:', records.length, 'records');
-        
+
         // Get headers from first record
         let headers = [];
         let allRowsData = [];
-        
+
         records.forEach((record, recordIndex) => {
             // Try different data structures for each record
             let recordHeaders = [];
             let recordRows = [];
-            
+
             // Check for SmartTableViewer format
             if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
                 const table = record.tables[0];
@@ -95,15 +96,15 @@ function ExplorerAllUsers({ onMenuClick }) {
                 recordHeaders = record.headers;
                 recordRows = record.data;
             }
-            
+
             // Use headers from first record and add form info header
             if (recordIndex === 0) {
                 headers = ['Form Info', ...recordHeaders];
             }
-            
+
             // Add form information row - check for any form metadata fields
             const hasFormMetadata = record.PagesUsed || record['Form No'] || record.Title || record.Period || record.Currency || record.RegistrationNumber || record.FormName;
-            
+
             if (hasFormMetadata) {
                 // Create consolidated form metadata in single cell
                 const metadataFields = [
@@ -114,13 +115,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                     { key: 'Pages Used', value: record.PagesUsed },
                     { key: 'Registration No', value: record.RegistrationNumber }
                 ].filter(field => field.value);
-                
+
                 // Create single row with all metadata in first cell
                 const metadataText = metadataFields.map(field => `${field.key}: ${field.value}`).join(' | ');
                 const metadataRow = [`FORM_METADATA_${record.PagesUsed || 'INFO'}`, metadataText, ...new Array(recordHeaders.length - 1).fill('')];
                 allRowsData.push(metadataRow);
             }
-            
+
             // Add data rows
             if (recordRows.length > 0) {
                 const convertedRows = recordRows.map(row => {
@@ -135,7 +136,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     // If row is a primitive, wrap it in an array
                     return [row];
                 });
-                
+
                 // Add all data rows with empty page info column
                 const rowsWithEmptyPageInfo = convertedRows.map(row => {
                     if (Array.isArray(row)) {
@@ -144,36 +145,36 @@ function ExplorerAllUsers({ onMenuClick }) {
                     }
                     return row;
                 });
-                
+
                 allRowsData = allRowsData.concat(rowsWithEmptyPageInfo);
             }
         });
-        
+
         const hasData = headers.length > 0 && allRowsData.length > 0;
         console.log('Final rendering data:', { headers, allRowsData, hasData, totalRecords: records.length });
-        
+
         return { headers, allRowsData, records, hasData };
     }, [extractedData]);
-    
+
     // Filter rows based on search term
     const filteredRows = React.useMemo(() => {
         if (!searchTerm) return processedExtractedData.allRowsData;
-        return processedExtractedData.allRowsData.filter(row => 
-            Array.isArray(row) 
+        return processedExtractedData.allRowsData.filter(row =>
+            Array.isArray(row)
                 ? row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm.toLowerCase()))
                 : Object.values(row).some(value => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }, [processedExtractedData.allRowsData, searchTerm]);
-    
+
     // Pagination
     const totalPages = Math.ceil(filteredRows.length / recordsPerPage);
     const startIndex = (currentRecordPage - 1) * recordsPerPage;
     const endIndex = startIndex + recordsPerPage;
     const currentPageRows = filteredRows.slice(startIndex, endIndex);
-    
+
     // S3 data state
     const [s3Data, setS3Data] = React.useState({});
-    
+
     // Set up Firebase auth listener (for authentication context)
     React.useEffect(() => {
         const unsubscribe = subscribeToAuthChanges((authUser) => {
@@ -195,50 +196,50 @@ function ExplorerAllUsers({ onMenuClick }) {
 
         return () => unsubscribe();
     }, []);
-    
+
     // Poll for form preference updates every 3 seconds when a file is selected
     // This allows real-time updates when admin changes preferences
     React.useEffect(() => {
         if (!selectedFile || !selectedCompany || isLoadingSplits || !pdfSplits.length) {
             return;
         }
-        
+
         const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
         if (!companyName) {
             return;
         }
-        
+
         // Map company name to match backend API format
         const companyNameMapping = {
             'sbi': 'SBI Life',
-            'hdfc': 'HDFC Life', 
+            'hdfc': 'HDFC Life',
             'icici': 'ICICI Prudential',
             'lic': 'LIC'
         };
         const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-        
+
         // Poll for preference updates (works for all users, including admin in other tabs)
         const pollInterval = setInterval(async () => {
             try {
                 const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
-                
+
                 const prefsResponse = await fetch(prefsUrl);
                 if (prefsResponse.ok) {
                     const prefsData = await prefsResponse.json();
                     const enabledFormsList = prefsData.data?.enabled_forms;
-                    
+
                     // Check if preferences exist and have changed
                     if (enabledFormsList !== undefined && enabledFormsList !== null) {
                         setEnabledForms(prevEnabledForms => {
                             const newSet = new Set(enabledFormsList);
-                            
+
                             // Check if preferences have changed
-                            const hasChanged = 
+                            const hasChanged =
                                 newSet.size !== prevEnabledForms.size ||
                                 Array.from(newSet).some(form => !prevEnabledForms.has(form)) ||
                                 Array.from(prevEnabledForms).some(form => !newSet.has(form));
-                            
+
                             if (hasChanged) {
                                 console.log('🔄 Form preferences updated from server:', Array.from(newSet));
                                 setLastPreferencesUpdate(new Date());
@@ -252,51 +253,51 @@ function ExplorerAllUsers({ onMenuClick }) {
                 console.error('Error polling form preferences:', error);
             }
         }, 3000); // Poll every 3 seconds
-        
+
         return () => clearInterval(pollInterval);
     }, [selectedFile?.name, selectedCompany, pdfSplits.length, isLoadingSplits, companiesData]);
 
     // Function to fetch extracted data for a split
     const fetchExtractedData = async (companyName, pdfName, splitFilename) => {
         if (!companyName || !pdfName || !splitFilename) return;
-        
+
         console.log('🔍 fetchExtractedData called with:', { companyName, pdfName, splitFilename });
-        
+
         setIsLoadingExtractedData(true);
         setExtractedDataError(null);
         setExtractedData(null); // Clear previous data
-        
+
         try {
-            console.log('🔍 Fetching extraction data:', { 
-                companyName, 
-                pdfName, 
+            console.log('🔍 Fetching extraction data:', {
+                companyName,
+                pdfName,
                 splitFilename,
                 url: `companies/${companyName}/pdfs/${pdfName}/splits/${splitFilename}/extraction`
             });
-            
+
             const result = await ApiService.getExtractedData(companyName, pdfName, splitFilename);
             console.log('📊 API response:', result);
-            
-                if (result.success) {
-                    setExtractedData(result.data);
-                    console.log('✅ Extracted data loaded successfully:', result.data);
-                    console.log('📊 Data source:', result.source || 'unknown');
-                    
-                    // Reset pagination when new data is loaded
-                    setCurrentRecordPage(1);
-                    setSearchTerm('');
-                } else {
-                    console.log('❌ API returned success: false, message:', result.message);
-                    setExtractedDataError(
-                        result.message || 
-                        'No extraction data found. Try running Smart Extraction first to generate data for this form.'
-                    );
-                    setExtractedData(null);
-                }
+
+            if (result.success) {
+                setExtractedData(result.data);
+                console.log('✅ Extracted data loaded successfully:', result.data);
+                console.log('📊 Data source:', result.source || 'unknown');
+
+                // Reset pagination when new data is loaded
+                setCurrentRecordPage(1);
+                setSearchTerm('');
+            } else {
+                console.log('❌ API returned success: false, message:', result.message);
+                setExtractedDataError(
+                    result.message ||
+                    'No extraction data found. Try running Smart Extraction first to generate data for this form.'
+                );
+                setExtractedData(null);
+            }
         } catch (error) {
             console.error('❌ Failed to fetch extracted data:', error);
             const errorMessage = error.message || 'Failed to load extracted data';
-            
+
             // Provide helpful error message about fallback behavior
             if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
                 setExtractedDataError(
@@ -328,12 +329,12 @@ function ExplorerAllUsers({ onMenuClick }) {
     // Fetch extracted data when a split is selected
     React.useEffect(() => {
         console.log('🔄 Split selection changed:', { selectedSplit, selectedFile, selectedCompany });
-        
+
         if (selectedSplit && selectedFile && selectedCompany) {
             // Company ID to directory name mapping (for backend API calls)
             const companyIdMapping = {
                 'sbi': 'sbi_life',  // Use underscore format for API
-                'hdfc': 'hdfc_life', 
+                'hdfc': 'hdfc_life',
                 'icici': 'icici_prudential',
                 'bajaj': 'bajaj_allianz',
                 1: 'sbi_life',  // Add numeric mapping
@@ -341,7 +342,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                 3: 'icici_prudential',
                 4: 'bajaj_allianz'
             };
-            
+
             // Directory name mapping for company names with spaces
             const companyNameToDir = {
                 'Sbi Life': 'sbi_life',
@@ -352,13 +353,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                 'HDFC Life': 'hdfc_life',
                 'ICICI Prudential': 'icici_prudential'
             };
-            
+
             // Try to find company name from companiesData first
             const company = companiesData.find(c => (c.id || c.name) === selectedCompany);
             let companyName = company?.name;
-            
+
             console.log('🏢 Company lookup:', { selectedCompany, foundCompany: company, companyName });
-            
+
             // If not found in companiesData, use fallback mapping
             if (!companyName) {
                 companyName = companyIdMapping[selectedCompany];
@@ -371,19 +372,19 @@ function ExplorerAllUsers({ onMenuClick }) {
                     companyName = dirName;
                 }
             }
-            
+
             // Additional check: if company name is 'sbi', 'hdfc', etc., map to directory format
             if (companyName && ['sbi', 'hdfc', 'icici', 'bajaj'].includes(companyName.toLowerCase())) {
                 companyName = companyIdMapping[companyName.toLowerCase()] || companyName;
                 console.log('🔄 Using lowercase mapping:', { originalName: companyName, mappedName: companyIdMapping[companyName.toLowerCase()] });
             }
-            
+
             if (companyName) {
-                console.log('✅ Company name resolved, fetching extraction data:', { 
-                    selectedCompany, 
-                    companyName, 
-                    pdfName: selectedFile.name, 
-                    splitFilename: selectedSplit.filename 
+                console.log('✅ Company name resolved, fetching extraction data:', {
+                    selectedCompany,
+                    companyName,
+                    pdfName: selectedFile.name,
+                    splitFilename: selectedSplit.filename
                 });
                 fetchExtractedData(companyName, selectedFile.name, selectedSplit.filename);
             } else {
@@ -391,26 +392,26 @@ function ExplorerAllUsers({ onMenuClick }) {
                 setExtractedDataError(`Company name not found for ID: ${selectedCompany}`);
             }
         } else {
-            console.log('⚠️ Missing required data for extraction:', { 
-                hasSelectedSplit: !!selectedSplit, 
-                hasSelectedFile: !!selectedFile, 
-                hasSelectedCompany: !!selectedCompany 
+            console.log('⚠️ Missing required data for extraction:', {
+                hasSelectedSplit: !!selectedSplit,
+                hasSelectedFile: !!selectedFile,
+                hasSelectedCompany: !!selectedCompany
             });
             // Clear extracted data when no split is selected
             setExtractedData(null);
             setExtractedDataError(null);
         }
     }, [selectedSplit, selectedFile, selectedCompany, companiesData]);
-    
+
     // Function to render extracted data in table format (matching Smart Extraction UI)
     // Each record gets its own table with headers
     const renderExtractedDataTable = () => {
         const { records, hasData } = processedExtractedData;
-        
+
         // If we have table data, render each record separately with its own headers
         if (hasData && records.length > 0) {
             return (
-                <div style={{ 
+                <div style={{
                     background: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
@@ -439,8 +440,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                             </span>
                         )}
                     </div>
-                    
-                    <div style={{ 
+
+                    <div style={{
                         maxHeight: '600px',
                         overflow: 'auto',
                         padding: '1rem'
@@ -449,7 +450,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             // Get headers and rows for this record
                             let recordHeaders = [];
                             let recordRows = [];
-                            
+
                             // Check for SmartTableViewer format
                             if (record?.tables && Array.isArray(record.tables) && record.tables.length > 0) {
                                 const table = record.tables[0];
@@ -466,13 +467,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 recordHeaders = record.headers;
                                 recordRows = record.data;
                             }
-                            
+
                             if (recordHeaders.length === 0 || recordRows.length === 0) {
                                 return null;
                             }
-                            
+
                             return (
-                                <div key={recordIndex} style={{ 
+                                <div key={recordIndex} style={{
                                     marginBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
                                     paddingBottom: recordIndex < records.length - 1 ? '1.5rem' : 0,
                                     borderBottom: recordIndex < records.length - 1 ? '1px solid #f0f0f0' : 'none'
@@ -481,7 +482,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                     <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
                                         Record {recordIndex + 1} {record.FormName && `- ${record.FormName}`}
                                         {record.PagesUsed && (
-                                    <span style={{ 
+                                            <span style={{
                                                 marginLeft: '1rem',
                                                 padding: '2px 8px',
                                                 background: '#e3f2fd',
@@ -492,13 +493,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 border: '1px solid #bbdefb'
                                             }}>
                                                 📄 Pages Used: {record.PagesUsed}
-                                    </span>
-                                )}
+                                            </span>
+                                        )}
                                     </h6>
-                                    
+
                                     {/* Form Metadata Display */}
                                     {(record["Form No"] || record.Title || record.RegistrationNumber || record.Period || record.Currency) && (
-                                        <div style={{ 
+                                        <div style={{
                                             background: '#f8f9fa',
                                             padding: '0.75rem',
                                             borderRadius: '6px',
@@ -513,13 +514,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 {record.RegistrationNumber && <div><strong>Registration Number:</strong> {record.RegistrationNumber}</div>}
                                                 {record.Period && <div><strong>Period:</strong> {record.Period}</div>}
                                                 {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
-                        </div>
-                    </div>
+                                            </div>
+                                        </div>
                                     )}
-                                    
+
                                     {/* Legacy metadata for backward compatibility */}
                                     {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
-                                        <div style={{ 
+                                        <div style={{
                                             background: '#f8f9fa',
                                             padding: '0.5rem',
                                             borderRadius: '4px',
@@ -532,29 +533,29 @@ function ExplorerAllUsers({ onMenuClick }) {
                                             {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
                                         </div>
                                     )}
-                                    
+
                                     {/* Table Data - Each record has its own table with headers */}
-                    <div style={{ 
+                                    <div style={{
                                         border: '1px solid #e0e0e0',
                                         borderRadius: '4px',
                                         overflow: 'hidden'
                                     }}>
-                                        <div 
+                                        <div
                                             className="table-scroll-container"
-                                            style={{ 
+                                            style={{
                                                 overflowX: 'scroll',
                                                 overflowY: 'scroll',
                                                 maxHeight: '500px',
-                            width: '100%',
+                                                width: '100%',
                                                 maxWidth: '100%',
                                                 display: 'block',
                                                 boxSizing: 'border-box'
                                             }}
                                         >
-                                            <table style={{ 
+                                            <table style={{
                                                 width: 'max-content',
                                                 minWidth: '100%',
-                            borderCollapse: 'collapse',
+                                                borderCollapse: 'collapse',
                                                 fontSize: '0.8rem',
                                                 margin: 0
                                             }}>
@@ -564,85 +565,85 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                             // Function to determine alignment based on column header
                                                             const getHeaderAlignment = (headerText) => {
                                                                 const normalizedHeader = headerText.toLowerCase().trim();
-                                                                
+
                                                                 // Left-aligned columns (text/description columns)
                                                                 const leftAlignedColumns = [
-                                                                    'particulars', 'information', 'category of business', 
-                                                                    'claims experience', 'types of claims', 'channels', 
-                                                                    'category of investment', 'description','designation', 'details','shareholder','shareholders', 
-                                                                    'name', 'title', 'remarks','role/function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                    'particulars', 'information', 'category of business',
+                                                                    'claims experience', 'types of claims', 'channels',
+                                                                    'category of investment', 'description', 'designation', 'details', 'shareholder', 'shareholders',
+                                                                    'name', 'title', 'remarks', 'role/function', 'notes', 'type', 'category', 'non-performing loans'
                                                                 ];
-                                                                
+
                                                                 // Center-aligned columns (serial numbers)
                                                                 const centerAlignedColumns = [
-                                                                    'sl no','Sl No', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
-                                                                    's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                    'sl no', 'Sl No', 'sl.no', 'sl. no.', 'sl.no.', 'sr no', 'sr.no',
+                                                                    's.no', 's no', 'serial no', 'serial number', 'sn', 'index', 'item', 'Item No', 'items'
                                                                 ];
 
                                                                 const rightAlignedColumns = [
                                                                     'for'
                                                                 ];
-                                                                
+
                                                                 // Check for serial number columns
                                                                 if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
                                                                     return 'center';
                                                                 }
-                                                                
+
                                                                 // Check for text/description columns or second column
                                                                 if (headerIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
                                                                     return 'left';
                                                                 }
                                                                 if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) return 'right';
-                                                                
+
                                                                 // Default: numeric columns - right align
                                                                 return 'right';
                                                             };
                                                             // Function to break long headers
                                                             const formatHeader = (text) => {
                                                                 if (!text) return '';
-                                                              
+
                                                                 const MAX_CHUNK = 20;
                                                                 let cleanText = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); // Replace underscores with spaces
                                                                 const words = cleanText.split(' ');
                                                                 let lines = [];
                                                                 let currentLine = '';
-                                                              
+
                                                                 // Build up to 3 lines
                                                                 for (let i = 0; i < words.length; i++) {
-                                                                  const word = words[i];
-                                                                  if ((currentLine + ' ' + word).trim().length <= MAX_CHUNK) {
-                                                                    // If word fits in current line
-                                                                    currentLine = (currentLine + ' ' + word).trim();
-                                                                  } else {
-                                                                    // Push current line and start new one
-                                                                    lines.push(currentLine);
-                                                                    currentLine = word;
-                                                                    if (lines.length === 2) break; // stop after 2 lines; remaining goes to last
-                                                                  }
+                                                                    const word = words[i];
+                                                                    if ((currentLine + ' ' + word).trim().length <= MAX_CHUNK) {
+                                                                        // If word fits in current line
+                                                                        currentLine = (currentLine + ' ' + word).trim();
+                                                                    } else {
+                                                                        // Push current line and start new one
+                                                                        lines.push(currentLine);
+                                                                        currentLine = word;
+                                                                        if (lines.length === 2) break; // stop after 2 lines; remaining goes to last
+                                                                    }
                                                                 }
-                                                              
+
                                                                 // Push last line (even if long)
                                                                 if (currentLine) {
-                                                                  const remainingWords = words.slice(words.indexOf(currentLine.split(' ')[0]));
-                                                                  lines.push(remainingWords.join(' '));
+                                                                    const remainingWords = words.slice(words.indexOf(currentLine.split(' ')[0]));
+                                                                    lines.push(remainingWords.join(' '));
                                                                 }
-                                                              
+
                                                                 return (
-                                                                  <>
-                                                                    {lines.map((line, i) => (
-                                                                      <React.Fragment key={i}>
-                                                                        {line}
-                                                                        {i < lines.length - 1 && <br />}
-                                                                      </React.Fragment>
-                                                                    ))}
-                                                                  </>
+                                                                    <>
+                                                                        {lines.map((line, i) => (
+                                                                            <React.Fragment key={i}>
+                                                                                {line}
+                                                                                {i < lines.length - 1 && <br />}
+                                                                            </React.Fragment>
+                                                                        ))}
+                                                                    </>
                                                                 );
-                                                              };
-                                                              
-                                                            
-                                                            
+                                                            };
+
+
+
                                                             return (
-                                                                <th key={headerIndex} style={{ 
+                                                                <th key={headerIndex} style={{
                                                                     padding: '0.5rem',
                                                                     textAlign: 'center',
                                                                     borderRight: '1px solid #e0e0e0',
@@ -659,24 +660,24 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 </thead>
                                                 <tbody>
                                                     {recordRows.map((row, rowIndex) => {
-                                    // Check if row contains "total" or "subtotal" (case-insensitive)
-                                    const checkForTotal = (cellValue) => {
-                                        if (!cellValue) return false;
-                                        const str = cellValue.toString().trim().toLowerCase();
-                                        return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
-                                    };
-                                    
-                                    let isTotalRow = false;
-                                    if (Array.isArray(row)) {
-                                        // Check all cells in the row
-                                        isTotalRow = row.some(cell => checkForTotal(cell));
+                                                        // Check if row contains "total" or "subtotal" (case-insensitive)
+                                                        const checkForTotal = (cellValue) => {
+                                                            if (!cellValue) return false;
+                                                            const str = cellValue.toString().trim().toLowerCase();
+                                                            return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
+                                                        };
+
+                                                        let isTotalRow = false;
+                                                        if (Array.isArray(row)) {
+                                                            // Check all cells in the row
+                                                            isTotalRow = row.some(cell => checkForTotal(cell));
                                                         } else if (typeof row === 'object' && row !== null) {
-                                        // For object rows, check all header values
+                                                            // For object rows, check all header values
                                                             isTotalRow = recordHeaders.some(header => checkForTotal(row[header]));
                                                         }
-                                                        
+
                                                         return (
-                                                            <tr key={rowIndex} style={{ 
+                                                            <tr key={rowIndex} style={{
                                                                 background: rowIndex % 2 === 0 ? 'white' : '#ebf7f9',
                                                                 fontWeight: isTotalRow ? '700' : 'normal'
                                                             }}>
@@ -690,59 +691,59 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                     } else {
                                                                         originalValue = row || '';
                                                                     }
-                                                                    
+
                                                                     // Function to determine cell alignment
                                                                     const getCellAlignment = (headerText, colIndex) => {
                                                                         const normalizedHeader = headerText.toLowerCase().trim();
-                                                                        
+
                                                                         // Left-aligned columns (text/description columns)
                                                                         const leftAlignedColumns = [
-                                                                            'particulars','particular','Designation', 'information', 'category of business', 
-                                                                            'claims experience', 'types of claims', 'channels', 
-                                                                            'category of investment', 'description','designation', 'details','shareholder','shareholders', 
-                                                                            'name', 'title', 'remarks','Role/Function', 'notes', 'type', 'category', 'non-performing loans'
+                                                                            'particulars', 'particular', 'Designation', 'information', 'category of business',
+                                                                            'claims experience', 'types of claims', 'channels',
+                                                                            'category of investment', 'description', 'designation', 'details', 'shareholder', 'shareholders',
+                                                                            'name', 'title', 'remarks', 'Role/Function', 'notes', 'type', 'category', 'non-performing loans'
                                                                         ];
-                                                                        
+
                                                                         // Center-aligned columns (serial numbers)
                                                                         const centerAlignedColumns = [
-                                                                            'sl no','sl_no', 'sl.no','sl. no.','sl.no.', 'sr no', 'sr.no', 
-                                                                            's.no', 's no', 'serial no', 'serial number', 'sn', 'index','item','Item No','items'
+                                                                            'sl no', 'sl_no', 'sl.no', 'sl. no.', 'sl.no.', 'sr no', 'sr.no',
+                                                                            's.no', 's no', 'serial no', 'serial number', 'sn', 'index', 'item', 'Item No', 'items'
                                                                         ];
                                                                         const rightAlignedColumns = [
                                                                             'for'
                                                                         ];
-                                                                        
+
                                                                         // Check for serial number columns
                                                                         if (centerAlignedColumns.some(col => normalizedHeader.includes(col))) {
                                                                             return 'center';
                                                                         }
-                                                                        if (rightAlignedColumns.some(col => normalizedHeader.includes(col))) 
+                                                                        if (rightAlignedColumns.some(col => normalizedHeader.includes(col)))
                                                                             return 'right';
                                                                         // Check for text/description columns or second column
                                                                         if (colIndex === 1 || leftAlignedColumns.some(col => normalizedHeader.includes(col))) {
                                                                             return 'left';
                                                                         }
-                                                                        
-                                                                        
+
+
                                                                         // Default: numeric columns - right align
                                                                         return 'right';
                                                                     };
-                                                                    
+
                                                                     const alignment = getCellAlignment(header, headerIndex);
-                                                                    
+
                                                                     // Get form name for edit key - use selectedSplit.form_name as primary source
                                                                     const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || record.form_name || 'Unknown';
                                                                     const cellValue = getCellValue(formName, recordIndex, rowIndex, header, originalValue);
-                                                                    const isEditing = editingCell && 
-                                                                        editingCell.recordIndex === recordIndex && 
-                                                                        editingCell.rowIndex === rowIndex && 
+                                                                    const isEditing = editingCell &&
+                                                                        editingCell.recordIndex === recordIndex &&
+                                                                        editingCell.rowIndex === rowIndex &&
                                                                         editingCell.header === header &&
                                                                         editingCell.formName === formName;
-                                                                    
+
                                                                     return (
-                                                                        <td 
-                                                                            key={headerIndex} 
-                                                                            style={{ 
+                                                                        <td
+                                                                            key={headerIndex}
+                                                                            style={{
                                                                                 padding: '0.5rem',
                                                                                 borderRight: '1px solid #e0e0e0',
                                                                                 borderBottom: '1px solid #e0e0e0',
@@ -766,10 +767,10 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                     setEditValue('');
                                                                                     // Use setTimeout to ensure state is cleared before setting new edit
                                                                                     setTimeout(() => {
-                                                                                        setEditingCell({ 
-                                                                                            recordIndex, 
-                                                                                            rowIndex, 
-                                                                                            header, 
+                                                                                        setEditingCell({
+                                                                                            recordIndex,
+                                                                                            rowIndex,
+                                                                                            header,
                                                                                             formName,
                                                                                             initialValue: currentCellValue || '' // Store the initial value when editing starts
                                                                                         });
@@ -888,35 +889,35 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                         </td>
                                                                     );
                                                                 })}
-                                         </tr>
-                                     );
-                                 })}
-                             </tbody>
-                        </table>
-                    </div>
-                    </div>
-                </div>
-            );
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
                         })}
                     </div>
                 </div>
             );
         }
-        
+
         return (
             <div style={{
-                    textAlign: 'center', 
-                    padding: '2rem', 
-                    color: '#6b7280',
-                    background: '#f9fafb',
+                textAlign: 'center',
+                padding: '2rem',
+                color: '#6b7280',
+                background: '#f9fafb',
                 borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
-                }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
-                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                        No extracted data found for this split
-                    </p>
+                border: '1px solid #e5e7eb'
+            }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>No Data Available</h3>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                    No extracted data found for this split
+                </p>
             </div>
         );
     };
@@ -929,7 +930,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             console.log('Loading companies data...');
             const response = await ApiService.getCompanies();
             console.log('Companies data response:', response);
-            
+
             setCompaniesData(response || []);
         } catch (error) {
             console.error('Failed to load companies data:', error);
@@ -945,19 +946,19 @@ function ExplorerAllUsers({ onMenuClick }) {
         setError(null);
         try {
             console.log('Loading files for company:', companyId, 'name:', companyName);
-            
+
             // Map database company names to PDF splitter folder names
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
-            
+
             // Try different company name formats
             let response = null;
             let companyNameToTry = companyName;
-            
+
             // First try the mapped name if it exists
             if (companyNameMapping[companyName.toLowerCase()]) {
                 companyNameToTry = companyNameMapping[companyName.toLowerCase()];
@@ -968,7 +969,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     console.log('Failed with mapped name, trying original:', error.message);
                 }
             }
-            
+
             // If mapped name didn't work, try the original name
             if (!response || !response.success || !response.pdfs || response.pdfs.length === 0) {
                 try {
@@ -990,7 +991,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             companyName.toLowerCase().replace(/\s+/g, ''),
                             'sbi', 'hdfc', 'icici', 'lic' // Common company codes
                         ];
-                        
+
                         for (const variation of variations) {
                             try {
                                 response = await ApiService.getCompanyPDFs(variation);
@@ -1006,7 +1007,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     }
                 }
             }
-            
+
             if (response && response.success && response.pdfs && response.pdfs.length > 0) {
                 // Convert PDF data to file format expected by the UI
                 const files = response.pdfs.map(pdf => ({
@@ -1017,7 +1018,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     company: companyName,
                     total_splits: pdf.total_splits || 0
                 }));
-                
+
                 console.log('Converted files:', files);
                 setFolderFiles(files);
                 setSelectedCompany(companyId);
@@ -1048,7 +1049,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             // For now, we'll use a placeholder - this would need to be implemented in the backend
             const response = await ApiService.getAllUsersFolderFiles(companyId, folderName);
             console.log('Folder files response:', response);
-            
+
             setFolderFiles(response.files || []);
             setSelectedCompany(companyId);
             setSelectedFolder(folderName);
@@ -1067,48 +1068,48 @@ function ExplorerAllUsers({ onMenuClick }) {
         setError(null);
         try {
             console.log('Loading PDF splits for company:', companyName, 'PDF:', pdfName);
-            
+
             // Map company name to the format expected by PDF splitter API
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
-            
+
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-            
+
             const apiBase = API_BASE_URL;
             const url = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/splits`;
-            
+
             console.log('Loading PDF splits from URL:', url);
             const response = await fetch(url);
-            
+
             if (response.ok) {
                 const data = await response.json();
                 console.log('PDF splits response:', data);
                 const splits = data.splits || [];
                 setPdfSplits(splits);
-                
+
                 // Initialize enabled forms - load from backend API (shared across all users and browsers)
                 try {
                     // Map company name to match backend API format
                     const companyNameMapping = {
                         'sbi': 'SBI Life',
-                        'hdfc': 'HDFC Life', 
+                        'hdfc': 'HDFC Life',
                         'icici': 'ICICI Prudential',
                         'lic': 'LIC'
                     };
                     const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-                    
+
                     const apiBase = API_BASE_URL;
                     const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(pdfName)}/form-preferences`;
-                    
+
                     const prefsResponse = await fetch(prefsUrl);
                     if (prefsResponse.ok) {
                         const prefsData = await prefsResponse.json();
                         const enabledFormsList = prefsData.data?.enabled_forms;
-                        
+
                         // Check if preferences exist (null/undefined means no preferences saved yet)
                         if (enabledFormsList !== undefined && enabledFormsList !== null) {
                             // Preferences exist (even if empty array - admin explicitly set it)
@@ -1154,33 +1155,33 @@ function ExplorerAllUsers({ onMenuClick }) {
             setIsLoadingSplits(false);
         }
     };
-    
+
     // Check if current user is admin (viyanta.insights@gmail.com)
     // This will be recalculated whenever user changes
     const isAdmin = React.useMemo(() => {
         return user?.email === 'viyanta.insights@gmail.com';
     }, [user?.email]);
-    
+
     // Load data edits when extracted data is loaded
     React.useEffect(() => {
         if (!selectedFile || !selectedCompany || !extractedData) {
             return;
         }
-        
+
         const loadEdits = async () => {
             try {
                 const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
                 const companyNameMapping = {
                     'sbi': 'SBI Life',
-                    'hdfc': 'HDFC Life', 
+                    'hdfc': 'HDFC Life',
                     'icici': 'ICICI Prudential',
                     'lic': 'LIC'
                 };
                 const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-                
+
                 const apiBase = API_BASE_URL;
                 const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
-                
+
                 const response = await fetch(editsUrl);
                 if (response.ok) {
                     const data = await response.json();
@@ -1192,35 +1193,35 @@ function ExplorerAllUsers({ onMenuClick }) {
                 console.error('Error loading data edits:', error);
             }
         };
-        
+
         loadEdits();
     }, [selectedFile, selectedCompany, extractedData, companiesData]);
-    
+
     // Poll for data edit updates (every 3 seconds)
     React.useEffect(() => {
         if (!selectedFile || !selectedCompany || !extractedData) {
             return;
         }
-        
+
         const pollInterval = setInterval(async () => {
             try {
                 const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
                 const companyNameMapping = {
                     'sbi': 'SBI Life',
-                    'hdfc': 'HDFC Life', 
+                    'hdfc': 'HDFC Life',
                     'icici': 'ICICI Prudential',
                     'lic': 'LIC'
                 };
                 const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-                
+
                 const apiBase = API_BASE_URL;
                 const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
-                
+
                 const response = await fetch(editsUrl);
                 if (response.ok) {
                     const data = await response.json();
                     const edits = data.data?.edits || {};
-                    
+
                     // Check if edits have changed
                     const editsString = JSON.stringify(edits);
                     const currentEditsString = JSON.stringify(dataEdits);
@@ -1233,40 +1234,40 @@ function ExplorerAllUsers({ onMenuClick }) {
                 console.error('Error polling data edits:', error);
             }
         }, 3000);
-        
+
         return () => clearInterval(pollInterval);
     }, [selectedFile, selectedCompany, extractedData, dataEdits, companiesData]);
-    
+
     // Save cell edit (admin only)
     const saveCellEdit = async (formName, recordIndex, rowIndex, header, value) => {
         if (!isAdmin) {
             console.log('Not admin, cannot save');
             return;
         }
-        
+
         if (!selectedFile || !selectedCompany) {
             console.error('Missing selectedFile or selectedCompany');
             return;
         }
-        
+
         try {
             const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
             if (!companyName) {
                 console.error('Company name not found');
                 return;
             }
-            
+
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-            
+
             const apiBase = API_BASE_URL;
             const editsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/data-edits`;
-            
+
             const editPayload = {
                 form_name: formName,
                 record_index: recordIndex,
@@ -1274,10 +1275,10 @@ function ExplorerAllUsers({ onMenuClick }) {
                 header: header,
                 value: value
             };
-            
+
             console.log('Saving cell edit:', editPayload);
             console.log('Edit URL:', editsUrl);
-            
+
             const response = await fetch(editsUrl, {
                 method: 'POST',
                 headers: {
@@ -1285,11 +1286,11 @@ function ExplorerAllUsers({ onMenuClick }) {
                 },
                 body: JSON.stringify(editPayload)
             });
-            
+
             if (response.ok) {
                 const result = await response.json();
                 console.log('✅ Cell edit saved successfully:', result);
-                
+
                 // Update local state immediately
                 const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
                 setDataEdits(prev => ({
@@ -1303,7 +1304,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         edited_at: new Date().toISOString()
                     }
                 }));
-                
+
                 // Also reload from server to ensure sync
                 const editsResponse = await fetch(editsUrl);
                 if (editsResponse.ok) {
@@ -1318,7 +1319,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             console.error('❌ Error saving cell edit:', error);
         }
     };
-    
+
     // Get cell value (with edits applied)
     const getCellValue = (formName, recordIndex, rowIndex, header, originalValue) => {
         const editKey = `${formName}_${recordIndex}_${rowIndex}_${header}`;
@@ -1328,11 +1329,11 @@ function ExplorerAllUsers({ onMenuClick }) {
         }
         return originalValue;
     };
-    
+
     // Toggle form visibility (only admin can do this)
     const toggleFormVisibility = async (formName) => {
         if (!isAdmin) return; // Only admin can toggle
-        
+
         const newEnabledForms = new Set(enabledForms);
         if (newEnabledForms.has(formName)) {
             newEnabledForms.delete(formName);
@@ -1342,24 +1343,24 @@ function ExplorerAllUsers({ onMenuClick }) {
             console.log(`Admin enabled form: ${formName}`);
         }
         setEnabledForms(newEnabledForms);
-        
+
         // Save to backend API (shared across all users and browsers)
         if (selectedCompany && selectedFile) {
             const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
             // Map company name to match backend API format
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             const formsArray = Array.from(newEnabledForms);
-            
+
             try {
                 const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
-                
+
                 const response = await fetch(prefsUrl, {
                     method: 'POST',
                     headers: {
@@ -1369,7 +1370,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         enabled_forms: formsArray
                     })
                 });
-                
+
                 if (response.ok) {
                     console.log(`Saved form preferences to API: ${formsArray.length} forms enabled for ${mappedCompanyName}/${selectedFile.name}`);
                 } else {
@@ -1380,31 +1381,31 @@ function ExplorerAllUsers({ onMenuClick }) {
             }
         }
     };
-    
+
     // Select all forms (only admin can do this)
     const selectAllForms = async () => {
         if (!isAdmin) return; // Only admin can do this
-        
+
         const allFormNames = new Set(pdfSplits.map(s => s.form_name || s.filename));
         setEnabledForms(allFormNames);
-        
+
         // Save to backend API (shared across all users and browsers)
         if (selectedCompany && selectedFile) {
             const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
             // Map company name to match backend API format
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
             const formsArray = Array.from(allFormNames);
-            
+
             try {
                 const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
-                
+
                 const response = await fetch(prefsUrl, {
                     method: 'POST',
                     headers: {
@@ -1414,7 +1415,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         enabled_forms: formsArray
                     })
                 });
-                
+
                 if (response.ok) {
                     console.log(`Saved form preferences to API: All ${formsArray.length} forms enabled`);
                 } else {
@@ -1425,29 +1426,29 @@ function ExplorerAllUsers({ onMenuClick }) {
             }
         }
     };
-    
+
     // Deselect all forms (only admin can do this)
     const deselectAllForms = async () => {
         if (!isAdmin) return; // Only admin can do this
-        
+
         setEnabledForms(new Set());
-        
+
         // Save to backend API (shared across all users and browsers)
         if (selectedCompany && selectedFile) {
             const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
             // Map company name to match backend API format
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-            
+
             try {
                 const apiBase = API_BASE_URL;
                 const prefsUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/form-preferences`;
-                
+
                 const response = await fetch(prefsUrl, {
                     method: 'POST',
                     headers: {
@@ -1457,7 +1458,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         enabled_forms: []
                     })
                 });
-                
+
                 if (response.ok) {
                     console.log(`Saved form preferences to API: All forms disabled`);
                 } else {
@@ -1468,7 +1469,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             }
         }
     };
-    
+
     // Get filtered splits based on enabled forms
     const filteredPdfSplits = React.useMemo(() => {
         return pdfSplits.filter(split => {
@@ -1493,32 +1494,32 @@ function ExplorerAllUsers({ onMenuClick }) {
         setViewMode('pdf'); // Reset to PDF view when selecting a new split
         setIsLoadingSplitPdf(true);
         setError(null);
-        
+
         try {
             console.log('Loading PDF for split:', split);
-            
+
             // Get company name for the API call
             const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
             if (!companyName) {
                 throw new Error('Company name not found');
             }
-            
+
             // Map company name to the format expected by PDF splitter API
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
-            
+
             const mappedCompanyName = companyNameMapping[companyName.toLowerCase()] || companyName;
-            
+
             // Create download URL for the split PDF
             const apiBase = API_BASE_URL;
             const downloadUrl = `${apiBase}/pdf-splitter/companies/${encodeURIComponent(mappedCompanyName)}/pdfs/${encodeURIComponent(selectedFile.name)}/splits/${encodeURIComponent(split.filename)}/download`;
-            
+
             console.log('Downloading split PDF from URL:', downloadUrl);
-            
+
             // Fetch the PDF file
             const response = await fetch(downloadUrl, {
                 method: 'GET',
@@ -1526,16 +1527,16 @@ function ExplorerAllUsers({ onMenuClick }) {
                     'Accept': 'application/pdf',
                 },
             });
-            
+
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
-            
+
             if (response.ok) {
                 // Create a blob URL for the PDF
                 const blob = await response.blob();
                 console.log('Blob size:', blob.size, 'bytes');
                 console.log('Blob type:', blob.type);
-                
+
                 if (blob.size > 0) {
                     const pdfUrl = URL.createObjectURL(blob);
                     setSplitPdfUrl(pdfUrl);
@@ -1568,14 +1569,14 @@ function ExplorerAllUsers({ onMenuClick }) {
         setJsonData(null);
         setJsonLoading(true);
         setShowFormSelector(false); // Reset form selector visibility when switching files
-        
+
         // Load PDF splits for the selected file
         const companyName = companiesData.find(c => (c.id || c.name) === selectedCompany)?.name;
-        
+
         if (companyName && file.name) {
             await loadPDFSplits(companyName, file.name);
         }
-        
+
         try {
             // For now, skip JSON loading since we're using company-based PDF splitter service
             // which doesn't have JSON extraction data. Focus on PDF splits functionality.
@@ -1633,14 +1634,14 @@ function ExplorerAllUsers({ onMenuClick }) {
                         <h4 className="font-semibold mb-3 text-indigo-600">
                             Page {page.page_number}
                         </h4>
-                        
+
                         {page.tables && page.tables.length > 0 ? (
                             <div className="space-y-4">
                                 {page.tables.map((table, tableIndex) => (
                                     <div key={tableIndex} className="border rounded p-3 bg-gray-50">
                                         <div className="flex justify-between items-center mb-2">
                                             <h5 className="font-medium text-gray-800">
-                                                Table {table.table_number || tableIndex + 1} 
+                                                Table {table.table_number || tableIndex + 1}
                                                 {table.method && <span className="text-sm text-gray-500"> ({table.method})</span>}
                                             </h5>
                                             <span className="text-sm text-gray-500">
@@ -1648,14 +1649,14 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 {table.accuracy && <span> • {(table.accuracy * 100).toFixed(1)}% accuracy</span>}
                                             </span>
                                         </div>
-                                        
+
                                         {table.headers && table.data ? (
                                             <div className="overflow-x-auto">
                                                 <table className="min-w-full border-collapse border border-gray-300">
                                                     <thead>
                                                         <tr className="bg-gray-100">
                                                             {table.headers.map((header, headerIndex) => (
-                                                                <th 
+                                                                <th
                                                                     key={headerIndex}
                                                                     className="border border-gray-300 px-2 py-1 text-left font-semibold text-sm text-gray-700"
                                                                 >
@@ -1668,7 +1669,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                         {table.data.slice(0, 10).map((row, rowIndex) => (
                                                             <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                                                 {table.headers.map((header, cellIndex) => (
-                                                                    <td 
+                                                                    <td
                                                                         key={cellIndex}
                                                                         className="border border-gray-300 px-2 py-1 text-sm"
                                                                     >
@@ -1685,7 +1686,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 Table structure not available
                                             </div>
                                         )}
-                                        
+
                                         {table.data && table.data.length > 10 && (
                                             <p className="text-sm text-gray-500 mt-2">
                                                 Showing first 10 rows of {table.data.length} total rows
@@ -1699,7 +1700,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 No tables found on this page
                             </div>
                         )}
-                        
+
                         {page.text && (
                             <details className="mt-4">
                                 <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
@@ -1718,7 +1719,10 @@ function ExplorerAllUsers({ onMenuClick }) {
 
     // All Companies View
     const AllCompaniesView = () => {
-        if (companiesData.length === 0) {
+        // Filter out any null or undefined companies
+        const validCompanies = companiesData.filter(company => company && company.name);
+        
+        if (validCompanies.length === 0) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏢</div>
@@ -1737,7 +1741,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     gap: window.innerWidth <= 768 ? '0.75rem' : '1rem',
                     marginBottom: '2rem'
                 }}>
-                    {companiesData.map((company) => (
+                    {validCompanies.map((company) => (
                         <div
                             key={company.id || company.name}
                             onClick={() => {
@@ -2016,7 +2020,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}>
                                 {formatDate(file.created_at)}
                             </div>
-                            
+
                             {/* Gemini Verification Status */}
                             <div style={{
                                 fontSize: '0.7rem',
@@ -2024,20 +2028,20 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 padding: '2px 6px',
                                 borderRadius: '10px',
                                 textAlign: 'center',
-                                background: file.has_gemini_verification 
+                                background: file.has_gemini_verification
                                     ? (selectedFile === file ? 'rgba(40, 167, 69, 0.2)' : '#28a745')
                                     : (selectedFile === file ? 'rgba(255, 193, 7, 0.2)' : '#ffc107'),
-                                color: selectedFile === file 
+                                color: selectedFile === file
                                     ? 'white'
                                     : (file.has_gemini_verification ? 'white' : '#856404'),
                                 fontWeight: '600'
                             }}>
-                                {file.has_gemini_verification ? '🤖 Gemini Verified' : 
-                                 file.json_priority === 'extracted' ? '🔄 Extracted' : 
-                                 file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'
-                                 }
+                                {file.has_gemini_verification ? '🤖 Gemini Verified' :
+                                    file.json_priority === 'extracted' ? '🔄 Extracted' :
+                                        file.json_priority === 'legacy' ? '📄 Legacy' : '❌ No Data'
+                                }
                             </div>
-                            
+
                             {/* Available Files Count */}
                             <div style={{
                                 fontSize: '0.7rem',
@@ -2050,7 +2054,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         </div>
                     ))}
                 </div>
-                
+
                 {/* PDF Splits Display Section - Only show when a file is selected */}
                 {selectedFile && (
                     <div style={{
@@ -2060,8 +2064,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                         borderRadius: '8px',
                         backgroundColor: 'var(--background-color)'
                     }}>
-                        <h4 style={{ 
-                            color: 'var(--main-color)', 
+                        <h4 style={{
+                            color: 'var(--main-color)',
                             marginBottom: '1.5rem',
                             display: 'flex',
                             alignItems: 'center',
@@ -2072,7 +2076,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             📄 PDF Splits
                             {isLoadingSplits && <span style={{ fontSize: '0.8rem', color: 'var(--text-color-light)', marginLeft: '0.5rem' }}>(Loading...)</span>}
                         </h4>
-                        
+
                         {isLoadingSplits ? (
                             <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-color-light)' }}>
                                 <div>🔄 Loading PDF splits...</div>
@@ -2080,7 +2084,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                         ) : pdfSplits.length > 0 ? (
                             <div>
                                 {/* Form Visibility Control Header */}
-                                <div style={{ 
+                                <div style={{
                                     marginBottom: '1.5rem',
                                     padding: '1rem',
                                     backgroundColor: 'rgba(63, 114, 175, 0.08)',
@@ -2093,7 +2097,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                     gap: '1rem'
                                 }}>
                                     <div style={{ color: '#155724', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    ✅ <strong>{pdfSplits.length}</strong> PDF splits available
+                                        ✅ <strong>{pdfSplits.length}</strong> PDF splits available
                                         {filteredPdfSplits.length !== pdfSplits.length && (
                                             <span style={{ color: '#856404', fontSize: '0.85rem' }}>
                                                 ({filteredPdfSplits.length} enabled)
@@ -2137,7 +2141,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 {/* Form Selector Panel - Only visible to admin */}
                                 {showFormSelector && isAdmin && (
                                     <div style={{
@@ -2246,98 +2250,98 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 {/* PDF Splits Grid - Card Layout */}
                                 {filteredPdfSplits.length > 0 ? (
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                                    gap: '1.25rem'
-                                }}>
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                        gap: '1.25rem'
+                                    }}>
                                         {filteredPdfSplits.map((split, index) => (
-                                        <div
-                                            key={index}
-                                            onClick={() => selectPDFSplit(split)}
-                                            style={{
-                                                border: selectedSplit === split ? '2px solid var(--main-color)' : '1px solid #e9ecef',
-                                                borderRadius: '10px',
-                                                padding: '1.25rem',
-                                                cursor: 'pointer',
-                                                background: selectedSplit === split ? 'rgba(63, 114, 175, 0.1)' : 'white',
-                                                transition: 'all 0.2s ease',
-                                                boxShadow: 'var(--shadow-light)',
-                                                minHeight: '120px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                textAlign: 'center'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (selectedSplit !== split) {
-                                                    e.currentTarget.style.background = 'var(--background-color)';
-                                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (selectedSplit !== split) {
-                                                    e.currentTarget.style.background = 'white';
-                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                }
-                                            }}
-                                        >
-                                            {/* Document Icon */}
-                                            <div style={{
-                                                fontSize: '2rem',
-                                                marginBottom: '0.5rem',
-                                                color: 'var(--main-color)'
-                                            }}>
-                                                📄
+                                            <div
+                                                key={index}
+                                                onClick={() => selectPDFSplit(split)}
+                                                style={{
+                                                    border: selectedSplit === split ? '2px solid var(--main-color)' : '1px solid #e9ecef',
+                                                    borderRadius: '10px',
+                                                    padding: '1.25rem',
+                                                    cursor: 'pointer',
+                                                    background: selectedSplit === split ? 'rgba(63, 114, 175, 0.1)' : 'white',
+                                                    transition: 'all 0.2s ease',
+                                                    boxShadow: 'var(--shadow-light)',
+                                                    minHeight: '120px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    textAlign: 'center'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (selectedSplit !== split) {
+                                                        e.currentTarget.style.background = 'var(--background-color)';
+                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (selectedSplit !== split) {
+                                                        e.currentTarget.style.background = 'white';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                    }
+                                                }}
+                                            >
+                                                {/* Document Icon */}
+                                                <div style={{
+                                                    fontSize: '2rem',
+                                                    marginBottom: '0.5rem',
+                                                    color: 'var(--main-color)'
+                                                }}>
+                                                    📄
+                                                </div>
+
+                                                {/* Form Name */}
+                                                <div style={{
+                                                    fontWeight: '600',
+                                                    fontSize: '0.9rem',
+                                                    marginBottom: '0.5rem',
+                                                    color: 'var(--text-color-dark)',
+                                                    wordBreak: 'break-word',
+                                                    lineHeight: '1.2'
+                                                }}>
+                                                    {split.form_name}
+                                                </div>
+
+                                                {/* Form Code */}
+                                                <div style={{
+                                                    fontSize: '0.8rem',
+                                                    color: 'var(--text-color-light)',
+                                                    marginBottom: '0.25rem'
+                                                }}>
+                                                    {split.form_code}
+                                                </div>
+
+                                                {/* Pages */}
+                                                <div style={{
+                                                    fontSize: '0.75rem',
+                                                    color: 'var(--text-color-light)',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    Pages: {split.start_page}-{split.end_page}
+                                                </div>
+
+                                                {/* Status Badge */}
+                                                <div style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '10px',
+                                                    backgroundColor: '#ffc107',
+                                                    color: '#856404',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    ✓ Available
+                                                </div>
                                             </div>
-                                            
-                                            {/* Form Name */}
-                                            <div style={{
-                                                fontWeight: '600',
-                                                fontSize: '0.9rem',
-                                                marginBottom: '0.5rem',
-                                                color: 'var(--text-color-dark)',
-                                                wordBreak: 'break-word',
-                                                lineHeight: '1.2'
-                                            }}>
-                                                {split.form_name}
-                                            </div>
-                                            
-                                            {/* Form Code */}
-                                            <div style={{
-                                                fontSize: '0.8rem',
-                                                color: 'var(--text-color-light)',
-                                                marginBottom: '0.25rem'
-                                            }}>
-                                                {split.form_code}
-                                            </div>
-                                            
-                                            {/* Pages */}
-                                            <div style={{
-                                                fontSize: '0.75rem',
-                                                color: 'var(--text-color-light)',
-                                                marginBottom: '0.5rem'
-                                            }}>
-                                                Pages: {split.start_page}-{split.end_page}
-                                            </div>
-                                            
-                                            {/* Status Badge */}
-                                            <div style={{
-                                                fontSize: '0.7rem',
-                                                padding: '2px 6px',
-                                                borderRadius: '10px',
-                                                backgroundColor: '#ffc107',
-                                                color: '#856404',
-                                                fontWeight: '600'
-                                            }}>
-                                                ✓ Available
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <div style={{
                                         textAlign: 'center',
@@ -2408,7 +2412,7 @@ function ExplorerAllUsers({ onMenuClick }) {
         return (
             <div>
                 {/* Split Info Header */}
-                <div style={{ 
+                <div style={{
                     marginBottom: '1.25rem',
                     paddingBottom: '1rem',
                     borderBottom: '2px solid #f3f4f6'
@@ -2422,16 +2426,16 @@ function ExplorerAllUsers({ onMenuClick }) {
                         gap: '1rem'
                     }}>
                         <div>
-                            <h4 style={{ 
-                                margin: '0 0 0.5rem 0', 
+                            <h4 style={{
+                                margin: '0 0 0.5rem 0',
                                 color: '#1f2937',
                                 fontSize: '1.1rem',
                                 fontWeight: '600'
                             }}>
                                 📄 {selectedSplit.form_name}
                             </h4>
-                            <div style={{ 
-                                fontSize: '0.875rem', 
+                            <div style={{
+                                fontSize: '0.875rem',
                                 color: '#6b7280',
                                 display: 'flex',
                                 flexWrap: 'wrap',
@@ -2447,11 +2451,11 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 gap: '0.5rem',
                                 flexWrap: 'wrap'
                             }}>
-                                <a 
-                                    href={splitPdfUrl} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    style={{ 
+                                <a
+                                    href={splitPdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
                                         padding: '0.5rem 1rem',
                                         background: '#3b82f6',
                                         color: 'white',
@@ -2576,7 +2580,7 @@ function ExplorerAllUsers({ onMenuClick }) {
 
                     {/* Metadata Display */}
                     {extractedData.metadata && (
-                        <div style={{ 
+                        <div style={{
                             background: 'white',
                             padding: '0.75rem',
                             borderRadius: '6px',
@@ -2597,13 +2601,13 @@ function ExplorerAllUsers({ onMenuClick }) {
 
                     {/* Data Table Display */}
                     {extractedData.data && Array.isArray(extractedData.data) && extractedData.data.length > 0 && (
-                        <div style={{ 
+                        <div style={{
                             background: 'white',
                             borderRadius: '6px',
                             overflow: 'hidden',
                             border: '1px solid #e0e0e0'
                         }}>
-                            <div style={{ 
+                            <div style={{
                                 background: '#f5f5f5',
                                 padding: '0.75rem',
                                 borderBottom: '1px solid #e0e0e0',
@@ -2611,13 +2615,13 @@ function ExplorerAllUsers({ onMenuClick }) {
                             }}>
                                 📊 Extracted Data ({extractedData.data.length} record{extractedData.data.length !== 1 ? 's' : ''})
                             </div>
-                            <div style={{ 
+                            <div style={{
                                 maxHeight: '400px',
                                 overflow: 'auto',
                                 padding: '1rem'
                             }}>
                                 {extractedData.data.map((record, index) => (
-                                    <div key={index} style={{ 
+                                    <div key={index} style={{
                                         marginBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
                                         paddingBottom: index < extractedData.data.length - 1 ? '1.5rem' : 0,
                                         borderBottom: index < extractedData.data.length - 1 ? '1px solid #f0f0f0' : 'none'
@@ -2625,7 +2629,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         <h6 style={{ margin: '0 0 0.75rem 0', color: '#1976d2' }}>
                                             Record {index + 1} {record.FormName && `- ${record.FormName}`}
                                             {record.PagesUsed && (
-                                                <span style={{ 
+                                                <span style={{
                                                     marginLeft: '1rem',
                                                     padding: '2px 8px',
                                                     background: '#e3f2fd',
@@ -2635,14 +2639,14 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                     fontWeight: '600',
                                                     border: '1px solid #bbdefb'
                                                 }}>
-                                                    📄 Pages Used: {record.PagesUsed}
+                                                    📄 Pages Used: {record.PagesUsed} heading : {record.Heading}
                                                 </span>
                                             )}
                                         </h6>
-                                        
+
                                         {/* Form Metadata Display */}
                                         {(record["Form No"] || record.Title || record.RegistrationNumber || record.Period || record.Currency) && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: '#f8f9fa',
                                                 padding: '0.75rem',
                                                 borderRadius: '6px',
@@ -2663,7 +2667,7 @@ function ExplorerAllUsers({ onMenuClick }) {
 
                                         {/* Legacy metadata for backward compatibility */}
                                         {(record.FormName || record.PeriodStart || record.PeriodEnd || record.PagesUsed) && (
-                                            <div style={{ 
+                                            <div style={{
                                                 background: '#f8f9fa',
                                                 padding: '0.5rem',
                                                 borderRadius: '4px',
@@ -2674,24 +2678,25 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 {record.PeriodStart && <div><strong>Period Start:</strong> {record.PeriodStart}</div>}
                                                 {record.PeriodEnd && <div><strong>Period End:</strong> {record.PeriodEnd}</div>}
                                                 {record.PagesUsed && <div><strong>Pages Used:</strong> {record.PagesUsed}</div>}
+                                                {record.Currency && <div><strong>Currency:</strong> {record.Currency}</div>}
                                             </div>
                                         )}
 
                                         {/* Table Data */}
                                         {record.Rows && Array.isArray(record.Rows) && record.Rows.length > 0 && (
-                                            <div style={{ 
+                                            <div style={{
                                                 border: '1px solid #e0e0e0',
                                                 borderRadius: '4px',
                                                 overflow: 'hidden'
                                             }}>
-                                                <div 
+                                                <div
                                                     className="table-scroll-container"
-                                                    style={{ 
-                                                    overflow: 'auto',
+                                                    style={{
+                                                        overflow: 'auto',
                                                         maxHeight: '500px'
                                                     }}
                                                 >
-                                                    <table style={{ 
+                                                    <table style={{
                                                         width: '100%',
                                                         borderCollapse: 'collapse',
                                                         fontSize: '0.8rem'
@@ -2699,7 +2704,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                         <thead>
                                                             <tr style={{ background: '#f5f5f5' }}>
                                                                 {record.FlatHeaders && record.FlatHeaders.map((header, headerIndex) => (
-                                                                    <th key={headerIndex} style={{ 
+                                                                    <th key={headerIndex} style={{
                                                                         padding: '0.5rem',
                                                                         textAlign: 'left',
                                                                         borderRight: '1px solid #e0e0e0',
@@ -2721,11 +2726,11 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                     const str = cellValue.toString().trim().toLowerCase();
                                                                     return str.includes('total') || str.includes('subtotal') || str.includes('sub total');
                                                                 };
-                                                                
+
                                                                 const isTotalRow = record.FlatHeaders?.some(header => checkForTotal(row[header]));
-                                                                
+
                                                                 return (
-                                                                <tr key={rowIndex} style={{ 
+                                                                    <tr key={rowIndex} style={{
                                                                         background: rowIndex % 2 === 0 ? 'white' : '#fafafa',
                                                                         fontWeight: isTotalRow ? '700' : 'normal'
                                                                     }}>
@@ -2733,18 +2738,18 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                             const originalValue = row[header] || '';
                                                                             const formName = selectedSplit?.form_name || record.FormName || record['Form No'] || 'Unknown';
                                                                             const cellValue = getCellValue(formName, index, rowIndex, header, originalValue);
-                                                                            const isEditing = editingCell && 
-                                                                                editingCell.recordIndex === index && 
-                                                                                editingCell.rowIndex === rowIndex && 
+                                                                            const isEditing = editingCell &&
+                                                                                editingCell.recordIndex === index &&
+                                                                                editingCell.rowIndex === rowIndex &&
                                                                                 editingCell.header === header &&
                                                                                 editingCell.formName === formName;
-                                                                            
+
                                                                             return (
-                                                                                <td 
-                                                                                    key={headerIndex} 
-                                                                                    style={{ 
-                                                                            padding: '0.5rem',
-                                                                            borderRight: '1px solid #e0e0e0',
+                                                                                <td
+                                                                                    key={headerIndex}
+                                                                                    style={{
+                                                                                        padding: '0.5rem',
+                                                                                        borderRight: '1px solid #e0e0e0',
                                                                                         borderBottom: '1px solid #e0e0e0',
                                                                                         whiteSpace: 'nowrap',
                                                                                         minWidth: '120px',
@@ -2764,10 +2769,10 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                             setEditValue('');
                                                                                             // Use setTimeout to ensure state is cleared before setting new edit
                                                                                             setTimeout(() => {
-                                                                                                setEditingCell({ 
-                                                                                                    recordIndex: index, 
-                                                                                                    rowIndex, 
-                                                                                                    header, 
+                                                                                                setEditingCell({
+                                                                                                    recordIndex: index,
+                                                                                                    rowIndex,
+                                                                                                    header,
                                                                                                     formName,
                                                                                                     initialValue: currentCellValue || '' // Store the initial value when editing starts
                                                                                                 });
@@ -2883,10 +2888,10 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                                                             )}
                                                                                         </>
                                                                                     )}
-                                                                        </td>
+                                                                                </td>
                                                                             );
                                                                         })}
-                                                                </tr>
+                                                                    </tr>
                                                                 );
                                                             })}
                                                         </tbody>
@@ -2899,7 +2904,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                             </div>
 
                             {/* Download Actions */}
-                            <div style={{ 
+                            <div style={{
                                 padding: '1rem',
                                 borderTop: '1px solid #e0e0e0',
                                 background: '#f8f9fa',
@@ -2930,7 +2935,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                 >
                                     📥 Download JSON
                                 </button>
-                                
+
                                 <button
                                     style={{
                                         padding: '0.5rem 1rem',
@@ -2946,7 +2951,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                         if (extractedData.data && extractedData.data.length > 0 && extractedData.data[0].Rows) {
                                             const headers = extractedData.data[0].FlatHeaders || [];
                                             const rows = extractedData.data.flatMap(record => record.Rows || []);
-                                            
+
                                             let csv = headers.join(',') + '\n';
                                             rows.forEach(row => {
                                                 const values = headers.map(header => {
@@ -2955,7 +2960,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                                                 });
                                                 csv += values.join(',') + '\n';
                                             });
-                                            
+
                                             const blob = new Blob([csv], { type: 'text/csv' });
                                             const url = URL.createObjectURL(blob);
                                             const a = document.createElement('a');
@@ -2992,8 +2997,8 @@ function ExplorerAllUsers({ onMenuClick }) {
                     <h3>PDF Splits Available</h3>
                     <p>This is a company-based PDF file with split forms available</p>
                     <p style={{ fontSize: '0.9rem' }}>File: {selectedFile.name || selectedFile.base_name || selectedFile.filename}</p>
-                    <div style={{ 
-                        marginTop: '1rem', 
+                    <div style={{
+                        marginTop: '1rem',
                         padding: '1rem',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         border: '1px solid rgba(40, 167, 69, 0.3)',
@@ -3018,7 +3023,7 @@ function ExplorerAllUsers({ onMenuClick }) {
                     <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--main-color)' }}>
                         📊 Extraction Data: {selectedFile.base_name || selectedFile.filename}
                     </h4>
-                    
+
                     {/* Verification Status Badge */}
                     <div style={{ marginBottom: '0.5rem' }}>
                         <span style={{
@@ -3026,22 +3031,22 @@ function ExplorerAllUsers({ onMenuClick }) {
                             borderRadius: '20px',
                             fontSize: '0.8rem',
                             fontWeight: '600',
-                            background: jsonData.metadata?.gemini_verified 
+                            background: jsonData.metadata?.gemini_verified
                                 ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'
                                 : jsonData.metadata?.verification_status === 'extracted'
-                                ? 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)'
-                                : 'linear-gradient(135deg, #6c757d 0%, #495057 100%)',
+                                    ? 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)'
+                                    : 'linear-gradient(135deg, #6c757d 0%, #495057 100%)',
                             color: 'white',
                             boxShadow: 'var(--shadow-light)'
                         }}>
                             {jsonData.metadata?.gemini_verified ? '🤖 Gemini AI Verified' :
-                             jsonData.metadata?.verification_status === 'extracted' ? '🔄 Machine Extracted' :
-                             '📄 Legacy Data'} 
+                                jsonData.metadata?.verification_status === 'extracted' ? '🔄 Machine Extracted' :
+                                    '📄 Legacy Data'}
                         </span>
                     </div>
-                    
-                    <div style={{ 
-                        fontSize: '0.9rem', 
+
+                    <div style={{
+                        fontSize: '0.9rem',
                         color: 'var(--text-color-light)',
                         background: 'var(--background-color)',
                         padding: '0.5rem',
@@ -3095,7 +3100,7 @@ function ExplorerAllUsers({ onMenuClick }) {
             // Map company name to the format expected by backend
             const companyNameMapping = {
                 'sbi': 'SBI Life',
-                'hdfc': 'HDFC Life', 
+                'hdfc': 'HDFC Life',
                 'icici': 'ICICI Prudential',
                 'lic': 'LIC'
             };
@@ -3116,9 +3121,9 @@ function ExplorerAllUsers({ onMenuClick }) {
 
             // Perform new extraction
             const extractionResult = await ApiService.extractFormData(
-                mappedCompanyName, 
-                selectedFile.name, 
-                selectedSplit.filename, 
+                mappedCompanyName,
+                selectedFile.name,
+                selectedSplit.filename,
                 user.id
             );
 
@@ -3145,428 +3150,389 @@ function ExplorerAllUsers({ onMenuClick }) {
                     100% { transform: rotate(360deg); }
                 }
             `}</style>
-            <div style={{ 
-                minHeight: '100vh', 
-                background: 'white', 
-                padding: window.innerWidth <= 768 ? '0.5rem' : '1rem' 
-            }}>
-            {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem', 
-                    marginBottom: '0.5rem',
-                    flexWrap: 'wrap'
-                }}>
-                    <button
-                        onClick={() => onMenuClick && onMenuClick()}
-                        style={{
-                            background: 'rgba(63, 114, 175, 0.1)',
-                            border: '1px solid rgba(63, 114, 175, 0.3)',
-                            color: 'var(--main-color)',
-                            borderRadius: '6px',
-                            padding: '0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            minWidth: '36px',
-                            minHeight: '36px'
-                        }}
-                    >
-                        ☰
-                    </button>
-                    <h1 style={{ 
-                        margin: 0,
-                        fontSize: 'clamp(16px, 4vw, 24px)',
-                        lineHeight: '1.2',
-                        color: 'var(--main-color)'
-                    }}>
-                        🏢 Maker and Checker - Admin Only
-                    </h1>
-                </div>
-                <p style={{ 
-                    fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '1rem', 
-                    color: 'var(--text-color-light)', 
-                    marginBottom: '0' 
+            <StandardPageLayout
+                title="Maker and Checker - Admin Only"
+                onMenuClick={onMenuClick}
+            >
+                <p style={{
+                    fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '1rem',
+                    color: 'var(--text-color-light)',
+                    marginBottom: '2rem',
+                    marginTop: '0'
                 }}>
                     Browse companies, files, and extracted data
                 </p>
-            </div>
 
-            {/* Error Display */}
-            {error && (
-                <div style={{
-                    background: 'rgba(220, 53, 69, 0.1)',
-                    color: 'var(--error-color)',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--error-color)',
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}>
-                    <span>⚠️</span>
-                    <span>{error}</span>
-                    <button
-                        style={{
-                            marginLeft: 'auto',
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--error-color)',
-                            cursor: 'pointer',
-                            fontSize: '1.2rem'
-                        }}
-                        onClick={() => setError(null)}
-                    >
-                        ×
-                    </button>
-                </div>
-            )}
-
-            {/* Main Content */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: selectedSplit ? 
-                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr') : 
-                    (window.innerWidth <= 768 ? '1fr' : '350px 1fr'),
-                gap: window.innerWidth <= 768 ? '1.25rem' : '2rem',
-                minHeight: 'calc(100vh - 140px)',
-                height: 'calc(100vh - 140px)',
-                alignItems: 'stretch'
-            }}>
-                {/* Left Panel - Users, Folders and Files OR PDF Viewer */}
-                <div style={{
-                    background: '#ffffff',
-                    borderRadius: '12px',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
-                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 1 : 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden'
-                }}>
-                    {/* Navigation Header */}
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center', 
-                        marginBottom: '1.5rem',
-                        paddingBottom: '1.25rem',
-                        borderBottom: '2px solid #f3f4f6',
-                        flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
-                        gap: window.innerWidth <= 768 ? '0.75rem' : '0',
-                        flexShrink: 0
+                {/* Error Display */}
+                {error && (
+                    <div style={{
+                        background: 'rgba(220, 53, 69, 0.1)',
+                        color: 'var(--error-color)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--error-color)',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {selectedSplit && (
+                        <span>⚠️</span>
+                        <span>{error}</span>
+                        <button
+                            style={{
+                                marginLeft: 'auto',
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--error-color)',
+                                cursor: 'pointer',
+                                fontSize: '1.2rem'
+                            }}
+                            onClick={() => setError(null)}
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
+
+                {/* Main Content */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: selectedSplit ?
+                        (window.innerWidth <= 768 ? '1fr' : '350px 1fr') :
+                        (window.innerWidth <= 768 ? '1fr' : '350px 1fr'),
+                    gap: window.innerWidth <= 768 ? '1.25rem' : '2rem',
+                    minHeight: 'calc(100vh - 140px)',
+                    height: 'calc(100vh - 140px)',
+                    alignItems: 'stretch'
+                }}>
+                    {/* Left Panel - Users, Folders and Files OR PDF Viewer */}
+                    <div style={{
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        border: '1px solid #e5e7eb',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                        padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                        order: window.innerWidth <= 768 ? 1 : 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Navigation Header */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '1.5rem',
+                            paddingBottom: '1.25rem',
+                            borderBottom: '2px solid #f3f4f6',
+                            flexDirection: window.innerWidth <= 768 ? 'column' : 'row',
+                            gap: window.innerWidth <= 768 ? '0.75rem' : '0',
+                            flexShrink: 0
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {selectedSplit && (
+                                    <button
+                                        onClick={() => {
+                                            setSelectedSplit(null);
+                                            setViewMode('pdf');
+                                        }}
+                                        style={{
+                                            background: 'rgba(108, 117, 125, 0.1)',
+                                            border: '1px solid rgba(108, 117, 125, 0.3)',
+                                            color: '#6c757d',
+                                            borderRadius: '6px',
+                                            padding: '0.5rem 0.75rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.875rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            fontWeight: '500'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.background = 'rgba(108, 117, 125, 0.2)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.background = 'rgba(108, 117, 125, 0.1)';
+                                        }}
+                                    >
+                                        ← Back to Files
+                                    </button>
+                                )}
+                                {view === 'files' ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                        <div style={{
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            color: '#1f2937',
+                                            lineHeight: '1.3',
+                                            textAlign: 'center'
+                                        }}>
+                                            📄 Files in {selectedFolder}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '12px',
+                                            fontWeight: '500',
+                                            color: '#6b7280',
+                                            lineHeight: '1.2',
+                                            textAlign: 'center'
+                                        }}>
+                                            ({folderFiles.length} files)
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <h3 style={{
+                                        margin: 0,
+                                        color: '#1f2937',
+                                        fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
+                                        fontWeight: '600',
+                                        lineHeight: '1.4'
+                                    }}>
+                                        {view === 'companies' ?
+                                            `🏢 All Companies (${companiesData.length})` :
+                                            `📁 ${selectedCompany}'s Folders`
+                                        }
+                                    </h3>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button
-                                    onClick={() => {
-                                        setSelectedSplit(null);
-                                        setViewMode('pdf');
-                                    }}
+                                    onClick={loadCompaniesData}
+                                    disabled={loading}
                                     style={{
-                                        background: 'rgba(108, 117, 125, 0.1)',
-                                        border: '1px solid rgba(108, 117, 125, 0.3)',
-                                        color: '#6c757d',
-                                        borderRadius: '6px',
-                                        padding: '0.5rem 0.75rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.875rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        fontWeight: '500'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.background = 'rgba(108, 117, 125, 0.2)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.background = 'rgba(108, 117, 125, 0.1)';
+                                        padding: window.innerWidth <= 768 ? '0.5rem 1rem' : '0.25rem 0.5rem',
+                                        border: '1px solid #e9ecef',
+                                        background: 'white',
+                                        color: 'var(--text-color-dark)',
+                                        borderRadius: '4px',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '0.8rem',
+                                        opacity: loading ? 0.6 : 1,
+                                        minWidth: window.innerWidth <= 768 ? '80px' : 'auto'
                                     }}
                                 >
-                                    ← Back to Files
+                                    🔄 Refresh
                                 </button>
-                            )}
-                            {view === 'files' ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                    <div style={{ 
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        color: '#1f2937',
-                                        lineHeight: '1.3',
-                                        textAlign: 'center'
-                                    }}>
-                                        📄 Files in {selectedFolder}
-                                    </div>
-                                    <div style={{ 
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                        color: '#6b7280',
-                                        lineHeight: '1.2',
-                                        textAlign: 'center'
-                                    }}>
-                                        ({folderFiles.length} files)
-                                    </div>
+                            </div>
+                        </div>
+
+                        {/* Breadcrumb Navigation */}
+                        {view !== 'companies' && !selectedSplit && (
+                            <div style={{
+                                marginBottom: '1rem',
+                                padding: '0.5rem 0',
+                                borderBottom: '1px solid #e9ecef'
+                            }}>
+                                <button
+                                    onClick={navigateToCompanies}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--sub-color)',
+                                        cursor: 'pointer',
+                                        textDecoration: 'underline',
+                                        padding: '0',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    ← All Companies
+                                </button>
+
+                                {view === 'files' && (
+                                    <>
+                                        <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                        <button
+                                            onClick={navigateToFolders}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'var(--sub-color)',
+                                                cursor: 'pointer',
+                                                textDecoration: 'underline',
+                                                padding: '0',
+                                                fontSize: '0.9rem'
+                                            }}
+                                        >
+                                            {selectedCompany}
+                                        </button>
+                                        <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                        <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
+                                    </>
+                                )}
+
+                                {view === 'folders' && (
+                                    <>
+                                        <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
+                                        <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedCompany}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        <div style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
+                            paddingRight: '0.5rem'
+                        }}>
+                            {loading ? (
+                                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <div>Loading...</div>
                                 </div>
                             ) : (
-                                <h3 style={{ 
-                                    margin: 0, 
+                                view === 'companies' ? <AllCompaniesView /> :
+                                    view === 'folders' ? <CompanyFoldersView /> : <FilesView />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Panel - JSON Data Viewer OR Split Info */}
+                    <div style={{
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        border: '1px solid #e5e7eb',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+                        padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
+                        order: window.innerWidth <= 768 ? 2 : 0,
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        {selectedSplit && (
+                            <div style={{
+                                marginBottom: '1rem',
+                                flexShrink: 0
+                            }}>
+                                {/* Tabs for switching between PDF and Data views */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '0.5rem',
+                                    borderBottom: '2px solid #e5e7eb',
+                                    marginBottom: '1rem'
+                                }}>
+                                    <button
+                                        onClick={() => setViewMode('pdf')}
+                                        style={{
+                                            padding: '0.75rem 1.5rem',
+                                            background: viewMode === 'pdf' ? '#3b82f6' : 'transparent',
+                                            color: viewMode === 'pdf' ? 'white' : '#6b7280',
+                                            border: 'none',
+                                            borderBottom: viewMode === 'pdf' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '6px 6px 0 0',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            fontWeight: viewMode === 'pdf' ? '600' : '500',
+                                            transition: 'all 0.2s ease',
+                                            marginBottom: '-2px'
+                                        }}
+                                    >
+                                        📄 PDF
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('data')}
+                                        style={{
+                                            padding: '0.75rem 1.5rem',
+                                            background: viewMode === 'data' ? '#3b82f6' : 'transparent',
+                                            color: viewMode === 'data' ? 'white' : '#6b7280',
+                                            border: 'none',
+                                            borderBottom: viewMode === 'data' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '6px 6px 0 0',
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            fontWeight: viewMode === 'data' ? '600' : '500',
+                                            transition: 'all 0.2s ease',
+                                            marginBottom: '-2px'
+                                        }}
+                                    >
+                                        📊 Data
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {!selectedSplit && (
+                            <div style={{
+                                marginBottom: '1.25rem',
+                                paddingBottom: '1rem',
+                                borderBottom: '2px solid #f3f4f6',
+                                flexShrink: 0
+                            }}>
+                                <h3 style={{
+                                    margin: 0,
                                     color: '#1f2937',
                                     fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
                                     fontWeight: '600',
+                                    textAlign: window.innerWidth <= 768 ? 'center' : 'left',
                                     lineHeight: '1.4'
                                 }}>
-                                    {view === 'companies' ? 
-                                        `🏢 All Companies (${companiesData.length})` :
-                                        `📁 ${selectedCompany}'s Folders`
-                                    }
+                                    📊 Extracted Data
                                 </h3>
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                onClick={loadCompaniesData}
-                                disabled={loading}
-                                style={{
-                                    padding: window.innerWidth <= 768 ? '0.5rem 1rem' : '0.25rem 0.5rem',
-                                    border: '1px solid #e9ecef',
-                                    background: 'white',
-                                    color: 'var(--text-color-dark)',
-                                    borderRadius: '4px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    fontSize: window.innerWidth <= 768 ? 'clamp(12px, 3vw, 14px)' : '0.8rem',
-                                    opacity: loading ? 0.6 : 1,
-                                    minWidth: window.innerWidth <= 768 ? '80px' : 'auto'
-                                }}
-                            >
-                                🔄 Refresh
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Breadcrumb Navigation */}
-                    {view !== 'companies' && !selectedSplit && (
-                        <div style={{ 
-                            marginBottom: '1rem', 
-                            padding: '0.5rem 0',
-                            borderBottom: '1px solid #e9ecef'
-                        }}>
-                            <button
-                                onClick={navigateToCompanies}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--sub-color)',
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                    padding: '0',
-                                    fontSize: '0.9rem'
-                                }}
-                            >
-                                ← All Companies
-                            </button>
-                            
-                            {view === 'files' && (
-                                <>
-                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                                    <button
-                                        onClick={navigateToFolders}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: 'var(--sub-color)',
-                                            cursor: 'pointer',
-                                            textDecoration: 'underline',
-                                            padding: '0',
-                                            fontSize: '0.9rem'
-                                        }}
-                                    >
-                                        {selectedCompany}
-                                    </button>
-                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedFolder}</span>
-                                </>
-                            )}
-                            
-                            {view === 'folders' && (
-                                <>
-                                    <span style={{ margin: '0 0.5rem', color: 'var(--text-color-light)' }}>/</span>
-                                    <span style={{ fontWeight: '600', color: 'var(--main-color)' }}>{selectedCompany}</span>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    <div style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        overflowX: 'hidden',
-                        paddingRight: '0.5rem'
-                    }}>
-                        {loading ? (
-                            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <div>Loading...</div>
                             </div>
-                        ) : (
-                            view === 'companies' ? <AllCompaniesView /> : 
-                            view === 'folders' ? <CompanyFoldersView /> : <FilesView />
                         )}
-                    </div>
-                </div>
-
-                {/* Right Panel - JSON Data Viewer OR Split Info */}
-                <div style={{
-                    background: '#ffffff',
-                    borderRadius: '12px',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
-                    padding: window.innerWidth <= 768 ? '1.25rem' : '1.5rem',
-                    order: window.innerWidth <= 768 ? 2 : 0,
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden'
-                }}>
-                    {selectedSplit && (
                         <div style={{
-                            marginBottom: '1rem',
-                            flexShrink: 0
+                            flex: 1,
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
+                            paddingRight: '0.5rem',
+                            minHeight: 0
                         }}>
-                            {/* Tabs for switching between PDF and Data views */}
-                            <div style={{
-                                display: 'flex',
-                                gap: '0.5rem',
-                                borderBottom: '2px solid #e5e7eb',
-                                marginBottom: '1rem'
-                            }}>
-                                <button
-                                    onClick={() => setViewMode('pdf')}
-                                    style={{
-                                        padding: '0.75rem 1.5rem',
-                                        background: viewMode === 'pdf' ? '#3b82f6' : 'transparent',
-                                        color: viewMode === 'pdf' ? 'white' : '#6b7280',
-                                        border: 'none',
-                                        borderBottom: viewMode === 'pdf' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '6px 6px 0 0',
-                                        cursor: 'pointer',
-                                        fontSize: '0.875rem',
-                                        fontWeight: viewMode === 'pdf' ? '600' : '500',
-                                        transition: 'all 0.2s ease',
-                                        marginBottom: '-2px'
-                                    }}
-                                >
-                                    📄 PDF
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('data')}
-                                    style={{
-                                        padding: '0.75rem 1.5rem',
-                                        background: viewMode === 'data' ? '#3b82f6' : 'transparent',
-                                        color: viewMode === 'data' ? 'white' : '#6b7280',
-                                        border: 'none',
-                                        borderBottom: viewMode === 'data' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '6px 6px 0 0',
-                                        cursor: 'pointer',
-                                        fontSize: '0.875rem',
-                                        fontWeight: viewMode === 'data' ? '600' : '500',
-                                        transition: 'all 0.2s ease',
-                                        marginBottom: '-2px'
-                                    }}
-                                >
-                                    📊 Data
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {!selectedSplit && (
-                        <div style={{
-                            marginBottom: '1.25rem',
-                            paddingBottom: '1rem',
-                            borderBottom: '2px solid #f3f4f6',
-                            flexShrink: 0
-                        }}>
-                            <h3 style={{ 
-                                margin: 0, 
-                                color: '#1f2937',
-                                fontSize: window.innerWidth <= 768 ? 'clamp(16px, 4vw, 18px)' : 'clamp(18px, 4vw, 20px)',
-                                fontWeight: '600',
-                                textAlign: window.innerWidth <= 768 ? 'center' : 'left',
-                                lineHeight: '1.4'
-                            }}>
-                                📊 Extracted Data
-                            </h3>
-                        </div>
-                    )}
-                    <div style={{ 
-                        flex: 1,
-                        overflowY: 'auto',
-                        overflowX: 'hidden',
-                        paddingRight: '0.5rem',
-                        minHeight: 0
-                    }}>
-                        {selectedSplit ? (
-                            viewMode === 'pdf' ? (
-                                <PDFViewer />
-                            ) : (
-                                <div>
-                                    {/* Extracted Data Mode - Clean View */}
-                                    {!extractedData ? (
-                                    <div style={{
-                                        padding: '1rem',
-                                        background: 'rgba(63, 114, 175, 0.1)',
-                                        border: '1px solid rgba(63, 114, 175, 0.3)',
-                                        borderRadius: '6px',
-                                        textAlign: 'center',
-                                        color: '#155724'
-                                    }}>
-                                        {isLoadingExtractedData ? (
-                                            <div>
-                                                <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                                    🔄 Loading extracted data...
-                                                </p>
-                                            </div>
-                                        ) : extractedDataError ? (
-                                            <div>
-                                                <p style={{ margin: 0, fontSize: '0.9rem', color: '#dc3545' }}>
-                                                    ❌ {extractedDataError}
-                                                </p>
-                                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
-                                                    You can try extracting new data using the Smart Extraction feature
-                                                </p>
+                            {selectedSplit ? (
+                                viewMode === 'pdf' ? (
+                                    <PDFViewer />
+                                ) : (
+                                    <div>
+                                        {/* Extracted Data Mode - Clean View */}
+                                        {!extractedData ? (
+                                            <div style={{
+                                                padding: '1rem',
+                                                background: 'rgba(63, 114, 175, 0.1)',
+                                                border: '1px solid rgba(63, 114, 175, 0.3)',
+                                                borderRadius: '6px',
+                                                textAlign: 'center',
+                                                color: '#155724'
+                                            }}>
+                                                {isLoadingExtractedData ? (
+                                                    <div>
+                                                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                                            🔄 Loading extracted data...
+                                                        </p>
+                                                    </div>
+                                                ) : extractedDataError ? (
+                                                    <div>
+                                                        <p style={{ margin: 0, fontSize: '0.9rem', color: '#dc3545' }}>
+                                                            ❌ {extractedDataError}
+                                                        </p>
+                                                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                                                            You can try extracting new data using the Smart Extraction feature
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                                            📊 No extracted data available for this split
+                                                        </p>
+                                                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                                                            Extract data using the Smart Extraction feature first
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
-                                            <div>
-                                                <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                                    📊 No extracted data available for this split
-                                                </p>
-                                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
-                                                    Extract data using the Smart Extraction feature first
-                                                </p>
+                                            <div style={{ padding: '0' }}>
+                                                {renderExtractedDataTable()}
                                             </div>
                                         )}
                                     </div>
-                                    ) : (
-                                        <div style={{ padding: '0' }}>
-                                            {renderExtractedDataTable()}
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        ) : (
-                            <JsonViewer />
-                        )}
+                                )
+                            ) : (
+                                <JsonViewer />
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </StandardPageLayout>
         </>
     );
 }

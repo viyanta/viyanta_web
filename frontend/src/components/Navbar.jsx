@@ -2,7 +2,10 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { subscribeToAuthChanges, logout } from '../firebase/auth.js'
 
+import { useAuth } from '../context/AuthContext';
+
 function Navbar({ onMenuClick }) {
+  const { user: authContextUser, selectedProduct } = useAuth(); // Get user from context if available, but keep local state for now to minimize refactor risk
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -45,13 +48,29 @@ function Navbar({ onMenuClick }) {
     return displayName.split(' ').map(n => n[0]).join('');
   };
 
+  const getProductTitle = () => {
+    if (!selectedProduct) return 'AssureLife v0.1';
+
+    // Format product string: digits_life -> Digits Life
+    // This handles both snake_case and generic strings
+    const formatted = selectedProduct
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    // Specific overrides if needed
+    if (formatted.toLowerCase().includes('digit')) return 'Digits Life v0.1';
+
+    return `${formatted} v0.1`;
+  };
+
   if (isLoading) {
     return (
       <nav className="navbar navbar--loading">
         <div className="navbar__left">
           <div className="navbar__logo">
             <div className="navbar__logo-icon">📊</div>
-            <h1 className="navbar__brand">AssureLife v0.1</h1>
+            <h1 className="navbar__brand">{getProductTitle()}</h1>
           </div>
         </div>
         <div className="navbar__loading">Loading...</div>
@@ -65,7 +84,7 @@ function Navbar({ onMenuClick }) {
       <div className="navbar__left">
         <div className="navbar__logo">
           <div className="navbar__logo-icon">📊</div>
-          <h1 className="navbar__brand">AssureLife v0.1</h1>
+          <h1 className="navbar__brand">{getProductTitle()}</h1>
         </div>
       </div>
 
@@ -105,26 +124,26 @@ function Navbar({ onMenuClick }) {
             <span className="navbar__profile-arrow">▼</span>
           </button>
 
-            {showDropdown && (
-              <div className="navbar__dropdown" role="menu">
-                <Link
-                  to="/profile"
-                  className="navbar__dropdown-item"
-                  onClick={() => setShowDropdown(false)}
-                  role="menuitem"
-                >
-                  👤 Profile
-                </Link>
-                <button
-                  className="navbar__dropdown-item navbar__dropdown-item--logout"
-                  onClick={handleLogout}
-                  disabled={isLoading}
-                  role="menuitem"
-                >
-                  🚪 Sign Out
-                </button>
-              </div>
-            )}
+          {showDropdown && (
+            <div className="navbar__dropdown" role="menu">
+              <Link
+                to="/profile"
+                className="navbar__dropdown-item"
+                onClick={() => setShowDropdown(false)}
+                role="menuitem"
+              >
+                👤 Profile
+              </Link>
+              <button
+                className="navbar__dropdown-item navbar__dropdown-item--logout"
+                onClick={handleLogout}
+                disabled={isLoading}
+                role="menuitem"
+              >
+                🚪 Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

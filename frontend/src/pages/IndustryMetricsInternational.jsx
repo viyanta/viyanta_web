@@ -10,11 +10,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationContext = useNavigation();
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
-  const { 
-    isNavItemActive, 
-    activeNavItems, 
+  const { user, isAdmin } = useAuth();
+  const {
+    isNavItemActive,
+    activeNavItems,
     selectedSidebarItem
   } = navigationContext || {};
   // Industry-specific selected descriptions (separate from Economy)
@@ -27,7 +26,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [viewMode, setViewMode] = useState('data'); // 'data' or 'visuals'
-  
+
   // API data states
   const [premiumTypes, setPremiumTypes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -35,7 +34,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedRowIds, setSelectedRowIds] = useState(new Set()); // Track which row IDs are selected for dashboard
-  
+
   // CRUD states
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -60,7 +59,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const [selectedPremiumTypeOption, setSelectedPremiumTypeOption] = useState('');
   const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
   const [modalCategories, setModalCategories] = useState([]); // Categories for modal dropdown
-  
+
   // Unique values for dropdowns
   const [uniqueValues, setUniqueValues] = useState({
     ProcessedPeriodType: [],
@@ -78,7 +77,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     ReportedUnit: false,
     ReportedValue: false
   });
-  
+
   // Refs to prevent duplicate API calls
   const fetchingPremiumTypesRef = useRef(false);
   const fetchingCategoriesRef = useRef(false);
@@ -105,7 +104,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
     // Refresh every 30 seconds (reduced frequency to prevent excessive calls)
     const refreshInterval = setInterval(loadSelectedDescriptions, 30000);
-    
+
     // Also refresh when page becomes visible (user navigates back to this page)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -113,7 +112,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -146,7 +145,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   }, []);
 
   const allTabs = [
-    'Dashboard', 'Background', 'L Forms', 'Metrics', 
+    'Dashboard', 'Background', 'L Forms', 'Metrics',
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
     'Irdai Monthly Data'
@@ -159,7 +158,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   useEffect(() => {
     // Prevent duplicate calls
     if (fetchingPremiumTypesRef.current) return;
-    
+
     const fetchPremiumTypes = async () => {
       fetchingPremiumTypesRef.current = true;
       setLoading(true);
@@ -187,7 +186,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   useEffect(() => {
     // Prevent duplicate calls
     if (fetchingCategoriesRef.current) return;
-    
+
     const fetchCategories = async () => {
       if (!selectedPremiumType) {
         setCategories([]);
@@ -228,7 +227,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   useEffect(() => {
     // Prevent duplicate calls
     if (fetchingDescriptionsRef.current) return;
-    
+
     const fetchDescriptions = async () => {
       if (!selectedPremiumType || !selectedCategory) {
         setDescriptions([]);
@@ -285,7 +284,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       const data = await ApiService.getIndustryDataIndustry('International', selectedPremiumType, selectedCategory);
       console.log('✅ Industry data received from API:', data);
       console.log('📊 Number of records:', data?.length || 0);
-      
+
       // Filter data based on admin status:
       // - Admin: Show all records (active and inactive)
       // - Non-admin: Only show active records (IsActive === 1 or IsActive === true)
@@ -296,12 +295,12 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       } else {
         console.log('👑 Admin user: Showing all records (active and inactive). Count:', filtered.length);
       }
-      
+
       // Filter by selected Description (required)
       filtered = filtered.filter(row => row.Description === selectedDescription);
-      
+
       setFilteredData(filtered);
-      
+
       // Load selected row IDs for dashboard from backend (only if description is selected in dashboard)
       if (selectedDescription && selectedDescriptions.includes(selectedDescription)) {
         try {
@@ -334,7 +333,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
         newSelectedIds.delete(rowId);
       }
       setSelectedRowIds(newSelectedIds);
-      
+
       // Save to backend - ensure row IDs are numbers
       const rowIdsArray = Array.from(newSelectedIds).map(id => Number(id));
       console.log(`💾 Saving ${rowIdsArray.length} selected row IDs for "${selectedDescription}":`, rowIdsArray);
@@ -347,7 +346,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       setSelectedRowIds(new Set(selectedRowIds));
     }
   };
-  
+
   // Handle select all for dashboard
   const handleSelectAll = async (selectAll) => {
     try {
@@ -356,7 +355,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
         const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
         const newSelectedIds = new Set(allRowIds);
         setSelectedRowIds(newSelectedIds);
-        
+
         // Save to backend - ensure row IDs are numbers
         const rowIdsArray = allRowIds.map(id => Number(id));
         console.log(`💾 Saving ${rowIdsArray.length} selected row IDs (Select All) for "${selectedDescription}":`, rowIdsArray);
@@ -365,7 +364,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       } else {
         // Deselect all
         setSelectedRowIds(new Set());
-        
+
         // Save to backend
         console.log(`💾 Clearing all selected row IDs for "${selectedDescription}"`);
         await ApiService.updateSelectedRowIdsIndustry('International', selectedDescription, []);
@@ -378,14 +377,14 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       setSelectedRowIds(new Set(selectedRowIds));
     }
   };
-  
+
   // Check if all rows are selected
   const allRowsSelected = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return false;
     const allRowIds = filteredData.map(row => row.id).filter(id => id !== undefined && id !== null);
     return allRowIds.length > 0 && allRowIds.every(id => selectedRowIds.has(id));
   }, [filteredData, selectedRowIds]);
-  
+
   // Check if some rows are selected (for indeterminate state)
   const someRowsSelected = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return false;
@@ -393,10 +392,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     const selectedCount = allRowIds.filter(id => selectedRowIds.has(id)).length;
     return selectedCount > 0 && selectedCount < allRowIds.length;
   }, [filteredData, selectedRowIds]);
-  
+
   // Ref for select all checkbox
   const selectAllCheckboxRef = useRef(null);
-  
+
   // Update indeterminate state of select all checkbox
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
@@ -427,7 +426,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       // Reset refs to allow fresh fetch
       fetchingDataRef.current = false;
       fetchingCategoriesRef.current = false;
-      
+
       // Only refresh if all filters (Category, Sub Category, and Description) are selected and we're on the page
       if (selectedPremiumType && selectedCategory && selectedDescription && !fetchingDataRef.current) {
         const timer = setTimeout(() => {
@@ -444,7 +443,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   // Get unique descriptions with their premium type and category
   const descriptionsWithContext = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return [];
-    
+
     const descriptionMap = new Map();
     filteredData.forEach(item => {
       const description = item.Description || '';
@@ -458,41 +457,41 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
         }
       }
     });
-    
+
     return Array.from(descriptionMap.values());
   }, [filteredData]);
 
   // Sort data in ascending order: Description, ProcessedPeriodType, CountryName, ProcessedFYYear, ReportedUnit
   const sortedData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return filteredData;
-    
+
     try {
       // Sort by multiple fields in ascending order
       const sorted = [...filteredData].sort((a, b) => {
         // Handle null/undefined values
         if (!a || !b) return 0;
-        
+
         // 1. Sort by Description (Asc)
         const descA = (a.Description || '').toLowerCase();
         const descB = (b.Description || '').toLowerCase();
         if (descA !== descB) {
           return descA.localeCompare(descB);
         }
-        
+
         // 2. Sort by ProcessedPeriodType (Asc)
         const periodA = (a.ProcessedPeriodType || '').toLowerCase();
         const periodB = (b.ProcessedPeriodType || '').toLowerCase();
         if (periodA !== periodB) {
           return periodA.localeCompare(periodB);
         }
-        
+
         // 3. Sort by CountryName (Asc)
         const countryA = (a.CountryName || '').toLowerCase();
         const countryB = (b.CountryName || '').toLowerCase();
         if (countryA !== countryB) {
           return countryA.localeCompare(countryB);
         }
-        
+
         // 4. Sort by ProcessedFYYear (Asc)
         const yearA = a.ProcessedFYYear || '';
         const yearB = b.ProcessedFYYear || '';
@@ -508,13 +507,13 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
             return yearCompare;
           }
         }
-        
+
         // 5. Sort by ReportedUnit (Asc)
         const unitA = (a.ReportedUnit || '').toLowerCase();
         const unitB = (b.ReportedUnit || '').toLowerCase();
         return unitA.localeCompare(unitB);
       });
-      
+
       return sorted;
     } catch (error) {
       console.error('Error sorting data:', error);
@@ -531,7 +530,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     try {
       // Group by ProcessedPeriodType
       const groupedByPeriodType = {};
-      
+
       sortedData.forEach(item => {
         if (!item) return;
         const periodType = item.ProcessedPeriodType || 'Other';
@@ -543,29 +542,29 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
       // Transform each group into pivot format
       const pivotData = {};
-      
+
       Object.keys(groupedByPeriodType).forEach(periodType => {
         const groupData = groupedByPeriodType[periodType];
         if (!groupData || groupData.length === 0) return;
-        
+
         // Get category and subcategory from first item (should be same for all items in a periodType group)
         const firstItem = groupData[0];
         const categoryName = firstItem?.PremiumTypeLongName || selectedPremiumType || '';
         const subCategoryName = firstItem?.CategoryLongName || selectedCategory || '';
-        
+
         // Get all unique periods (columns) - sorted
         const periods = [...new Set(groupData.map(item => item?.ProcessedFYYear || '').filter(p => p))].sort();
-        
+
         // Get all unique descriptions (rows) - sorted
         const descriptions = [...new Set(groupData.map(item => item?.Description || '').filter(d => d))].sort((a, b) => {
           return (a || '').toLowerCase().localeCompare((b || '').toLowerCase());
         });
-        
+
         // Create pivot structure: { description: { period: value, unit: unit } }
         const pivot = {};
         const units = {}; // Store unit for each description
         const descriptionMetadata = {}; // Store category and subcategory for each description
-        
+
         descriptions.forEach(desc => {
           if (!desc) return;
           pivot[desc] = {};
@@ -587,7 +586,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
             }
           });
         });
-        
+
         pivotData[periodType] = {
           periods,
           descriptions,
@@ -598,7 +597,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
           subCategoryName
         };
       });
-      
+
       return pivotData;
     } catch (error) {
       console.error('Error creating pivot table data:', error);
@@ -611,7 +610,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     try {
       const fields = ['ProcessedPeriodType', 'ProcessedFYYear', 'CountryName', 'Description', 'ReportedUnit', 'ReportedValue'];
       const values = {};
-      
+
       for (const field of fields) {
         try {
           const data = await ApiService.getUniqueValuesIndustry('International', field);
@@ -621,7 +620,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
           values[field] = [];
         }
       }
-      
+
       setUniqueValues(values);
     } catch (err) {
       console.error('Error fetching unique values:', err);
@@ -648,7 +647,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     try {
       await ApiService.updateSelectedDescriptionsIndustry(updatedDescriptions, isRemoving ? description : null);
       console.log(`✅ Industry Description "${description}" ${isRemoving ? 'deselected' : 'selected'} successfully - saved globally`);
-      
+
       // If removing description, clear selected row IDs for that description
       if (isRemoving) {
         try {
@@ -656,7 +655,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
           await ApiService.updateSelectedRowIdsIndustry('Domestic', description, []);
           await ApiService.updateSelectedRowIdsIndustry('International', description, []);
           console.log(`✅ Cleared selected row IDs for removed description: "${description}"`);
-          
+
           // If the removed description is the currently selected one, clear local state and refetch data
           if (selectedDescription === description) {
             setSelectedRowIds(new Set());
@@ -670,7 +669,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
           console.error('Error clearing selected row IDs:', err);
         }
       }
-      
+
       // Refresh from backend to ensure sync
       const refreshedDescriptions = await ApiService.getSelectedDescriptionsIndustry();
       setSelectedDescriptions(Array.isArray(refreshedDescriptions) ? refreshedDescriptions : updatedDescriptions);
@@ -709,7 +708,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       ReportedUnit: false,
       ReportedValue: false
     });
-    
+
     // Fetch unique values when opening modal
     await fetchUniqueValues();
     setShowAddModal(true);
@@ -718,7 +717,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
   const handleEdit = async (record) => {
     const premiumTypeValue = record.PremiumTypeLongName || '';
     const categoryValue = record.CategoryLongName || '';
-    
+
     setFormData({
       ProcessedPeriodType: record.ProcessedPeriodType || '',
       ProcessedFYYear: record.ProcessedFYYear ? [record.ProcessedFYYear] : [], // Single year as array for edit
@@ -731,16 +730,16 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       ReportedValue: record.ReportedValue || '',
       IsActive: record.IsActive !== undefined ? record.IsActive : true
     });
-    
+
     // Check if the values exist in the dropdowns
     const isPremiumTypeInList = premiumTypes.includes(premiumTypeValue);
     const isCategoryInList = categories.includes(categoryValue);
-    
+
     setShowCustomPremiumType(!isPremiumTypeInList && premiumTypeValue !== '');
     setShowCustomCategory(!isCategoryInList && categoryValue !== '');
     setSelectedPremiumTypeOption(isPremiumTypeInList ? premiumTypeValue : '');
     setSelectedCategoryOption(isCategoryInList ? categoryValue : '');
-    
+
     // Check if other fields exist in unique values
     setShowCustomInputs({
       ProcessedPeriodType: !uniqueValues.ProcessedPeriodType.includes(record.ProcessedPeriodType || '') && (record.ProcessedPeriodType || '') !== '',
@@ -750,7 +749,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       ReportedUnit: !uniqueValues.ReportedUnit.includes(record.ReportedUnit || '') && (record.ReportedUnit || '') !== '',
       ReportedValue: !uniqueValues.ReportedValue.includes(record.ReportedValue || '') && (record.ReportedValue || '') !== ''
     });
-    
+
     // Fetch categories for the premium type if it exists
     if (premiumTypeValue && isPremiumTypeInList) {
       try {
@@ -763,10 +762,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     } else {
       setModalCategories([]);
     }
-    
+
     // Fetch unique values when opening edit modal
     await fetchUniqueValues();
-    
+
     setEditingRecord(record);
     setShowAddModal(true);
   };
@@ -831,7 +830,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
         const selectedYears = Array.isArray(submitData.ProcessedFYYear) && submitData.ProcessedFYYear.length > 0
           ? submitData.ProcessedFYYear
           : [];
-        
+
         if (selectedYears.length === 0) {
           setError('Please select at least one Processed FY Year');
           setLoading(false);
@@ -866,12 +865,12 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
         ReportedUnit: false,
         ReportedValue: false
       });
-      
+
       // Refresh premium types dropdown
       try {
         const updatedPremiumTypes = await ApiService.getPremiumTypesIndustry('International');
         setPremiumTypes(updatedPremiumTypes || []);
-        
+
         // If new premium type was added and it's not in the list, add it
         if (formData.PremiumTypeLongName && !updatedPremiumTypes.includes(formData.PremiumTypeLongName)) {
           setPremiumTypes([...updatedPremiumTypes, formData.PremiumTypeLongName]);
@@ -879,14 +878,14 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
       } catch (err) {
         console.error('Error refreshing premium types:', err);
       }
-      
+
       // Refresh categories dropdown if premium type is selected
       if (selectedPremiumType || formData.PremiumTypeLongName) {
         try {
           const premiumTypeToUse = selectedPremiumType || formData.PremiumTypeLongName;
           const updatedCategories = await ApiService.getCategoriesIndustry('International', premiumTypeToUse);
           setCategories(updatedCategories || []);
-          
+
           // If new category was added and it's not in the list, add it
           if (formData.CategoryLongName && !updatedCategories.includes(formData.CategoryLongName)) {
             setCategories([...updatedCategories, formData.CategoryLongName]);
@@ -895,10 +894,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
           console.error('Error refreshing categories:', err);
         }
       }
-      
+
       // Refresh unique values so new records appear in dropdowns
       await fetchUniqueValues();
-      
+
       // Refresh data using the callback
       fetchingDataRef.current = false;
       await fetchIndustryData();
@@ -916,14 +915,14 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     if (!isAdmin) return;
 
     const newStatus = (record.IsActive === 1 || record.IsActive === true) ? 0 : 1;
-    
+
     setLoading(true);
     try {
       await ApiService.updateIndustryDataIndustry(record.id, {
         ...record,
         IsActive: newStatus
       });
-      
+
       // Refresh data
       fetchingDataRef.current = false;
       await fetchIndustryData();
@@ -939,7 +938,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
     if (!isNavItemActive(tab)) {
       return;
     }
-    
+
     if (tab === 'Dashboard') {
       setActiveTab('Dashboard');
       navigate('/industry-metrics-dashboard');
@@ -1009,10 +1008,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
               marginBottom: 'clamp(10px, 2vw, 15px)',
               flexWrap: 'wrap'
             }}>
-              <span 
+              <span
                 onClick={() => handleTabClick('Dashboard')}
-                style={{ 
-                  color: '#36659b', 
+                style={{
+                  color: '#36659b',
                   cursor: 'pointer',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease'
@@ -1079,12 +1078,12 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
             {/* Success Message */}
             {successMessage && (
-              <div className="success-message" style={{ 
-                padding: '10px', 
-                margin: '10px 0', 
-                backgroundColor: '#dfd', 
-                color: '#3a3', 
-                borderRadius: '4px' 
+              <div className="success-message" style={{
+                padding: '10px',
+                margin: '10px 0',
+                backgroundColor: '#dfd',
+                color: '#3a3',
+                borderRadius: '4px'
               }}>
                 {successMessage}
               </div>
@@ -1092,12 +1091,12 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
             {/* Error Message */}
             {error && (
-              <div className="error-message" style={{ 
-                padding: '10px', 
-                margin: '10px 0', 
-                backgroundColor: '#fee', 
-                color: '#c33', 
-                borderRadius: '4px' 
+              <div className="error-message" style={{
+                padding: '10px',
+                margin: '10px 0',
+                backgroundColor: '#fee',
+                color: '#c33',
+                borderRadius: '4px'
               }}>
                 {error}
               </div>
@@ -1154,7 +1153,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   <option value="">Select Category...</option>
                   {premiumTypes.length > 0 ? (
                     premiumTypes.map((type, index) => (
-                    <option key={index} value={type}>{type}</option>
+                      <option key={index} value={type}>{type}</option>
                     ))
                   ) : (
                     !loading && <option value="" disabled>No categories available</option>
@@ -1179,7 +1178,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   <option value="">Select Sub Category...</option>
                   {categories.length > 0 ? (
                     categories.map((category, index) => (
-                    <option key={index} value={category}>{category}</option>
+                      <option key={index} value={category}>{category}</option>
                     ))
                   ) : (
                     selectedPremiumType && !loading && <option value="" disabled>No categories available</option>
@@ -1204,7 +1203,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   <option value="">Select Description...</option>
                   {descriptions.length > 0 ? (
                     descriptions.map((desc, index) => (
-                    <option key={index} value={desc}>{desc}</option>
+                      <option key={index} value={desc}>{desc}</option>
                     ))
                   ) : (
                     selectedPremiumType && selectedCategory && !loading && <option value="" disabled>No descriptions available</option>
@@ -1246,13 +1245,13 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Cards Container */}
                   <div className="description-cards-container">
                     {descriptionsWithContext.map((item, index) => {
                       const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
                       const isDisabled = false; // No limit on number of descriptions
-                      
+
                       return (
                         <div
                           key={index}
@@ -1268,8 +1267,8 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                           onMouseLeave={(e) => {
                             if (!isDisabled && !isMobile) {
                               e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
-                              e.currentTarget.style.boxShadow = isSelected 
-                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)' 
+                              e.currentTarget.style.boxShadow = isSelected
+                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)'
                                 : '0 2px 4px rgba(0, 0, 0, 0.06)';
                               e.currentTarget.style.transform = 'translateY(0)';
                             }
@@ -1280,25 +1279,25 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                             <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
                               {isSelected && (
                                 <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path 
-                                    d="M13.3333 4L6 11.3333L2.66667 8" 
-                                    stroke="white" 
-                                    strokeWidth="2.5" 
-                                    strokeLinecap="round" 
+                                  <path
+                                    d="M13.3333 4L6 11.3333L2.66667 8"
+                                    stroke="white"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
                                     strokeLinejoin="round"
                                   />
                                 </svg>
                               )}
                             </div>
                           </div>
-                          
+
                           {/* Description Text */}
                           <div className="description-text">
                             <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
                               {item.description}
                             </div>
                           </div>
-                          
+
                           {/* Selection Indicator */}
                           {isSelected && (
                             <div className="description-indicator" />
@@ -1319,9 +1318,9 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   {Object.keys(pivotTableData).sort().map(periodType => {
                     const periodData = pivotTableData[periodType];
                     if (!periodData) return null;
-                    
+
                     const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, categoryName = '', subCategoryName = '' } = periodData;
-                    
+
                     if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
                       return null;
                     }
@@ -1337,10 +1336,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
                     return (
                       <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
-                        <h3 className="period-type-title" style={{ 
-                          marginBottom: '16px', 
-                          fontSize: '18px', 
-                          fontWeight: '600', 
+                        <h3 className="period-type-title" style={{
+                          marginBottom: '16px',
+                          fontSize: '18px',
+                          fontWeight: '600',
                           color: '#111827',
                           paddingBottom: '8px',
                           borderBottom: '2px solid #3F72AF'
@@ -1351,39 +1350,39 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                           <table className="data-table pivot-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                               <tr>
-                                <th className="pivot-table-header-desc" style={{ 
-                                  position: 'sticky', 
-                                  left: 0, 
-                                  backgroundColor: '#3F72AF', 
+                                <th className="pivot-table-header-desc" style={{
+                                  position: 'sticky',
+                                  left: 0,
+                                  backgroundColor: '#3F72AF',
                                   color: '#ffffff',
-                                  zIndex: 10, 
-                                  minWidth: isMobile ? '200px' : '300px', 
+                                  zIndex: 10,
+                                  minWidth: isMobile ? '200px' : '300px',
                                   textAlign: 'left',
                                   padding: '12px',
                                   border: '1px solid #2c5a8a'
                                 }}>
                                   Description
                                 </th>
-                                <th className="pivot-table-header-unit" style={{ 
-                                  position: 'sticky', 
-                                  left: isMobile ? '200px' : '300px', 
-                                  backgroundColor: '#3F72AF', 
+                                <th className="pivot-table-header-unit" style={{
+                                  position: 'sticky',
+                                  left: isMobile ? '200px' : '300px',
+                                  backgroundColor: '#3F72AF',
                                   color: '#ffffff',
-                                  zIndex: 10, 
-                                  minWidth: isMobile ? '60px' : '80px', 
+                                  zIndex: 10,
+                                  minWidth: isMobile ? '60px' : '80px',
                                   textAlign: 'center',
                                   padding: '12px',
                                   border: '1px solid #2c5a8a'
                                 }}>
                                   Period Unit
                                 </th>
-                                <th className="pivot-table-header-period-type" style={{ 
-                                  position: 'sticky', 
-                                  left: isMobile ? '260px' : '380px', 
-                                  backgroundColor: '#3F72AF', 
+                                <th className="pivot-table-header-period-type" style={{
+                                  position: 'sticky',
+                                  left: isMobile ? '260px' : '380px',
+                                  backgroundColor: '#3F72AF',
                                   color: '#ffffff',
-                                  zIndex: 10, 
-                                  minWidth: isMobile ? '80px' : '100px', 
+                                  zIndex: 10,
+                                  minWidth: isMobile ? '80px' : '100px',
                                   textAlign: 'center',
                                   padding: '12px',
                                   border: '1px solid #2c5a8a'
@@ -1391,8 +1390,8 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                                   Period
                                 </th>
                                 {periods.map(period => (
-                                  <th key={period} className="pivot-table-header-period" style={{ 
-                                    minWidth: isMobile ? '80px' : '100px', 
+                                  <th key={period} className="pivot-table-header-period" style={{
+                                    minWidth: isMobile ? '80px' : '100px',
                                     textAlign: 'center',
                                     backgroundColor: '#3F72AF',
                                     color: '#ffffff',
@@ -1407,15 +1406,15 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                             <tbody>
                               {descriptions.map((desc, descIndex) => {
                                 const descMetadata = descriptionMetadata[desc] || {};
-                                
+
                                 return (
                                   <tr key={descIndex} style={{
                                     backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                     borderBottom: '1px solid #e5e7eb'
                                   }}>
-                                    <td className="pivot-table-cell-desc" style={{ 
-                                      position: 'sticky', 
-                                      left: 0, 
+                                    <td className="pivot-table-cell-desc" style={{
+                                      position: 'sticky',
+                                      left: 0,
                                       backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                       zIndex: 5,
                                       padding: '12px',
@@ -1425,9 +1424,9 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                                     }}>
                                       {desc}
                                     </td>
-                                    <td className="pivot-table-cell-unit" style={{ 
-                                      position: 'sticky', 
-                                      left: isMobile ? '200px' : '300px', 
+                                    <td className="pivot-table-cell-unit" style={{
+                                      position: 'sticky',
+                                      left: isMobile ? '200px' : '300px',
                                       backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                       zIndex: 5,
                                       padding: '12px',
@@ -1439,9 +1438,9 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                                     }}>
                                       {units[desc] || '-'}
                                     </td>
-                                    <td className="pivot-table-cell-period-type" style={{ 
-                                      position: 'sticky', 
-                                      left: isMobile ? '260px' : '380px', 
+                                    <td className="pivot-table-cell-period-type" style={{
+                                      position: 'sticky',
+                                      left: isMobile ? '260px' : '380px',
                                       backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                       zIndex: 5,
                                       padding: '12px',
@@ -1455,16 +1454,16 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                                       {periodType}
                                     </td>
                                     {periods.map(period => (
-                                      <td key={period} className="pivot-table-cell-data" style={{ 
-                                        textAlign: 'right', 
+                                      <td key={period} className="pivot-table-cell-data" style={{
+                                        textAlign: 'right',
                                         padding: '12px',
                                         borderRight: '1px solid #e5e7eb',
                                         backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
                                         fontSize: '13px',
                                         whiteSpace: 'nowrap'
                                       }}>
-                                        {pivot[desc] && pivot[desc][period] !== undefined 
-                                          ? pivot[desc][period] 
+                                        {pivot[desc] && pivot[desc][period] !== undefined
+                                          ? pivot[desc][period]
                                           : '-'}
                                       </td>
                                     ))}
@@ -1487,13 +1486,13 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                         {isAdmin && <th>Status</th>}
                         {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
                         {isAdmin && (
-                          <th style={{ 
-                            textAlign: 'center', 
+                          <th style={{
+                            textAlign: 'center',
                             minWidth: '120px',
                             opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
                           }}>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                              <span style={{ 
+                              <span style={{
                                 color: isDescriptionSelectedInDashboard ? '#333' : '#999',
                                 fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
                               }}>
@@ -1544,185 +1543,185 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                       )}
                       {!loading && sortedData.length > 0 ? (
                         sortedData.map((row, index) => (
-                        <tr key={row.id || index}>
-                          {isAdmin && (
-                            <td>
-                              <label
-                                style={{
-                                  position: 'relative',
-                                  display: 'inline-block',
-                                  width: '50px',
-                                  height: '24px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={row.IsActive === 1 || row.IsActive === true}
-                                  onChange={async (e) => {
-                                    const newStatus = e.target.checked;
-                                    try {
-                                      await ApiService.updateIndustryData(row.id, { IsActive: newStatus });
-                                      // Update local state
-                                      setFilteredData(prevData =>
-                                        prevData.map(item =>
-                                          item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
-                                        )
-                                      );
-                                    } catch (err) {
-                                      console.error('Error updating status:', err);
-                                      alert('Failed to update status. Please try again.');
-                                    }
-                                  }}
+                          <tr key={row.id || index}>
+                            {isAdmin && (
+                              <td>
+                                <label
                                   style={{
-                                    opacity: 0,
-                                    width: 0,
-                                    height: 0
-                                  }}
-                                />
-                                <span
-                                  style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
-                                    borderRadius: '24px',
-                                    transition: 'background-color 0.3s',
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '50px',
+                                    height: '24px',
                                     cursor: 'pointer'
                                   }}
                                 >
+                                  <input
+                                    type="checkbox"
+                                    checked={row.IsActive === 1 || row.IsActive === true}
+                                    onChange={async (e) => {
+                                      const newStatus = e.target.checked;
+                                      try {
+                                        await ApiService.updateIndustryData(row.id, { IsActive: newStatus });
+                                        // Update local state
+                                        setFilteredData(prevData =>
+                                          prevData.map(item =>
+                                            item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                          )
+                                        );
+                                      } catch (err) {
+                                        console.error('Error updating status:', err);
+                                        alert('Failed to update status. Please try again.');
+                                      }
+                                    }}
+                                    style={{
+                                      opacity: 0,
+                                      width: 0,
+                                      height: 0
+                                    }}
+                                  />
                                   <span
                                     style={{
                                       position: 'absolute',
-                                      content: '""',
-                                      height: '18px',
-                                      width: '18px',
-                                      left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
-                                      bottom: '3px',
-                                      backgroundColor: 'white',
-                                      borderRadius: '50%',
-                                      transition: 'left 0.3s',
-                                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
+                                      borderRadius: '24px',
+                                      transition: 'background-color 0.3s',
+                                      cursor: 'pointer'
                                     }}
-                                  />
-                                </span>
-                              </label>
-                            </td>
-                          )}
-                          {isAdmin && (
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                                <button
-                                  onClick={() => handleEdit(row)}
+                                  >
+                                    <span
+                                      style={{
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '18px',
+                                        width: '18px',
+                                        left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
+                                        bottom: '3px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        transition: 'left 0.3s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      }}
+                                    />
+                                  </span>
+                                </label>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                  <button
+                                    onClick={() => handleEdit(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#007bff',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#0056b3';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#007bff';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>✏️</span>
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(row)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.target.style.backgroundColor = '#c82333';
+                                      e.target.style.transform = 'translateY(-1px)';
+                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.target.style.backgroundColor = '#dc3545';
+                                      e.target.style.transform = 'translateY(0)';
+                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <span>🗑️</span>
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                            {isAdmin && (
+                              <td style={{
+                                textAlign: 'center',
+                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRowIds.has(row.id)}
+                                  onChange={(e) => handleRowSelection(row.id, e.target.checked)}
+                                  disabled={!isDescriptionSelectedInDashboard}
                                   style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
+                                    opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#0056b3';
-                                    e.target.style.transform = 'translateY(-1px)';
-                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = '#007bff';
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                  }}
-                                >
-                                  <span>✏️</span>
-                                  <span>Edit</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(row)}
-                                  style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#dc3545',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#c82333';
-                                    e.target.style.transform = 'translateY(-1px)';
-                                    e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = '#dc3545';
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                  }}
-                                >
-                                  <span>🗑️</span>
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            </td>
-                          )}
-                          {isAdmin && (
-                            <td style={{ 
-                              textAlign: 'center',
-                              opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                            }}>
-                              <input
-                                type="checkbox"
-                                checked={selectedRowIds.has(row.id)}
-                                onChange={(e) => handleRowSelection(row.id, e.target.checked)}
-                                disabled={!isDescriptionSelectedInDashboard}
-                                style={{
-                                  width: '18px',
-                                  height: '18px',
-                                  cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
-                                  opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                                }}
-                                title={isDescriptionSelectedInDashboard 
-                                  ? "Select this row to display in dashboard" 
-                                  : "Please select this description in the Dashboard first"}
-                              />
-                            </td>
-                          )}
-                          <td>{row.Description || '-'}</td>
-                          <td>{row.ProcessedPeriodType || '-'}</td>
-                          <td>{row.CountryName || '-'}</td>
-                          <td>{row.ProcessedFYYear || '-'}</td>
-                          <td>{row.ReportedUnit || '-'}</td>
-                          <td>{row.ReportedValue || '-'}</td>
-                          <td>{row.PremiumTypeLongName || '-'}</td>
-                          <td>{row.CategoryLongName || '-'}</td>
+                                  title={isDescriptionSelectedInDashboard
+                                    ? "Select this row to display in dashboard"
+                                    : "Please select this description in the Dashboard first"}
+                                />
+                              </td>
+                            )}
+                            <td>{row.Description || '-'}</td>
+                            <td>{row.ProcessedPeriodType || '-'}</td>
+                            <td>{row.CountryName || '-'}</td>
+                            <td>{row.ProcessedFYYear || '-'}</td>
+                            <td>{row.ReportedUnit || '-'}</td>
+                            <td>{row.ReportedValue || '-'}</td>
+                            <td>{row.PremiumTypeLongName || '-'}</td>
+                            <td>{row.CategoryLongName || '-'}</td>
+                          </tr>
+                        ))
+                      ) : !loading ? (
+                        <tr>
+                          <td colSpan={isAdmin ? 11 : 8} className="no-data">
+                            {selectedPremiumType && selectedCategory
+                              ? 'No data available for the selected criteria.'
+                              : 'Please select Premium Type and Category to view data.'}
+                          </td>
                         </tr>
-                      ))
-                    ) : !loading ? (
-                      <tr>
-                        <td colSpan={isAdmin ? 11 : 8} className="no-data">
-                          {selectedPremiumType && selectedCategory 
-                            ? 'No data available for the selected criteria.' 
-                            : 'Please select Premium Type and Category to view data.'}
-                        </td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
+                      ) : null}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 // For non-admin users without pivot data, show message
                 <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
@@ -1943,7 +1942,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -2084,11 +2083,11 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                   Processed FY Year {editingRecord ? '' : '(Select Multiple)'}:
                 </label>
                 {!showCustomInputs.ProcessedFYYear ? (
-                  <div style={{ 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px', 
-                    padding: '8px', 
-                    maxHeight: '200px', 
+                  <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    maxHeight: '200px',
                     overflowY: 'auto',
                     backgroundColor: '#fff'
                   }}>
@@ -2334,10 +2333,10 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
                     }
                   }}
                   disabled={!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    borderRadius: '4px', 
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '4px',
                     border: '1px solid #ddd',
                     backgroundColor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? '#f5f5f5' : 'white',
                     cursor: (!formData.PremiumTypeLongName || (showCustomPremiumType && !formData.PremiumTypeLongName.trim())) ? 'not-allowed' : 'pointer'
@@ -2535,7 +2534,7 @@ const IndustryMetricsInternational = ({ onMenuClick }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && recordToDelete && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,

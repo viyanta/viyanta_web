@@ -29,35 +29,50 @@ import InsuranceDataDemo from './pages/InsuranceDataDemo.jsx'
 import EconomyDashboard from './pages/EconomyDashboard.jsx'
 import EconomyDomestic from './pages/EconomyDomestic.jsx'
 import EconomyInternational from './pages/EconomyInternational.jsx'
-import IndustryMetricsDashboard from './pages/IndustryMetricsDashboard.jsx'
+import IndustryMetricsDashboard from './pages/IndustryMetricsDashboard'; // Industry Metrics Dashboard
+import {
+  IrdaiDashboardPage,
+  IrdaiCompanywisePage,
+  IrdaiPremiumWisePage,
+  IrdaiMarketSharePage,
+  IrdaiGrowthPage,
+  IrdaiMonthwisePage,
+  IrdaiPvtVsPublicPage,
+  IrdaiAnalyticsPage,
+  IrdaiDocumentsPage,
+  IrdaiPeersPage
+} from './pages/IrdaiPages';
 import IndustryMetricsDomestic from './pages/IndustryMetricsDomestic.jsx'
 import IndustryMetricsInternational from './pages/IndustryMetricsInternational.jsx'
 import MetricsDomestic from './pages/MetricsDomestic.jsx'
+import IrdaiMonthlyData from './pages/IrdaiMonthlyData.jsx'
 
 import UserAgreement from './components/UserAgreement.jsx'
 import Template from './pages/Template.jsx'
 
+import AdminPanel from './components/AdminPanel';
+
 // Component to prevent duplicate windows per user (email-based)
 // function DuplicateWindowPreventer() {
 //   const { user, loading } = useAuth();
-  
+
 //   useEffect(() => {
 //     // Only run if user is logged in
 //     if (loading || !user || !user.email) {
 //       return;
 //     }
-    
+
 //     const userEmail = user.email.toLowerCase().trim();
 //     const channelName = `viyanta-app-window-${userEmail}`;
 //     const storageKey = `viyanta-window-check-${userEmail}`;
 //     const windowSessionKey = `viyanta-window-session-${userEmail}`;
-    
+
 //     let broadcastChannel;
 //     let isPrimaryWindow = false;
 //     let checkInterval;
 //     let heartbeatInterval;
 //     let shouldClose = false;
-    
+
 //     // Generate unique window identifier - ALWAYS generate new, never reuse
 //     // This ensures each tab/window gets a unique ID, even when duplicated
 //     const generateUniqueWindowId = () => {
@@ -65,10 +80,10 @@ import Template from './pages/Template.jsx'
 //       const uniqueId = `win_${performance.now()}_${Date.now()}_${Math.random().toString(36).substr(2, 15)}_${Math.random().toString(36).substr(2, 15)}`;
 //       return uniqueId;
 //     };
-    
+
 //     const windowId = generateUniqueWindowId();
 //     const now = Date.now();
-    
+
 //     // IMMEDIATE CHECK - Check if another window is already active BEFORE we claim
 //     const existingCheck = localStorage.getItem(storageKey);
 //     if (existingCheck) {
@@ -92,7 +107,7 @@ import Template from './pages/Template.jsx'
 //         // If parsing fails, continue (might be stale data)
 //       }
 //     }
-    
+
 //     // IMMEDIATELY claim this window as active (we passed the check)
 //     try {
 //       localStorage.setItem(storageKey, JSON.stringify({
@@ -104,16 +119,16 @@ import Template from './pages/Template.jsx'
 //     } catch (e) {
 //       // If we can't write, continue anyway
 //     }
-    
+
 //     const closeDuplicateWindow = () => {
 //       if (shouldClose) return;
 //       shouldClose = true;
 //       console.log(`Another window detected for user ${userEmail}, closing this duplicate window`);
 //       alert(`Another instance of this application is already open for ${userEmail}. Please use that window instead.`);
-      
+
 //       // Try to close the window
 //       window.close();
-      
+
 //       // If window.close() doesn't work (e.g., window wasn't opened by script), redirect to blank
 //       setTimeout(() => {
 //         if (document.visibilityState !== 'hidden') {
@@ -121,19 +136,19 @@ import Template from './pages/Template.jsx'
 //         }
 //       }, 1000);
 //     };
-    
+
 //     try {
 //       // Use BroadcastChannel if available (modern browsers)
 //       if (typeof BroadcastChannel !== 'undefined') {
 //         broadcastChannel = new BroadcastChannel(channelName);
-        
+
 //         let responseReceived = false;
 //         let activeWindows = new Set();
-        
+
 //         // Listen for other windows of the same user
 //         broadcastChannel.onmessage = (event) => {
 //           const data = event.data;
-          
+
 //           if (data.type === 'window-check' && data.userEmail === userEmail) {
 //             // Another window is checking, respond that we exist (if we're primary)
 //             if (isPrimaryWindow) {
@@ -161,7 +176,7 @@ import Template from './pages/Template.jsx'
 //             }
 //           }
 //         };
-        
+
 //         // Check if other windows exist immediately
 //         broadcastChannel.postMessage({
 //           type: 'window-check',
@@ -169,7 +184,7 @@ import Template from './pages/Template.jsx'
 //           userEmail: userEmail,
 //           timestamp: Date.now()
 //         });
-        
+
 //         // Wait a bit to see if we get a response (shorter timeout for faster detection)
 //         setTimeout(() => {
 //           if (!responseReceived || activeWindows.size === 0) {
@@ -182,7 +197,7 @@ import Template from './pages/Template.jsx'
 //           }
 //         }, 500); // Reduced from 1000ms to 500ms for faster detection
 //       }
-      
+
 //       // Fallback: Use localStorage events (works in all browsers)
 //       const handleStorageChange = (e) => {
 //         if (e.key === storageKey && e.newValue) {
@@ -203,9 +218,9 @@ import Template from './pages/Template.jsx'
 //           }
 //         }
 //       };
-      
+
 //       window.addEventListener('storage', handleStorageChange);
-      
+
 //       // Send heartbeat via localStorage
 //       const sendHeartbeat = () => {
 //         if (shouldClose) return;
@@ -220,7 +235,7 @@ import Template from './pages/Template.jsx'
 //           // Ignore storage errors
 //         }
 //       };
-      
+
 //       // Check for existing windows on startup (with longer timeout for refresh detection)
 //       const checkExistingWindow = () => {
 //         try {
@@ -249,18 +264,18 @@ import Template from './pages/Template.jsx'
 //           }
 //         }
 //       };
-      
+
 //       // Initial check immediately and then again after a short delay
 //       checkExistingWindow(); // Run immediately
 //       setTimeout(checkExistingWindow, 300); // Run again after 300ms
-      
+
 //       // Send heartbeat more frequently (only if we're primary)
 //       heartbeatInterval = setInterval(() => {
 //         if (isPrimaryWindow && !shouldClose) {
 //           sendHeartbeat();
 //         }
 //       }, 1000); // Reduced from 2000ms to 1000ms for more frequent updates
-      
+
 //       // Handle page unload - notify other windows
 //       const handleBeforeUnload = () => {
 //         if (broadcastChannel && isPrimaryWindow) {
@@ -285,9 +300,9 @@ import Template from './pages/Template.jsx'
 //           // Ignore cleanup errors
 //         }
 //       };
-      
+
 //       window.addEventListener('beforeunload', handleBeforeUnload);
-      
+
 //       // Cleanup
 //       return () => {
 //         if (broadcastChannel) {
@@ -314,7 +329,7 @@ import Template from './pages/Template.jsx'
 //       console.error('Error setting up duplicate window prevention:', error);
 //     }
 //   }, [user, loading]); // Re-run when user changes
-  
+
 //   return null; // This component doesn't render anything
 // }
 // Protected Route Component
@@ -339,7 +354,7 @@ function ProtectedRoute({ children }) {
   // Show user agreement if user is authenticated but hasn't accepted the agreement
   if (user && !agreementAccepted) {
     return (
-      <UserAgreement 
+      <UserAgreement
         onAccept={acceptAgreement}
         onReject={logout}
       />
@@ -399,70 +414,82 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            
+
             {/* Protected Routes */}
             <Route path="/*" element={
               <ProtectedRoute>
                 <NavigationProvider>
                   <div className="app-container">
-                  <Navbar 
-                    onMenuClick={openSidebar} 
-                  />
-                  <div className="layout">
-                    <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
-                    <main 
-                      className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`} 
-                      onClick={() => sidebarOpen && closeSidebar()}
-                    >
-                      <Routes>
-                        <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
-                        <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
-                        <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
-                        <Route path="/analytics" element={<Analytics onMenuClick={openSidebar} />} />
-                        <Route path="/annual-data" element={<AnnualData onMenuClick={openSidebar} />} />
-                        <Route path="/metrics" element={<Metrics onMenuClick={openSidebar} />} />
-                        <Route path="/documents" element={<Documents onMenuClick={openSidebar} />} />
-                        <Route path="/template" element={<Template onMenuClick={openSidebar} />} />
-                        <Route path="/peers" element={<Peers onMenuClick={openSidebar} />} />
-                        <Route path="/news" element={<News onMenuClick={openSidebar} />} />
-                        <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
-                        <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
-                        <Route path="/subscription" element={<Subscription onMenuClick={openSidebar} />} />
-                        <Route path="/smart-extraction" element={
-                          <AdminRoute>
-                            <SmartPDFExtraction onMenuClick={openSidebar} />
-                          </AdminRoute>
-                        } />
-                        {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
-                        <Route path="/insurance-dashboard" element={
-                          <InsuranceDashboard 
-                            onMenuClick={openSidebar} 
-                          />
-                        } />
-                        <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
-                        <Route path="/economy-dashboard" element={<EconomyDashboard onMenuClick={openSidebar} />} />
-                        <Route path="/economy-domestic" element={<EconomyDomestic onMenuClick={openSidebar} />} />
-                        <Route path="/economy-international" element={<EconomyInternational onMenuClick={openSidebar} />} />
-                        <Route path="/industry-metrics-dashboard" element={<IndustryMetricsDashboard onMenuClick={openSidebar} />} />
-                        <Route path="/industry-metrics-domestic" element={<IndustryMetricsDomestic onMenuClick={openSidebar} />} />
-                        <Route path="/industry-metrics-international" element={<IndustryMetricsInternational onMenuClick={openSidebar} />} />
-                        <Route path="/metrics-domestic" element={<MetricsDomestic onMenuClick={openSidebar} />} />
-                      </Routes>
-                    </main>
-                  </div>
-                  {/* Utility Icons Bar */}
-                  <UtilityIcons />
-                  {/* Mobile backdrop */}
-                  <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
+                    <Navbar
+                      onMenuClick={openSidebar}
+                    />
+                    <div className="layout">
+                      <SideMenu isOpen={sidebarOpen} onClose={closeSidebar} />
+                      <main
+                        className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}
+                        onClick={() => sidebarOpen && closeSidebar()}
+                      >
+                        <Routes>
+                          <Route path="/" element={<Navigate to="/insurance-dashboard" replace />} />
+                          <Route path="/admin" element={
+                            <AdminRoute>
+                              <AdminPanel />
+                            </AdminRoute>
+                          } />
+                          <Route path="/dashboard" element={<Dashboard onMenuClick={openSidebar} />} />
+                          <Route path="/explorer" element={<ExplorerAllUsers onMenuClick={openSidebar} />} />
+                          <Route path="/lform" element={<Lform onMenuClick={openSidebar} />} />
+                          <Route path="/analytics" element={<Analytics onMenuClick={openSidebar} />} />
+                          <Route path="/annual-data" element={<AnnualData onMenuClick={openSidebar} />} />
+                          <Route path="/metrics" element={<Metrics onMenuClick={openSidebar} />} />
+                          <Route path="/documents" element={<Documents onMenuClick={openSidebar} />} />
+                          <Route path="/template" element={<Template onMenuClick={openSidebar} />} />
+                          <Route path="/peers" element={<Peers onMenuClick={openSidebar} />} />
+                          <Route path="/news" element={<News onMenuClick={openSidebar} />} />
+                          <Route path="/dmm-l2form" element={<DMML2Form onMenuClick={openSidebar} />} />
+                          <Route path="/profile" element={<Profile onMenuClick={openSidebar} />} />
+                          <Route path="/subscription" element={<Subscription onMenuClick={openSidebar} />} />
+                          <Route path="/smart-extraction" element={<SmartPDFExtraction onMenuClick={openSidebar} />} />
+                          {/* <Route path="/extraction" element={<PDFExtraction onMenuClick={openSidebar} />} /> */}
+                          <Route path="/insurance-dashboard" element={
+                            <InsuranceDashboard
+                              onMenuClick={openSidebar}
+                            />
+                          } />
+                          <Route path="/insurance-data-demo" element={<InsuranceDataDemo onMenuClick={openSidebar} />} />
+                          <Route path="/economy-dashboard" element={<EconomyDashboard onMenuClick={openSidebar} />} />
+                          <Route path="/economy-domestic" element={<EconomyDomestic onMenuClick={openSidebar} />} />
+                          <Route path="/economy-international" element={<EconomyInternational onMenuClick={openSidebar} />} />
+                          <Route path="/industry-metrics-dashboard" element={<IndustryMetricsDashboard onMenuClick={openSidebar} />} />
+                          <Route path="/industry-metrics-domestic" element={<IndustryMetricsDomestic onMenuClick={openSidebar} />} />
+                          <Route path="/industry-metrics-international" element={<IndustryMetricsInternational onMenuClick={openSidebar} />} />
+                          <Route path="/irdai-monthly-data" element={<IrdaiDashboardPage />} />
+                          <Route path="/irdai-monthly-dashboard" element={<IrdaiDashboardPage />} />
+                          <Route path="/irdai-companywise" element={<IrdaiCompanywisePage />} />
+                          <Route path="/irdai-premium-wise" element={<IrdaiPremiumWisePage />} />
+                          <Route path="/irdai-market-share" element={<IrdaiMarketSharePage />} />
+                          <Route path="/irdai-growth" element={<IrdaiGrowthPage />} />
+                          <Route path="/irdai-monthwise" element={<IrdaiMonthwisePage />} />
+                          <Route path="/irdai-pvt-vs-public" element={<IrdaiPvtVsPublicPage />} />
+                          <Route path="/irdai-analytics" element={<IrdaiAnalyticsPage />} />
+                          <Route path="/irdai-documents" element={<IrdaiDocumentsPage />} />
+                          <Route path="/irdai-peers" element={<IrdaiPeersPage />} />
+                          <Route path="/metrics-domestic" element={<MetricsDomestic onMenuClick={openSidebar} />} />
+                        </Routes>
+                      </main>
+                    </div>
+                    {/* Utility Icons Bar */}
+                    <UtilityIcons />
+                    {/* Mobile backdrop */}
+                    <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
                   </div>
                 </NavigationProvider>
               </ProtectedRoute>
             } />
           </Routes>
         </Router>
-    </StatsProvider>
-  </AuthProvider>
+      </StatsProvider>
+    </AuthProvider>
   )
 }
 

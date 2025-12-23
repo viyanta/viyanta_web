@@ -1,0 +1,133 @@
+.irdai-documents-container {
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+}
+
+.documents-page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 30px;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    /* Matching the handwritten style in screenshot if desired, or standard sans */
+    font-family: inherit;
+    /* Resetting to inherit for professional look unless specified otherwise */
+}
+
+/* Override purely for the requested "Document Repoistory" text style if needed, 
+   but sticking to standard font for now as per "Web App Development" guidelines. */
+
+.filters-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 200px;
+}
+
+.filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #36659b;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    /* Gray-300 */
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #111827;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.filter-select:focus {
+    border-color: #3b82f6;
+    /* Blue-500 */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Documents Table - ensure it takes full width now */
+.documents-table-section {
+    width: 100%;
+    overflow-x: auto;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+}
+
+.documents-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid #111827;
+    /* Dark border as in screenshot */
+}
+
+.documents-table th {
+    background-color: #ffffff;
+    color: #111827;
+    font-weight: 700;
+    text-align: center;
+    /* Center headers */
+    padding: 8px;
+    border: 1px solid #111827;
+    /* Dark borders */
+    border-bottom: 2px solid #111827;
+}
+
+.documents-table td {
+    padding: 8px;
+    border: 1px solid #9ca3af;
+    /* Lighter inner borders */
+    color: #374151;
+    vertical-align: middle;
+}
+
+/* Column specific alignment */
+.documents-table td:nth-child(1),
+/* Report Date */
+.documents-table td:nth-child(2),
+/* Name */
+.documents-table td:nth-child(4),
+/* Open File */
+.documents-table td:nth-child(5)
+
+/* Download File */
+    {
+    text-align: center;
+}
+
+.documents-table td:nth-child(3) {
+    /* File Name */
+    text-align: left;
+    color: #1f2937;
+}
+
+.action-cell {
+    cursor: pointer;
+}
+
+.icon-placeholder {
+    font-size: 16px;
+    display: inline-block;
+}
+
+.no-data-cell {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-style: italic;
+}
