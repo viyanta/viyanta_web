@@ -14,34 +14,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Send Deployment Started
+      - name: Notify Deployment Started
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${GITHUB_EVENT_HEAD_COMMIT_MESSAGE}\"
+            \"text\": \"🚀 Deployment Started
+            \nJob: Viyanta
+            \nEnvironment: ${GITHUB_REF_NAME}
+            \nBranch: ${GITHUB_REF_NAME}
+            \nCommitted-By: ${GITHUB_ACTOR}
+            \nCommit-Message: ${{ github.event.head_commit.message }}\"
           }" \
           ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
 
-      - name: Setup SSH
+      - name: Deploy Application
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy on EC2
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/viyanta_web
-            ./deploy-docker.sh
-          EOF
+          cd ~/viyanta_web
+          chmod +x deploy-docker.sh
+          ./deploy-docker.sh
 
       - name: Deployment Success
         if: success()
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"✅ Deployment Completed\nJob: Viyanta\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\"
+            \"text\": \"✅ Deployment Completed
+            \nBranch: ${GITHUB_REF_NAME}
+            \nCommitted-By: ${GITHUB_ACTOR}\"
           }" \
           ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
 
@@ -50,6 +49,8 @@ jobs:
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nCheck GitHub Actions logs\"
+            \"text\": \"❌ Deployment Failed
+            \nBranch: ${GITHUB_REF_NAME}
+            \nCheck GitHub Actions logs\"
           }" \
           ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
