@@ -37,44 +37,28 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(
-    title="Viyanta File Processing API",
-    version="1.0.0",
-    openapi_tags=[
-        {"name": "download", "description": "File download operations"},
-        {"name": "dropdown", "description": "Dropdown and filter operations"},
-        {"name": "company_l_forms", "description": "Company L-Forms operations"},
-        {"name": "pdf_splitter", "description": "PDF splitting operations"},
-        {"name": "Economy", "description": "Economy data operations"},
-        {"name": "L-Forms", "description": "L-Forms data extraction and retrieval"},
-    ]
-)
-
-# CORS setup - Allow both development and production origins
-allowed_origins = [
-    "http://localhost:5173",  # Development frontend
-    "http://localhost:3000",  # Alternative dev port
-    "http://localhost:5174",  # Alternative dev port
-]
-
-# Add production origin from environment variable if set
-production_origin = os.getenv("FRONTEND_URL")
-if production_origin:
-    allowed_origins.append(production_origin)
-
-# Also allow all origins in development (can be restricted in production)
-if os.getenv("ENVIRONMENT") != "production":
-    allowed_origins.append("*")
+app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/api/docs",
+              openapi_url="/api/openapi.json",
+              redoc_url="/api/redoc")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if os.getenv(
-        "ENVIRONMENT") == "production" else ["*"],
+# <<<<<<< backend_main
+#     allow_origins=allowed_origins if os.getenv(
+#         "ENVIRONMENT") == "production" else ["*"],
+# =======
+    # Allow frontend origins
+    allow_origins=["https://app.viyantainsights.com", "*"],
+# >>>>>>> main
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# <<<<<<< HEAD
+print("DEBUG S3_BUCKET_NAME:***************************",
+      os.getenv("S3_BUCKET_NAME"))
+# =======
 
 # Create tables with error handling for concurrent DDL operations
 # This is needed when using multiple workers (e.g., hypercorn with --workers)
@@ -110,6 +94,7 @@ async def startup_event():
         print("⚠️ Database initialization skipped - init_db module not available")
     except Exception as e:
         print(f"⚠️ Startup event failed: {e}")
+# >>>>>>> 4b07d77ceef3c0610fa6fc17dd2608d16a72671c
 
 # Include routers
 app.include_router(download_router, prefix="/api/files", tags=["download"])

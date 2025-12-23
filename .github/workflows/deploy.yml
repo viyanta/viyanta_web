@@ -1,0 +1,55 @@
+name: Viyanta Docker Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send Deployment Started
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${GITHUB_EVENT_HEAD_COMMIT_MESSAGE}\"
+          }" \
+          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy on EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/viyanta_web
+            ./deploy-docker.sh
+          EOF
+
+      - name: Deployment Success
+        if: success()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"✅ Deployment Completed\nJob: Viyanta\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\"
+          }" \
+          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nCheck GitHub Actions logs\"
+          }" \
+          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}

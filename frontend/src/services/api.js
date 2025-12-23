@@ -1,8 +1,14 @@
+
+const API_BASE_URL = 'https://app.viyantainsights.com/api';
+
 import axios from 'axios';
 
-// Use environment variable or relative URL for production
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
+// <<<<<<< backend_main
+// // Use environment variable or relative URL for production
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+//   (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
+// =======
+// >>>>>>> main
 
 class ApiService {
 
