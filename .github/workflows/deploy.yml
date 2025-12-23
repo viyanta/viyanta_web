@@ -8,49 +8,76 @@ on:
 
 jobs:
   deploy:
+    name: Deploy Viyanta Application
     runs-on: self-hosted
 
     steps:
+      # 1️⃣ Checkout source code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Notify Deployment Started
+      # 2️⃣ Debug webhook (TEMP – can remove later)
+      - name: Debug Google Chat Webhook
+        run: |
+          echo "Webhook length: ${#GOOGLE_CHAT_WEBHOOK}"
+        env:
+          GOOGLE_CHAT_WEBHOOK: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+
+      # 3️⃣ Notify – Deployment Started
+      - name: Send Deployment Started
+        continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
             \"text\": \"🚀 Deployment Started
-            \nJob: Viyanta
-            \nEnvironment: ${GITHUB_REF_NAME}
-            \nBranch: ${GITHUB_REF_NAME}
-            \nCommitted-By: ${GITHUB_ACTOR}
-            \nCommit-Message: ${{ github.event.head_commit.message }}\"
+Job: Viyanta
+Environment: ${GITHUB_REF_NAME}
+Branch: ${GITHUB_REF_NAME}
+Committed-By: ${GITHUB_ACTOR}
+Commit-Message: ${GITHUB_EVENT_HEAD_COMMIT_MESSAGE}\"
           }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
-      - name: Deploy Application
+      # 4️⃣ Setup SSH (only if SSH is still required)
+      - name: Setup SSH
         run: |
-          cd ~/viyanta_web
-          chmod +x deploy-docker.sh
-          ./deploy-docker.sh
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      # 5️⃣ Deploy using Docker script on EC2
+      - name: Deploy on EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+            cd ~/viyanta_web
+            chmod +x deploy-docker.sh
+            ./deploy-docker.sh
+          EOF
+
+      # 6️⃣ Notify – Deployment Success
       - name: Deployment Success
         if: success()
+        continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"✅ Deployment Completed
-            \nBranch: ${GITHUB_REF_NAME}
-            \nCommitted-By: ${GITHUB_ACTOR}\"
+            \"text\": \"✅ Deployment Completed Successfully
+Branch: ${GITHUB_REF_NAME}
+Committed-By: ${GITHUB_ACTOR}\"
           }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
+      # 7️⃣ Notify – Deployment Failed
       - name: Deployment Failed
         if: failure()
+        continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
             \"text\": \"❌ Deployment Failed
-            \nBranch: ${GITHUB_REF_NAME}
-            \nCheck GitHub Actions logs\"
+Branch: ${GITHUB_REF_NAME}
+Please check GitHub Actions logs\"
           }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
