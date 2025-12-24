@@ -22,31 +22,46 @@ jobs:
           -d "{\"text\":\"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${{ github.event.head_commit.message }}\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
+      - name: Copy files to project directory
+        run: |
+          echo "📁 Copying updated files to ~/viyanta_web..."
+          rsync -av --exclude='.git' --exclude='node_modules' ./ ~/viyanta_web/
+          echo "✅ Files copied successfully"
+
       - name: Stop PM2 if running
         continue-on-error: true
         run: |
           if command -v pm2 &> /dev/null; then
-            echo "Stopping PM2 processes..."
+            echo "⚠️  Stopping PM2 processes..."
             pm2 stop all || true
+            echo "✅ PM2 processes stopped"
           fi
 
       - name: Deploy Docker Containers
         run: |
+          cd ~/viyanta_web
+          echo "📍 Current directory: $(pwd)"
+          echo "📋 Files present:"
+          ls -la deploy-docker.sh docker-compose.yml || echo "Some files missing!"
+          
           chmod +x deploy-docker.sh
           ./deploy-docker.sh
 
       - name: Verify Deployment
         run: |
-          echo "Waiting for containers to start..."
+          cd ~/viyanta_web
+          echo "⏳ Waiting for containers to start..."
           sleep 10
+          echo "📊 Container status:"
           docker compose ps
           
       - name: Deployment Success
         if: success()
         continue-on-error: true
         run: |
+          CONTAINERS=$(cd ~/viyanta_web && docker compose ps --format '{{.Service}}' | tr '\n' ', ' | sed 's/,$//')
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"✅ Deployment Completed Successfully\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nContainers: $(docker compose ps --format '{{.Service}}' | tr '\n' ', ')\"}" \
+          -d "{\"text\":\"✅ Deployment Completed Successfully\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nContainers: ${CONTAINERS}\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
       - name: Deployment Failed
