@@ -15,56 +15,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug Google Chat Webhook
-        run: |
-          echo "Webhook length: ${#GOOGLE_CHAT_WEBHOOK}"
-        env:
-          GOOGLE_CHAT_WEBHOOK: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-
       - name: Send Deployment Started
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d @- "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" <<EOF
-          {
-            "text": "🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${{ github.event.head_commit.message }}"
-          }
-          EOF
+          -d "{\"text\":\"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${{ github.event.head_commit.message }}\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
-      - name: Setup SSH
+      - name: Stop PM2 if running
+        continue-on-error: true
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          if command -v pm2 &> /dev/null; then
+            echo "Stopping PM2 processes..."
+            pm2 stop all || true
+          fi
 
-      - name: Deploy on EC2
+      - name: Deploy Docker Containers
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -e
-            cd ~/viyanta_web
-            chmod +x deploy-docker.sh
-            ./deploy-docker.sh
-          EOF
+          chmod +x deploy-docker.sh
+          ./deploy-docker.sh
 
+      - name: Verify Deployment
+        run: |
+          echo "Waiting for containers to start..."
+          sleep 10
+          docker compose ps
+          
       - name: Deployment Success
         if: success()
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d @- "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" <<EOF
-          {
-            "text": "✅ Deployment Completed Successfully\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}"
-          }
-          EOF
+          -d "{\"text\":\"✅ Deployment Completed Successfully\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nContainers: $(docker compose ps --format '{{.Service}}' | tr '\n' ', ')\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
       - name: Deployment Failed
         if: failure()
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d @- "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" <<EOF
-          {
-            "text": "❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nPlease check GitHub Actions logs"
-          }
-          EOF
+          -d "{\"text\":\"❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nPlease check GitHub Actions logs\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
