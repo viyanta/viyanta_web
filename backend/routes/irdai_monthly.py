@@ -1,9 +1,92 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from databases.database import get_db, DB_TYPE
+import os
+import re
+from datetime import datetime
+import calendar
+from openpyxl import load_workbook
+import tempfile
+from services.irdai_excel_importer import import_irdai_excel
 
 router = APIRouter()
+
+
+DB_CONFIG = {
+    "host": "localhost",
+    "user": "root",
+    "password": "",
+    "database": "viyanta_web",
+}
+# ======================================================
+# UPLOAD IRDAI MONTHLY EXCEL
+# ======================================================
+
+
+def extract_report_month_from_filename(filename: str) -> str:
+    """
+    Example:
+    FYP Aug 2023.xlsx → 2023-08-31
+    IRDAI December 2024.xlsx → 2024-12-31
+    """
+    match = re.search(
+        r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{4})',
+        filename,
+        re.IGNORECASE
+    )
+
+    if not match:
+        raise ValueError("Cannot extract report month from filename")
+
+    month_str, year = match.groups()
+    month = datetime.strptime(month_str[:3], "%b").month
+    year = int(year)
+
+    last_day = calendar.monthrange(year, month)[1]
+    return f"{year}-{month:02d}-{last_day:02d}"
+
+
+@router.post("/upload-monthly-excel")
+async def upload_irdai_monthly_excel(
+    file: UploadFile = File(...)
+):
+    if not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="Only .xlsx files allowed")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        # 1️⃣ AUTO-DETECT SHEET NAME
+        wb = load_workbook(tmp_path, read_only=True)
+        sheet_name = wb.sheetnames[0]
+        wb.close()
+
+        # 2️⃣ AUTO-DETECT REPORT MONTH
+        report_month = extract_report_month_from_filename(file.filename)
+
+        # 3️⃣ CALL EXISTING IMPORT LOGIC (UNCHANGED)
+        result = import_irdai_excel(
+            excel_path=tmp_path,
+            sheet_name=sheet_name,
+            report_month=report_month,
+            db_config=DB_CONFIG,
+        )
+
+        return {
+            **result,
+            "sheet_name": sheet_name,
+            "source_file": file.filename,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 # ======================================================
 # 1️⃣ PERIOD TYPES
@@ -667,6 +750,37 @@ def get_premium_market_share_by_insurer(
     db: Session = Depends(get_db)
 ):
     sql = text("""
+        /* =========================
+           TOTAL ROW (REAL TOTAL)
+        ========================= */
+        SELECT
+          insurer_name,
+          category AS premium_type,
+
+          SUM(fyp_market_share)   AS fyp_pct,
+          SUM(pol_market_share)   AS nop_pct,
+          SUM(lives_market_share) AS nol_pct,
+          SUM(sa_market_share)    AS sa_pct,
+
+          0 AS row_order
+
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name = :insurer_name
+          AND category NOT IN (
+            'Individual Single Premium',
+            'Individual Non-Single Premium',
+            'Group Single Premium',
+            'Group Non-Single Premium',
+            'Group Yearly Renewable Premium'
+          )
+        HAVING COUNT(*) > 0
+
+        UNION ALL
+
+        /* =========================
+           PREMIUM TYPE ROWS
+        ========================= */
         SELECT
           insurer_name,
           category AS premium_type,
@@ -690,7 +804,7 @@ def get_premium_market_share_by_insurer(
           )
 
         GROUP BY insurer_name, category
-        ORDER BY category
+        ORDER BY row_order, premium_type
     """)
 
     return db.execute(sql, {
