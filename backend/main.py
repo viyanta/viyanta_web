@@ -37,28 +37,21 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/api/docs",
-              openapi_url="/api/openapi.json",
-              redoc_url="/api/redoc")
+app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/docs",
+              openapi_url="/openapi.json",
+              redoc_url="/redoc")
 
 app.add_middleware(
     CORSMiddleware,
-# <<<<<<< backend_main
-#     allow_origins=allowed_origins if os.getenv(
-#         "ENVIRONMENT") == "production" else ["*"],
-# =======
     # Allow frontend origins
     allow_origins=["https://app.viyantainsights.com", "*"],
-# >>>>>>> main
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# <<<<<<< HEAD
 print("DEBUG S3_BUCKET_NAME:***************************",
       os.getenv("S3_BUCKET_NAME"))
-# =======
 
 # Create tables with error handling for concurrent DDL operations
 # This is needed when using multiple workers (e.g., hypercorn with --workers)
@@ -94,7 +87,6 @@ async def startup_event():
         print("⚠️ Database initialization skipped - init_db module not available")
     except Exception as e:
         print(f"⚠️ Startup event failed: {e}")
-# >>>>>>> 4b07d77ceef3c0610fa6fc17dd2608d16a72671c
 
 # Include routers
 app.include_router(download_router, prefix="/api/files", tags=["download"])
