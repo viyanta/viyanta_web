@@ -381,6 +381,16 @@ class ApiService {
     return response.json();
   }
 
+  async getPvtVsPublicTable(startDate, endDate, sector = 'BOTH', premiumType = 'ALL') {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/pvt-vs-public/table?start_date=${startDate}&end_date=${endDate}&sector=${encodeURIComponent(sector)}&premium_type=${encodeURIComponent(premiumType)}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Pvt vs Public table');
+    }
+
+    return response.json();
+  }
+
   // Updated extraction methods with user context
   async extractBulkPDFsWithUser(files, extractMode = 'both', userId = null) {
     const formData = new FormData();
@@ -1594,7 +1604,7 @@ class ApiService {
   };
 
   // 4️⃣ Get Premium Types
-  getPremiumTypes = async () => {
+  getIrdaiPremiumTypes = async () => {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/types`);
     return response.data;
   };
@@ -1858,6 +1868,14 @@ class ApiService {
     return response.data;
   }
 
+  async getCompanyPremiumTypeBreakup(insurerName, startDate, endDate) {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/company/premium-type?insurer_name=${encodeURIComponent(insurerName)}&start_date=${startDate}&end_date=${endDate}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch company premium type breakup');
+    }
+    return response.json();
+  }
+
   async getCompanyMetricWisePremium(insurerName, startDate, endDate) {
     const response = await axios.get(
       `${API_BASE_URL}/irdai-monthly/company/metric-wise-premium`,
@@ -1872,17 +1890,18 @@ class ApiService {
     return response.data;
   }
 
-  // 1️⃣6️⃣ Monthwise Company All Metrics
-  async getMonthwiseCompanyAllMetrics(insurerName, startDate, endDate) {
-    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/company-all-metrics`, {
+  // 1️⃣6️⃣ Monthwise All Companies All Metrics (Updated)
+  // Replaces getMonthwiseCompanyAllMetrics which used to take insurerName
+  getMonthwiseCompanyAllMetrics = async (insurerName, startDate, endDate) => {
+    // Calling updated backend endpoint which doesn't take insurer_name
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/all-companies-all-metrics`, {
       params: {
-        insurer_name: insurerName,
         start_date: startDate,
         end_date: endDate
       }
     });
     return response.data;
-  }
+  };
 
   async getIrdaiPeriodTypes() {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);

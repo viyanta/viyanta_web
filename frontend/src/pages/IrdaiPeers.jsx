@@ -88,7 +88,7 @@ const IrdaiPeers = () => {
                     {/* Right Side of Filters: Period Controls */}
                     <div className="filters-period-controls">
                         <div className="control-group">
-                            <label className="control-label">Select Period</label>
+                            <label className="control-label">Select Period Type</label>
                             <select
                                 className="peers-dropdown small"
                                 value={selectedPeriod}

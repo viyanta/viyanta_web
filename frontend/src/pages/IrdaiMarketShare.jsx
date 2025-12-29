@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TabLayout from './IrdaiSharedLayout';
 import api from '../services/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
@@ -11,8 +11,37 @@ const IrdaiMarketShare = () => {
     const [periodType, setPeriodType] = useState('Monthly');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
     const [insurerName, setInsurerName] = useState('');
+
+
     const [premiumTypeSelection, setPremiumTypeSelection] = useState('Individual Single Premium');
     const [expandedInsurers, setExpandedInsurers] = useState({});
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+
+    // Scroll Handler
+    const handleCardClick = (targetId) => {
+        const element = document.getElementById(targetId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
+    // Handle Sort
+    const handleSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = (name) => {
+        if (sortConfig.key === name) {
+            return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+        }
+        return ' ⇅';
+    };
+
+
 
     // Toggle Insurer Expansion
     const toggleInsurer = (idx) => {
@@ -103,7 +132,7 @@ const IrdaiMarketShare = () => {
     useEffect(() => {
         const fetchPremiumTypes = async () => {
             try {
-                const types = await api.getPremiumTypes();
+                const types = await api.getIrdaiPremiumTypes();
                 // Ensure unique values and proper format
                 const uniqueTypes = [...new Set(types.map(t => t.value || t.label || t))];
                 setPremiumTypes(uniqueTypes);
@@ -122,12 +151,47 @@ const IrdaiMarketShare = () => {
     // Data State
     const [marketShareData, setMarketShareData] = useState([]);
     const [kpiData, setKpiData] = useState([
-        { title: 'First Year Premium', value: '0.00', unit: '% Share', color: 'blue' },
-        { title: 'Sum Assured', value: '0.00', unit: '% Share', color: 'gray' },
-        { title: 'Number of Lives', value: '0.00', unit: '% Share', color: 'green' },
-        { title: 'No of Policies', value: '0.00', unit: '% Share', color: 'purple' }
+        { title: 'First Year Premium', value: '0.00', unit: '% Share', color: 'blue', targetId: 'chart-fyp' },
+        { title: 'Sum Assured', value: '0.00', unit: '% Share', color: 'green', targetId: 'chart-sa' },
+        { title: 'Number of Lives', value: '0.00', unit: '% Share', color: 'purple', targetId: 'chart-nol' },
+        { title: 'No of Policies', value: '0.00', unit: '% Share', color: 'orange', targetId: 'chart-nop' }
     ]);
     const [loadingData, setLoadingData] = useState(false);
+
+    // Sort Data
+    const sortedMarketShareData = React.useMemo(() => {
+        return marketShareData.map(row => {
+            if (!row.subRows) return row;
+
+            let sortedSubRows = [...row.subRows];
+            if (sortConfig.key !== null) {
+                sortedSubRows.sort((a, b) => {
+                    let aValue, bValue;
+
+                    if (sortConfig.key === 'type') {
+                        aValue = a.type || '';
+                        bValue = b.type || '';
+                        return sortConfig.direction === 'ascending'
+                            ? aValue.localeCompare(bValue)
+                            : bValue.localeCompare(aValue);
+                    } else {
+                        // Numeric columns (stored as strings in values object)
+                        aValue = parseFloat(a.values[sortConfig.key] || '0');
+                        bValue = parseFloat(b.values[sortConfig.key] || '0');
+
+                        if (aValue < bValue) {
+                            return sortConfig.direction === 'ascending' ? -1 : 1;
+                        }
+                        if (aValue > bValue) {
+                            return sortConfig.direction === 'ascending' ? 1 : -1;
+                        }
+                        return 0;
+                    }
+                });
+            }
+            return { ...row, subRows: sortedSubRows };
+        });
+    }, [marketShareData, sortConfig]);
 
     // Fetch Market Share Data
     useEffect(() => {
@@ -176,10 +240,10 @@ const IrdaiMarketShare = () => {
 
                 // Update KPIs
                 setKpiData([
-                    { title: 'First Year Premium', value: totalFyp.toFixed(2) + '%', unit: '% Share', color: 'blue' },
-                    { title: 'Sum Assured', value: totalSa.toFixed(2) + '%', unit: '% Share', color: 'gray' },
-                    { title: 'Number of Lives', value: totalNol.toFixed(2) + '%', unit: '% Share', color: 'green' },
-                    { title: 'No of Policies', value: totalNop.toFixed(2) + '%', unit: '% Share', color: 'purple' }
+                    { title: 'First Year Premium', value: totalFyp.toFixed(2) + '%', unit: '% Share', color: 'blue', targetId: 'chart-fyp' },
+                    { title: 'Sum Assured', value: totalSa.toFixed(2) + '%', unit: '% Share', color: 'green', targetId: 'chart-sa' },
+                    { title: 'Number of Lives', value: totalNol.toFixed(2) + '%', unit: '% Share', color: 'purple', targetId: 'chart-nol' },
+                    { title: 'No of Policies', value: totalNop.toFixed(2) + '%', unit: '% Share', color: 'orange', targetId: 'chart-nop' }
                 ]);
 
             } catch (e) {
@@ -202,7 +266,7 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Insurer Name</label>
                         <select
                             className="custom-select"
-                            style={{ minWidth: '180px' }}
+                            style={{ width: '140px', minWidth: '140px' }}
                             value={insurerName}
                             onChange={(e) => setInsurerName(e.target.value)}
                         >
@@ -215,7 +279,7 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Premium Type</label>
                         <select
                             className="custom-select"
-                            style={{ minWidth: '180px' }}
+                            style={{ width: '140px', minWidth: '140px' }}
                             value={premiumTypeSelection}
                             onChange={(e) => setPremiumTypeSelection(e.target.value)}
                         >
@@ -228,6 +292,7 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
+                            style={{ width: '100px', minWidth: '100px' }}
                             value={periodType}
                             onChange={(e) => setPeriodType(e.target.value)}
                         >
@@ -240,6 +305,7 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Period</label>
                         <select
                             className="custom-select"
+                            style={{ width: '100px', minWidth: '100px' }}
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
                             disabled={loadingPeriods}
@@ -256,20 +322,28 @@ const IrdaiMarketShare = () => {
                 <div className="visuals-view">
                     <div className="kpi-grid">
                         {kpiData.map((kpi, idx) => (
-                            <div key={idx} className={`kpi-card ${kpi.color}`}>
+                            <div
+                                key={idx}
+                                className={`kpi-card ${kpi.color}`}
+                                onClick={() => handleCardClick(kpi.targetId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <span className="kpi-unit">{kpi.unit}</span>
-                                <h3 className="kpi-title">{kpi.title}</h3>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
+                                <h3 className={`kpi-title ${kpi.color}`}>{kpi.title}</h3>
+                                <div className={`kpi-value ${kpi.color}`}>{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod}</div>
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
                         {/* FYP Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium Breakup (%)</h4>
+                        <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium (%)</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                <BarChart
+                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis
                                         dataKey="type"
@@ -282,16 +356,21 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="values.premium" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         {/* SA Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured Breakup (%)</h4>
+                        <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured (%)</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                <BarChart
+                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis
                                         dataKey="type"
@@ -304,16 +383,21 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="values.sum" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         {/* NOP Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Policies Breakup (%)</h4>
+                        <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Policies (%)</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                <BarChart
+                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis
                                         dataKey="type"
@@ -326,16 +410,21 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="values.policies" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         {/* NOL Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Lives Breakup (%)</h4>
+                        <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Lives (%)</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}>
+                                <BarChart
+                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis
                                         dataKey="type"
@@ -348,7 +437,9 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="values.lives" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -364,15 +455,39 @@ const IrdaiMarketShare = () => {
                                     <th colSpan="4" style={{ textAlign: 'center', fontWeight: 'bold' }}>Market Share in First Year Premium <br /> (Based on Premium Amount)</th>
                                 </tr>
                                 <tr>
-                                    <th style={{ minWidth: '200px', fontWeight: 'bold' }}>Insurer Name</th>
-                                    <th style={{ fontWeight: 'bold' }}>First Year Premium</th>
-                                    <th style={{ fontWeight: 'bold' }}>No. of Policies / Schemes</th>
-                                    <th style={{ fontWeight: 'bold' }}>No. of lives covered under Group Schemes</th>
-                                    <th style={{ fontWeight: 'bold' }}>Sum Assured</th>
+                                    <th
+                                        style={{ minWidth: '200px', fontWeight: 'bold' }}
+                                    >
+                                        Insurer Name
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('premium')}
+                                    >
+                                        First Year Premium{getSortIndicator('premium')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('policies')}
+                                    >
+                                        No. of Policies / Schemes{getSortIndicator('policies')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('lives')}
+                                    >
+                                        No. of lives covered under Group Schemes{getSortIndicator('lives')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('sum')}
+                                    >
+                                        Sum Assured{getSortIndicator('sum')}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {marketShareData.map((row, idx) => (
+                                {sortedMarketShareData.map((row, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr style={{ backgroundColor: '#fff', fontWeight: 'bold' }}>
                                             <td style={{ display: 'flex', alignItems: 'center', borderRight: 'none' }}>

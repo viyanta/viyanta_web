@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
 import api from '../services/api';
 
@@ -15,14 +15,21 @@ const IrdaiGrowth = () => {
     const [growthMetricTypes, setGrowthMetricTypes] = useState([]);
     const [expandedInsurers, setExpandedInsurers] = useState({});
     const [insurerNames, setInsurerNames] = useState([]);
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
 
     const [growthData, setGrowthData] = useState([]);
     const [kpiData, setKpiData] = useState([
-        { title: 'First Year Premium', value: '-', unit: 'In INR Crs.', color: 'blue' },
-        { title: 'Sum Assured', value: '-', unit: 'In INR Crs.', color: 'gray' },
-        { title: 'Number of Lives', value: '-', unit: 'In Nos.', color: 'green' },
-        { title: 'No of Policies', value: '-', unit: 'In Nos.', color: 'purple' }
+        { title: 'Growth (For)', value: '-', unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
+        { title: 'Growth (UpTo)', value: '-', unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
     ]);
+
+    // Scroll Handler
+    const handleCardClick = (targetId) => {
+        const element = document.getElementById(targetId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
 
     // Toggle Insurer Expansion
     const toggleInsurer = (idx) => {
@@ -162,10 +169,8 @@ const IrdaiGrowth = () => {
 
                 // Update KPI Cards using the main row data
                 setKpiData([
-                    { title: `${growthMetricType} (For)`, value: (mainRow.current_value || 0).toFixed(2), unit: 'In Lacs', color: 'blue' },
-                    { title: `${growthMetricType} (UpTo)`, value: (mainRow.ytd_value || 0).toFixed(2), unit: 'In Lacs', color: 'gray' },
-                    { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green' },
-                    { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple' }
+                    { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
+                    { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
                 ]);
 
             } catch (error) {
@@ -176,6 +181,56 @@ const IrdaiGrowth = () => {
         fetchData();
     }, [insurerName, growthMetricType, selectedPeriod, periodOptions]);
 
+    // Handle Sort
+    const handleSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = (name) => {
+        if (sortConfig.key === name) {
+            return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+        }
+        return ' ⇅';
+    };
+
+    // Sort Data
+    const sortedGrowthData = React.useMemo(() => {
+        return growthData.map(row => {
+            if (!row.subRows) return row;
+
+            let sortedSubRows = [...row.subRows];
+            if (sortConfig.key !== null) {
+                sortedSubRows.sort((a, b) => {
+                    let aValue, bValue;
+
+                    if (sortConfig.key === 'type') {
+                        aValue = a.type || '';
+                        bValue = b.type || '';
+                        return sortConfig.direction === 'ascending'
+                            ? aValue.localeCompare(bValue)
+                            : bValue.localeCompare(aValue);
+                    } else {
+                        // Numeric columns
+                        aValue = parseFloat(a.values[sortConfig.key] || '0');
+                        bValue = parseFloat(b.values[sortConfig.key] || '0');
+
+                        if (aValue < bValue) {
+                            return sortConfig.direction === 'ascending' ? -1 : 1;
+                        }
+                        if (aValue > bValue) {
+                            return sortConfig.direction === 'ascending' ? 1 : -1;
+                        }
+                        return 0;
+                    }
+                });
+            }
+            return { ...row, subRows: sortedSubRows };
+        });
+    }, [growthData, sortConfig]);
 
     // Mock Options
     // const periodTypes = ['Monthly', 'Quarterly', 'Halfyearly', 'Annual']; // Removed mock
@@ -279,7 +334,12 @@ const IrdaiGrowth = () => {
                 <div className="visuals-view">
                     <div className="kpi-grid">
                         {kpiData.map((kpi, idx) => (
-                            <div key={idx} className={`kpi-card ${kpi.color}`}>
+                            <div
+                                key={idx}
+                                className={`kpi-card ${kpi.color}`}
+                                onClick={() => handleCardClick(kpi.targetId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
                                 <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
@@ -288,56 +348,66 @@ const IrdaiGrowth = () => {
                         ))}
                     </div>
                     {growthData.length > 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
-                            <div className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                            <div id="chart-growth-for" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>For the Month Comparison</h4>
                                 <div style={{ height: '300px' }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={growthData[0].subRows.map(s => ({
                                                 name: s.type.replace('Premium', '').trim(),
-                                                previous: parseFloat(s.values.for23),
-                                                current: parseFloat(s.values.for24)
+                                                growth: parseFloat(s.values.growthFor || 0)
                                             }))}
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                            <YAxis />
+                                            <XAxis
+                                                dataKey="name"
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                            />
+                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}`, '']}
+                                                formatter={(value) => [`${value}%`, 'Growth']}
                                             />
                                             <Legend />
-                                            <Bar dataKey="previous" name="Previous Year" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                                            <Bar dataKey="current" name="Current Year" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
 
-                            <div className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <div id="chart-growth-upto" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>Up to the Month Comparison</h4>
                                 <div style={{ height: '300px' }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
                                             data={growthData[0].subRows.map(s => ({
                                                 name: s.type.replace('Premium', '').trim(),
-                                                previous: parseFloat(s.values.upTo23),
-                                                current: parseFloat(s.values.upTo24)
+                                                growth: parseFloat(s.values.growthUpTo || 0)
                                             }))}
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                            <YAxis />
+                                            <XAxis
+                                                dataKey="name"
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                            />
+                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}`, '']}
+                                                formatter={(value) => [`${value}%`, 'Growth']}
                                             />
                                             <Legend />
-                                            <Bar dataKey="previous" name="Previous Year" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                                            <Bar dataKey="current" name="Current Year" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -356,18 +426,57 @@ const IrdaiGrowth = () => {
                                     <th colSpan="4" style={{ textAlign: 'center', fontWeight: 'bold' }}>Up to the Month</th>
                                 </tr>
                                 <tr>
-                                    <th style={{ minWidth: '200px', fontWeight: 'bold', textAlign: 'left', paddingLeft: '10px' }}>Premium Type / Insurer</th>
-                                    <th style={{ fontWeight: 'bold' }}>Previous Year</th>
-                                    <th style={{ fontWeight: 'bold' }}>Current Year ({selectedPeriod})</th>
-                                    <th style={{ fontWeight: 'bold' }}>Growth (%)</th>
-                                    <th style={{ fontWeight: 'bold' }}>Previous YTD</th>
-                                    <th style={{ fontWeight: 'bold' }}>Current YTD ({selectedPeriod})</th>
-                                    <th style={{ fontWeight: 'bold' }}>Growth (%)</th>
-                                    <th style={{ fontWeight: 'bold' }}>Market Share (%)</th>
+                                    <th
+                                        style={{ minWidth: '200px', fontWeight: 'bold', textAlign: 'left', paddingLeft: '10px' }}
+                                    >
+                                        Premium Type / Insurer
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('for23')}
+                                    >
+                                        Previous Year{getSortIndicator('for23')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('for24')}
+                                    >
+                                        Current Year ({selectedPeriod}){getSortIndicator('for24')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('growthFor')}
+                                    >
+                                        Growth (%){getSortIndicator('growthFor')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('upTo23')}
+                                    >
+                                        Previous YTD{getSortIndicator('upTo23')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('upTo24')}
+                                    >
+                                        Current YTD ({selectedPeriod}){getSortIndicator('upTo24')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('growthUpTo')}
+                                    >
+                                        Growth (%){getSortIndicator('growthUpTo')}
+                                    </th>
+                                    <th
+                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        onClick={() => handleSort('marketShare')}
+                                    >
+                                        Market Share (%){getSortIndicator('marketShare')}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {growthData.map((row, idx) => (
+                                {sortedGrowthData.map((row, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr style={{ backgroundColor: '#fff', fontWeight: 'bold' }}>
                                             <td style={{ display: 'flex', alignItems: 'center', borderRight: 'none' }}>

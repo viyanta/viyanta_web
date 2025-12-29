@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TabLayout from './IrdaiSharedLayout';
-import { Treemap, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import api from '../services/api';
 
 const COLORS = ['#8889DD', '#9597E4', '#8DC77B', '#A5D297', '#E2CF45', '#F8C12D'];
@@ -88,6 +88,14 @@ const CustomizedContent = (props) => {
 };
 
 const IrdaiPremiumWise = () => {
+    // Scroll Handler
+    const handleCardClick = (targetId) => {
+        const element = document.getElementById(targetId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
     // Local State
     const [viewMode, setViewMode] = useState('visuals');
     const [periodType, setPeriodType] = useState('Monthly');
@@ -97,13 +105,65 @@ const IrdaiPremiumWise = () => {
     const [periodTypes, setPeriodTypes] = useState([]);
     const [periodOptions, setPeriodOptions] = useState([]);
     const [loadingPeriods, setLoadingPeriods] = useState(false);
+
     const [companyData, setCompanyData] = useState([]);
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+
+    // Handle Sort
+    const handleSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = (name) => {
+        if (sortConfig.key === name) {
+            return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+        }
+        return ' ⇅';
+    };
+
+    // Sort Data
+    const sortedData = React.useMemo(() => {
+        let sortableItems = [...companyData];
+        if (sortConfig.key !== null) {
+            sortableItems.sort((a, b) => {
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+
+                // Handle string comparison for names
+                if (typeof aValue === 'string') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                    if (aValue < bValue) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (aValue > bValue) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                }
+
+                // Handle number comparison
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [companyData, sortConfig]);
 
     // Fetch Premium Types
     useEffect(() => {
         const fetchPremiumTypes = async () => {
             try {
-                const types = await api.getPremiumTypes();
+                const types = await api.getIrdaiPremiumTypes();
                 // Ensure unique values and proper format
                 const uniqueTypes = [...new Set(types.map(t => t.value || t.label || t))];
                 setPremiumTypes(uniqueTypes);
@@ -191,10 +251,10 @@ const IrdaiPremiumWise = () => {
                 );
 
                 setKpiData([
-                    { title: 'First Year Premium', value: data.FYP?.toLocaleString('en-IN') || '0', unit: 'In INR Crs.', color: 'blue' },
-                    { title: 'Sum Assured', value: data.SA?.toLocaleString('en-IN') || '0', unit: 'In INR Crs.', color: 'gray' },
-                    { title: 'Number of Lives', value: data.NOL?.toLocaleString('en-IN') || '0', unit: 'In Nos.', color: 'green' },
-                    { title: 'No of Policies', value: data.NOP?.toLocaleString('en-IN') || '0', unit: 'In Nos.', color: 'purple' }
+                    { title: 'First Year Premium', value: data.FYP?.toLocaleString('en-IN') || '0', unit: 'In INR Crs.', color: 'blue', targetId: 'chart-fyp' },
+                    { title: 'Sum Assured', value: data.SA?.toLocaleString('en-IN') || '0', unit: 'In INR Crs.', color: 'green', targetId: 'chart-sa' },
+                    { title: 'Number of Lives', value: data.NOL?.toLocaleString('en-IN') || '0', unit: 'In Nos.', color: 'purple', targetId: 'chart-nol' },
+                    { title: 'No of Policies', value: data.NOP?.toLocaleString('en-IN') || '0', unit: 'In Nos.', color: 'orange', targetId: 'chart-nop' }
                 ]);
             } catch (error) {
                 console.error("Failed to fetch KPI data", error);
@@ -228,10 +288,10 @@ const IrdaiPremiumWise = () => {
 
     // Mock KPI Data
     const [kpiData, setKpiData] = useState([
-        { title: 'First Year Premium', value: '0', unit: 'In INR Crs.', color: 'blue' },
-        { title: 'Sum Assured', value: '0', unit: 'In INR Crs.', color: 'gray' },
-        { title: 'Number of Lives', value: '0', unit: 'In Nos.', color: 'green' },
-        { title: 'No of Policies', value: '0', unit: 'In Nos.', color: 'purple' }
+        { title: 'First Year Premium', value: '0', unit: 'In INR Crs.', color: 'blue', targetId: 'chart-fyp' },
+        { title: 'Sum Assured', value: '0', unit: 'In INR Crs.', color: 'green', targetId: 'chart-sa' },
+        { title: 'Number of Lives', value: '0', unit: 'In Nos.', color: 'purple', targetId: 'chart-nol' },
+        { title: 'No of Policies', value: '0', unit: 'In Nos.', color: 'orange', targetId: 'chart-nop' }
     ]);
 
     // Mock Table Data for Premium Wise
@@ -294,42 +354,63 @@ const IrdaiPremiumWise = () => {
                 <div className="visuals-view">
                     <div className="kpi-grid">
                         {kpiData.map((kpi, idx) => (
-                            <div key={idx} className={`kpi-card ${kpi.color}`}>
+                            <div
+                                key={idx}
+                                className={`kpi-card ${kpi.color}`}
+                                onClick={() => handleCardClick(kpi.targetId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <span className="kpi-unit">{kpi.unit}</span>
-                                <h3 className="kpi-title">{kpi.title}</h3>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
+                                <h3 className={`kpi-title ${kpi.color}`}>{kpi.title}</h3>
+                                <div className={`kpi-value ${kpi.color}`}>{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod}</div>
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row">
-                        <div className="chart-placeholder" style={{ flex: '2', minHeight: '400px', backgroundColor: '#fff', borderRadius: '8px', padding: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '10px', color: '#555' }}>Company Premium Distribution</h4>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <Treemap
-                                    width={400}
-                                    height={200}
-                                    data={companyData.slice(0, 5)}
-                                    dataKey="fyp"
-                                    nameKey="insurer_name"
-                                    aspectRatio={4 / 3}
-                                    stroke="#fff"
-                                    fill="#8884d8"
-                                    content={<CustomizedContent colors={COLORS} />}
-                                >
-                                    <Tooltip
-                                        formatter={(value, name, props) => {
-                                            const formattedVal = value.toLocaleString('en-IN');
-                                            // Ensure we check payload for the name source
-                                            const displayName = props.payload.insurer_name || props.payload.name || name;
-                                            return [`₹${formattedVal} Crs`, displayName];
-                                        }}
-                                        itemStyle={{ color: '#333' }}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                </Treemap>
-                            </ResponsiveContainer>
-                        </div>
+                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                        {[
+                            { key: 'fyp', title: 'First Year Premium Distribution', unit: 'Crs', color: '#0088FE', id: 'chart-fyp' },
+                            { key: 'sa', title: 'Sum Assured Distribution', unit: 'Crs', color: '#00C49F', id: 'chart-sa' },
+                            { key: 'nol', title: 'Number of Lives Distribution', unit: 'Nos', color: '#8884d8', id: 'chart-nol' },
+                            { key: 'nop', title: 'No of Policies Distribution', unit: 'Nos', color: '#FF8042', id: 'chart-nop' }
+                        ].map((chart, idx) => (
+                            <div key={idx} id={chart.id} className="chart-card" style={{ background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e0e0e0' }}>
+                                <h4 style={{ marginBottom: '20px', color: '#333', fontSize: '16px', fontWeight: '600' }}>{chart.title}</h4>
+                                <div style={{ overflowY: 'auto', width: '100%', height: '500px', paddingRight: '10px' }}>
+                                    <div style={{ height: `${Math.max(500, companyData.length * 50)}px`, width: '100%' }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={companyData}
+                                                layout="vertical"
+                                                margin={{ top: 10, right: 50, left: 100, bottom: 5 }}
+                                                barSize={30}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#eee" />
+                                                <XAxis type="number" tick={{ fontSize: 12, fill: '#666' }} />
+                                                <YAxis
+                                                    dataKey="insurer_name"
+                                                    type="category"
+                                                    width={150}
+                                                    tickFormatter={shortenCompanyName}
+                                                    tick={{ fontSize: 12, fill: '#666' }}
+                                                    interval={0}
+                                                />
+                                                <Tooltip
+                                                    cursor={{ fill: '#f5f5f5' }}
+                                                    formatter={(value) => [`${value.toLocaleString('en-IN')} ${chart.unit}`, chart.title.replace(' Distribution', '')]}
+                                                    labelStyle={{ color: 'black', fontWeight: 'bold' }}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                />
+                                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                                <Bar dataKey={chart.key} fill={chart.color} name={chart.title.replace(' Distribution', '')} radius={[0, 4, 4, 0]}>
+                                                    <LabelList dataKey={chart.key} position="right" style={{ fontSize: '10px', fill: '#666' }} />
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             ) : (
@@ -338,15 +419,25 @@ const IrdaiPremiumWise = () => {
                         <table className="irdai-data-table">
                             <thead>
                                 <tr>
-                                    <th style={{ borderBottom: 'none', color: '#333' }}>Insurer Name</th>
-                                    <th>FYP (Crs)</th>
-                                    <th>SA (Crs)</th>
-                                    <th>NOP (Nos)</th>
-                                    <th>NOL (Nos)</th>
+                                    <th style={{ borderBottom: 'none', color: '#000' }}>
+                                        Insurer Name
+                                    </th>
+                                    <th onClick={() => handleSort('fyp')} style={{ cursor: 'pointer', color: '#000', textAlign: 'right', paddingRight: '20px' }}>
+                                        First Year Premium (Crs){getSortIndicator('fyp')}
+                                    </th>
+                                    <th onClick={() => handleSort('sa')} style={{ cursor: 'pointer', color: '#000', textAlign: 'right', paddingRight: '20px' }}>
+                                        Sum Assured (Crs){getSortIndicator('sa')}
+                                    </th>
+                                    <th onClick={() => handleSort('nop')} style={{ cursor: 'pointer', color: '#000', textAlign: 'right', paddingRight: '20px' }}>
+                                        No of Policies (Nos){getSortIndicator('nop')}
+                                    </th>
+                                    <th onClick={() => handleSort('nol')} style={{ cursor: 'pointer', color: '#000', textAlign: 'right', paddingRight: '20px' }}>
+                                        Number of Lives (Nos){getSortIndicator('nol')}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {companyData.map((row, idx) => (
+                                {sortedData.map((row, idx) => (
                                     <tr key={idx}>
                                         <td>{row.insurer_name}</td>
                                         <td style={{ textAlign: 'right' }}>{row.fyp ? row.fyp.toLocaleString('en-IN') : '0'}</td>
@@ -355,7 +446,7 @@ const IrdaiPremiumWise = () => {
                                         <td style={{ textAlign: 'right' }}>{row.nol ? row.nol.toLocaleString('en-IN') : '0'}</td>
                                     </tr>
                                 ))}
-                                {companyData.length === 0 && (
+                                {sortedData.length === 0 && (
                                     <tr>
                                         <td colSpan="5" style={{ textAlign: 'center' }}>No data available</td>
                                     </tr>

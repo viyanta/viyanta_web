@@ -260,6 +260,11 @@
     border-color: #36659b;
 }
 
+.kpi-card.blue .kpi-title,
+.kpi-card.blue .kpi-value {
+    color: #36659b;
+}
+
 .kpi-card.gray {
     border-color: #666;
 }
@@ -268,8 +273,27 @@
     border-color: #28a745;
 }
 
+.kpi-card.green .kpi-title,
+.kpi-card.green .kpi-value {
+    color: #28a745;
+}
+
 .kpi-card.purple {
     border-color: #6f42c1;
+}
+
+.kpi-card.purple .kpi-title,
+.kpi-card.purple .kpi-value {
+    color: #6f42c1;
+}
+
+.kpi-card.orange {
+    border-color: #FF8042;
+}
+
+.kpi-card.orange .kpi-title,
+.kpi-card.orange .kpi-value {
+    color: #FF8042;
 }
 
 .kpi-unit {
@@ -333,13 +357,23 @@
 .irdai-data-table td {
     padding: 10px 12px;
     border: 1px solid #e0e0e0;
+}
+
+.irdai-data-table td {
     text-align: right;
 }
 
-.irdai-data-table th:first-child,
+.irdai-data-table th {
+    text-align: center;
+}
+
 .irdai-data-table td:first-child {
     text-align: left;
     font-weight: 600;
+}
+
+.irdai-data-table th:first-child {
+    text-align: center;
 }
 
 .irdai-data-table th:nth-child(2),
@@ -355,9 +389,9 @@
 .irdai-data-table thead tr:first-child th {
     background-color: rgb(54, 101, 155);
     /* User specified blue */
-    color: white;
+    color: #000;
     font-weight: 700;
-    text-align: left;
+    text-align: center;
 }
 
 .irdai-data-table thead tr:nth-child(2) th {
