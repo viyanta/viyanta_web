@@ -176,6 +176,8 @@ class EconomyUpdate(BaseModel):
 router = APIRouter()
 
 # Health check endpoint for economy routes
+
+
 @router.get("/health")
 def economy_health_check():
     """Health check endpoint to verify economy routes are accessible"""
@@ -253,7 +255,6 @@ def get_descriptions(data_type: str, premium: str, category: str, db=Depends(get
 def get_unique_values(data_type: str, field: str, db=Depends(get_db)):
     """Get unique values for a specific field, ordered appropriately"""
     DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-    
     # Map field names to database columns
     field_map = {
         'ProcessedPeriodType': 'ProcessedPeriodType',
@@ -263,12 +264,12 @@ def get_unique_values(data_type: str, field: str, db=Depends(get_db)):
         'ReportedUnit': 'ReportedUnit',
         'ReportedValue': 'ReportedValue'
     }
-    
+
     if field not in field_map:
         return []
-    
+
     column = field_map[field]
-    
+
     # Simple query - we'll do sorting in Python for better compatibility
     query = text(f"""
         SELECT DISTINCT {column}
@@ -278,11 +279,11 @@ def get_unique_values(data_type: str, field: str, db=Depends(get_db)):
         AND {column} IS NOT NULL
         AND IsActive = 1
     """)
-    
+
     try:
         result = db.execute(query, {"data_type": f"%{data_type}%"}).fetchall()
         values = [str(row[0]) for row in result if row[0] is not None]
-        
+
         # Sort values appropriately
         if field in ['ProcessedFYYear', 'ReportedValue']:
             # For numeric fields, sort descending (newest/highest first)
@@ -319,7 +320,6 @@ def get_unique_values(data_type: str, field: str, db=Depends(get_db)):
         else:
             # For text fields, sort ascending (A-Z)
             values.sort()
-        
         return values
     except Exception as e:
         # Fallback to simple query if complex ordering fails
@@ -405,15 +405,16 @@ async def delete_economy_row(id: int, db=Depends(get_db)):
 class DashboardDataRequest(BaseModel):
     descriptions: List[str]
 
+
 @router.post("/dashboard-data")
 def get_dashboard_data(request: DashboardDataRequest, db=Depends(get_db)):
     """Get all data for selected descriptions, filtered by selected row IDs"""
     descriptions = request.descriptions
     if not descriptions or len(descriptions) == 0:
         return []
-    
+
     DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-    
+
     # Get selected row IDs for each description
     selected_row_ids_map = {}
     for desc in descriptions:
@@ -424,27 +425,31 @@ def get_dashboard_data(request: DashboardDataRequest, db=Depends(get_db)):
                     SELECT row_ids FROM dashboard_selected_row_ids 
                     WHERE data_type = :data_type AND description = :description
                 """)
-                result = db.execute(query, {"data_type": data_type, "description": desc})
+                result = db.execute(
+                    query, {"data_type": data_type, "description": desc})
                 row = result.fetchone()
                 if row:
                     if DB_TYPE == "mysql":
-                        row_ids = row[0] if isinstance(row[0], list) else json.loads(row[0])
+                        row_ids = row[0] if isinstance(
+                            row[0], list) else json.loads(row[0])
                     else:
                         row_ids = json.loads(row[0])
                     if desc not in selected_row_ids_map:
                         selected_row_ids_map[desc] = []
                     # Ensure row IDs are integers
-                    row_ids_int = [int(rid) for rid in row_ids if rid is not None]
+                    row_ids_int = [int(rid)
+                                   for rid in row_ids if rid is not None]
                     selected_row_ids_map[desc].extend(row_ids_int)
-                    print(f"✅ Loaded {len(row_ids_int)} selected row IDs for '{desc}' ({data_type}): {row_ids_int}")
+                    print(
+                        f"✅ Loaded {len(row_ids_int)} selected row IDs for '{desc}' ({data_type}): {row_ids_int}")
         except Exception as e:
             print(f"Error fetching selected row IDs for {desc}: {e}")
             # If no selected row IDs found, we'll show all data for that description
-    
+
     # Create placeholders for IN clause
     placeholders = ','.join([f':desc{i}' for i in range(len(descriptions))])
     params = {f'desc{i}': desc for i, desc in enumerate(descriptions)}
-    
+
     query = text(f"""
         SELECT *
         FROM economy_master
@@ -452,32 +457,33 @@ def get_dashboard_data(request: DashboardDataRequest, db=Depends(get_db)):
         AND IsActive = 1
         ORDER BY DataType, PremiumTypeLongName, CategoryLongName, ProcessedFYYear;
     """)
-    
+
     result = db.execute(query, params)
     columns = result.keys()
     all_data = [dict(zip(columns, row)) for row in result.fetchall()]
-    
     # Filter by selected row IDs - ONLY show data if row IDs are selected
     # If a description is selected but has no selected row IDs, don't show any data for it
     filtered_data = []
     for item in all_data:
         desc = item.get('Description', '')
         item_id = item.get('id')
-        
         # Only include data if this description has selected row IDs AND this row ID is in the selection
         if desc in selected_row_ids_map and selected_row_ids_map[desc]:
             # Convert both to int for comparison (row IDs might be stored as strings in JSON)
             item_id_int = int(item_id) if item_id is not None else None
-            selected_ids = [int(rid) for rid in selected_row_ids_map[desc] if rid is not None]
+            selected_ids = [
+                int(rid) for rid in selected_row_ids_map[desc] if rid is not None]
             if item_id_int is not None and item_id_int in selected_ids:
                 filtered_data.append(item)
         # If description has no selected row IDs, don't include any data (don't show all data)
-    
-    print(f"📊 Dashboard filtering: {len(all_data)} total rows, {len(filtered_data)} after row ID filtering")
+
+    print(
+        f"📊 Dashboard filtering: {len(all_data)} total rows, {len(filtered_data)} after row ID filtering")
     print(f"📋 Selected row IDs map: {selected_row_ids_map}")
     print(f"📝 Descriptions requested: {descriptions}")
-    print(f"✅ Returning {len(filtered_data)} rows (only rows with selected IDs)")
-    
+    print(
+        f"✅ Returning {len(filtered_data)} rows (only rows with selected IDs)")
+
     return filtered_data
 
 
@@ -488,7 +494,7 @@ def get_selected_descriptions(db=Depends(get_db)):
     try:
         # Check database type
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
+
         # First, ensure the table exists
         if DB_TYPE == "mysql":
             create_table_query = text("""
@@ -508,12 +514,13 @@ def get_selected_descriptions(db=Depends(get_db)):
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Now fetch descriptions
-        query = text("SELECT description FROM dashboard_selected_descriptions ORDER BY id")
+        query = text(
+            "SELECT description FROM dashboard_selected_descriptions ORDER BY id")
         result = db.execute(query)
         descriptions = [row[0] for row in result.fetchall()]
         return {"descriptions": descriptions}
@@ -525,21 +532,24 @@ def get_selected_descriptions(db=Depends(get_db)):
         return {"descriptions": []}
 
 # 6️⃣ Update selected descriptions (save globally in database)
+
+
 class UpdateSelectedDescriptionsRequest(BaseModel):
     descriptions: List[str]
     removed_description: Optional[str] = None
+
 
 @router.post("/update-selected-descriptions")
 def update_selected_descriptions(request: UpdateSelectedDescriptionsRequest, db=Depends(get_db)):
     """Update selected descriptions globally - saves to database for all users"""
     descriptions = request.descriptions
     removed_description = request.removed_description
-    
+
     try:
         # First, ensure the table exists (create if not exists)
         # Check database type and use appropriate syntax
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
+
         if DB_TYPE == "mysql":
             create_table_query = text("""
                 CREATE TABLE IF NOT EXISTS dashboard_selected_descriptions (
@@ -558,15 +568,16 @@ def update_selected_descriptions(request: UpdateSelectedDescriptionsRequest, db=
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Get current descriptions from database
-        get_current_query = text("SELECT description FROM dashboard_selected_descriptions")
+        get_current_query = text(
+            "SELECT description FROM dashboard_selected_descriptions")
         current_result = db.execute(get_current_query)
         current_descriptions = [row[0] for row in current_result.fetchall()]
-        
+
         # Add new descriptions (check if exists first to avoid errors)
         for desc in descriptions:
             if desc and desc not in current_descriptions:
@@ -582,25 +593,28 @@ def update_selected_descriptions(request: UpdateSelectedDescriptionsRequest, db=
                         VALUES (:description)
                     """)
                 db.execute(insert_query, {"description": desc})
-        
+
         # Remove descriptions that are no longer in the list
-        descriptions_to_remove = [d for d in current_descriptions if d not in descriptions]
+        descriptions_to_remove = [
+            d for d in current_descriptions if d not in descriptions]
         for desc in descriptions_to_remove:
-            delete_query = text("DELETE FROM dashboard_selected_descriptions WHERE description = :description")
+            delete_query = text(
+                "DELETE FROM dashboard_selected_descriptions WHERE description = :description")
             db.execute(delete_query, {"description": desc})
-        
+
         # If a specific description was removed, ensure it's deleted
         if removed_description:
-            delete_query = text("DELETE FROM dashboard_selected_descriptions WHERE description = :description")
+            delete_query = text(
+                "DELETE FROM dashboard_selected_descriptions WHERE description = :description")
             db.execute(delete_query, {"description": removed_description})
-        
+
         db.commit()
-        
+
         # Log the action
         if removed_description:
             print(f"Description deselected: {removed_description}")
         print(f"Updated selected descriptions: {descriptions}")
-        
+
         return {
             "message": "Selected descriptions updated successfully",
             "current_selections": descriptions,
@@ -609,15 +623,17 @@ def update_selected_descriptions(request: UpdateSelectedDescriptionsRequest, db=
     except Exception as e:
         db.rollback()
         print(f"Error updating selected descriptions: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to update selected descriptions: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update selected descriptions: {str(e)}")
 
 # 7️⃣ Get Selected Row IDs for Dashboard
+
+
 @router.get("/selected-row-ids")
 def get_selected_row_ids(data_type: str, description: str, db=Depends(get_db)):
     """Get selected row IDs for a specific description and data type"""
     try:
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
         if DB_TYPE == "mysql":
             create_table_query = text("""
                 CREATE TABLE IF NOT EXISTS dashboard_selected_row_ids (
@@ -642,22 +658,24 @@ def get_selected_row_ids(data_type: str, description: str, db=Depends(get_db)):
                     UNIQUE(data_type, description)
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Fetch row IDs for this data_type and description
         query = text("""
             SELECT row_ids FROM dashboard_selected_row_ids 
             WHERE data_type = :data_type AND description = :description
         """)
-        result = db.execute(query, {"data_type": data_type, "description": description})
+        result = db.execute(
+            query, {"data_type": data_type, "description": description})
         row = result.fetchone()
-        
+
         if row:
             if DB_TYPE == "mysql":
                 # MySQL returns JSON directly
-                row_ids = row[0] if isinstance(row[0], list) else json.loads(row[0])
+                row_ids = row[0] if isinstance(
+                    row[0], list) else json.loads(row[0])
             else:
                 # SQLite stores as TEXT, need to parse
                 row_ids = json.loads(row[0])
@@ -671,17 +689,19 @@ def get_selected_row_ids(data_type: str, description: str, db=Depends(get_db)):
         return {"row_ids": []}
 
 # 8️⃣ Update Selected Row IDs for Dashboard
+
+
 class UpdateSelectedRowIdsRequest(BaseModel):
     data_type: str
     description: str
     row_ids: List[int]
+
 
 @router.post("/update-selected-row-ids")
 def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get_db)):
     """Update selected row IDs for a specific description and data type"""
     try:
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
         # Ensure table exists
         if DB_TYPE == "mysql":
             create_table_query = text("""
@@ -707,16 +727,15 @@ def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get
                     UNIQUE(data_type, description)
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Convert row_ids to JSON string
         if DB_TYPE == "mysql":
             row_ids_json = json.dumps(request.row_ids)
         else:
             row_ids_json = json.dumps(request.row_ids)
-        
         # Check if record exists
         check_query = text("""
             SELECT id FROM dashboard_selected_row_ids 
@@ -727,7 +746,6 @@ def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get
             "description": request.description
         })
         existing = result.fetchone()
-        
         # If row_ids is empty, delete the record instead of updating
         if not request.row_ids or len(request.row_ids) == 0:
             if existing:
@@ -740,9 +758,10 @@ def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get
                     "description": request.description
                 })
                 db.commit()
-                print(f"✅ Deleted row IDs record for {request.data_type} - {request.description}")
+                print(
+                    f"✅ Deleted row IDs record for {request.data_type} - {request.description}")
                 return {"message": "Selected row IDs cleared successfully", "row_ids": []}
-        
+
         if existing:
             # Update existing record
             if DB_TYPE == "mysql":
@@ -778,7 +797,6 @@ def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get
                 "description": request.description,
                 "row_ids": row_ids_json
             })
-        
         db.commit()
         return {
             "message": "Selected row IDs updated successfully",
@@ -791,7 +809,8 @@ def update_selected_row_ids(request: UpdateSelectedRowIdsRequest, db=Depends(get
         print(f"Error updating selected row IDs: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Failed to update selected row IDs: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update selected row IDs: {str(e)}")
 
 
 # 7️⃣ Get chart configurations for all descriptions
@@ -800,7 +819,6 @@ def get_chart_configs(db=Depends(get_db)):
     """Get chart configurations (type and dimension) for all descriptions"""
     try:
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
         # Ensure table exists
         if DB_TYPE == "mysql":
             create_table_query = text("""
@@ -825,12 +843,13 @@ def get_chart_configs(db=Depends(get_db)):
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Fetch all configurations
-        query = text("SELECT description, chart_type, chart_dimension FROM dashboard_chart_config")
+        query = text(
+            "SELECT description, chart_type, chart_dimension FROM dashboard_chart_config")
         result = db.execute(query)
         configs = {}
         for row in result.fetchall():
@@ -852,15 +871,16 @@ class ChartConfigRequest(BaseModel):
     chart_type: str  # bar, pie, treemap
     chart_dimension: str  # country, year
 
+
 class ChartConfigsRequest(BaseModel):
     configs: List[ChartConfigRequest]
+
 
 @router.post("/save-chart-configs")
 def save_chart_configs(request: ChartConfigsRequest, db=Depends(get_db)):
     """Save chart configurations for multiple descriptions"""
     try:
         DB_TYPE = os.getenv("DB_TYPE", "sqlite")
-        
         # Ensure table exists
         if DB_TYPE == "mysql":
             create_table_query = text("""
@@ -885,10 +905,10 @@ def save_chart_configs(request: ChartConfigsRequest, db=Depends(get_db)):
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-        
+
         db.execute(create_table_query)
         db.commit()
-        
+
         # Save or update each configuration
         for config in request.configs:
             if DB_TYPE == "mysql":
@@ -906,13 +926,11 @@ def save_chart_configs(request: ChartConfigsRequest, db=Depends(get_db)):
                     INSERT OR REPLACE INTO dashboard_chart_config (description, chart_type, chart_dimension)
                     VALUES (:description, :chart_type, :chart_dimension)
                 """)
-            
             db.execute(upsert_query, {
                 "description": config.description,
                 "chart_type": config.chart_type,
                 "chart_dimension": config.chart_dimension
             })
-        
         db.commit()
         return {"success": True, "message": f"Saved {len(request.configs)} chart configuration(s)"}
     except Exception as e:
@@ -920,4 +938,5 @@ def save_chart_configs(request: ChartConfigsRequest, db=Depends(get_db)):
         import traceback
         traceback.print_exc()
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error saving chart configurations: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error saving chart configurations: {str(e)}")

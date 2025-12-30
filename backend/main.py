@@ -22,7 +22,7 @@ from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
     Company, EconomyMaster,
-    DashboardSelectedDescriptions, DashboardChartConfig, User, IndustryMaster
+    DashboardSelectedDescriptions, User, IndustryMaster
 )
 
 
@@ -43,8 +43,10 @@ app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/d
 
 app.add_middleware(
     CORSMiddleware,
+
     # Allow frontend origins
     allow_origins=["https://app.viyantainsights.com", "*"],
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

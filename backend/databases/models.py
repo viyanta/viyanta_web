@@ -722,3 +722,4 @@ class UserMaster(Base):
 
     def __repr__(self):
         return f"<UserMaster(UserID={self.UserID}, Email={self.UserLoginEmailName})>"
+

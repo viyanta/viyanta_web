@@ -8,48 +8,66 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    name: Deploy Viyanta Application
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Send Deployment Started
+        continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${GITHUB_EVENT_HEAD_COMMIT_MESSAGE}\"
-          }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          -d "{\"text\":\"🚀 Deployment Started\nJob: Viyanta\nEnvironment: ${GITHUB_REF_NAME}\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nCommit-Message: ${{ github.event.head_commit.message }}\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
-      - name: Setup SSH
+      - name: Copy files to project directory
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          echo "📁 Copying updated files to ~/viyanta_web..."
+          rsync -av --exclude='.git' --exclude='node_modules' ./ ~/viyanta_web/
+          echo "✅ Files copied successfully"
 
-      - name: Deploy on EC2
+      - name: Stop PM2 if running
+        continue-on-error: true
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/viyanta_web
-            ./deploy-docker.sh
-          EOF
+          if command -v pm2 &> /dev/null; then
+            echo "⚠️  Stopping PM2 processes..."
+            pm2 stop all || true
+            echo "✅ PM2 processes stopped"
+          fi
 
+      - name: Deploy Docker Containers
+        run: |
+          cd ~/viyanta_web
+          echo "📍 Current directory: $(pwd)"
+          echo "📋 Files present:"
+          ls -la deploy-docker.sh docker-compose.yml || echo "Some files missing!"
+          
+          chmod +x deploy-docker.sh
+          ./deploy-docker.sh
+
+      - name: Verify Deployment
+        run: |
+          cd ~/viyanta_web
+          echo "⏳ Waiting for containers to start..."
+          sleep 10
+          echo "📊 Container status:"
+          docker compose ps
+          
       - name: Deployment Success
         if: success()
+        continue-on-error: true
         run: |
+          CONTAINERS=$(cd ~/viyanta_web && docker compose ps --format '{{.Service}}' | tr '\n' ', ' | sed 's/,$//')
           curl -X POST -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"✅ Deployment Completed\nJob: Viyanta\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\"
-          }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          -d "{\"text\":\"✅ Deployment Completed Successfully\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nContainers: ${CONTAINERS}\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
 
       - name: Deployment Failed
         if: failure()
+        continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nCheck GitHub Actions logs\"
-          }" \
-          ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          -d "{\"text\":\"❌ Deployment Failed\nBranch: ${GITHUB_REF_NAME}\nCommitted-By: ${GITHUB_ACTOR}\nPlease check GitHub Actions logs\"}" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"

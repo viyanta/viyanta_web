@@ -237,6 +237,133 @@ Return ONLY JSON in this format: {{
     return prompt
 
 
+def create_vision_extraction_prompt(template: dict, pdf_path: str) -> str:
+    """
+    Create a prompt for direct extraction from PDF images using Gemini Vision.
+    This is used when standard extraction fails or PDF is image-based.
+    """
+    headers = list(template.get("data", [{}])[
+                   0].keys()) if template.get("data") else []
+    headers_str = ", ".join(f'"{h}"' for h in headers[:15])
+
+    # Get template structure
+    template_example = template.get(
+        "data", [])[:1] if template.get("data") else []
+
+    prompt = f"""
+You are an expert financial data extraction specialist with vision capabilities.
+
+Your task is to EXTRACT ALL DATA from the PDF images shown below and structure it as JSON.
+
+=== CRITICAL RULES ===
+1. **EXTRACT EVERYTHING YOU SEE** - Do not miss any data from tables, forms, or text
+2. **BE THOROUGH AND COMPLETE** - Extract every single row, cell, and value visible
+3. **NEVER ASSUME OR GUESS** - Only extract what you can actually see in the images
+4. **PRESERVE EXACT VALUES** - Copy numbers, percentages, and text exactly as shown
+5. **IF YOU SEE NO DATA** - Return {{"data": []}}
+6. **VERIFY TABLE STRUCTURE** - Match headers to the template headers provided
+
+=== EXPECTED DATA STRUCTURE ===
+
+The data should follow this JSON structure:
+
+```json
+{json.dumps({"data": template_example}, indent=2)}
+```
+
+=== HEADERS TO EXTRACT ===
+{headers_str}
+
+=== EXTRACTION INSTRUCTIONS ===
+
+1. **Look at the PDF images carefully** - Identify all tables, forms, and data sections
+2. **Extract metadata first**:
+   - Form No (e.g., L-9, L-15, L-3-A-BS,L-9A)
+   - Title (form title/heading)
+   - Registration Number
+   - Period (date range or as-at date)
+   - Currency (if mentioned)
+   - Pages used
+   
+3. **Identify table headers** - Match them to the template headers above
+   - If headers in PDF differ slightly, normalize them to match template
+   - Example: "Number of Shares" → "As_at_Current_Year_Number_of_Shares"
+
+4. **Extract ALL table rows**:
+   - Go row by row through the entire table
+   - Extract every cell value exactly as shown
+   - Use "" (empty string) for truly empty cells
+   - Use "0" or "-" if that's what's shown
+   - Do NOT skip any rows
+
+5. **Handle multiple tables**:
+   - If the PDF has multiple tables, create separate data entries
+   - Use TableIndex: 1, 2, 3, 4,etc.
+
+6. **Quality checks**:
+   - Count: Did you extract ALL rows you see?
+   - Accuracy: Are numbers copied exactly?
+   - Completeness: Did you miss any columns?
+
+=== HEADINGS EXTRACTION ===
+- 
+- For each table, extract the heading or title that appears immediately above the table (if any).
+- If there is no heading above the table, set "Heading": "".
+- Insert the heading as a field just below "TableIndex" in the output JSON for each table.
+- Example:
+  {{
+    ...
+    "TableIndex": 1,
+    "Heading": "REVENUE ACCOUNT FOR THE PERIOD ENDED 31st DECEMBER, 2023.
+Policyholders’ Account (Technical Account) 
+", // PROFIT & LOSS ACCOUNT FOR THE PERIOD ENDED 31st DECEMBER, 2023.
+Shareholders’ Account (Non-technical Account),BALANCE SHEET AS AT 31st DECEMBER, 2023, ect based on what is extracted from the PDF ,CONTINGENT LIABILITIES
+,SCHEDULES FORMING PART OF FINANCIAL STATEMENTS
+and ect just above the table in the PDF
+    ...
+  }}
+
+=== OUTPUT FORMAT ===
+
+Return ONLY valid JSON (no markdown, no explanations):
+
+{{
+  "data": [
+    {{
+      "Form No": "extracted form number",
+      "Title": "extracted title",
+      "RegistrationNumber": "extracted reg number",
+      "Period": "extracted period",
+      "Currency": "extracted currency",
+      "PagesUsed": 1,
+      "TableIndex": 1,
+      "Heading": "extracted heading",
+      "FlatHeaders": ["Header1", "Header2", "..."],
+      "FlatHeadersNormalized": ["header1", "header2", "..."],
+      "Rows": [
+        {{
+          "Header1": "value1",
+          "Header2": "value2",
+          "...": "..."
+        }},
+        // ... ALL rows from the table ...
+      ]
+    }}
+  ]
+}}
+
+**IMPORTANT**: 
+- Extract EVERY row you see in the tables
+- Do NOT summarize or sample - extract COMPLETE data
+- If you cannot read something clearly, use your best interpretation but do NOT skip it
+- The image quality is good enough to read all text and numbers
+
+Now, analyze the PDF images below and extract ALL data:
+"""
+    print(prompt)
+    return prompt
+
+
 def correct_with_gemini(template_path, extracted_path, pdf_path, output_path, model="gemini-2.5-flash"):
     start_time = time.time()
     with open(template_path, "r", encoding="utf-8") as f:
