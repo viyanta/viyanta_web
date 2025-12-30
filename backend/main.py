@@ -45,8 +45,9 @@ app.add_middleware(
     CORSMiddleware,
 
     # Allow frontend origins
-    allow_origins=["https://app.viyantainsights.com", "*"],
-
+    allow_origins=["https://app.viyantainsights.com",
+                   "http://localhost:5173", "http://localhost:8000"],
+    # >>>>>>> main
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
