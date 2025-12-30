@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ApiService from '../services/api';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+    LabelList
+} from 'recharts';
 import './IrdaiPeers.css';
 
 // Custom MultiSelect Component with Premium Design
@@ -246,8 +257,19 @@ const IrdaiPeers = () => {
         fetchComparison();
     }, [selectedInsurers, selectedCategory, selectedPremiumType, selectedDate, periodOptions]);
 
-    // Mock Data for the table
-    // Mock Data removed, using comparisonData from API
+    // Prepare chart data
+    const prepareChartData = () => {
+        if (!comparisonData || !comparisonData.data) return [];
+
+        return Object.keys(comparisonData.data).map(insurer => ({
+            name: insurer,
+            value: comparisonData.data[insurer],
+            // Create a short name for axis if typically long, or just use full name
+            shortName: insurer.length > 15 ? insurer.substring(0, 15) + '...' : insurer
+        }));
+    };
+
+    const chartData = prepareChartData();
 
     return (
         <div className="irdai-peers-container">
@@ -420,8 +442,84 @@ const IrdaiPeers = () => {
                     </table>
                 </div>
             ) : (
-                <div className="placeholder-visuals">
-                    Visuals coming soon...
+                <div className="peers-visuals-container" style={{ width: '100%', height: '500px', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                    {comparisonData && chartData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={chartData}
+                                margin={{
+                                    top: 30,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 40,
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.3} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                <XAxis
+                                    dataKey="shortName"
+                                    axisLine={{ stroke: '#e5e7eb' }}
+                                    tickLine={false}
+                                    tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+                                    angle={0}
+                                    textAnchor="middle"
+                                    interval={0}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#9ca3af', fontSize: 12 }}
+                                    tickFormatter={(value) => value.toLocaleString()}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(243, 244, 246, 0.6)' }}
+                                    contentStyle={{
+                                        backgroundColor: '#ffffff',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e5e7eb',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                                    }}
+                                    formatter={(value) => [<span style={{ color: '#4f46e5', fontWeight: 'bold' }}>{value.toLocaleString()}</span>, comparisonData.metric]}
+                                    labelStyle={{ color: '#111827', fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #f3f4f6', paddingBottom: '4px' }}
+                                />
+                                <Bar
+                                    dataKey="value"
+                                    fill="url(#colorValue)"
+                                    radius={[8, 8, 0, 0]}
+                                    barSize={60}
+                                    animationDuration={1500}
+                                >
+                                    <LabelList
+                                        dataKey="value"
+                                        position="top"
+                                        formatter={(val) => val.toLocaleString()}
+                                        style={{ fill: '#4b5563', fontSize: '12px', fontWeight: '600' }}
+                                        offset={10}
+                                    />
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af' }}>
+                            {selectedInsurers.length === 0 ? (
+                                <>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>📊</div>
+                                    <p className="text-gray-500">Select insurers to compare visuals</p>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }} className="animate-pulse">⏳</div>
+                                    <p>Loading chart data...</p>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
