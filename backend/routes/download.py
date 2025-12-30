@@ -25,7 +25,7 @@ def get_parquet_file_path(parquet_filename: str) -> str:
 
 
 @router.get("/view/original/{file_id}")
-async def view_original_file(file_id: str):
+def view_original_file(file_id: str):
     """View original uploaded file inline (for PDF viewer)"""
     try:
         file_record = get_file_by_id(file_id)
@@ -74,7 +74,7 @@ async def view_original_file(file_id: str):
 
 
 @router.get("/download/original/{file_id}")
-async def download_original_file(file_id: str):
+def download_original_file(file_id: str):
     """Download original uploaded file"""
     try:
         file_record = get_file_by_id(file_id)
@@ -118,7 +118,7 @@ async def download_original_file(file_id: str):
 
 
 @router.get("/download/parquet/{file_id}")
-async def download_parquet_file(file_id: str):
+def download_parquet_file(file_id: str):
     """Download converted Parquet file"""
     try:
         file_record = get_file_by_id(file_id)
@@ -143,7 +143,7 @@ async def download_parquet_file(file_id: str):
 
 
 @router.get("/stats")
-async def get_stats():
+def get_stats():
     """Get file processing statistics"""
     try:
         stats = get_file_stats()
@@ -154,7 +154,7 @@ async def get_stats():
 
 
 @router.get("/files")
-async def get_files():
+def get_files():
     """Get all files list"""
     try:
         files = get_all_files()

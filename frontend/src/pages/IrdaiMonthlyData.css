@@ -223,6 +223,41 @@
     box-shadow: 0 2px 4px rgba(54, 101, 155, 0.3);
 }
 
+.action-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    background-color: #36659b;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(54, 101, 155, 0.3);
+}
+
+.action-btn:hover {
+    background-color: #2d5482;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(54, 101, 155, 0.4);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(54, 101, 155, 0.3);
+}
+
+.action-btn:disabled {
+    background-color: #9aaec1;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 /* Dashboard Content */
 .dashboard-section-title {
     font-size: 1.1rem;
@@ -260,6 +295,11 @@
     border-color: #36659b;
 }
 
+.kpi-card.blue .kpi-title,
+.kpi-card.blue .kpi-value {
+    color: #36659b;
+}
+
 .kpi-card.gray {
     border-color: #666;
 }
@@ -268,8 +308,27 @@
     border-color: #28a745;
 }
 
+.kpi-card.green .kpi-title,
+.kpi-card.green .kpi-value {
+    color: #28a745;
+}
+
 .kpi-card.purple {
     border-color: #6f42c1;
+}
+
+.kpi-card.purple .kpi-title,
+.kpi-card.purple .kpi-value {
+    color: #6f42c1;
+}
+
+.kpi-card.orange {
+    border-color: #FF8042;
+}
+
+.kpi-card.orange .kpi-title,
+.kpi-card.orange .kpi-value {
+    color: #FF8042;
 }
 
 .kpi-unit {
@@ -333,13 +392,23 @@
 .irdai-data-table td {
     padding: 10px 12px;
     border: 1px solid #e0e0e0;
+}
+
+.irdai-data-table td {
     text-align: right;
 }
 
-.irdai-data-table th:first-child,
+.irdai-data-table th {
+    text-align: center;
+}
+
 .irdai-data-table td:first-child {
     text-align: left;
     font-weight: 600;
+}
+
+.irdai-data-table th:first-child {
+    text-align: center;
 }
 
 .irdai-data-table th:nth-child(2),
@@ -355,9 +424,9 @@
 .irdai-data-table thead tr:first-child th {
     background-color: rgb(54, 101, 155);
     /* User specified blue */
-    color: white;
+    color: #000;
     font-weight: 700;
-    text-align: left;
+    text-align: center;
 }
 
 .irdai-data-table thead tr:nth-child(2) th {

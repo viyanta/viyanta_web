@@ -10,6 +10,9 @@ def init_database():
     """Initialize the database and create tables"""
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
+    
+    # Enable WAL mode for better concurrency
+    cursor.execute('PRAGMA journal_mode=WAL;')
 
     # Create files table
     cursor.execute('''
@@ -114,6 +117,7 @@ def get_all_files() -> List[Dict]:
     cursor.execute('''
         SELECT * FROM files
         ORDER BY upload_time DESC
+        LIMIT 50
     ''')
 
     rows = cursor.fetchall()
@@ -127,34 +131,28 @@ def get_file_stats() -> Dict:
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
 
-    # Total files
-    cursor.execute('SELECT COUNT(*) FROM files')
-    total_files = cursor.fetchone()[0]
-
-    # Processed files
-    cursor.execute('SELECT COUNT(*) FROM files WHERE status = "completed"')
-    processed_files = cursor.fetchone()[0]
-
-    # Files in progress
-    cursor.execute('SELECT COUNT(*) FROM files WHERE status = "processing"')
-    processing_files = cursor.fetchone()[0]
-
-    # Failed files
-    cursor.execute('SELECT COUNT(*) FROM files WHERE status = "failed"')
-    failed_files = cursor.fetchone()[0]
-
-    # Total file size
-    cursor.execute('SELECT COALESCE(SUM(file_size), 0) FROM files')
-    total_size = cursor.fetchone()[0]
-
-    # Total parquet size
-    cursor.execute(
-        'SELECT COALESCE(SUM(parquet_size), 0) FROM files WHERE status = "completed"')
-    total_parquet_size = cursor.fetchone()[0]
-
-    # Last activity
-    cursor.execute('SELECT MAX(upload_time) FROM files')
-    last_activity = cursor.fetchone()[0]
+    # Optimized single query for all counts and sums
+    cursor.execute('''
+        SELECT 
+            COUNT(*) as total_files,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as processed_files,
+            SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing_files,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_files,
+            COALESCE(SUM(file_size), 0) as total_size,
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN parquet_size ELSE 0 END), 0) as total_parquet_size,
+            MAX(upload_time) as last_activity
+        FROM files
+    ''')
+    
+    row = cursor.fetchone()
+    
+    total_files = row[0]
+    processed_files = row[1] or 0
+    processing_files = row[2] or 0
+    failed_files = row[3] or 0
+    total_size = row[4] or 0
+    total_parquet_size = row[5] or 0
+    last_activity = row[6]
 
     # Recent files (last 5)
     cursor.execute('''

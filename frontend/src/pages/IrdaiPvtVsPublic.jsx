@@ -1,70 +1,264 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
+    PieChart, Pie, Cell
+} from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
+import api from '../services/api';
 
 const IrdaiPvtVsPublic = () => {
     // Local State
     const [viewMode, setViewMode] = useState('visuals');
-    const [periodType, setPeriodType] = useState('Monthly');
-    const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
-    const [pvtOrPublic, setPvtOrPublic] = useState('Private OR Public');
-    const [premiumTypeSelection, setPremiumTypeSelection] = useState('Individual Single Premium');
+    const [loading, setLoading] = useState(false);
 
-    // Mock Options
-    const periodTypes = ['Monthly', 'Quarterly', 'Halfyearly', 'Annual'];
-    const periods = ['Dec 24', 'Sep 24', 'Jun 24', 'Mar 24'];
-    const pvtTypes = ['Private OR Public', 'Private', 'Public']; // Assuming options
-    const premiumTypes = ['Individual Single Premium', 'Group Non-Single', 'Group Yearly'];
+    // Filters
+    const [periodTypes, setPeriodTypes] = useState([]);
+    const [periodType, setPeriodType] = useState('MONTH'); // Default to MONTH value
+    const [periodOptions, setPeriodOptions] = useState([]);
+    const [selectedPeriod, setSelectedPeriod] = useState(''); // This will store the full object or JSON string to get start/end dates
 
-    // Mock KPI Data
-    const kpiData = [
-        { title: 'First Year Premium', value: '123.45', unit: 'In INR Crs.', color: 'blue' },
-        { title: 'Sum Assured', value: '5,678.90', unit: 'In INR Crs.', color: 'gray' },
-        { title: 'Number of Lives', value: '1,234', unit: 'In Nos.', color: 'green' },
-        { title: 'No of Policies', value: '567', unit: 'In Nos.', color: 'purple' }
+    // New Filters
+    const [sector, setSector] = useState('BOTH'); // PRIVATE | PUBLIC | BOTH
+    const [premiumTypes, setPremiumTypes] = useState([]);
+    const [selectedPremiumType, setSelectedPremiumType] = useState('ALL');
+
+    // Data
+    const [tableData, setTableData] = useState([]);
+
+    // Constants
+    const sectorOptions = [
+        { label: 'Both', value: 'BOTH' },
+        { label: 'Private', value: 'PRIVATE' },
+        { label: 'Public', value: 'PUBLIC' }
     ];
 
-    // Mock Pvt Vs Public Data
-    const pvtVsPublicData = [
-        {
-            section: 'Grand Total',
-            values: { premium: '35020.28', policies: '3217880', lives: '18838049', sum: '937961' },
-            rows: [
-                { name: 'Individual Single Premium', premium: '5141.99', policies: '149887', lives: '0', sum: '4485' },
-                { name: 'Individual Non-Single Premium', premium: '11500.11', policies: '3063667', lives: '0', sum: '338448' },
-                { name: 'Group Single Premium', premium: '17052.25', policies: '253', lives: '11500485', sum: '155795' },
-                { name: 'Group Non-Single Premium', premium: '115.62', policies: '584', lives: '528875', sum: '6777' },
-                { name: 'Group Yearly Renewable Premium', premium: '1210.31', policies: '3489', lives: '6808689', sum: '432455' }
-            ]
-        },
-        {
-            section: 'Private Total',
-            values: { premium: '14651.02', policies: '866447', lives: '15388596', sum: '707453' },
-            rows: [
-                { name: 'Individual Single Premium', premium: '1908.55', policies: '28076', lives: '0', sum: '2172' },
-                { name: 'Individual Non-Single Premium', premium: '7638.09', policies: '837646', lives: '0', sum: '261541' },
-                { name: 'Group Single Premium', premium: '4265.64', policies: '224', lives: '11494299', sum: '155713' },
-                { name: 'Group Non-Single Premium', premium: '12.49', policies: '8', lives: '4008', sum: '279' },
-                { name: 'Group Yearly Renewable Premium', premium: '826.25', policies: '493', lives: '3890289', sum: '287747' }
-            ]
-        },
-        {
-            section: 'Public Total',
-            values: { premium: '20369.26', policies: '2351433', lives: '3449453', sum: '230508.25' },
-            rows: [
-                { name: 'Individual Single Premium', premium: '3233.44', policies: '121811', lives: '0', sum: '2312.75' },
-                { name: 'Individual Non-Single Premium', premium: '3862.02', policies: '2226021', lives: '0', sum: '76906.91' },
-                { name: 'Group Single Premium', premium: '12786.61', policies: '29', lives: '6186', sum: '81.87' },
-                { name: 'Group Non-Single Premium', premium: '103.13', policies: '576', lives: '524867', sum: '6498.56' },
-                { name: 'Group Yearly Renewable Premium', premium: '384.06', policies: '2996', lives: '2918400', sum: '144708.15' }
-            ]
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+    // 1. Fetch Initial Data (Period Types & Premium Types) on Mount
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                // Fetch Period Types
+                const irdaiTypes = await api.getIrdaiPeriodTypes();
+                setPeriodTypes(irdaiTypes);
+
+                if (irdaiTypes.length > 0) {
+                    setPeriodType(irdaiTypes[0].value);
+                }
+
+                // Fetch Premium Types
+                const pTypes = await api.getIrdaiPremiumTypes();
+                // Add "All" option if not present, though backend handles "ALL"
+                const allOption = { label: 'All Premium Types', value: 'ALL' };
+                setPremiumTypes([allOption, ...pTypes]);
+
+            } catch (err) {
+                console.error("Error fetching initial data", err);
+            }
+        };
+        fetchInitialData();
+    }, []);
+
+    // 2. Fetch Period Options when Period Type Changes
+    useEffect(() => {
+        const fetchPeriodOptions = async () => {
+            if (!periodType) return;
+            try {
+                const opts = await api.getIrdaiPeriodOptions(periodType);
+                setPeriodOptions(opts);
+
+                // Select first option by default
+                if (opts.length > 0) {
+                    setSelectedPeriod(JSON.stringify(opts[0]));
+                } else {
+                    setSelectedPeriod('');
+                }
+            } catch (err) {
+                console.error("Error fetching period options", err);
+                setPeriodOptions([]);
+            }
+        };
+        fetchPeriodOptions();
+    }, [periodType]);
+
+    // 3. Fetch Table Data when any Filter Changes
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!selectedPeriod) return;
+
+            try {
+                setLoading(true);
+                const periodObj = JSON.parse(selectedPeriod);
+                const { start_date, end_date } = periodObj;
+
+                const data = await api.getPvtVsPublicTable(start_date, end_date, sector, selectedPremiumType);
+                processTableData(data);
+            } catch (err) {
+                console.error("Error fetching table data", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [selectedPeriod, sector, selectedPremiumType]);
+
+    // Helper to process flat API data into nested structure
+    const processTableData = (rawData) => {
+        // rawData is ordered by section_order, row_order
+        // We need to group by section (insurer_name maps to section)
+
+        const sectionsMap = {};
+
+        rawData.forEach(row => {
+            const sectionName = row.insurer_name;
+
+            if (!sectionsMap[sectionName]) {
+                sectionsMap[sectionName] = {
+                    section: sectionName === 'LIC of India' ? 'Public Total' : sectionName, // Rename LIC to Public Total for consistency
+                    values: {}, // Will hold the total row values
+                    rows: [] // Will hold the breakdown rows
+                };
+            }
+
+            // Format numbers
+            const formattedRow = {
+                name: row.row_name,
+                premium: formatNumber(row.fyp),
+                policies: formatNumber(row.nop),
+                lives: formatNumber(row.nol),
+                sum: formatNumber(row.sa)
+            };
+
+            if (row.row_order === 0) {
+                // This is the total row
+                sectionsMap[sectionName].values = formattedRow;
+            } else {
+                sectionsMap[sectionName].rows.push(formattedRow);
+            }
+        });
+
+        // Convert map to array, respecting original order from data
+        const sections = [];
+        const seenSections = new Set();
+
+        rawData.forEach(row => {
+            if (!seenSections.has(row.insurer_name)) {
+                seenSections.add(row.insurer_name);
+                sections.push(sectionsMap[row.insurer_name]);
+            }
+        });
+
+        // Handle case where we have a section but no total row (happens when filtering by premium type)
+        // Ensure every section has a 'values' object populated by summing rows if necessary
+        sections.forEach(sec => {
+            if (!sec.values || Object.keys(sec.values).length === 0) {
+                // Calculate totals from rows
+                let totalPremium = 0;
+                let totalPolicies = 0;
+                let totalLives = 0;
+                let totalSum = 0;
+
+                sec.rows.forEach(r => {
+                    totalPremium += parseValue(r.premium);
+                    totalPolicies += parseValue(r.policies);
+                    totalLives += parseValue(r.lives);
+                    totalSum += parseValue(r.sum);
+                });
+
+                sec.values = {
+                    premium: formatNumber(totalPremium),
+                    policies: formatNumber(totalPolicies),
+                    lives: formatNumber(totalLives),
+                    sum: formatNumber(totalSum)
+                };
+            }
+        });
+
+        setTableData(sections);
+    };
+
+    const formatNumber = (val) => {
+        if (val === null || val === undefined) return '0';
+        if (typeof val === 'string' && val.includes(',')) return val;
+        return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(val);
+    };
+
+    const parseValue = (val) => {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        // Handle string number parsing properly: remove commas and parse
+        return parseFloat(String(val).replace(/,/g, ''));
+    };
+
+    const getSelectedPeriodLabel = () => {
+        if (!selectedPeriod) return '';
+        try {
+            return JSON.parse(selectedPeriod).label;
+        } catch {
+            return '';
         }
-    ];
+    };
+
+    // --- Chart Renderers ---
+
+    const getSectionColor = (sectionName) => {
+        switch (sectionName) {
+            case 'Grand Total': return '#8884d8'; // Purple
+            case 'Private Total': return '#0088FE'; // Blue
+            case 'Public Total': return '#00C49F'; // Green (or Teal)
+            default: return '#FF8042'; // Orange default
+        }
+    };
+
+    const renderCharts = () => {
+        if (loading || tableData.length === 0) return null;
+
+        // Breakdown Data (Rows within sections)
+        // We will create specific charts for each section available, including Grand Total now as requested
+        const sectionBreakdowns = tableData
+            .filter(s => s.rows.length > 0)
+            .map(s => ({
+                sectionName: s.section,
+                color: getSectionColor(s.section),
+                data: s.rows.map(r => ({
+                    name: r.name,
+                    premium: parseValue(r.premium),
+                    policies: parseValue(r.policies)
+                }))
+            }));
+
+        return (
+            <div className="charts-container" style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                {/* Breakdown Section */}
+                {sectionBreakdowns.map((sec, idx) => (
+                    <div key={idx} className="chart-section">
+                        <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>{sec.sectionName} - Premium Breakdown</h3>
+                        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <div style={{ height: Math.max(sec.data.length * 50, 300) + 'px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart layout="vertical" data={sec.data} margin={{ left: 150, right: 50 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                        <XAxis type="number" />
+                                        <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12 }} />
+                                        <Tooltip formatter={(val) => val.toLocaleString()} />
+                                        <Bar dataKey="premium" fill={sec.color} name="Premium" radius={[0, 4, 4, 0]}>
+                                            <LabelList dataKey="premium" position="right" formatter={(val) => val.toLocaleString()} fontSize={12} />
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <TabLayout
             viewMode={viewMode}
             setViewMode={setViewMode}
-            summaryText={`${viewMode === 'visuals' ? 'Pvt. Vs Public-Visual' : 'Pvt. Vs Public Data'} > ${selectedPeriod}`}
+            summaryText={`${viewMode === 'visuals' ? 'Pvt. Vs Public-Visual' : 'Pvt. Vs Public Data'} > ${getSelectedPeriodLabel()}`}
             controls={
                 <>
                     <div className="period-select-container">
@@ -72,11 +266,11 @@ const IrdaiPvtVsPublic = () => {
                         <select
                             className="custom-select"
                             style={{ minWidth: '180px' }}
-                            value={pvtOrPublic}
-                            onChange={(e) => setPvtOrPublic(e.target.value)}
+                            value={sector}
+                            onChange={(e) => setSector(e.target.value)}
                         >
-                            {pvtTypes.map(name => (
-                                <option key={name} value={name}>{name}</option>
+                            {sectorOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </select>
                     </div>
@@ -85,23 +279,23 @@ const IrdaiPvtVsPublic = () => {
                         <select
                             className="custom-select"
                             style={{ minWidth: '180px' }}
-                            value={premiumTypeSelection}
-                            onChange={(e) => setPremiumTypeSelection(e.target.value)}
+                            value={selectedPremiumType}
+                            onChange={(e) => setSelectedPremiumType(e.target.value)}
                         >
-                            {premiumTypes.map(name => (
-                                <option key={name} value={name}>{name}</option>
+                            {premiumTypes.map(pt => (
+                                <option key={pt.value} value={pt.value}>{pt.label}</option>
                             ))}
                         </select>
                     </div>
                     <div className="period-select-container">
-                        <label className="control-label">Select Period</label>
+                        <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
                             value={periodType}
                             onChange={(e) => setPeriodType(e.target.value)}
                         >
                             {periodTypes.map(p => (
-                                <option key={p} value={p}>{p}</option>
+                                <option key={p.value} value={p.value}>{p.label}</option>
                             ))}
                         </select>
                     </div>
@@ -112,17 +306,19 @@ const IrdaiPvtVsPublic = () => {
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
                         >
-                            {periods.map(p => (
-                                <option key={p} value={p}>{p}</option>
+                            {periodOptions.map((p, idx) => (
+                                <option key={idx} value={JSON.stringify(p)}>{p.label}</option>
                             ))}
                         </select>
                     </div>
                 </>
             }
         >
-            {viewMode === 'visuals' ? (
+            {loading ? (
+                <div style={{ padding: '20px', textAlign: 'center' }}>Loading data...</div>
+            ) : viewMode === 'visuals' ? (
                 <div className="visuals-view" style={{ padding: '0 20px' }}>
-                    {pvtVsPublicData.map((section, sIdx) => (
+                    {tableData.map((section, sIdx) => (
                         <div key={sIdx} style={{ marginBottom: '20px' }}>
                             <h4 style={{ margin: '10px 0', fontSize: '1.1rem', fontWeight: 'bold' }}>
                                 {section.section === 'Grand Total' ? 'TOTAL' : section.section}
@@ -151,12 +347,12 @@ const IrdaiPvtVsPublic = () => {
                             </div>
                         </div>
                     ))}
-                    <div className="charts-row">
-                        <div className="chart-placeholder">Chart 1</div>
-                        <div className="chart-placeholder">Chart 2</div>
-                        <div className="chart-placeholder">Chart 3</div>
-                        <div className="chart-placeholder">Chart 4</div>
-                    </div>
+
+                    {renderCharts()}
+
+                    {tableData.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>No data available for selected filters</div>
+                    )}
                 </div>
             ) : (
                 <div className="data-view">
@@ -166,7 +362,7 @@ const IrdaiPvtVsPublic = () => {
                                 <tr>
                                     <th colSpan="8" style={{ borderBottom: 'none', backgroundColor: '#fff' }}>
                                         <div style={{ color: 'blue', fontWeight: 'bold', fontSize: '1.1rem', textAlign: 'center' }}>
-                                            Pvt and Public Summary &gt; &gt;  {selectedPeriod}
+                                            Pvt and Public Summary &gt; &gt;  {getSelectedPeriodLabel()}
                                         </div>
                                     </th>
                                 </tr>
@@ -179,7 +375,7 @@ const IrdaiPvtVsPublic = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pvtVsPublicData.map((section, idx) => (
+                                {tableData.map((section, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr style={{ backgroundColor: '#f0f0f0', fontWeight: 'bold' }}>
                                             <td>{section.section}</td>
@@ -199,6 +395,9 @@ const IrdaiPvtVsPublic = () => {
                                         ))}
                                     </React.Fragment>
                                 ))}
+                                {tableData.length === 0 && (
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No data available for selected period</td></tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

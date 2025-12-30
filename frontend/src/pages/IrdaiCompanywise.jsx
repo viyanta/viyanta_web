@@ -8,7 +8,8 @@ import {
     CartesianGrid,
     Tooltip,
     Legend,
-    ResponsiveContainer
+    ResponsiveContainer,
+    LabelList
 } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
 
@@ -22,6 +23,9 @@ const IrdaiCompanywise = () => {
     // Chart and Table Data State
     const [companyChartData, setCompanyChartData] = useState({ fyp: [], nop: [], sa: [], nol: [] });
     const [companyTableData, setCompanyTableData] = useState([]);
+
+    // Sort Config
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
     // Data State
     const [periodTypes, setPeriodTypes] = useState([]);
@@ -112,43 +116,40 @@ const IrdaiCompanywise = () => {
         fetchTotals();
     }, [insurerName, selectedPeriod]);
 
-    // Fetch Metric Wise Premium
+    // Fetch Premium Type Breakup
     useEffect(() => {
         if (!insurerName || !selectedPeriod || !selectedPeriod.start_date || !selectedPeriod.end_date) return;
 
         const fetchMetrics = async () => {
             try {
-                const metrics = await api.getCompanyMetricWisePremium(
+                // Use the new API
+                const metrics = await api.getCompanyPremiumTypeBreakup(
                     insurerName,
                     selectedPeriod.start_date,
                     selectedPeriod.end_date
                 );
 
-                // Process for Charts
-                const grouped = {};
-                // Metrics: FYP, SA, NOL, NOP
-                metrics.forEach(item => {
-                    if (!grouped[item.metric]) grouped[item.metric] = {};
-                    grouped[item.metric][item.premium_type] = item.value;
-                });
+                // metrics is an array of objects: 
+                // { premium_type, fyp, sa, nop, nol }
 
+                // 1. Process for Charts (We need to group by Metrics: FYP, SA, NOL, NOP)
                 const chartDataObj = { fyp: [], nop: [], sa: [], nol: [] };
-                const metricMap = { 'FYP': 'fyp', 'NOP': 'nop', 'SA': 'sa', 'NOL': 'nol' };
+
                 const shorten = (name) => name.replace(' Premium', '').replace(' Renewable', '');
 
-                Object.keys(grouped).forEach(metricCode => {
-                    const dataKey = metricMap[metricCode];
-                    if (dataKey) {
-                        chartDataObj[dataKey] = Object.entries(grouped[metricCode]).map(([type, val]) => ({
-                            name: shorten(type),
-                            value: val
-                        }));
-                    }
+                metrics.forEach(item => {
+                    const name = shorten(item.premium_type);
+                    chartDataObj.fyp.push({ name, value: item.fyp });
+                    chartDataObj.sa.push({ name, value: item.sa });
+                    chartDataObj.nop.push({ name, value: item.nop });
+                    chartDataObj.nol.push({ name, value: item.nol });
                 });
+
                 setCompanyChartData(chartDataObj);
 
-                // Process for Table
-                // We need rows for: First Year Premium, Sum Assured, Number of Lives, No of Policies
+
+                // 2. Process for Table
+                // Rows: First Year Premium, Sum Assured, Number of Lives, No of Policies
                 const categoryMap = {
                     'FYP': { label: 'First Year Premium', unit: 'In Crs' },
                     'SA': { label: 'Sum Assured', unit: 'In Crs' },
@@ -156,7 +157,7 @@ const IrdaiCompanywise = () => {
                     'NOP': { label: 'No of Policies / Schemes', unit: 'In Nos' }
                 };
 
-                // Keys for table columns based on premium type
+                // Helper to map API premium type to table column keys
                 const typeKeyMap = {
                     'Individual Single Premium': 'indSingle',
                     'Individual Non-Single Premium': 'indNonSingle',
@@ -169,22 +170,29 @@ const IrdaiCompanywise = () => {
                     const rowData = {
                         category: categoryMap[metricCode].label,
                         unit: categoryMap[metricCode].unit,
-                        period: selectedPeriod.label // or a shorter version
+                        period: selectedPeriod.label
                     };
 
-                    const metricGroup = grouped[metricCode] || {};
-                    Object.entries(metricGroup).forEach(([pType, val]) => {
-                        const key = typeKeyMap[pType];
+                    metrics.forEach(item => {
+                        const key = typeKeyMap[item.premium_type];
                         if (key) {
-                            rowData[key] = val; // format number if needed
+                            // Extract correct value based on metricCode
+                            let val = 0;
+                            if (metricCode === 'FYP') val = item.fyp;
+                            else if (metricCode === 'SA') val = item.sa;
+                            else if (metricCode === 'NOL') val = item.nol;
+                            else if (metricCode === 'NOP') val = item.nop;
+
+                            rowData[key] = val;
                         }
                     });
+
                     return rowData;
                 });
                 setCompanyTableData(newTableData);
 
             } catch (error) {
-                console.error("Failed to fetch metric wise premium", error);
+                console.error("Failed to fetch company premium type breakup", error);
             }
         };
         fetchMetrics();
@@ -192,11 +200,83 @@ const IrdaiCompanywise = () => {
 
     // KPI Data derived from companyTotals
     const kpiData = [
-        { title: 'First Year Premium', value: companyTotals ? companyTotals.fyp : '0', unit: 'In INR Crs.', color: 'blue' },
-        { title: 'Sum Assured', value: companyTotals ? companyTotals.sa : '0', unit: 'In INR Crs.', color: 'gray' },
-        { title: 'Number of Lives', value: companyTotals ? companyTotals.nol : '0', unit: 'In Nos.', color: 'green' },
-        { title: 'No of Policies', value: companyTotals ? companyTotals.nop : '0', unit: 'In Nos.', color: 'purple' }
+        {
+            title: 'First Year Premium',
+            value: companyTotals ? companyTotals.fyp : '0',
+            unit: 'In INR Crs.',
+            color: 'blue',
+            targetId: 'chart-fyp'
+        },
+        {
+            title: 'Sum Assured',
+            value: companyTotals ? companyTotals.sa : '0',
+            unit: 'In INR Crs.',
+            color: 'green',
+            targetId: 'chart-sa'
+        },
+        {
+            title: 'Number of Lives',
+            value: companyTotals ? companyTotals.nol : '0',
+            unit: 'In Nos.',
+            color: 'purple',
+            targetId: 'chart-nol'
+        },
+        {
+            title: 'No of Policies',
+            value: companyTotals ? companyTotals.nop : '0',
+            unit: 'In Nos.',
+            color: 'orange',
+            targetId: 'chart-nop'
+        }
     ];
+
+    const handleCardClick = (targetId) => {
+        const element = document.getElementById(targetId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
+    // Sorting Logic
+    const sortedTableData = React.useMemo(() => {
+        let sortableItems = [...companyTableData];
+        if (sortConfig.key !== null) {
+            sortableItems.sort((a, b) => {
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+
+                // Handle strings case-insensitive
+                if (typeof aValue === 'string') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [companyTableData, sortConfig]);
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = (name) => {
+        if (sortConfig.key === name) {
+            return sortConfig.direction === 'asc' ? ' ↑' : ' ↓';
+        }
+        return ' ⇅';
+    };
 
 
 
@@ -221,7 +301,7 @@ const IrdaiCompanywise = () => {
                         </select>
                     </div>
                     <div className="period-select-container">
-                        <label className="control-label">Select Period</label>
+                        <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
                             value={periodType}
@@ -255,72 +335,85 @@ const IrdaiCompanywise = () => {
                 <div className="visuals-view">
                     <div className="kpi-grid">
                         {kpiData.map((kpi, idx) => (
-                            <div key={idx} className={`kpi-card ${kpi.color}`}>
+                            <div
+                                key={idx}
+                                className={`kpi-card ${kpi.color}`}
+                                onClick={() => handleCardClick(kpi.targetId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
+                                <div className="kpi-value" style={{ fontSize: '18px', fontWeight: 'bold' }}>{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod ? selectedPeriod.label : ''}</div>
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
 
                         {/* FYP Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium Breakup</h4>
+                        <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.fyp}>
+                                <BarChart data={companyChartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                                     <YAxis tick={{ fontSize: 12 }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="value" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="value" fill="#0088FE" name="First Year Premium" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         {/* SA Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured Breakup</h4>
+                        <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.sa}>
+                                <BarChart data={companyChartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                                     <YAxis tick={{ fontSize: 12 }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* NOP Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Policies Breakup</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nop}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         {/* NOL Chart */}
-                        <div className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Lives Breakup</h4>
+                        <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>Number of Lives</h4>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nol}>
+                                <BarChart data={companyChartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                                     <YAxis tick={{ fontSize: 12 }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="value" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="value" fill="#8884d8" name="Number of Lives" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* NOP Chart */}
+                        <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                            <h4 style={{ marginBottom: '15px', color: '#555' }}>No of Policies</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={companyChartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                    <YAxis tick={{ fontSize: 12 }} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="value" fill="#FF8042" name="No of Policies" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -342,24 +435,24 @@ const IrdaiCompanywise = () => {
                                     <th colSpan="5" style={{ textAlign: 'center', backgroundColor: '#f0f0f0' }}>Premium Type Long Name</th>
                                 </tr>
                                 <tr>
-                                    <th>Group Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span></th>
-                                    <th>Individual Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span></th>
-                                    <th>Individual Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span></th>
-                                    <th>Group Yearly<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Renewable Premium</span></th>
-                                    <th>Group Single Premium<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span></th>
+                                    <th onClick={() => requestSort('groupNonSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupNonSingle')}</th>
+                                    <th onClick={() => requestSort('indSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Individual Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indSingle')}</th>
+                                    <th onClick={() => requestSort('indNonSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Individual Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indNonSingle')}</th>
+                                    <th onClick={() => requestSort('groupYearly')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Yearly<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Renewable Premium</span>{getSortIndicator('groupYearly')}</th>
+                                    <th onClick={() => requestSort('groupSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Single Premium<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupSingle')}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {companyTableData.length > 0 ? companyTableData.map((row, idx) => (
+                                {sortedTableData.length > 0 ? sortedTableData.map((row, idx) => (
                                     <tr key={idx}>
                                         <td>{row.category}</td>
                                         <td>{row.unit}</td>
                                         <td>{row.period}</td>
-                                        <td>{row.groupNonSingle || 0}</td>
-                                        <td>{row.indSingle || 0}</td>
-                                        <td>{row.indNonSingle || 0}</td>
-                                        <td>{row.groupYearly || 0}</td>
-                                        <td>{row.groupSingle || 0}</td>
+                                        <td style={{ textAlign: 'right' }}>{(row.groupNonSingle || 0).toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{(row.indSingle || 0).toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{(row.indNonSingle || 0).toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{(row.groupYearly || 0).toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{(row.groupSingle || 0).toLocaleString('en-IN')}</td>
                                     </tr>
                                 )) : (
                                     <tr>

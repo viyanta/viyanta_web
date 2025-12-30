@@ -1,14 +1,9 @@
 
-const API_BASE_URL = 'https://app.viyantainsights.com/api';
-
 import axios from 'axios';
 
-// <<<<<<< backend_main
-// // Use environment variable or relative URL for production
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
-//   (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
-// =======
-// >>>>>>> main
+// Use environment variable or relative URL for production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
 
 class ApiService {
 
@@ -376,6 +371,33 @@ class ApiService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to clear user history');
+    }
+
+    return response.json();
+  }
+
+  async getPvtVsPublicTable(startDate, endDate, sector = 'BOTH', premiumType = 'ALL') {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/pvt-vs-public/table?start_date=${startDate}&end_date=${endDate}&sector=${encodeURIComponent(sector)}&premium_type=${encodeURIComponent(premiumType)}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Pvt vs Public table');
+    }
+
+    return response.json();
+  }
+
+  async uploadIrdaiMonthlyExcel(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/upload-monthly-excel`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
     }
 
     return response.json();
@@ -1581,6 +1603,12 @@ class ApiService {
   };
 
   // 2️⃣ Get Insurers for a Selected Month
+  // Get Company Insurers List (Simple list for dropdowns)
+  getCompanyInsurersList = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  };
+
   getIrdaiInsurers = async (reportMonth) => {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
       params: { report_month: reportMonth },
@@ -1600,8 +1628,46 @@ class ApiService {
   };
 
   // 4️⃣ Get Premium Types
-  getPremiumTypes = async () => {
+  getIrdaiPremiumTypes = async () => {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/types`);
+    return response.data;
+  };
+
+  // 5️⃣ Get Period Types
+  getIrdaiPeriodTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
+    return response.data;
+  };
+
+  // 6️⃣ Get Period Options
+  getIrdaiPeriodOptions = async (type) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/options`, {
+      params: { type },
+    });
+    return response.data; // Expecting list of { label, start_date, end_date } or similar
+  };
+
+  // 7️⃣ Get Peer Comparison
+  getIrdaiPeersComparison = async (insurers, metric, premiumType, startDate, endDate) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/peers/comparison`, {
+      params: {
+        insurers, // axios will serialize array as insurers[]=value by default. FastAPI expects insurers=value&insurers=value
+        metric,
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate,
+      },
+      paramsSerializer: params => {
+        // Custom serializer to match FastAPI expectation: repeated key for array
+        const searchParams = new URLSearchParams();
+        searchParams.append('metric', metric);
+        searchParams.append('premium_type', premiumType);
+        searchParams.append('start_date', startDate);
+        searchParams.append('end_date', endDate);
+        insurers.forEach(insurer => searchParams.append('insurers', insurer));
+        return searchParams.toString();
+      }
+    });
     return response.data;
   };
 
@@ -1864,6 +1930,14 @@ class ApiService {
     return response.data;
   }
 
+  async getCompanyPremiumTypeBreakup(insurerName, startDate, endDate) {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/company/premium-type?insurer_name=${encodeURIComponent(insurerName)}&start_date=${startDate}&end_date=${endDate}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch company premium type breakup');
+    }
+    return response.json();
+  }
+
   async getCompanyMetricWisePremium(insurerName, startDate, endDate) {
     const response = await axios.get(
       `${API_BASE_URL}/irdai-monthly/company/metric-wise-premium`,
@@ -1878,17 +1952,18 @@ class ApiService {
     return response.data;
   }
 
-  // 1️⃣6️⃣ Monthwise Company All Metrics
-  async getMonthwiseCompanyAllMetrics(insurerName, startDate, endDate) {
-    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/company-all-metrics`, {
+  // 1️⃣6️⃣ Monthwise All Companies All Metrics (Updated)
+  // Replaces getMonthwiseCompanyAllMetrics which used to take insurerName
+  getMonthwiseCompanyAllMetrics = async (insurerName, startDate, endDate) => {
+    // Calling updated backend endpoint which doesn't take insurer_name
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/all-companies-all-metrics`, {
       params: {
-        insurer_name: insurerName,
         start_date: startDate,
         end_date: endDate
       }
     });
     return response.data;
-  }
+  };
 
   async getIrdaiPeriodTypes() {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
