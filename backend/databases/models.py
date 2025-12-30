@@ -280,9 +280,6 @@ class IndustryMaster(Base):
     IsActive = Column(Boolean, default=True, nullable=False)
 
 
-<< << << < HEAD
-
-
 class PeriodMaster(Base):
     __tablename__ = "period_master"
 
@@ -426,20 +423,6 @@ class IRDAIData(Base):
     quarter_period_ref = relationship("PeriodMaster")
 
 
-class DashboardSelectedDescriptions(Base):
-    __tablename__ = "dashboard_selected_descriptions"
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String(500), unique=True, nullable=False)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-
-
-== == == =
->>>>>> > 458e585 (changes in economy from server)
-
-
 class Companies(Base):
     __tablename__ = "companies"
 
@@ -447,7 +430,6 @@ class Companies(Base):
     companyname = Column(String(255), unique=True, nullable=False)
 
 
-<< << << < HEAD
 Base = declarative_base()
 
 
@@ -496,10 +478,6 @@ class ReportsL2Extracted(Base):
     upto_previous_period = Column(String(50))
 
     created_at = Column(DateTime, server_default=func.now())
-
-
-== == == =
->>>>>> > 458e585 (changes in economy from server)
 
 
 class DashboardSelectedDescriptions(Base):
@@ -744,3 +722,4 @@ class UserMaster(Base):
 
     def __repr__(self):
         return f"<UserMaster(UserID={self.UserID}, Email={self.UserLoginEmailName})>"
+

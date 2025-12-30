@@ -21,7 +21,7 @@ from routes.admin import router as admin_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
-    Company, Report, ReportData, EconomyMaster,
+    Company, EconomyMaster,
     DashboardSelectedDescriptions, User, IndustryMaster
 )
 
