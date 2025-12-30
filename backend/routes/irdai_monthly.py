@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
-from sqlalchemy import text
+from sqlalchemy import text, bindparam
 from sqlalchemy.orm import Session
 from databases.database import get_db, DB_TYPE
 import os
@@ -14,10 +14,11 @@ router = APIRouter()
 
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "viyanta_web",
+    "host": os.getenv("DB_HOST", "localhost"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", ""),
+    "database": os.getenv("DB_NAME", "viyanta_web"),
+    "port": int(os.getenv("DB_PORT", 3306))
 }
 # ======================================================
 # UPLOAD IRDAI MONTHLY EXCEL
@@ -774,6 +775,7 @@ def get_premium_market_share_by_insurer(
             'Group Non-Single Premium',
             'Group Yearly Renewable Premium'
           )
+        GROUP BY insurer_name, category
         HAVING COUNT(*) > 0
 
         UNION ALL
@@ -1099,3 +1101,102 @@ def get_pvt_vs_public_table(
         params["premium_type"] = premium_type
 
     return db.execute(sql, params).mappings().all()
+
+  # 1️⃣8️⃣ PEER INSURERS LIST
+
+@router.get("/dropdown/insurers")
+def get_insurer_dropdown(db: Session = Depends(get_db)):
+    sql = text("""
+        SELECT DISTINCT insurer_name
+        FROM irdai_monthly_data
+        WHERE insurer_name NOT IN ('Grand Total', 'Private Total')
+        AND (insurer_name LIKE '%Limited%' OR insurer_name LIKE 'LIC%') 
+        ORDER BY insurer_name
+    """)
+    insurers = [r[0] for r in db.execute(sql).all()]
+
+    return {
+        "max_select": 5,
+        "options": insurers
+    }
+
+
+@router.get("/peers/comparison")
+def get_peer_comparison(
+    insurers: list[str] = Query(..., description="Select up to 5 insurers"),
+    metric: str = Query(..., description="FYP | SA | NOP | NOL"),
+    premium_type: str = Query(...),
+    start_date: str = Query(...),
+    end_date: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    # ----------------------------
+    # VALIDATIONS
+    # ----------------------------
+    if len(insurers) > 5:
+        raise HTTPException(
+            status_code=400,
+            detail="You can compare a maximum of 5 insurers"
+        )
+
+    metric_map = {
+        "FYP": "fyp_current",
+        "SA": "sa_current",
+        "NOP": "pol_current",
+        "NOL": "lives_current",
+    }
+
+    if metric not in metric_map:
+        raise HTTPException(status_code=400, detail="Invalid metric")
+
+    allowed_premium_types = [
+        "Individual Single Premium",
+        "Individual Non-Single Premium",
+        "Group Single Premium",
+        "Group Non-Single Premium",
+        "Group Yearly Renewable Premium",
+    ]
+
+    if premium_type not in allowed_premium_types:
+        raise HTTPException(status_code=400, detail="Invalid premium type")
+
+    metric_column = metric_map[metric]
+
+    # ----------------------------
+    # SQL (SAFE IN CLAUSE)
+    # ----------------------------
+    sql = (
+        text(f"""
+            SELECT
+              insurer_name,
+              SUM({metric_column}) AS value
+            FROM irdai_monthly_data
+            WHERE report_month BETWEEN :start_date AND :end_date
+              AND insurer_name IN :insurers
+              AND category = :premium_type
+            GROUP BY insurer_name
+            ORDER BY insurer_name
+        """)
+        .bindparams(bindparam("insurers", expanding=True))
+    )
+
+    rows = db.execute(sql, {
+        "insurers": insurers,
+        "premium_type": premium_type,
+        "start_date": start_date,
+        "end_date": end_date
+    }).mappings().all()
+
+    # ----------------------------
+    # RESPONSE
+    # ----------------------------
+    return {
+        "metric": metric,
+        "premium_type": premium_type,
+        "period": {
+            "start_date": start_date,
+            "end_date": end_date
+        },
+        "insurers": insurers,
+        "data": {r["insurer_name"]: r["value"] for r in rows}
+    }

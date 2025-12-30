@@ -8,7 +8,7 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 const IrdaiMarketShare = () => {
     // Local State
     const [viewMode, setViewMode] = useState('visuals');
-    const [periodType, setPeriodType] = useState('Monthly');
+    const [periodType, setPeriodType] = useState('MONTH');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
     const [insurerName, setInsurerName] = useState('');
 
@@ -356,7 +356,7 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                         <LabelList dataKey="values.premium" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                     </Bar>
                                 </BarChart>
@@ -383,7 +383,7 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                         <LabelList dataKey="values.sum" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                     </Bar>
                                 </BarChart>
@@ -410,7 +410,7 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                         <LabelList dataKey="values.policies" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                     </Bar>
                                 </BarChart>
@@ -437,7 +437,7 @@ const IrdaiMarketShare = () => {
                                         formatter={(value) => [`${value}%`, 'Share']}
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
                                     />
-                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                         <LabelList dataKey="values.lives" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                     </Bar>
                                 </BarChart>

@@ -386,6 +386,23 @@ class ApiService {
     return response.json();
   }
 
+  async uploadIrdaiMonthlyExcel(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/upload-monthly-excel`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
   // Updated extraction methods with user context
   async extractBulkPDFsWithUser(files, extractMode = 'both', userId = null) {
     const formData = new FormData();
@@ -1580,6 +1597,12 @@ class ApiService {
   };
 
   // 2️⃣ Get Insurers for a Selected Month
+  // Get Company Insurers List (Simple list for dropdowns)
+  getCompanyInsurersList = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  };
+
   getIrdaiInsurers = async (reportMonth) => {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
       params: { report_month: reportMonth },
@@ -1601,6 +1624,44 @@ class ApiService {
   // 4️⃣ Get Premium Types
   getIrdaiPremiumTypes = async () => {
     const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/types`);
+    return response.data;
+  };
+
+  // 5️⃣ Get Period Types
+  getIrdaiPeriodTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
+    return response.data;
+  };
+
+  // 6️⃣ Get Period Options
+  getIrdaiPeriodOptions = async (type) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/options`, {
+      params: { type },
+    });
+    return response.data; // Expecting list of { label, start_date, end_date } or similar
+  };
+
+  // 7️⃣ Get Peer Comparison
+  getIrdaiPeersComparison = async (insurers, metric, premiumType, startDate, endDate) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/peers/comparison`, {
+      params: {
+        insurers, // axios will serialize array as insurers[]=value by default. FastAPI expects insurers=value&insurers=value
+        metric,
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate,
+      },
+      paramsSerializer: params => {
+        // Custom serializer to match FastAPI expectation: repeated key for array
+        const searchParams = new URLSearchParams();
+        searchParams.append('metric', metric);
+        searchParams.append('premium_type', premiumType);
+        searchParams.append('start_date', startDate);
+        searchParams.append('end_date', endDate);
+        insurers.forEach(insurer => searchParams.append('insurers', insurer));
+        return searchParams.toString();
+      }
+    });
     return response.data;
   };
 

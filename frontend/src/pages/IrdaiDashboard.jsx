@@ -208,6 +208,28 @@ const IrdaiDashboard = () => {
         setSortConfig({ key, direction });
     };
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            setLoading(true);
+            await api.uploadIrdaiMonthlyExcel(file);
+            alert("File uploaded successfully!");
+            // Refresh data if we have a selected period
+            if (selectedPeriod && typeof selectedPeriod !== 'string') {
+                // Re-fetching logic is already in useEffect dependent on selectedPeriod, 
+                // but we might need to force it. For now, simple alert is enough as per user request.
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert(`Upload failed: ${error.message}`);
+        } finally {
+            setLoading(false);
+            event.target.value = ''; // Reset input
+        }
+    };
+
     const getSortIndicator = (name) => {
         if (sortConfig.key === name) {
             return sortConfig.direction === 'asc' ? ' ↑' : ' ↓';
@@ -252,6 +274,24 @@ const IrdaiDashboard = () => {
                                 <option key={p.label} value={p.label}>{p.label}</option>
                             ))}
                         </select>
+                    </div>
+
+
+                    <div className="period-select-container" style={{ marginLeft: '10px', alignSelf: 'flex-end' }}>
+                        <input
+                            type="file"
+                            accept=".xlsx"
+                            style={{ display: 'none' }}
+                            id="irdai-upload-input"
+                            onChange={handleFileUpload}
+                        />
+                        <button
+                            className="action-btn"
+                            onClick={() => document.getElementById('irdai-upload-input').click()}
+                            disabled={loading}
+                        >
+                            <span>📤</span> Upload Data
+                        </button>
                     </div>
                 </>
             }
@@ -385,7 +425,7 @@ const IrdaiDashboard = () => {
                     </div>
                 </div>
             )}
-        </TabLayout>
+        </TabLayout >
     );
 };
 

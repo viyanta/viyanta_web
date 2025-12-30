@@ -98,7 +98,7 @@ const IrdaiPremiumWise = () => {
 
     // Local State
     const [viewMode, setViewMode] = useState('visuals');
-    const [periodType, setPeriodType] = useState('Monthly');
+    const [periodType, setPeriodType] = useState('MONTH');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
     const [premiumTypeSelection, setPremiumTypeSelection] = useState('Individual Single Premium');
     const [premiumTypes, setPremiumTypes] = useState([]);
@@ -402,7 +402,7 @@ const IrdaiPremiumWise = () => {
                                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                                 />
                                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                                <Bar dataKey={chart.key} fill={chart.color} name={chart.title.replace(' Distribution', '')} radius={[0, 4, 4, 0]}>
+                                                <Bar dataKey={chart.key} fill={chart.color} name={chart.title.replace(' Distribution', '')} radius={[0, 4, 4, 0]} isAnimationActive={false}>
                                                     <LabelList dataKey={chart.key} position="right" style={{ fontSize: '10px', fill: '#666' }} />
                                                 </Bar>
                                             </BarChart>

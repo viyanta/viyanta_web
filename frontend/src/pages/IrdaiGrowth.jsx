@@ -373,7 +373,7 @@ const IrdaiGrowth = () => {
                                                 formatter={(value) => [`${value}%`, 'Growth']}
                                             />
                                             <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]}>
+                                            <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                                 <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                             </Bar>
                                         </BarChart>
@@ -405,7 +405,7 @@ const IrdaiGrowth = () => {
                                                 formatter={(value) => [`${value}%`, 'Growth']}
                                             />
                                             <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]}>
+                                            <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                                 <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
                                             </Bar>
                                         </BarChart>
