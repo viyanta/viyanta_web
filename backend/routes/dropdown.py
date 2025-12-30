@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from databases.database import get_db
 from .database import get_all_files
 from datetime import datetime
 import os
@@ -360,43 +363,49 @@ async def get_dropdown_data():
     pass
 
 
+# Simple in-memory cache
+company_cache = {
+    "data": [],
+    "last_updated": None
+}
+
 @router.get("/s3-companies")
-async def get_s3_companies():
-    """Get list of companies from S3 bucket based on uploaded files"""
-    try:
-        from services.s3_service import s3_service
-        S3_AVAILABLE = True
-    except Exception as e:
-        return {"success": False, "error": f"S3 service not available: {str(e)}", "companies": []}
-
-    if not S3_AVAILABLE:
-        return {"success": False, "error": "S3 service not configured", "companies": []}
+async def get_s3_companies(db: Session = Depends(get_db)):
+    """Get list of companies from Database (Optimized replacement for S3 listing)"""
+    
+    # We still use the same response structure for frontend compatibility
+    # but we fetch from the DB 'irdai_monthly_data' table which is much faster
+    # thanks to the indices we added.
 
     try:
-        files = s3_service.list_files(prefix="maker_checker/")
-        companies = set()
-        for file_key in files:
-            if file_key.endswith('.json'):
-                parts = file_key.split('/')
-                if len(parts) >= 3:
-                    company_name = parts[1]
-                    companies.add(company_name)
+        sql = text("""
+            SELECT DISTINCT insurer_name 
+            FROM irdai_monthly_data 
+            WHERE insurer_name NOT IN ('Grand Total', 'Private Total')
+            ORDER BY insurer_name
+        """)
         
-        company_list = sorted(list(companies))
+        result = db.execute(sql).fetchall()
+        company_list = [row[0] for row in result]
+        
         formatted_companies = []
         for i, company in enumerate(company_list):
             formatted_companies.append({
                 "id": i + 1,
                 "name": company,
-                "s3_key": f"maker_checker/{company}/{company}.json"
+                # Retain s3_key format for backward compatibility if used anywhere
+                "s3_key": f"maker_checker/{company}/{company}.json" 
             })
         
-        return {"success": True, "companies": formatted_companies, "total_count": len(formatted_companies), "message": f"Found {len(formatted_companies)} companies in S3"}
-        
+        return {
+            "success": True, 
+            "companies": formatted_companies, 
+            "total_count": len(formatted_companies), 
+            "message": f"Found {len(formatted_companies)} companies in Database"
+        }
+
     except Exception as e:
-        return {"success": False, "error": f"Failed to list S3 files: {str(e)}", "companies": []}
-        
-    except Exception as e:
+        return {"success": False, "error": f"Failed to fetch companies: {str(e)}", "companies": []}
         return {"success": False, "error": f"Internal server error: {str(e)}", "companies": []}
 
 @router.get("/company-data/{company_name}")

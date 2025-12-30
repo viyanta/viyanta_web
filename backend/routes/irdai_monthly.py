@@ -1163,29 +1163,41 @@ def get_peer_comparison(
     metric_column = metric_map[metric]
 
     # ----------------------------
-    # SQL (SAFE IN CLAUSE)
+    # SQL (MANUAL IN CLAUSE for compatibility)
     # ----------------------------
-    sql = (
-        text(f"""
-            SELECT
-              insurer_name,
-              SUM({metric_column}) AS value
-            FROM irdai_monthly_data
-            WHERE report_month BETWEEN :start_date AND :end_date
-              AND insurer_name IN :insurers
-              AND category = :premium_type
-            GROUP BY insurer_name
-            ORDER BY insurer_name
-        """)
-        .bindparams(bindparam("insurers", expanding=True))
-    )
-
-    rows = db.execute(sql, {
-        "insurers": insurers,
+    
+    # Create dynamic keys for insurers: :insurer_0, :insurer_1...
+    insurer_binds = {}
+    insurer_keys = []
+    
+    for i, name in enumerate(insurers):
+        key = f"insurer_{i}"
+        insurer_binds[key] = name
+        insurer_keys.append(f":{key}")
+    
+    in_clause = ", ".join(insurer_keys)
+    
+    # Base params
+    params = {
         "premium_type": premium_type,
         "start_date": start_date,
-        "end_date": end_date
-    }).mappings().all()
+        "end_date": end_date,
+        **insurer_binds  # Merge insurer params
+    }
+
+    sql = text(f"""
+        SELECT
+          insurer_name,
+          SUM({metric_column}) AS value
+        FROM irdai_monthly_data
+        WHERE report_month BETWEEN :start_date AND :end_date
+          AND insurer_name IN ({in_clause})
+          AND category = :premium_type
+        GROUP BY insurer_name
+        ORDER BY insurer_name
+    """)
+
+    rows = db.execute(sql, params).mappings().all()
 
     # ----------------------------
     # RESPONSE
