@@ -18,6 +18,7 @@ from routes.menu import router as menu_router
 from routes.user import router as user_router
 from routes.auth import router as auth_router
 from routes.admin import router as admin_router
+from routes.master_rows import router as master_rows_router
 from databases.database import Base, engine, get_db
 # Import models to ensure tables are created
 from databases.models import (
@@ -132,6 +133,7 @@ app.include_router(menu_router, prefix="/api/menu", tags=["Menu"])
 app.include_router(user_router, prefix="/api/user", tags=["User"])
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
+app.include_router(master_rows_router)  # Master rows management
 
 # Log registered routes for debugging
 print("✅ Economy router registered with prefix: /api/economy")
@@ -203,6 +205,24 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "message": "API is running"}
+
+
+@app.get("/master-rows-manager")
+async def serve_master_rows_manager():
+    """Serve the Master Rows Manager HTML UI"""
+    from fastapi.responses import FileResponse
+    import os
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+    return FileResponse(os.path.join(templates_dir, "master_rows_manager.html"))
+
+
+@app.get("/master-rows-manager-v2")
+async def serve_master_rows_manager_v2():
+    """Serve the Enhanced Master Rows Manager HTML UI with full features"""
+    from fastapi.responses import FileResponse
+    import os
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+    return FileResponse(os.path.join(templates_dir, "master_rows_manager_v2.html"))
 
 
 @app.get("/db-status")

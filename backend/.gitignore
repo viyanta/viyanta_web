@@ -10,8 +10,22 @@ __pycache__
 *.txt
 *.log
 test_*.py
+check*.py
+demo*.py
+clean*.py
+analyze_*.py
+debug_*.py
+fix*.py
+final*.py
+query_*.py
+r*.py
+v*.py
+q*.py
+q.md
+*.md
 extractions/*
 gemini_verified_json/*
+databases/*.sql
 
 venv310/
 venv*/

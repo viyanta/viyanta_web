@@ -469,13 +469,50 @@ class ReportsL2Extracted(Base):
 
     particulars = Column(Text)
     normalized_text = Column(String(512))  # NLP-normalized text for matching
-    master_row_id = Column(BigInteger)  # References master_mapping.id
+
+    # CRITICAL: master_row_id MUST reference master_rows.master_row_id (the canonical source)
+    # NOT master_mapping.id (which is only for mapping variants to masters)
+    # This ensures all financial line items use the same canonical master_row_id
+    master_row_id = Column(BigInteger)  # References master_rows.master_row_id
+
     schedule = Column(String(100))
 
     for_current_period = Column(String(50))
     upto_current_period = Column(String(50))
     for_previous_period = Column(String(50))
     upto_previous_period = Column(String(50))
+
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class ReportsL3Extracted(Base):
+    """
+    Extracted rows from L-3 forms (Balance Sheet)
+    Stores individual line items for master mapping and analysis
+    """
+    __tablename__ = "reports_l3_extracted"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    # Note: Foreign keys removed to avoid SQLAlchemy metadata resolution issues
+    # with dynamically created models. Relationships are maintained at application level.
+    report_id = Column(BigInteger, nullable=False)
+    company_id = Column(Integer, nullable=False)
+    row_index = Column(Integer)
+
+    particulars = Column(Text)
+    normalized_text = Column(String(512))  # NLP-normalized text for matching
+
+    # CRITICAL: master_row_id MUST reference master_rows.master_row_id (the canonical source)
+    # NOT master_mapping.id (which is only for mapping variants to masters)
+    # This ensures all financial line items use the same canonical master_row_id
+    master_row_id = Column(BigInteger)  # References master_rows.master_row_id
+
+    schedule = Column(String(100))
+
+    # L-3 specific columns (Balance Sheet format: as_at current/previous period)
+    as_at_current_period = Column(String(50))
+    as_at_previous_period = Column(String(50))
 
     created_at = Column(DateTime, server_default=func.now())
 
@@ -510,6 +547,7 @@ class DashboardChartConfig(Base):
 # Register extracted/detail tables in ReportModels
 # =================================================================
 ReportModels['reports_l2_extracted'] = ReportsL2Extracted
+ReportModels['reports_l3_extracted'] = ReportsL3Extracted
 
 
 class MasterRow(Base):
@@ -600,6 +638,110 @@ class MasterMapping(Base):
     master_row = relationship(
         "MasterRow",
         primaryjoin="foreign(MasterMapping.cluster_label)==MasterRow.cluster_label",
+        viewonly=True
+    )
+
+
+# =================================================================
+# L3-Specific Master Tables (Balance Sheet)
+# =================================================================
+
+class MasterRowL3(Base):
+    """
+    Master rows specifically for L-3 forms (Balance Sheet)
+    Separate from L-2 to maintain form-specific canonical mappings
+    """
+    __tablename__ = "master_rows_l3"
+
+    master_row_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    cluster_label = Column(
+        Integer,
+        unique=True,
+        nullable=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=True
+    )
+
+    # Optional relationship (safe to keep)
+    mappings = relationship(
+        "MasterMappingL3",
+        back_populates="master_row",
+        primaryjoin="MasterRowL3.cluster_label==foreign(MasterMappingL3.cluster_label)",
+        viewonly=True
+    )
+
+
+class MasterMappingL3(Base):
+    """
+    Master mapping specifically for L-3 forms (Balance Sheet)
+    Maps variant text to canonical master rows for L-3
+    """
+    __tablename__ = "master_mapping_l3"
+
+    id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=False
+    )
+
+    company_id = Column(
+        Integer,
+        nullable=False
+    )
+
+    form_no = Column(
+        String(20),
+        nullable=False
+    )
+
+    variant_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    normalized_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    cluster_label = Column(
+        Integer,
+        nullable=True
+    )
+
+    similarity_score = Column(
+        Float,
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp()
+    )
+
+    # Logical (not FK-based) relationship
+    master_row = relationship(
+        "MasterRowL3",
+        primaryjoin="foreign(MasterMappingL3.cluster_label)==MasterRowL3.cluster_label",
         viewonly=True
     )
 

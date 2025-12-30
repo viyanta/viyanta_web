@@ -1,3 +1,4 @@
+from sqlalchemy import bindparam
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -375,6 +376,7 @@ def get_company_list(db: Session = Depends(get_db)):
         SELECT DISTINCT insurer_name
         FROM irdai_monthly_data
         WHERE insurer_name NOT IN ('Private Total', 'Grand Total')
+          AND insurer_name LIKE '%Limited%'
         ORDER BY insurer_name
     """)
     rows = db.execute(sql).fetchall()
@@ -899,10 +901,9 @@ def get_company_premium_growth(
     }).mappings().all()
 
 
-# 1️⃣6️⃣ MONTHWISE COMPANY ALL METRICS
-@router.get("/monthwise/company-all-metrics")
-def get_monthwise_company_all_metrics(
-    insurer_name: str,
+# 1️⃣6️⃣ MONTHWISE – ALL COMPANIES – ALL METRICS
+@router.get("/monthwise/all-companies-all-metrics")
+def get_monthwise_all_companies_all_metrics(
     start_date: str,
     end_date: str,
     db: Session = Depends(get_db)
@@ -949,25 +950,10 @@ def get_monthwise_company_all_metrics(
           lives_market_share AS nol_market_share
 
         FROM irdai_monthly_data
-        WHERE insurer_name = :insurer_name
-          AND report_month BETWEEN :start_date AND :end_date
-          AND (
-                category NOT IN (
-                  'Individual Single Premium',
-                  'Individual Non-Single Premium',
-                  'Group Single Premium',
-                  'Group Non-Single Premium',
-                  'Group Yearly Renewable Premium'
-                )
-                OR category IN (
-                  'Individual Single Premium',
-                  'Individual Non-Single Premium',
-                  'Group Single Premium',
-                  'Group Non-Single Premium',
-                  'Group Yearly Renewable Premium'
-                )
-          )
+        WHERE report_month BETWEEN :start_date AND :end_date
+
         ORDER BY
+          insurer_name,
           CASE
             WHEN category NOT IN (
               'Individual Single Premium',
@@ -975,14 +961,13 @@ def get_monthwise_company_all_metrics(
               'Group Single Premium',
               'Group Non-Single Premium',
               'Group Yearly Renewable Premium'
-            ) THEN 0
+            ) THEN 0   -- TOTAL rows first
             ELSE 1
           END,
           category
     """)
 
     return db.execute(sql, {
-        "insurer_name": insurer_name,
         "start_date": start_date,
         "end_date": end_date
     }).mappings().all()
@@ -1050,24 +1035,52 @@ def get_private_vs_public_summary(
         "end_date": end_date
     }).mappings().all()
 
+
 # 1️⃣7️⃣ PRIVATE vs PUBLIC TABLE
-
-
 @router.get("/pvt-vs-public/table")
 def get_pvt_vs_public_table(
     start_date: str,
     end_date: str,
+    sector: str = "BOTH",        # PRIVATE | PUBLIC | BOTH
+    premium_type: str = "ALL",   # ALL | Individual Single Premium | ...
     db: Session = Depends(get_db)
 ):
-    sql = text("""
+    # ----------------------------
+    # Sector filter
+    # ----------------------------
+    if sector == "PRIVATE":
+        insurer_filter = "('Private Total')"
+    elif sector == "PUBLIC":
+        insurer_filter = "('LIC of India')"
+    else:  # BOTH
+        insurer_filter = "('Grand Total','Private Total','LIC of India')"
+
+    # ----------------------------
+    # Premium type filter
+    # ----------------------------
+    if premium_type == "ALL":
+        premium_filter = """
+            category = insurer_name
+            OR category IN (
+              'Individual Single Premium',
+              'Individual Non-Single Premium',
+              'Group Single Premium',
+              'Group Non-Single Premium',
+              'Group Yearly Renewable Premium'
+            )
+        """
+    else:
+        premium_filter = "category = :premium_type"
+
+    sql = text(f"""
         SELECT
           insurer_name,
           category AS row_name,
 
-          fyp_current   AS fyp,
-          pol_current   AS nop,
-          lives_current AS nol,
-          sa_current    AS sa,
+          SUM(fyp_current)   AS fyp,
+          SUM(pol_current)   AS nop,
+          SUM(lives_current) AS nol,
+          SUM(sa_current)    AS sa,
 
           CASE
             WHEN insurer_name = 'Grand Total' THEN 0
@@ -1083,21 +1096,10 @@ def get_pvt_vs_public_table(
 
         FROM irdai_monthly_data
         WHERE report_month BETWEEN :start_date AND :end_date
-          AND insurer_name IN (
-            'Grand Total',
-            'Private Total',
-            'LIC of India'
-          )
-          AND (
-            category = insurer_name
-            OR category IN (
-              'Individual Single Premium',
-              'Individual Non-Single Premium',
-              'Group Single Premium',
-              'Group Non-Single Premium',
-              'Group Yearly Renewable Premium'
-            )
-          )
+          AND insurer_name IN {insurer_filter}
+          AND ({premium_filter})
+
+        GROUP BY insurer_name, category
 
         ORDER BY
           section_order,
@@ -1105,74 +1107,112 @@ def get_pvt_vs_public_table(
           category
     """)
 
-    return db.execute(sql, {
+    params = {
         "start_date": start_date,
-        "end_date": end_date
-    }).mappings().all()
+        "end_date": end_date,
+    }
+
+    if premium_type != "ALL":
+        params["premium_type"] = premium_type
+
+    return db.execute(sql, params).mappings().all()
 
 
 # 1️⃣8️⃣ PEER INSURERS LIST
-@router.get("/peers/insurers")
-def get_peer_insurers(db: Session = Depends(get_db)):
+
+@router.get("/dropdown/insurers")
+def get_insurer_dropdown(db: Session = Depends(get_db)):
     sql = text("""
         SELECT DISTINCT insurer_name
         FROM irdai_monthly_data
         WHERE insurer_name NOT IN ('Grand Total', 'Private Total')
+        AND (insurer_name LIKE '%Limited%' OR insurer_name LIKE 'LIC%') 
         ORDER BY insurer_name
     """)
-    return [r[0] for r in db.execute(sql).all()]
+    insurers = [r[0] for r in db.execute(sql).all()]
 
-# 1️⃣9️⃣ PEER COMPARISON
+    return {
+        "max_select": 5,
+        "options": insurers
+    }
 
 
 @router.get("/peers/comparison")
 def get_peer_comparison(
-    insurers: list[str] = Query(...),
+    insurers: list[str] = Query(..., description="Select up to 5 insurers"),
+    metric: str = Query(..., description="FYP | SA | NOP | NOL"),
     premium_type: str = Query(...),
     start_date: str = Query(...),
     end_date: str = Query(...),
     db: Session = Depends(get_db)
 ):
-    sql = text("""
-        SELECT
-          insurer_name,
+    # ----------------------------
+    # VALIDATIONS
+    # ----------------------------
+    if len(insurers) > 5:
+        raise HTTPException(
+            status_code=400,
+            detail="You can compare a maximum of 5 insurers"
+        )
 
-          fyp_current   AS fyp,
-          pol_current   AS nop,
-          lives_current AS nol,
-          sa_current    AS sa
+    metric_map = {
+        "FYP": "fyp_current",
+        "SA": "sa_current",
+        "NOP": "pol_current",
+        "NOL": "lives_current",
+    }
 
-        FROM irdai_monthly_data
-        WHERE report_month BETWEEN :start_date AND :end_date
-          AND insurer_name IN :insurers
-          AND category = :premium_type
-    """)
+    if metric not in metric_map:
+        raise HTTPException(status_code=400, detail="Invalid metric")
+
+    allowed_premium_types = [
+        "Individual Single Premium",
+        "Individual Non-Single Premium",
+        "Group Single Premium",
+        "Group Non-Single Premium",
+        "Group Yearly Renewable Premium",
+    ]
+
+    if premium_type not in allowed_premium_types:
+        raise HTTPException(status_code=400, detail="Invalid premium type")
+
+    metric_column = metric_map[metric]
+
+    # ----------------------------
+    # SQL (SAFE IN CLAUSE)
+    # ----------------------------
+    sql = (
+        text(f"""
+            SELECT
+              insurer_name,
+              SUM({metric_column}) AS value
+            FROM irdai_monthly_data
+            WHERE report_month BETWEEN :start_date AND :end_date
+              AND insurer_name IN :insurers
+              AND category = :premium_type
+            GROUP BY insurer_name
+            ORDER BY insurer_name
+        """)
+        .bindparams(bindparam("insurers", expanding=True))
+    )
 
     rows = db.execute(sql, {
-        "insurers": tuple(insurers),
+        "insurers": insurers,
         "premium_type": premium_type,
         "start_date": start_date,
         "end_date": end_date
     }).mappings().all()
 
-    # ==============================
-    # PIVOT IN PYTHON (CLEAN + SAFE)
-    # ==============================
-    result = {
-        "First Year Premium": {},
-        "No. of Policies / Schemes": {},
-        "No. of Lives Covered under Group Schemes": {},
-        "Sum Assured": {}
-    }
-
-    for r in rows:
-        result["First Year Premium"][r["insurer_name"]] = r["fyp"]
-        result["No. of Policies / Schemes"][r["insurer_name"]] = r["nop"]
-        result["No. of Lives Covered under Group Schemes"][r["insurer_name"]] = r["nol"]
-        result["Sum Assured"][r["insurer_name"]] = r["sa"]
-
+    # ----------------------------
+    # RESPONSE
+    # ----------------------------
     return {
+        "metric": metric,
         "premium_type": premium_type,
-        "period": f"{start_date} to {end_date}",
-        "data": result
+        "period": {
+            "start_date": start_date,
+            "end_date": end_date
+        },
+        "insurers": insurers,
+        "data": {r["insurer_name"]: r["value"] for r in rows}
     }

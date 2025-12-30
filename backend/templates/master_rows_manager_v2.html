@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Rows Manager - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #495057;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-input, .search-select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        .close {
+            font-size: 2em;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #dc3545;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-card label {
+            font-weight: 600;
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-card .value {
+            color: #212529;
+            font-size: 1.1em;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .selection-panel {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .selection-panel h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: #6c757d;
+            color: white;
+            padding: 12px;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .highlight {
+            background: #ffffcc;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .extracted-row-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .extracted-row-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .extracted-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .extracted-row-content {
+            color: #495057;
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Master Rows Manager</h1>
+            <p>Comprehensive tool for managing master row mappings and extracted data</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('browse')">📋 Browse Master Rows</button>
+            <button class="tab" onclick="switchTab('merge')">🔄 Merge Master Rows</button>
+            <button class="tab" onclick="switchTab('extracted')">📊 View Extracted Rows</button>
+            <button class="tab" onclick="switchTab('unmapped')">⚠️ Unmapped Rows</button>
+        </div>
+
+        <!-- Tab 1: Browse Master Rows -->
+        <div id="browse-tab" class="tab-content active">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" id="searchText" class="search-input" placeholder="Search by master name or normalized text...">
+                    <select id="formFilter" class="search-select">
+                        <option value="">All Forms</option>
+                        <option value="L-2-A">L-2-A</option>
+                        <option value="L-2-B">L-2-B</option>
+                        <option value="L-3">L-3</option>
+                        <option value="L-4">L-4</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="searchMasterRows()">🔍 Search</button>
+                    <button class="btn btn-secondary" onclick="loadAllMasterRows()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div id="masterRowsResults"></div>
+        </div>
+
+        <!-- Tab 2: Merge Master Rows -->
+        <div id="merge-tab" class="tab-content">
+            <div class="search-section">
+                <h3 style="margin-bottom: 15px;">🔀 Select Master Rows to Merge</h3>
+                <p style="margin-bottom: 20px; color: #6c757d;">
+                    Choose two master rows to merge. You'll be able to preview all changes before confirming.
+                </p>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <label>Source Master Row (will be removed)</label>
+                        <input type="number" id="sourceMasterId" class="search-input" placeholder="Enter master_row_id">
+                        <button class="btn btn-info" style="margin-top: 10px; width: 100%;" onclick="previewMasterRow('source')">👁️ Preview Source</button>
+                    </div>
+
+                    <div class="info-card">
+                        <label>Target Master Row (will be kept)</label>
+                        <input type="number" id="targetMasterId" class="search-input" placeholder="Enter master_row_id">
+                        <button class="btn btn-info" style="margin-top: 10px; width: 100%;" onclick="previewMasterRow('target')">👁️ Preview Target</button>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="previewMerge()">🔍 Preview Merge</button>
+                </div>
+            </div>
+
+            <div id="mergePreviewResults"></div>
+        </div>
+
+        <!-- Tab 3: View Extracted Rows -->
+        <div id="extracted-tab" class="tab-content">
+            <div class="search-section">
+                <h3 style="margin-bottom: 15px;">📊 View Extracted Rows for Master Row</h3>
+                <div class="search-row">
+                    <input type="number" id="extractedMasterId" class="search-input" placeholder="Enter master_row_id">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeUnmapped">
+                        <label for="includeUnmapped">Include unmapped rows</label>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadExtractedRows()">🔍 Load Extracted Rows</button>
+                </div>
+            </div>
+
+            <div id="extractedRowsResults"></div>
+        </div>
+
+        <!-- Tab 4: Unmapped Rows -->
+        <div id="unmapped-tab" class="tab-content">
+            <div class="search-section">
+                <h3 style="margin-bottom: 15px;">⚠️ Unmapped Extracted Rows</h3>
+                <p style="margin-bottom: 15px; color: #6c757d;">
+                    These rows have not been mapped to any master row. You can assign them manually.
+                </p>
+                <button class="btn btn-primary" onclick="loadUnmappedRows()">🔄 Load Unmapped Rows</button>
+            </div>
+
+            <div id="unmappedRowsResults"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Master Row Details -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔍 Master Row Details</h2>
+                <span class="close" onclick="closeModal('detailsModal')">&times;</span>
+            </div>
+            <div id="modalDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Merge Confirmation -->
+    <div id="mergeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚠️ Confirm Merge</h2>
+                <span class="close" onclick="closeModal('mergeModal')">&times;</span>
+            </div>
+            <div id="modalMergeContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Edit Extracted Row -->
+    <div id="editExtractedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Extracted Row</h2>
+                <span class="close" onclick="closeModal('editExtractedModal')">&times;</span>
+            </div>
+            <div id="modalEditExtractedContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Edit Master Normalized Text -->
+    <div id="editMasterTextModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Master Normalized Text</h2>
+                <span class="close" onclick="closeModal('editMasterTextModal')">&times;</span>
+            </div>
+            <div id="modalEditMasterTextContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal for PDF Preview -->
+    <div id="pdfPreviewModal" class="modal">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h2>📄 PDF Preview</h2>
+                <span class="close" onclick="closeModal('pdfPreviewModal')">&times;</span>
+            </div>
+            <div id="modalPdfPreviewContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = '/api/master-rows';
+
+        // Global state
+        let currentMergePreview = null;
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load initial data for certain tabs
+            if (tabName === 'browse' && !document.getElementById('masterRowsResults').innerHTML) {
+                loadAllMasterRows();
+            }
+        }
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Alert functions
+        function showAlert(message, type = 'info') {
+            const alertClass = `alert-${type}`;
+            const alertHtml = `
+                <div class="alert ${alertClass}">
+                    <strong>${type === 'success' ? '✅' : type === 'danger' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</strong>
+                    ${message}
+                </div>
+            `;
+            
+            // Show alert at the top of the active tab
+            const activeTab = document.querySelector('.tab-content.active');
+            const existingAlert = activeTab.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            activeTab.insertAdjacentHTML('afterbegin', alertHtml);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                const alert = activeTab.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+
+        // Load all master rows
+        async function loadAllMasterRows() {
+            const resultsDiv = document.getElementById('masterRowsResults');
+            resultsDiv.innerHTML = '<div class="loading">Loading master rows</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/list`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h3>No master rows found</h3>
+                            <p>Start by adding some data to the system</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderMasterRowsTable(data, resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Search master rows
+        async function searchMasterRows() {
+            const searchText = document.getElementById('searchText').value;
+            const formFilter = document.getElementById('formFilter').value;
+            const resultsDiv = document.getElementById('masterRowsResults');
+
+            resultsDiv.innerHTML = '<div class="loading">Searching master rows</div>';
+
+            try {
+                let url = `${API_BASE}/list?`;
+                if (searchText) url += `search=${encodeURIComponent(searchText)}&`;
+                if (formFilter) url += `form_no=${encodeURIComponent(formFilter)}&`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔍</div>
+                            <h3>No results found</h3>
+                            <p>Try different search criteria</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderMasterRowsTable(data, resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render master rows table
+        function renderMasterRowsTable(data, container) {
+            let html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Master Row ID</th>
+                                <th>Cluster Label</th>
+                                <th>Master Name</th>
+                                <th>Normalized Text</th>
+                                <th>Variants</th>
+                                <th>Companies</th>
+                                <th>Form No</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach(row => {
+                html += `
+                    <tr>
+                        <td><span class="badge badge-info">${row.master_row_id}</span></td>
+                        <td>${row.cluster_label}</td>
+                        <td>${row.master_name}</td>
+                        <td title="${row.normalized_text}">${row.normalized_text.substring(0, 50)}${row.normalized_text.length > 50 ? '...' : ''}</td>
+                        <td><span class="badge badge-success">${row.variant_count}</span></td>
+                        <td><span class="badge badge-warning">${row.company_count}</span></td>
+                        <td>${row.form_no}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-info" onclick="showMasterDetails(${row.master_row_id})" style="padding: 6px 12px; font-size: 0.9em;">👁️ Details</button>
+                            <button class="btn btn-primary" onclick="showEditMasterText(${row.master_row_id}, '${row.normalized_text.replace(/'/g, "\\'")}');" style="padding: 6px 12px; font-size: 0.9em;">✏️ Edit Text</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Show master row details
+        async function showMasterDetails(masterRowId) {
+            const modalContent = document.getElementById('modalDetailsContent');
+            modalContent.innerHTML = '<div class="loading">Loading details</div>';
+            showModal('detailsModal');
+
+            try {
+                const response = await fetch(`${API_BASE}/details/${masterRowId}`);
+                const data = await response.json();
+
+                let html = `
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <label>Master Row ID</label>
+                            <div class="value">${data.master_row.master_row_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Cluster Label</label>
+                            <div class="value">${data.master_row.cluster_label}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Master Name</label>
+                            <div class="value">${data.master_row.master_name}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Extracted Rows</label>
+                            <div class="value">${data.extracted_rows_count}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Total Variants</label>
+                            <div class="value">${data.total_variants}</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0 10px 0;">Mapping Variants</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Variant Text</th>
+                                    <th>Normalized Text</th>
+                                    <th>Company ID</th>
+                                    <th>Form No</th>
+                                    <th>Similarity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.mappings.forEach(mapping => {
+                    html += `
+                        <tr>
+                            <td>${mapping.id}</td>
+                            <td>${mapping.variant_text}</td>
+                            <td>${mapping.normalized_text}</td>
+                            <td>${mapping.company_id}</td>
+                            <td>${mapping.form_no}</td>
+                            <td>${(mapping.similarity_score * 100).toFixed(1)}%</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn btn-primary" onclick="viewExtractedRowsForMaster(${masterRowId})">📊 View Extracted Rows</button>
+                    </div>
+                `;
+
+                modalContent.innerHTML = html;
+            } catch (error) {
+                modalContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Preview master row before merge
+        async function previewMasterRow(type) {
+            const inputId = type === 'source' ? 'sourceMasterId' : 'targetMasterId';
+            const masterRowId = document.getElementById(inputId).value;
+
+            if (!masterRowId) {
+                showAlert('Please enter a master row ID', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/details/${masterRowId}`);
+                const data = await response.json();
+
+                showAlert(`${type.charAt(0).toUpperCase() + type.slice(1)} Master Row: ${data.master_row.master_name} (ID: ${masterRowId})`, 'info');
+            } catch (error) {
+                showAlert(`Error loading ${type} master row: ${error.message}`, 'danger');
+            }
+        }
+
+        // Preview merge
+        async function previewMerge() {
+            const sourceMasterId = document.getElementById('sourceMasterId').value;
+            const targetMasterId = document.getElementById('targetMasterId').value;
+
+            if (!sourceMasterId || !targetMasterId) {
+                showAlert('Please enter both source and target master row IDs', 'warning');
+                return;
+            }
+
+            if (sourceMasterId === targetMasterId) {
+                showAlert('Source and target cannot be the same', 'danger');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('mergePreviewResults');
+            resultsDiv.innerHTML = '<div class="loading">Loading merge preview</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/merge-preview?source_master_row_id=${sourceMasterId}&target_master_row_id=${targetMasterId}&keep_source_text=false`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to preview merge');
+                }
+                
+                currentMergePreview = await response.json();
+
+                renderMergePreview(currentMergePreview, resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render merge preview
+        function renderMergePreview(preview, container) {
+            // Validate preview data
+            if (!preview || !preview.source || !preview.target) {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> Invalid merge preview data. Please try again.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="alert alert-warning">
+                    <strong>⚠️ Preview:</strong> ${preview.action_summary}
+                </div>
+
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Source (Will be removed)</th>
+                                <th>Target (Will be kept)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Master Row ID</strong></td>
+                                <td>${preview.source.master_row_id}</td>
+                                <td class="highlight">${preview.target.master_row_id}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cluster Label</strong></td>
+                                <td>${preview.source.cluster_label}</td>
+                                <td>${preview.target.cluster_label}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Master Name</strong></td>
+                                <td>${preview.source.master_name}</td>
+                                <td>${preview.target.master_name}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Normalized Text</strong></td>
+                                <td>${preview.source.normalized_text}</td>
+                                <td class="highlight">${preview.target.normalized_text}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="selection-panel">
+                    <h3>🎯 Choose Final Normalized Text</h3>
+                    <p style="margin-bottom: 15px;">Select which normalized text to use after the merge:</p>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="normalizedText" id="useTargetText" value="target" checked>
+                            <label for="useTargetText">
+                                <strong>Use Target Text:</strong> ${preview.target.normalized_text}
+                            </label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="normalizedText" id="useSourceText" value="source">
+                            <label for="useSourceText">
+                                <strong>Use Source Text:</strong> ${preview.source.normalized_text}
+                            </label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="normalizedText" id="useCustomText" value="custom">
+                            <label for="useCustomText">
+                                <strong>Use Custom Text:</strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="customTextInput" style="display: none; margin-top: 15px;">
+                        <input type="text" id="customNormalizedText" class="search-input" placeholder="Enter custom normalized text">
+                    </div>
+                </div>
+
+                <div class="info-grid" style="margin-top: 20px;">
+                    <div class="stat-card">
+                        <div class="number">${preview.affected_rows.master_mapping}</div>
+                        <div class="label">Mappings to Update</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">${preview.affected_rows.reports_l2_extracted}</div>
+                        <div class="label">Extracted Rows to Update</div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-success" onclick="confirmMerge()">✅ Confirm Merge</button>
+                    <button class="btn btn-danger" onclick="document.getElementById('mergePreviewResults').innerHTML = '';">❌ Cancel</button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // Add event listener for custom text radio
+            document.getElementById('useCustomText').addEventListener('change', function() {
+                document.getElementById('customTextInput').style.display = this.checked ? 'block' : 'none';
+            });
+
+            document.querySelectorAll('input[name="normalizedText"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.id !== 'useCustomText') {
+                        document.getElementById('customTextInput').style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Confirm merge
+        async function confirmMerge() {
+            if (!currentMergePreview) {
+                showAlert('No merge preview available', 'danger');
+                return;
+            }
+
+            // Determine final normalized text
+            let finalText = '';
+            const selectedOption = document.querySelector('input[name="normalizedText"]:checked').value;
+            
+            if (selectedOption === 'target') {
+                finalText = currentMergePreview.target.normalized_text;
+            } else if (selectedOption === 'source') {
+                finalText = currentMergePreview.source.normalized_text;
+            } else if (selectedOption === 'custom') {
+                finalText = document.getElementById('customNormalizedText').value.trim();
+                if (!finalText) {
+                    showAlert('Please enter custom normalized text', 'warning');
+                    return;
+                }
+            }
+
+            const resultsDiv = document.getElementById('mergePreviewResults');
+            resultsDiv.innerHTML = '<div class="loading">Executing merge</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/merge-confirmed?source_master_row_id=${currentMergePreview.source.master_row_id}&target_master_row_id=${currentMergePreview.target.master_row_id}&final_normalized_text=${encodeURIComponent(finalText)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✅ Success!</strong> ${result.message}
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <label>Kept Master Row ID</label>
+                                <div class="value">${result.details.kept_master_row_id}</div>
+                            </div>
+                            <div class="info-card">
+                                <label>Removed Master Row ID</label>
+                                <div class="value">${result.details.removed_master_row_id}</div>
+                            </div>
+                            <div class="info-card">
+                                <label>Final Normalized Text</label>
+                                <div class="value">${result.details.final_normalized_text}</div>
+                            </div>
+                            <div class="info-card">
+                                <label>Updated Mappings</label>
+                                <div class="value">${result.details.updated.master_mapping_rows}</div>
+                            </div>
+                            <div class="info-card">
+                                <label>Updated Extracted Rows</label>
+                                <div class="value">${result.details.updated.extracted_rows}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Clear inputs
+                    document.getElementById('sourceMasterId').value = '';
+                    document.getElementById('targetMasterId').value = '';
+                    currentMergePreview = null;
+                } else {
+                    throw new Error(result.message || 'Merge failed');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Load extracted rows for a master row
+        async function loadExtractedRows() {
+            const masterRowId = document.getElementById('extractedMasterId').value;
+            const includeUnmapped = document.getElementById('includeUnmapped').checked;
+
+            if (!masterRowId) {
+                showAlert('Please enter a master row ID', 'warning');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('extractedRowsResults');
+            resultsDiv.innerHTML = '<div class="loading">Loading extracted rows</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/extracted-rows/${masterRowId}?include_unmapped=${includeUnmapped}`);
+                const data = await response.json();
+
+                if (data.extracted_rows.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h3>No extracted rows found</h3>
+                            <p>This master row has no associated extracted rows</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderExtractedRowsTable(data, resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // View extracted rows from modal
+        function viewExtractedRowsForMaster(masterRowId) {
+            closeModal('detailsModal');
+            switchTab('extracted');
+            document.getElementById('extractedMasterId').value = masterRowId;
+            loadExtractedRows();
+        }
+
+        // Render extracted rows table
+        function renderExtractedRowsTable(data, container) {
+            let html = `
+                <div class="info-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="number">${data.master_row.master_row_id}</div>
+                        <div class="label">Master Row ID</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">${data.total_count}</div>
+                        <div class="label">Total Extracted Rows</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 15px;">Master Row: ${data.master_row.master_name}</h3>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Report ID</th>
+                                <th>Company</th>
+                                <th>Row Index</th>
+                                <th>Particulars</th>
+                                <th>Normalized Text</th>
+                                <th>Schedule</th>
+                                <th>Current Period</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.extracted_rows.forEach(row => {
+                html += `
+                    <tr>
+                        <td><span class="badge badge-info">${row.id}</span></td>
+                        <td>${row.report_id}</td>
+                        <td>${row.company_name || 'N/A'}</td>
+                        <td>${row.row_index || 'N/A'}</td>
+                        <td title="${row.particulars}">${row.particulars ? row.particulars.substring(0, 40) + '...' : 'N/A'}</td>
+                        <td title="${row.normalized_text || 'N/A'}">${row.normalized_text ? row.normalized_text.substring(0, 30) + '...' : 'N/A'}</td>
+                        <td>${row.schedule || 'N/A'}</td>
+                        <td>${row.for_current_period || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-info" onclick="showPdfPreview(${row.report_id})" style="padding: 6px 12px; font-size: 0.9em;">📄 PDF</button>
+                            <button class="btn btn-primary" onclick="showEditExtracted(${row.id}, ${row.master_row_id || 'null'}, '${(row.normalized_text || '').replace(/'/g, "\\'")}');" style="padding: 6px 12px; font-size: 0.9em;">✏️ Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Show PDF preview
+        async function showPdfPreview(reportId) {
+            const modalContent = document.getElementById('modalPdfPreviewContent');
+            modalContent.innerHTML = '<div class="loading">Loading PDF information</div>';
+            showModal('pdfPreviewModal');
+
+            try {
+                const response = await fetch(`${API_BASE}/report-pdf-info/${reportId}`);
+                const data = await response.json();
+
+                let html = `
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <label>Report ID</label>
+                            <div class="value">${data.report_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Company</label>
+                            <div class="value">${data.company}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Form No</label>
+                            <div class="value">${data.form_no}</div>
+                        </div>
+                        <div class="info-card">
+                            <label>Period</label>
+                            <div class="value">${data.period}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 20px;">
+                        <label>PDF File Name</label>
+                        <div class="value">${data.pdf_name}</div>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 10px;">
+                        <label>Source PDF Path</label>
+                        <div class="value">${data.source_pdf || 'N/A'}</div>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 10px;">
+                        <label>Title</label>
+                        <div class="value">${data.title}</div>
+                    </div>
+
+                    <div class="alert alert-info" style="margin-top: 20px;">
+                        <strong>ℹ️ Note:</strong> Full PDF preview integration requires a PDF viewer component.
+                        The file is stored at: <code>${data.source_pdf || data.pdf_name}</code>
+                    </div>
+                `;
+
+                modalContent.innerHTML = html;
+            } catch (error) {
+                modalContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Show edit extracted row modal
+        function showEditExtracted(extractedId, currentMasterId, currentNormalizedText) {
+            const modalContent = document.getElementById('modalEditExtractedContent');
+            
+            let html = `
+                <div class="form-group">
+                    <label>Extracted Row ID</label>
+                    <input type="text" value="${extractedId}" disabled class="search-input">
+                </div>
+
+                <div class="form-group">
+                    <label>New Master Row ID (optional)</label>
+                    <input type="number" id="editNewMasterId" class="search-input" value="${currentMasterId || ''}" placeholder="Enter new master_row_id">
+                </div>
+
+                <div class="form-group">
+                    <label>New Normalized Text (optional)</label>
+                    <textarea id="editNewNormalizedText" class="search-input" placeholder="Enter new normalized text">${currentNormalizedText}</textarea>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>ℹ️ Tip:</strong> You can update either the master row mapping, the normalized text, or both.
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="saveExtractedEdit(${extractedId})">💾 Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editExtractedModal')">❌ Cancel</button>
+                </div>
+            `;
+
+            modalContent.innerHTML = html;
+            showModal('editExtractedModal');
+        }
+
+        // Save extracted row edit
+        async function saveExtractedEdit(extractedId) {
+            const newMasterId = document.getElementById('editNewMasterId').value;
+            const newNormalizedText = document.getElementById('editNewNormalizedText').value.trim();
+
+            if (!newMasterId && !newNormalizedText) {
+                showAlert('Please provide at least one field to update', 'warning');
+                return;
+            }
+
+            const payload = {
+                extracted_row_id: extractedId
+            };
+
+            if (newMasterId) payload.new_master_row_id = parseInt(newMasterId);
+            if (newNormalizedText) payload.new_normalized_text = newNormalizedText;
+
+            try {
+                const response = await fetch(`${API_BASE}/update-extracted-row`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    closeModal('editExtractedModal');
+                    showAlert('Extracted row updated successfully!', 'success');
+                    loadExtractedRows(); // Refresh the list
+                } else {
+                    throw new Error(result.message || 'Update failed');
+                }
+            } catch (error) {
+                showAlert(`Error updating extracted row: ${error.message}`, 'danger');
+            }
+        }
+
+        // Show edit master normalized text modal
+        function showEditMasterText(masterRowId, currentText) {
+            const modalContent = document.getElementById('modalEditMasterTextContent');
+            
+            let html = `
+                <div class="form-group">
+                    <label>Master Row ID</label>
+                    <input type="text" value="${masterRowId}" disabled class="search-input">
+                </div>
+
+                <div class="form-group">
+                    <label>Normalized Text</label>
+                    <textarea id="editMasterNormalizedText" class="search-input">${currentText}</textarea>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Warning:</strong> This will update the normalized text for ALL mappings associated with this master row.
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="saveMasterTextEdit(${masterRowId})">💾 Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editMasterTextModal')">❌ Cancel</button>
+                </div>
+            `;
+
+            modalContent.innerHTML = html;
+            showModal('editMasterTextModal');
+        }
+
+        // Save master text edit
+        async function saveMasterTextEdit(masterRowId) {
+            const newText = document.getElementById('editMasterNormalizedText').value.trim();
+
+            if (!newText) {
+                showAlert('Normalized text cannot be empty', 'warning');
+                return;
+            }
+
+            const payload = {
+                master_row_id: masterRowId,
+                normalized_text: newText
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/update-master-normalized-text`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    closeModal('editMasterTextModal');
+                    showAlert(`Updated normalized text for ${result.updated_mappings} mapping(s)!`, 'success');
+                    loadAllMasterRows(); // Refresh the list
+                } else {
+                    throw new Error(result.message || 'Update failed');
+                }
+            } catch (error) {
+                showAlert(`Error updating master text: ${error.message}`, 'danger');
+            }
+        }
+
+        // Load unmapped rows
+        async function loadUnmappedRows() {
+            const resultsDiv = document.getElementById('unmappedRowsResults');
+            resultsDiv.innerHTML = '<div class="loading">Loading unmapped rows</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/unmapped-rows?limit=100&offset=0`);
+                const data = await response.json();
+
+                if (data.total_unmapped === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <h3>All rows are mapped!</h3>
+                            <p>Great job! There are no unmapped extracted rows.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderUnmappedRowsTable(data, resultsDiv);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Render unmapped rows table
+        function renderUnmappedRowsTable(data, container) {
+            let html = `
+                <div class="alert alert-warning">
+                    <strong>⚠️ Found ${data.total_unmapped} unmapped rows</strong> (Showing ${data.showing})
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Report ID</th>
+                                <th>Company</th>
+                                <th>Row Index</th>
+                                <th>Particulars</th>
+                                <th>Normalized Text</th>
+                                <th>Schedule</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.unmapped_rows.forEach(row => {
+                html += `
+                    <tr>
+                        <td><span class="badge badge-danger">${row.id}</span></td>
+                        <td>${row.report_id}</td>
+                        <td>${row.company_name || 'N/A'}</td>
+                        <td>${row.row_index || 'N/A'}</td>
+                        <td title="${row.particulars}">${row.particulars ? row.particulars.substring(0, 50) + '...' : 'N/A'}</td>
+                        <td title="${row.normalized_text || 'N/A'}">${row.normalized_text ? row.normalized_text.substring(0, 40) + '...' : 'N/A'}</td>
+                        <td>${row.schedule || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-info" onclick="showPdfPreview(${row.report_id})" style="padding: 6px 12px; font-size: 0.9em;">📄 PDF</button>
+                            <button class="btn btn-success" onclick="showEditExtracted(${row.id}, null, '${(row.normalized_text || '').replace(/'/g, "\\'")}');" style="padding: 6px 12px; font-size: 0.9em;">➕ Map</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadAllMasterRows();
+        });
+    </script>
+</body>
+</html>

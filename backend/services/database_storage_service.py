@@ -445,8 +445,9 @@ class DatabaseStorageService:
                     continue
 
                 rows = table.get("Rows") or table.get("rows") or []
+                # FIX: Use FlatHeadersNormalized (with underscores) to match the keys in Rows
                 flat_headers = table.get(
-                    "FlatHeaders") or table.get("flat_headers") or []
+                    "FlatHeadersNormalized") or table.get("FlatHeaders") or table.get("flat_headers") or []
 
                 # If flat_headers is empty but we have rows, extract headers from first row
                 if (not flat_headers or len(flat_headers) == 0) and rows and len(rows) > 0:
