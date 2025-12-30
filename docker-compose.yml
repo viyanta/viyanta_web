@@ -1,18 +1,85 @@
-version: "3.9"
-
 services:
-  api:
-    build: ./backend
-    container_name: viyanta-api
+  # MySQL Database (Port 3307 to avoid conflict)
+  mysql:
+    image: mysql:8.0
+    container_name: viyanta-mysql-docker
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-Viyanta123}
+      MYSQL_DATABASE: ${DB_NAME:-viyanta_web}
+      MYSQL_USER: ${DB_USER:-ec2user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Viyanta123}
     ports:
-      - "8000:8000"
-    restart: always
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - viyanta-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-Viyanta123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  ui:
-    build: ./frontend
-    container_name: viyanta-ui
+  # Backend API (Port 8001 to avoid PM2 on 8000)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: viyanta-backend-docker
+    restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8001:8000"
+    environment:
+      - DB_TYPE=mysql
+      - DB_USER=${DB_USER:-ec2user}
+      - DB_PASSWORD=${DB_PASSWORD:-Viyanta123}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-viyanta_web}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_URL=${GEMINI_API_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - S3_REGION=${S3_REGION}
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
     depends_on:
-      - api
-    restart: always
+      mysql:
+        condition: service_healthy
+    networks:
+      - viyanta-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend (Port 8082 for testing)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: viyanta-frontend-docker
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    depends_on:
+      - backend
+    networks:
+      - viyanta-network
+
+volumes:
+  mysql_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  viyanta-network:
+    driver: bridge
