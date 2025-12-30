@@ -1599,8 +1599,13 @@ class ApiService {
   // 2️⃣ Get Insurers for a Selected Month
   // Get Company Insurers List (Simple list for dropdowns)
   getCompanyInsurersList = async () => {
-    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
-    return response.data;
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/dropdown/insurers`);
+    // New API returns { options: ["Name1", "Name2"], ... }
+    // Transform to [{label, value}] for MultiSelectDropdown
+    if (response.data && Array.isArray(response.data.options)) {
+      return response.data.options.map(name => ({ label: name, value: name }));
+    }
+    return [];
   };
 
   getIrdaiInsurers = async (reportMonth) => {
