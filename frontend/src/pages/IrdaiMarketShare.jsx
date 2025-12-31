@@ -59,10 +59,15 @@ const IrdaiMarketShare = () => {
         const fetchInsurers = async () => {
             try {
                 const data = await api.getInsurers();
-                setInsurerNames(data);
-                // Default to first insurer if available and none selected
-                if (data.length > 0 && !insurerName) {
-                    setInsurerName(data[0].value);
+                if (Array.isArray(data)) {
+                    setInsurerNames(data);
+                    // Default to first insurer if available and none selected
+                    if (data.length > 0 && !insurerName) {
+                        setInsurerName(data[0].value);
+                    }
+                } else {
+                    console.warn("getInsurers returned non-array:", data);
+                    setInsurerNames([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch insurers", error);
@@ -81,14 +86,19 @@ const IrdaiMarketShare = () => {
         const fetchPeriodTypes = async () => {
             try {
                 const types = await api.getIrdaiPeriodTypes();
-                setPeriodTypes(types);
-                // Ensure default periodType is valid
-                if (types.length > 0) {
-                    // Check if current periodType is in the new list, if not set to first
-                    const currentExists = types.find(t => t.value === periodType || t.label === periodType);
-                    if (!currentExists) {
-                        setPeriodType(types[0].value);
+                if (Array.isArray(types)) {
+                    setPeriodTypes(types);
+                    // Ensure default periodType is valid
+                    if (types.length > 0) {
+                        // Check if current periodType is in the new list, if not set to first
+                        const currentExists = types.find(t => t.value === periodType || t.label === periodType);
+                        if (!currentExists) {
+                            setPeriodType(types[0].value);
+                        }
                     }
+                } else {
+                    console.warn("getIrdaiPeriodTypes returned non-array:", types);
+                    setPeriodTypes([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch period types", error);
@@ -108,12 +118,18 @@ const IrdaiMarketShare = () => {
                 if (typeObj) typeValue = typeObj.value;
 
                 const options = await api.getIrdaiPeriodOptions(typeValue);
-                setPeriodOptions(options);
+                if (Array.isArray(options)) {
+                    setPeriodOptions(options);
 
-                // Default selection
-                if (options && options.length > 0) {
-                    setSelectedPeriod(options[0].label);
+                    // Default selection
+                    if (options.length > 0) {
+                        setSelectedPeriod(options[0].label);
+                    } else {
+                        setSelectedPeriod('');
+                    }
                 } else {
+                    console.warn("getIrdaiPeriodOptions returned non-array:", options);
+                    setPeriodOptions([]);
                     setSelectedPeriod('');
                 }
             } catch (error) {
@@ -133,13 +149,18 @@ const IrdaiMarketShare = () => {
         const fetchPremiumTypes = async () => {
             try {
                 const types = await api.getIrdaiPremiumTypes();
-                // Ensure unique values and proper format
-                const uniqueTypes = [...new Set(types.map(t => t.value || t.label || t))];
-                setPremiumTypes(uniqueTypes);
+                if (Array.isArray(types)) {
+                    // Ensure unique values and proper format
+                    const uniqueTypes = [...new Set(types.map(t => t.value || t.label || t))];
+                    setPremiumTypes(uniqueTypes);
 
-                // Set default selection if not already set or invalid
-                if (uniqueTypes.length > 0 && !uniqueTypes.includes(premiumTypeSelection)) {
-                    setPremiumTypeSelection(uniqueTypes[0]);
+                    // Set default selection if not already set or invalid
+                    if (uniqueTypes.length > 0 && !uniqueTypes.includes(premiumTypeSelection)) {
+                        setPremiumTypeSelection(uniqueTypes[0]);
+                    }
+                } else {
+                    console.warn("getIrdaiPremiumTypes returned non-array:", types);
+                    setPremiumTypes([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch premium types", error);
@@ -211,40 +232,45 @@ const IrdaiMarketShare = () => {
                     periodObj.end_date
                 );
 
-                // Calculate Totals
-                const totalFyp = data.reduce((acc, curr) => acc + (curr.fyp_pct || 0), 0);
-                const totalSa = data.reduce((acc, curr) => acc + (curr.sa_pct || 0), 0);
-                const totalNol = data.reduce((acc, curr) => acc + (curr.nol_pct || 0), 0);
-                const totalNop = data.reduce((acc, curr) => acc + (curr.nop_pct || 0), 0);
+                if (Array.isArray(data)) {
+                    // Calculate Totals
+                    const totalFyp = data.reduce((acc, curr) => acc + (curr.fyp_pct || 0), 0);
+                    const totalSa = data.reduce((acc, curr) => acc + (curr.sa_pct || 0), 0);
+                    const totalNol = data.reduce((acc, curr) => acc + (curr.nol_pct || 0), 0);
+                    const totalNop = data.reduce((acc, curr) => acc + (curr.nop_pct || 0), 0);
 
-                // Update Table Data
-                const totalRow = {
-                    insurer: insurerName,
-                    values: {
-                        premium: totalFyp.toFixed(2),
-                        policies: totalNop.toFixed(2),
-                        lives: totalNol.toFixed(2),
-                        sum: totalSa.toFixed(2),
-                    },
-                    subRows: data.map(d => ({
-                        type: d.premium_type,
+                    // Update Table Data
+                    const totalRow = {
+                        insurer: insurerName,
                         values: {
-                            premium: (d.fyp_pct || 0).toFixed(2),
-                            policies: (d.nop_pct || 0).toFixed(2),
-                            lives: (d.nol_pct || 0).toFixed(2),
-                            sum: (d.sa_pct || 0).toFixed(2),
-                        }
-                    }))
-                };
-                setMarketShareData([totalRow]);
+                            premium: totalFyp.toFixed(2),
+                            policies: totalNop.toFixed(2),
+                            lives: totalNol.toFixed(2),
+                            sum: totalSa.toFixed(2),
+                        },
+                        subRows: data.map(d => ({
+                            type: d.premium_type,
+                            values: {
+                                premium: (d.fyp_pct || 0).toFixed(2),
+                                policies: (d.nop_pct || 0).toFixed(2),
+                                lives: (d.nol_pct || 0).toFixed(2),
+                                sum: (d.sa_pct || 0).toFixed(2),
+                            }
+                        }))
+                    };
+                    setMarketShareData([totalRow]);
 
-                // Update KPIs
-                setKpiData([
-                    { title: 'First Year Premium', value: totalFyp.toFixed(2) + '%', unit: '% Share', color: 'blue', targetId: 'chart-fyp' },
-                    { title: 'Sum Assured', value: totalSa.toFixed(2) + '%', unit: '% Share', color: 'green', targetId: 'chart-sa' },
-                    { title: 'Number of Lives', value: totalNol.toFixed(2) + '%', unit: '% Share', color: 'purple', targetId: 'chart-nol' },
-                    { title: 'No of Policies', value: totalNop.toFixed(2) + '%', unit: '% Share', color: 'orange', targetId: 'chart-nop' }
-                ]);
+                    // Update KPIs
+                    setKpiData([
+                        { title: 'First Year Premium', value: totalFyp.toFixed(2) + '%', unit: '% Share', color: 'blue', targetId: 'chart-fyp' },
+                        { title: 'Sum Assured', value: totalSa.toFixed(2) + '%', unit: '% Share', color: 'green', targetId: 'chart-sa' },
+                        { title: 'Number of Lives', value: totalNol.toFixed(2) + '%', unit: '% Share', color: 'purple', targetId: 'chart-nol' },
+                        { title: 'No of Policies', value: totalNop.toFixed(2) + '%', unit: '% Share', color: 'orange', targetId: 'chart-nop' }
+                    ]);
+                } else {
+                    console.warn("getMarketSharePremiumByInsurer returned non-array:", data);
+                    setMarketShareData([]);
+                }
 
             } catch (e) {
                 console.error("Failed to fetch market share data", e);
