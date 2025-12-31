@@ -11,6 +11,7 @@ import {
     ResponsiveContainer,
     LabelList
 } from 'recharts';
+import TabLayout from './IrdaiSharedLayout';
 import './IrdaiPeers.css';
 
 // Custom MultiSelect Component with Premium Design
@@ -60,14 +61,17 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    height: 'auto',
-                    minHeight: '40px',
-                    padding: '5px 10px'
+                    minHeight: '38px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: '#fff',
+                    maxWidth: '100%',
                 }}
             >
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: 1, minWidth: 0 }}>
                     {selected.length > 0 ? (
-                        selected.map(val => (
+                        selected.slice(0, 2).map(val => (
                             <span key={val} style={{
                                 background: '#e0e7ff',
                                 color: '#3730a3',
@@ -76,7 +80,8 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
                                 fontSize: '11px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px'
+                                gap: '4px',
+                                whiteSpace: 'nowrap'
                             }}>
                                 {val}
                                 <span
@@ -86,7 +91,19 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
                             </span>
                         ))
                     ) : (
-                        <span style={{ color: '#999' }}>{placeholder}</span>
+                        <span style={{ color: '#999', fontSize: '14px' }}>{placeholder}</span>
+                    )}
+                    {selected.length > 2 && (
+                        <span style={{
+                            fontSize: '11px',
+                            color: '#666',
+                            alignSelf: 'center',
+                            background: '#f3f4f6',
+                            padding: '2px 6px',
+                            borderRadius: '10px'
+                        }}>
+                            +{selected.length - 2} more
+                        </span>
                     )}
                 </div>
                 <span style={{ color: '#666', fontSize: '10px', marginLeft: '8px' }}>▼</span>
@@ -264,127 +281,91 @@ const IrdaiPeers = () => {
         return Object.keys(comparisonData.data).map(insurer => ({
             name: insurer,
             value: comparisonData.data[insurer],
-            // Create a short name for axis if typically long, or just use full name
-            shortName: insurer.length > 15 ? insurer.substring(0, 15) + '...' : insurer
+            // Use full insurer name for axis as requested
+            shortName: insurer
         }));
     };
 
     const chartData = prepareChartData();
 
     return (
-        <div className="irdai-peers-container">
-
-
-            {/* Main Filters Container */}
-            <div className="filters-layout-container">
-
-                <div className="peers-filters-left-group">
-                    {/* Left Side: Stacked Dropdowns */}
-                    <div className="filters-left-stack">
-                        <div className="control-group">
-                            <label className="control-label">Select Insurers Name (Max 5)</label>
-                            <MultiSelectDropdown
-                                options={insurerOptions}
-                                selected={selectedInsurers}
-                                onChange={setSelectedInsurers}
-                                placeholder="Select Insurers"
-                            />
-                        </div>
-
-                        <div className="control-group">
-                            <label className="control-label">Select Category Name</label>
-                            <select
-                                className="peers-dropdown wide full-width"
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                            >
-                                <option value="">Select Category Name</option>
-                                <option value="FYP">First Year Premium (FYP)</option>
-                                <option value="SA">Sum Assured (SA)</option>
-                                <option value="NOP">Number of Policies (NOP)</option>
-                                <option value="NOL">Number of Lives (NOL)</option>
-                            </select>
-                        </div>
-
-                        <div className="control-group">
-                            <label className="control-label">Select Premium Type Name</label>
-                            <select
-                                className="peers-dropdown wide full-width"
-                                value={selectedPremiumType}
-                                onChange={(e) => setSelectedPremiumType(e.target.value)}
-                            >
-                                <option value="">Select Premium Type Name</option>
-                                {premiumOptions.map((opt, index) => (
-                                    <option key={index} value={opt.value || opt.label || opt}>
-                                        {opt.label || opt.value || opt}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+        <TabLayout
+            viewMode={viewMode === 'Visuals' ? 'visuals' : 'data'}
+            setViewMode={(mode) => setViewMode(mode === 'visuals' ? 'Visuals' : 'Data')}
+            summaryText={`Peer comparison of First Year Premium >> ${selectedDate}`}
+            controls={
+                <>
+                    <div className="period-select-container">
+                        <label className="control-label">Select Insurers (Max 5)</label>
+                        <MultiSelectDropdown
+                            options={insurerOptions}
+                            selected={selectedInsurers}
+                            onChange={setSelectedInsurers}
+                            placeholder="Select Insurers"
+                        />
                     </div>
-
-                    {/* Right Side of Filters: Period Controls */}
-                    <div className="filters-period-controls">
-                        <div className="control-group">
-                            <label className="control-label">Select Period Type</label>
-                            <select
-                                className="peers-dropdown small"
-                                value={selectedPeriod}
-                                onChange={(e) => setSelectedPeriod(e.target.value)}
-                            >
-                                {periodTypeOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="control-group">
-                            <label className="control-label">Select Period</label>
-                            <select
-                                className="peers-dropdown small"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                            >
-                                {periodOptions.map((opt, index) => (
-                                    <option key={index} value={opt.label}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Far Right: View Mode Toggle */}
-                <div className="peers-toggle-right">
-                    <div className="view-toggle-container">
-                        <button
-                            className={`view-toggle-btn ${viewMode === 'Visuals' ? 'active' : ''}`}
-                            onClick={() => setViewMode('Visuals')}
+                    <div className="period-select-container">
+                        <label className="control-label">Select Category</label>
+                        <select
+                            className="custom-select"
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
                         >
-                            Visuals
-                        </button>
-                        <span style={{ color: '#ccc' }}>|</span>
-                        <button
-                            className={`view-toggle-btn ${viewMode === 'Data' ? 'active' : ''}`}
-                            onClick={() => setViewMode('Data')}
-                        >
-                            Data
-                        </button>
+                            <option value="">Select Category</option>
+                            <option value="FYP">First Year Premium (FYP)</option>
+                            <option value="SA">Sum Assured (SA)</option>
+                            <option value="NOP">Number of Policies (NOP)</option>
+                            <option value="NOL">Number of Lives (NOL)</option>
+                        </select>
                     </div>
-                </div>
-            </div>
-
-            {/* Dynamic Title */}
-            <div className="peers-dynamic-title">
-                <span className="title-text">Peer comparison of First Year Premium</span>
-                <span className="title-separator">{">>"}</span>
-                <span className="title-date">{selectedDate}</span>
-            </div>
-
-            {/* Content Area */}
+                    <div className="period-select-container">
+                        <label className="control-label">Select Premium Type</label>
+                        <select
+                            className="custom-select"
+                            value={selectedPremiumType}
+                            onChange={(e) => setSelectedPremiumType(e.target.value)}
+                        >
+                            <option value="">Select Premium Type</option>
+                            {premiumOptions.map((opt, index) => (
+                                <option key={index} value={opt.value || opt.label || opt}>
+                                    {opt.label || opt.value || opt}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="period-select-container">
+                        <label className="control-label">Select Period Type</label>
+                        <select
+                            className="custom-select"
+                            style={{ minWidth: '120px' }}
+                            value={selectedPeriod}
+                            onChange={(e) => setSelectedPeriod(e.target.value)}
+                        >
+                            {periodTypeOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="period-select-container">
+                        <label className="control-label">Select Period</label>
+                        <select
+                            className="custom-select"
+                            style={{ minWidth: '120px' }}
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                        >
+                            {periodOptions.map((opt, index) => (
+                                <option key={index} value={opt.label}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </>
+            }
+        >
             {viewMode === 'Data' ? (
                 <div className="peers-table-container">
                     <table className="peers-comparison-table">
@@ -454,53 +435,38 @@ const IrdaiPeers = () => {
                                     bottom: 40,
                                 }}
                             >
-                                <defs>
-                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis
                                     dataKey="shortName"
-                                    axisLine={{ stroke: '#e5e7eb' }}
-                                    tickLine={false}
-                                    tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+                                    tick={{ fontSize: 12, fill: '#666' }}
+                                    interval={0}
                                     angle={0}
                                     textAnchor="middle"
-                                    interval={0}
-                                    dy={10}
+                                    height={30}
                                 />
                                 <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#9ca3af', fontSize: 12 }}
+                                    tick={{ fontSize: 12, fill: '#666' }}
                                     tickFormatter={(value) => value.toLocaleString()}
                                 />
-                                <Tooltip
-                                    cursor={{ fill: 'rgba(243, 244, 246, 0.6)' }}
-                                    contentStyle={{
-                                        backgroundColor: '#ffffff',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                                    }}
-                                    formatter={(value) => [<span style={{ color: '#4f46e5', fontWeight: 'bold' }}>{value.toLocaleString()}</span>, comparisonData.metric]}
-                                    labelStyle={{ color: '#111827', fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #f3f4f6', paddingBottom: '4px' }}
-                                />
+                                <Tooltip />
+                                <Legend />
                                 <Bar
                                     dataKey="value"
-                                    fill="url(#colorValue)"
-                                    radius={[8, 8, 0, 0]}
+                                    name={comparisonData.metric || "Value"}
+                                    fill={
+                                        selectedCategory === 'FYP' ? '#0088FE' :
+                                            selectedCategory === 'SA' ? '#00C49F' :
+                                                selectedCategory === 'NOL' ? '#8884d8' :
+                                                    selectedCategory === 'NOP' ? '#FF8042' : '#0088FE'
+                                    }
+                                    radius={[4, 4, 0, 0]}
                                     barSize={60}
-                                    animationDuration={1500}
                                 >
                                     <LabelList
                                         dataKey="value"
                                         position="top"
                                         formatter={(val) => val.toLocaleString()}
-                                        style={{ fill: '#4b5563', fontSize: '12px', fontWeight: '600' }}
-                                        offset={10}
+                                        style={{ fontSize: '12px', fill: '#666', fontWeight: '600' }}
                                     />
                                 </Bar>
                             </BarChart>
@@ -522,7 +488,7 @@ const IrdaiPeers = () => {
                     )}
                 </div>
             )}
-        </div>
+        </TabLayout>
     );
 };
 

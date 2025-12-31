@@ -39,10 +39,15 @@ const IrdaiCompanywise = () => {
         const fetchInsurers = async () => {
             try {
                 const data = await api.getInsurers();
-                setInsurerOptions(data);
-                // Default to first insurer if available
-                if (data.length > 0) {
-                    setInsurerName(data[0].value);
+                if (Array.isArray(data)) {
+                    setInsurerOptions(data);
+                    // Default to first insurer if available
+                    if (data.length > 0) {
+                        setInsurerName(data[0].value);
+                    }
+                } else {
+                    console.warn("getInsurers returned non-array:", data);
+                    setInsurerOptions([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch insurers", error);
@@ -56,10 +61,15 @@ const IrdaiCompanywise = () => {
         const fetchTypes = async () => {
             try {
                 const types = await api.getIrdaiPeriodTypes();
-                setPeriodTypes(types);
-                // Default to first type if available
-                if (types.length > 0) {
-                    setPeriodType(types[0].value);
+                if (Array.isArray(types)) {
+                    setPeriodTypes(types);
+                    // Default to first type if available
+                    if (types.length > 0) {
+                        setPeriodType(types[0].value);
+                    }
+                } else {
+                    console.warn("getIrdaiPeriodTypes returned non-array:", types);
+                    setPeriodTypes([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch period types", error);
@@ -76,11 +86,17 @@ const IrdaiCompanywise = () => {
             setLoading(true);
             try {
                 const options = await api.getIrdaiPeriodOptions(periodType);
-                setPeriodOptions(options);
-                // Default to first option (latest date) if available
-                if (options.length > 0) {
-                    setSelectedPeriod(options[0]);
+                if (Array.isArray(options)) {
+                    setPeriodOptions(options);
+                    // Default to first option (latest date) if available
+                    if (options.length > 0) {
+                        setSelectedPeriod(options[0]);
+                    } else {
+                        setSelectedPeriod(null);
+                    }
                 } else {
+                    console.warn("getIrdaiPeriodOptions returned non-array:", options);
+                    setPeriodOptions([]);
                     setSelectedPeriod(null);
                 }
             } catch (error) {
@@ -137,13 +153,17 @@ const IrdaiCompanywise = () => {
 
                 const shorten = (name) => name.replace(' Premium', '').replace(' Renewable', '');
 
-                metrics.forEach(item => {
-                    const name = shorten(item.premium_type);
-                    chartDataObj.fyp.push({ name, value: item.fyp });
-                    chartDataObj.sa.push({ name, value: item.sa });
-                    chartDataObj.nop.push({ name, value: item.nop });
-                    chartDataObj.nol.push({ name, value: item.nol });
-                });
+                if (Array.isArray(metrics)) {
+                    metrics.forEach(item => {
+                        const name = shorten(item.premium_type);
+                        chartDataObj.fyp.push({ name, value: item.fyp });
+                        chartDataObj.sa.push({ name, value: item.sa });
+                        chartDataObj.nop.push({ name, value: item.nop });
+                        chartDataObj.nol.push({ name, value: item.nol });
+                    });
+                } else {
+                    console.warn("getCompanyPremiumTypeBreakup returned non-array:", metrics);
+                }
 
                 setCompanyChartData(chartDataObj);
 
@@ -173,19 +193,21 @@ const IrdaiCompanywise = () => {
                         period: selectedPeriod.label
                     };
 
-                    metrics.forEach(item => {
-                        const key = typeKeyMap[item.premium_type];
-                        if (key) {
-                            // Extract correct value based on metricCode
-                            let val = 0;
-                            if (metricCode === 'FYP') val = item.fyp;
-                            else if (metricCode === 'SA') val = item.sa;
-                            else if (metricCode === 'NOL') val = item.nol;
-                            else if (metricCode === 'NOP') val = item.nop;
+                    if (Array.isArray(metrics)) {
+                        metrics.forEach(item => {
+                            const key = typeKeyMap[item.premium_type];
+                            if (key) {
+                                // Extract correct value based on metricCode
+                                let val = 0;
+                                if (metricCode === 'FYP') val = item.fyp;
+                                else if (metricCode === 'SA') val = item.sa;
+                                else if (metricCode === 'NOL') val = item.nol;
+                                else if (metricCode === 'NOP') val = item.nop;
 
-                            rowData[key] = val;
-                        }
-                    });
+                                rowData[key] = val;
+                            }
+                        });
+                    }
 
                     return rowData;
                 });

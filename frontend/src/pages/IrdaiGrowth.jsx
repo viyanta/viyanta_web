@@ -45,26 +45,41 @@ const IrdaiGrowth = () => {
             try {
                 // Fetch Metric Types
                 const types = await api.getGrowthMetricTypes();
-                setGrowthMetricTypes(types);
-                if (types.length > 0) {
-                    setGrowthMetricType(types[0].value);
+                if (Array.isArray(types)) {
+                    setGrowthMetricTypes(types);
+                    if (types.length > 0) {
+                        setGrowthMetricType(types[0].value);
+                    }
+                } else {
+                    console.warn("getGrowthMetricTypes returned non-array:", types);
+                    setGrowthMetricTypes([]);
                 }
 
                 // Fetch Insurer List
                 const companies = await api.getCompanyList();
-                const uniqueNames = companies.map(c => c.label);
-                setInsurerNames(uniqueNames);
+                if (Array.isArray(companies)) {
+                    const uniqueNames = companies.map(c => c.label);
+                    setInsurerNames(uniqueNames);
 
-                // Default insurer selection if current one not in list
-                if (uniqueNames.length > 0 && !uniqueNames.includes(insurerName)) {
-                    setInsurerName(uniqueNames[0]);
+                    // Default insurer selection if current one not in list
+                    if (uniqueNames.length > 0 && !uniqueNames.includes(insurerName)) {
+                        setInsurerName(uniqueNames[0]);
+                    }
+                } else {
+                    console.warn("getCompanyList returned non-array:", companies);
+                    setInsurerNames([]);
                 }
 
                 // Fetch Period Types
                 const pTypes = await api.getIrdaiPeriodTypes();
-                setPeriodTypes(pTypes);
-                if (pTypes.length > 0) {
-                    setPeriodType(pTypes[0].value);
+                if (Array.isArray(pTypes)) {
+                    setPeriodTypes(pTypes);
+                    if (pTypes.length > 0) {
+                        setPeriodType(pTypes[0].value);
+                    }
+                } else {
+                    console.warn("getIrdaiPeriodTypes returned non-array:", pTypes);
+                    setPeriodTypes([]);
                 }
 
             } catch (error) {
@@ -80,10 +95,16 @@ const IrdaiGrowth = () => {
             if (!periodType) return;
             try {
                 const options = await api.getIrdaiPeriodOptions(periodType);
-                setPeriodOptions(options);
-                if (options.length > 0) {
-                    setSelectedPeriod(options[0].label); // Default to first available period
+                if (Array.isArray(options)) {
+                    setPeriodOptions(options);
+                    if (options.length > 0) {
+                        setSelectedPeriod(options[0].label); // Default to first available period
+                    } else {
+                        setSelectedPeriod('');
+                    }
                 } else {
+                    console.warn("getIrdaiPeriodOptions returned non-array:", options);
+                    setPeriodOptions([]);
                     setSelectedPeriod('');
                 }
             } catch (error) {
@@ -132,46 +153,51 @@ const IrdaiGrowth = () => {
             try {
                 const data = await api.getCompanyPremiumGrowth(insurerName, growthMetricType, startDate, endDate);
 
-                // Transform Data
-                // API returns flat list. 
-                // Row with `row_order === 0` is the total/main row.
-                // Others are subrows.
+                if (Array.isArray(data)) {
+                    // Transform Data
+                    // API returns flat list. 
+                    // Row with `row_order === 0` is the total/main row.
+                    // Others are subrows.
 
-                const mainRow = data.find(r => r.row_order === 0) || {};
-                const subRows = data.filter(r => r.row_order !== 0);
+                    const mainRow = data.find(r => r.row_order === 0) || {};
+                    const subRows = data.filter(r => r.row_order !== 0);
 
-                const formattedData = [{
-                    insurer: insurerName,
-                    values: {
-                        for23: (mainRow.previous_value || 0).toFixed(2),
-                        for24: (mainRow.current_value || 0).toFixed(2),
-                        growthFor: (mainRow.growth_pct || 0).toFixed(2),
-                        upTo23: (mainRow.ytd_previous_value || 0).toFixed(2),
-                        upTo24: (mainRow.ytd_value || 0).toFixed(2),
-                        growthUpTo: (mainRow.ytd_growth_pct || 0).toFixed(2),
-                        marketShare: (mainRow.market_share || 0).toFixed(2)
-                    },
-                    subRows: subRows.map(sub => ({
-                        type: sub.premium_type,
+                    const formattedData = [{
+                        insurer: insurerName,
                         values: {
-                            for23: (sub.previous_value || 0).toFixed(2),
-                            for24: (sub.current_value || 0).toFixed(2),
-                            growthFor: (sub.growth_pct || 0).toFixed(2),
-                            upTo23: (sub.ytd_previous_value || 0).toFixed(2),
-                            upTo24: (sub.ytd_value || 0).toFixed(2),
-                            growthUpTo: (sub.ytd_growth_pct || 0).toFixed(2),
-                            marketShare: (sub.market_share || 0).toFixed(2)
-                        }
-                    }))
-                }];
+                            for23: (mainRow.previous_value || 0).toFixed(2),
+                            for24: (mainRow.current_value || 0).toFixed(2),
+                            growthFor: (mainRow.growth_pct || 0).toFixed(2),
+                            upTo23: (mainRow.ytd_previous_value || 0).toFixed(2),
+                            upTo24: (mainRow.ytd_value || 0).toFixed(2),
+                            growthUpTo: (mainRow.ytd_growth_pct || 0).toFixed(2),
+                            marketShare: (mainRow.market_share || 0).toFixed(2)
+                        },
+                        subRows: subRows.map(sub => ({
+                            type: sub.premium_type,
+                            values: {
+                                for23: (sub.previous_value || 0).toFixed(2),
+                                for24: (sub.current_value || 0).toFixed(2),
+                                growthFor: (sub.growth_pct || 0).toFixed(2),
+                                upTo23: (sub.ytd_previous_value || 0).toFixed(2),
+                                upTo24: (sub.ytd_value || 0).toFixed(2),
+                                growthUpTo: (sub.ytd_growth_pct || 0).toFixed(2),
+                                marketShare: (sub.market_share || 0).toFixed(2)
+                            }
+                        }))
+                    }];
 
-                setGrowthData(formattedData);
+                    setGrowthData(formattedData);
 
-                // Update KPI Cards using the main row data
-                setKpiData([
-                    { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
-                    { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
-                ]);
+                    // Update KPI Cards using the main row data
+                    setKpiData([
+                        { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
+                        { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
+                    ]);
+                } else {
+                    console.warn("getCompanyPremiumGrowth returned non-array:", data);
+                    setGrowthData([]);
+                }
 
             } catch (error) {
                 console.error("Failed to fetch growth data", error);
