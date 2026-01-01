@@ -430,9 +430,6 @@ class Companies(Base):
     companyname = Column(String(255), unique=True, nullable=False)
 
 
-Base = declarative_base()
-
-
 class CompanyMetrics(Base):
     __tablename__ = "company_metrics"
 
@@ -469,7 +466,12 @@ class ReportsL2Extracted(Base):
 
     particulars = Column(Text)
     normalized_text = Column(String(512))  # NLP-normalized text for matching
-    master_row_id = Column(BigInteger)  # References master_mapping.id
+
+    # CRITICAL: master_row_id MUST reference master_rows.master_row_id (the canonical source)
+    # NOT master_mapping.id (which is only for mapping variants to masters)
+    # This ensures all financial line items use the same canonical master_row_id
+    master_row_id = Column(BigInteger)  # References master_rows.master_row_id
+
     schedule = Column(String(100))
 
     for_current_period = Column(String(50))
@@ -509,7 +511,41 @@ class DashboardChartConfig(Base):
 # =================================================================
 # Register extracted/detail tables in ReportModels
 # =================================================================
+# NOTE: MasterRow/MasterMapping/MasterRowL3/MasterMappingL3 are defined
+# later in this file after ReportsL3Extracted to avoid duplicate table registration.
+
+
+# Add missing L-3 extracted table model (used by DatabaseStorageService)
+class ReportsL3Extracted(Base):
+    __tablename__ = "reports_l3_extracted"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    # Note: Foreign keys removed to avoid SQLAlchemy metadata resolution issues
+    report_id = Column(BigInteger, nullable=False)
+    company_id = Column(Integer, nullable=False)
+    row_index = Column(Integer)
+
+    particulars = Column(Text)
+    normalized_text = Column(String(512))
+
+    # Canonical master row id (master_rows_l3.master_row_id)
+    master_row_id = Column(BigInteger)
+
+    schedule = Column(String(100))
+
+    # L-3 is a Balance Sheet (point-in-time), so uses "as_at_" columns
+    as_at_current_period = Column(String(50))
+    as_at_previous_period = Column(String(50))
+
+    created_at = Column(DateTime, server_default=func.now())
+
+
+# =================================================================
+# Register extracted/detail tables in ReportModels
+# =================================================================
 ReportModels['reports_l2_extracted'] = ReportsL2Extracted
+ReportModels['reports_l3_extracted'] = ReportsL3Extracted
 
 
 class MasterRow(Base):
@@ -538,6 +574,35 @@ class MasterRow(Base):
         back_populates="master_row",
         primaryjoin="MasterRow.cluster_label==foreign(MasterMapping.cluster_label)",
         viewonly=True
+    )
+
+
+# L-3 uses separate master tables in MySQL
+class MasterRowL3(Base):
+    __tablename__ = "master_rows_l3"
+
+    master_row_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    cluster_label = Column(
+        Integer,
+        unique=True,
+        nullable=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=True
+    )
+
+    mappings = relationship(
+        "MasterMappingL3",
+        back_populates="master_row",
+        primaryjoin="MasterRowL3.cluster_label==foreign(MasterMappingL3.cluster_label)",
+        viewonly=True,
     )
 
 
@@ -592,8 +657,7 @@ class MasterMapping(Base):
 
     updated_at = Column(
         DateTime,
-        server_default=func.current_timestamp(),
-        onupdate=func.current_timestamp()
+        server_default=func.current_timestamp()
     )
 
     # Logical (not FK-based) relationship
@@ -601,6 +665,68 @@ class MasterMapping(Base):
         "MasterRow",
         primaryjoin="foreign(MasterMapping.cluster_label)==MasterRow.cluster_label",
         viewonly=True
+    )
+
+
+class MasterMappingL3(Base):
+    __tablename__ = "master_mapping_l3"
+
+    id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=False
+    )
+
+    company_id = Column(
+        Integer,
+        nullable=False
+    )
+
+    form_no = Column(
+        String(20),
+        nullable=False
+    )
+
+    variant_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    normalized_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    cluster_label = Column(
+        Integer,
+        nullable=True
+    )
+
+    similarity_score = Column(
+        Float,
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    master_row = relationship(
+        "MasterRowL3",
+        primaryjoin="foreign(MasterMappingL3.cluster_label)==MasterRowL3.cluster_label",
+        viewonly=True,
+        back_populates="mappings",
     )
 
 
@@ -722,4 +848,3 @@ class UserMaster(Base):
 
     def __repr__(self):
         return f"<UserMaster(UserID={self.UserID}, Email={self.UserLoginEmailName})>"
-

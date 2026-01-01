@@ -445,8 +445,9 @@ class DatabaseStorageService:
                     continue
 
                 rows = table.get("Rows") or table.get("rows") or []
+                # FIX: Use FlatHeadersNormalized (with underscores) to match the keys in Rows
                 flat_headers = table.get(
-                    "FlatHeaders") or table.get("flat_headers") or []
+                    "FlatHeadersNormalized") or table.get("FlatHeaders") or table.get("flat_headers") or []
 
                 # If flat_headers is empty but we have rows, extract headers from first row
                 if (not flat_headers or len(flat_headers) == 0) and rows and len(rows) > 0:
@@ -515,25 +516,46 @@ class DatabaseStorageService:
                         normalized_text = self._normalize_text(
                             str(particulars).strip())
 
-                        # Create extracted row entry
-                        extracted_row = ExtractedModel(
-                            report_id=report_id,
-                            company_id=company_id,
-                            row_index=row_index,
-                            particulars=str(particulars).strip(),
-                            normalized_text=normalized_text,
-                            schedule=str(schedule).strip(
-                            ) if schedule else None,
-                            for_current_period=str(
-                                for_current).strip() if for_current else None,
-                            upto_current_period=str(
-                                upto_current).strip() if upto_current else None,
-                            for_previous_period=str(
-                                for_previous).strip() if for_previous else None,
-                            upto_previous_period=str(
-                                upto_previous).strip() if upto_previous else None,
-                            created_at=datetime.now()
-                        )
+                        # Create extracted row entry - handle L-2 vs L-3 columns
+                        # L-2 (Revenue) uses: for_current_period, upto_current_period, for_previous_period, upto_previous_period
+                        # L-3 (Balance Sheet) uses: as_at_current_period, as_at_previous_period
+
+                        if table_key == "l3":
+                            # L-3 Balance Sheet: only 2 "as at" columns
+                            extracted_row = ExtractedModel(
+                                report_id=report_id,
+                                company_id=company_id,
+                                row_index=row_index,
+                                particulars=str(particulars).strip(),
+                                normalized_text=normalized_text,
+                                schedule=str(schedule).strip(
+                                ) if schedule else None,
+                                as_at_current_period=str(
+                                    for_current).strip() if for_current else None,
+                                as_at_previous_period=str(
+                                    for_previous).strip() if for_previous else None,
+                                created_at=datetime.now()
+                            )
+                        else:
+                            # L-2 and others: 4 period columns
+                            extracted_row = ExtractedModel(
+                                report_id=report_id,
+                                company_id=company_id,
+                                row_index=row_index,
+                                particulars=str(particulars).strip(),
+                                normalized_text=normalized_text,
+                                schedule=str(schedule).strip(
+                                ) if schedule else None,
+                                for_current_period=str(
+                                    for_current).strip() if for_current else None,
+                                upto_current_period=str(
+                                    upto_current).strip() if upto_current else None,
+                                for_previous_period=str(
+                                    for_previous).strip() if for_previous else None,
+                                upto_previous_period=str(
+                                    upto_previous).strip() if upto_previous else None,
+                                created_at=datetime.now()
+                            )
 
                         db.add(extracted_row)
                         inserted_count += 1

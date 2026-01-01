@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useStats } from '../context/StatsContext.jsx'
+
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function SideMenu({ isOpen = false, onClose = () => {} }) {
   const location = useLocation()
-  const { stats } = useStats()
+
   const { isAdmin, selectedProduct, user } = useAuth()
 
   const menuItems = [
@@ -118,26 +118,7 @@ export default function SideMenu({ isOpen = false, onClose = () => {} }) {
         </ul>
       </nav>
 
-      {/* Quick Stats */}
-      <div className="sidebar__stats">
-        <h4 className="sidebar__stats-title">Quick Stats</h4>
-        <div className="sidebar__stats-content">
-          <div className="sidebar__stats-item">
-            <span>📁 Files:</span>
-            <strong>{stats.total_files}</strong>
-          </div>
-          <div className="sidebar__stats-item">
-            <span>✅ Processed:</span>
-            <strong>{stats.processed_files}</strong>
-          </div>
-          <div className="sidebar__stats-item">
-            <span>⏱️ Last Activity:</span>
-            <strong>
-              {stats.last_activity ? new Date(stats.last_activity).toLocaleDateString() : 'Never'}
-            </strong>
-          </div>
-        </div>
-      </div>
+
     </aside>
   )
 }

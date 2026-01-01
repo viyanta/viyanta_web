@@ -1,7 +1,7 @@
 import React from 'react'
 import Button from '../utils/Button.jsx'
 import ApiService, { API_BASE_URL } from '../services/api.js'
-import { useStats } from '../context/StatsContext.jsx'
+// import { useStats } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
 import SmartTableViewer from '../components/SmartTableViewer.jsx'
