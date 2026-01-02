@@ -1,14 +1,13 @@
-name: Viyanta Docker Deployment (Safe Parallel)
+name: Viyanta Docker Deployment (Testing)
 
 on:
   push:
     branches:
       - pipeline-docker-test
-      - development_main
 
 jobs:
   deploy:
-    name: Deploy Viyanta with Docker
+    name: Deploy Viyanta Docker Test
     runs-on: self-hosted
     
     steps:
@@ -19,78 +18,104 @@ jobs:
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"🚀 *Deployment Started*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n💬 Commit: ${{ github.event.head_commit.message }}\"}" \
+          -d "{\"text\":\"🧪 *Test Deployment Started*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n💬 Commit: ${{ github.event.head_commit.message }}\n📁 Location: /home/ubuntu/viyanta_test\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
       
-      - name: Copy files to project directory
+      - name: Sync to Test Directory
         run: |
-          echo "📁 Syncing files to ~/viyanta_web..."
+          echo "📁 Syncing to test directory: /home/ubuntu/viyanta_test"
+          
+          # Create directory if doesn't exist
+          mkdir -p /home/ubuntu/viyanta_test
+          
+          # Sync files
           rsync -av --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='venv' \
             --exclude='__pycache__' \
             --exclude='*.pyc' \
-            ./ ~/viyanta_web/
-          echo "✅ Files synced"
-      
-      - name: Copy environment files
-        run: |
-          echo "📋 Copying .env files..."
-          # These should be set up on server beforehand
-          if [ ! -f ~/viyanta_web/.env ]; then
-            echo "⚠️  Warning: .env not found in ~/viyanta_web/"
-          fi
-          if [ ! -f ~/viyanta_web/backend/.env ]; then
-            echo "⚠️  Warning: backend/.env not found"
-          fi
-      
-      - name: Deploy Docker Containers
-        run: |
-          cd ~/viyanta_web
-          echo "📍 Current directory: $(pwd)"
-          echo "📋 Files present:"
-          ls -la deploy-docker.sh docker-compose.yml
+            ./ /home/ubuntu/viyanta_test/
           
-          echo "🐳 Running Docker deployment..."
+          echo "✅ Files synced to test directory"
+      
+      - name: Set Up Environment Files
+        run: |
+          cd /home/ubuntu/viyanta_test
+          
+          echo "📋 Setting up .env files..."
+          
+          # Copy from production if not exists
+          if [ ! -f backend/.env ]; then
+            if [ -f /home/ubuntu/code/viyanta_web/backend/.env ]; then
+              cp /home/ubuntu/code/viyanta_web/backend/.env ./backend/.env
+              echo "✅ Copied backend/.env from production"
+            else
+              echo "❌ ERROR: No .env file found in production"
+              exit 1
+            fi
+          fi
+          
+          # Create root .env
+          if [ ! -f .env ]; then
+            cp backend/.env .env
+            echo "✅ Created root .env"
+          fi
+          
+          echo "✅ Environment files ready"
+      
+      - name: Deploy Docker (Test Environment)
+        run: |
+          cd /home/ubuntu/viyanta_test
+          
+          echo "🐳 Deploying Docker containers..."
+          echo "📍 Location: $(pwd)"
+          echo "🔌 Ports: Backend=8001, Frontend=8082, MySQL=3307"
+          echo "⚠️  Production unaffected (PM2 on port 8000)"
+          
           chmod +x deploy-docker.sh
           ./deploy-docker.sh
       
       - name: Verify Deployment
         run: |
-          cd ~/viyanta_web
-          echo "⏳ Waiting for stability..."
-          sleep 15
+          cd /home/ubuntu/viyanta_test
+          
+          echo "⏳ Waiting for services (20s)..."
+          sleep 20
           
           echo "📊 Container status:"
           docker compose ps
           
           echo ""
           echo "🔍 Testing endpoints:"
-          echo "Backend (8001):"
-          curl -s http://localhost:8001/ | head -3 || echo "Backend check failed"
+          
+          echo "Docker Backend (8001):"
+          curl -s http://localhost:8001/ | head -3 || echo "⚠️  Backend not ready yet"
           
           echo ""
-          echo "Frontend (8082):"
-          curl -s http://localhost:8082 | head -3 || echo "Frontend check failed"
+          echo "Docker Frontend (8082):"
+          curl -s http://localhost:8082 | head -3 || echo "⚠️  Frontend not ready yet"
           
           echo ""
-          echo "✅ PM2 status (should still be running on 8000):"
-          pm2 list || echo "PM2 not running or not installed"
+          echo "✅ Production PM2 check:"
+          pm2 list || echo "PM2 status check skipped"
+          
+          echo ""
+          echo "🌐 Test URL: http://98.130.11.14:8083"
       
-      - name: Deployment Success Notification
+      - name: Deployment Success
         if: success()
         continue-on-error: true
         run: |
-          CONTAINERS=$(cd ~/viyanta_web && docker compose ps --format '{{.Service}}' | tr '\n' ', ' | sed 's/,$//')
+          CONTAINERS=$(cd /home/ubuntu/viyanta_test && docker compose ps --format '{{.Service}}' | tr '\n' ', ' | sed 's/,$//')
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"✅ *Deployment Successful*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n🐳 Containers: ${CONTAINERS}\n🔗 Test: http://YOUR_SERVER_IP:8082\n⚠️  PM2 still running on port 8000\"}" \
+          -d "{\"text\":\"✅ *Test Deployment Successful*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n🐳 Containers: ${CONTAINERS}\n🌐 Test URL: http://98.130.11.14:8083\n📁 Location: /home/ubuntu/viyanta_test\n\n✅ Production unaffected (PM2 running on port 8000)\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
       
-      - name: Deployment Failed Notification
+      - name: Deployment Failed
         if: failure()
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"❌ *Deployment Failed*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n📋 Check GitHub Actions logs\n⚠️  PM2 is unaffected and still running\"}" \
+          -d "{\"text\":\"❌ *Test Deployment Failed*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n📋 Check GitHub Actions logs\n\n✅ Production is safe and running\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
