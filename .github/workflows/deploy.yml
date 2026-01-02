@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     name: Deploy Viyanta Docker Test
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64]
     
     steps:
       - name: Checkout code
