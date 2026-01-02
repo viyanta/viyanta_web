@@ -59,7 +59,7 @@ jobs:
           # Create root .env
           if [ ! -f .env ]; then
             cp backend/.env .env
-            echo "✅ Created root .env"
+            echo "✅ Created root .env successfully"
           fi
           
           echo "✅ Environment files ready"
