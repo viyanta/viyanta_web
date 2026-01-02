@@ -1,4 +1,4 @@
-name: Viyanta Docker Deployment (Testing)
+name: Viyanta Docker Deployment (GitHub-Hosted)
 
 on:
   push:
@@ -7,115 +7,85 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Viyanta Docker Test
-    runs-on: [self-hosted, Linux, X64]
+    name: Deploy to Test Environment
+    runs-on: ubuntu-latest  # ← GitHub-hosted (not self-hosted)
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Send Deployment Started
+      - name: Send Deployment Started Notification
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"🧪 *Test Deployment Started*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n💬 Commit: ${{ github.event.head_commit.message }}\n📁 Location: /home/ubuntu/viyanta_test\"}" \
+          -d "{\"text\":\"🚀 *Deployment Started (GitHub-Hosted)*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n💬 Commit: ${{ github.event.head_commit.message }}\n🖥️ Runner: GitHub-hosted (fast!)\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
       
-      - name: Sync to Test Directory
+      - name: Setup SSH
         run: |
-          echo "📁 Syncing to test directory: /home/ubuntu/viyanta_test"
-          
-          # Create directory if doesn't exist
-          mkdir -p /home/ubuntu/viyanta_test
-          
-          # Sync files
-          rsync -av --delete \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='venv' \
-            --exclude='__pycache__' \
-            --exclude='*.pyc' \
-            ./ /home/ubuntu/viyanta_test/
-          
-          echo "✅ Files synced to test directory"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
       
-      - name: Set Up Environment Files
+      - name: Deploy to Server
         run: |
-          cd /home/ubuntu/viyanta_test
-          
-          echo "📋 Setting up .env files..."
-          
-          # Copy from production if not exists
-          if [ ! -f backend/.env ]; then
-            if [ -f /home/ubuntu/code/viyanta_web/backend/.env ]; then
-              cp /home/ubuntu/code/viyanta_web/backend/.env ./backend/.env
-              echo "✅ Copied backend/.env from production"
-            else
-              echo "❌ ERROR: No .env file found in production"
-              exit 1
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
+            
+            echo "📁 Navigating to test directory..."
+            cd /home/ubuntu/viyanta_test
+            
+            echo "🔄 Pulling latest code..."
+            git fetch origin pipeline-docker-test
+            git checkout pipeline-docker-test
+            git pull origin pipeline-docker-test
+            
+            echo "📋 Checking .env files..."
+            if [ ! -f .env ]; then
+              cp /home/ubuntu/code/viyanta_web/backend/.env ./.env
             fi
-          fi
-          
-          # Create root .env
-          if [ ! -f .env ]; then
-            cp backend/.env .env
-            echo "✅ Created root .env successfully"
-          fi
-          
-          echo "✅ Environment files ready"
-      
-      - name: Deploy Docker (Test Environment)
-        run: |
-          cd /home/ubuntu/viyanta_test
-          
-          echo "🐳 Deploying Docker containers..."
-          echo "📍 Location: $(pwd)"
-          echo "🔌 Ports: Backend=8001, Frontend=8082, MySQL=3307"
-          echo "⚠️  Production unaffected (PM2 on port 8000)"
-          
-          chmod +x deploy-docker.sh
-          ./deploy-docker.sh
+            if [ ! -f backend/.env ]; then
+              cp /home/ubuntu/code/viyanta_web/backend/.env ./backend/.env
+            fi
+            
+            echo "🐳 Deploying with Docker..."
+            chmod +x deploy-docker.sh
+            ./deploy-docker.sh
+            
+            echo "✅ Deployment complete!"
+          ENDSSH
       
       - name: Verify Deployment
         run: |
-          cd /home/ubuntu/viyanta_test
-          
-          echo "⏳ Waiting for services (20s)..."
-          sleep 20
-          
-          echo "📊 Container status:"
-          docker compose ps
-          
-          echo ""
-          echo "🔍 Testing endpoints:"
-          
-          echo "Docker Backend (8001):"
-          curl -s http://localhost:8001/ | head -3 || echo "⚠️  Backend not ready yet"
-          
-          echo ""
-          echo "Docker Frontend (8082):"
-          curl -s http://localhost:8082 | head -3 || echo "⚠️  Frontend not ready yet"
-          
-          echo ""
-          echo "✅ Production PM2 check:"
-          pm2 list || echo "PM2 status check skipped"
-          
-          echo ""
-          echo "🌐 Test URL: http://98.130.11.14:8083"
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            cd /home/ubuntu/viyanta_test
+            
+            echo "📊 Container Status:"
+            docker compose ps
+            
+            echo ""
+            echo "🔍 Testing Endpoints:"
+            curl -s http://localhost:8001/ | head -3 || echo "⚠️ Backend check"
+            curl -s http://localhost:8082 | head -3 || echo "⚠️ Frontend check"
+            
+            echo ""
+            echo "✅ Production PM2 Status:"
+            pm2 list
+          ENDSSH
       
-      - name: Deployment Success
+      - name: Deployment Success Notification
         if: success()
         continue-on-error: true
         run: |
-          CONTAINERS=$(cd /home/ubuntu/viyanta_test && docker compose ps --format '{{.Service}}' | tr '\n' ', ' | sed 's/,$//')
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"✅ *Test Deployment Successful*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n🐳 Containers: ${CONTAINERS}\n🌐 Test URL: http://98.130.11.14:8083\n📁 Location: /home/ubuntu/viyanta_test\n\n✅ Production unaffected (PM2 running on port 8000)\"}" \
+          -d "{\"text\":\"✅ *Deployment Successful*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n🌐 Test: http://${{ secrets.SERVER_HOST }}:8083\n⚡ Built on GitHub servers (fast!)\n✅ Production unaffected\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
       
-      - name: Deployment Failed
+      - name: Deployment Failed Notification
         if: failure()
         continue-on-error: true
         run: |
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"text\":\"❌ *Test Deployment Failed*\n📦 Project: Viyanta Web (Testing)\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n📋 Check GitHub Actions logs\n\n✅ Production is safe and running\"}" \
+          -d "{\"text\":\"❌ *Deployment Failed*\n📦 Project: Viyanta Web\n🌿 Branch: ${GITHUB_REF_NAME}\n👤 By: ${GITHUB_ACTOR}\n📋 Check logs: https://github.com/viyanta/viyanta_web/actions\n✅ Production safe\"}" \
           "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
