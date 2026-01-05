@@ -45,8 +45,11 @@ class MasterRowsSyncService:
 
     def _resolve_tables(self, form_no: str) -> tuple[str, str]:
         """Return (master_mapping_table, master_rows_table) for a form."""
-        # Current DB design: L-3 has its own master tables.
-        if str(form_no).strip().upper() == "L-3":
+        # Current DB design: L-1 and L-3 have their own master tables.
+        form_no_upper = str(form_no).strip().upper()
+        if form_no_upper == "L-1":
+            return "master_mapping_l1", "master_rows_l1"
+        elif form_no_upper == "L-3":
             return "master_mapping_l3", "master_rows_l3"
         return "master_mapping", "master_rows"
 

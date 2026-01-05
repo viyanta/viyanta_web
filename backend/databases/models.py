@@ -541,11 +541,57 @@ class ReportsL3Extracted(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+# Add L-1 extracted table model with columns derived from PDF headers
+class ReportsL1Extracted(Base):
+    __tablename__ = "reports_l1_extracted"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    # Note: Foreign keys removed to avoid SQLAlchemy metadata resolution issues
+    report_id = Column(BigInteger, nullable=False)
+    company_id = Column(Integer, nullable=True)  # Added for master mapping pipeline
+    master_row_id = Column(BigInteger)  # References master_rows_l1.id
+    row_index = Column(Integer)  # Added for ordering
+
+    particulars = Column(Text, nullable=False)
+    normalized_text = Column(String(512))  # Added for master mapping
+    schedule = Column(String(100))
+
+    # Linked Business columns
+    linked_business_life = Column(DECIMAL(20, 2))
+    linked_business_pension = Column(DECIMAL(20, 2))
+    linked_business_health = Column(DECIMAL(20, 2))
+    linked_business_variable_insurance = Column(DECIMAL(20, 2))
+    linked_business_total = Column(DECIMAL(20, 2))
+
+    # Non-Linked Business - Participating columns
+    non_linked_business_participating_life = Column(DECIMAL(20, 2))
+    non_linked_business_participating_annuity = Column(DECIMAL(20, 2))
+    non_linked_business_participating_pension = Column(DECIMAL(20, 2))
+    non_linked_business_participating_health = Column(DECIMAL(20, 2))
+    non_linked_business_participating_variable_insurance = Column(DECIMAL(20, 2))
+    non_linked_business_participating_total = Column(DECIMAL(20, 2))
+
+    # Non-Linked Business - Non-Participating columns
+    non_linked_business_non_participating_life = Column(DECIMAL(20, 2))
+    non_linked_business_non_participating_annuity = Column(DECIMAL(20, 2))
+    non_linked_business_non_participating_pension = Column(DECIMAL(20, 2))
+    non_linked_business_non_participating_health = Column(DECIMAL(20, 2))
+    non_linked_business_non_participating_variable_insurance = Column(DECIMAL(20, 2))
+    non_linked_business_non_participating_total = Column(DECIMAL(20, 2))
+
+    # Total column
+    total = Column(DECIMAL(20, 2))
+
+    created_at = Column(DateTime, server_default=func.now())
+
+
 # =================================================================
 # Register extracted/detail tables in ReportModels
 # =================================================================
 ReportModels['reports_l2_extracted'] = ReportsL2Extracted
 ReportModels['reports_l3_extracted'] = ReportsL3Extracted
+ReportModels['reports_l1_extracted'] = ReportsL1Extracted
 
 
 class MasterRow(Base):
@@ -602,6 +648,62 @@ class MasterRowL3(Base):
         "MasterMappingL3",
         back_populates="master_row",
         primaryjoin="MasterRowL3.cluster_label==foreign(MasterMappingL3.cluster_label)",
+        viewonly=True,
+    )
+
+
+# L-1 uses separate master tables in MySQL
+class MasterRowL1(Base):
+    __tablename__ = "master_rows_l1"
+
+    master_row_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    cluster_label = Column(
+        Integer,
+        unique=True,
+        nullable=True
+    )
+
+    master_name = Column(
+        String(500),
+        nullable=False,
+        unique=True
+    )
+
+    display_order = Column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    category = Column(
+        String(100),
+        nullable=True
+    )
+
+    description = Column(
+        Text,
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    mappings = relationship(
+        "MasterMappingL1",
+        back_populates="master_row",
+        primaryjoin="MasterRowL1.cluster_label==foreign(MasterMappingL1.cluster_label)",
         viewonly=True,
     )
 
@@ -725,6 +827,68 @@ class MasterMappingL3(Base):
     master_row = relationship(
         "MasterRowL3",
         primaryjoin="foreign(MasterMappingL3.cluster_label)==MasterRowL3.cluster_label",
+        viewonly=True,
+        back_populates="mappings",
+    )
+
+
+class MasterMappingL1(Base):
+    __tablename__ = "master_mapping_l1"
+
+    id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    master_name = Column(
+        String(255),
+        nullable=False
+    )
+
+    company_id = Column(
+        Integer,
+        nullable=False
+    )
+
+    form_no = Column(
+        String(20),
+        nullable=False
+    )
+
+    variant_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    normalized_text = Column(
+        String(512),
+        nullable=False
+    )
+
+    cluster_label = Column(
+        Integer,
+        nullable=True
+    )
+
+    similarity_score = Column(
+        Float,
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.current_timestamp()
+    )
+
+    master_row = relationship(
+        "MasterRowL1",
+        primaryjoin="foreign(MasterMappingL1.cluster_label)==MasterRowL1.cluster_label",
         viewonly=True,
         back_populates="mappings",
     )

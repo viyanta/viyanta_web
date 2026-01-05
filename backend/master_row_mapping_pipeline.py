@@ -463,7 +463,10 @@ class DatabaseManager:
 
     def _resolve_master_tables(self, form_no: str) -> tuple[str, str]:
         """Return (master_mapping_table, master_rows_table) for a given form."""
-        if str(form_no).strip().upper() == "L-3":
+        form_no_upper = str(form_no).strip().upper()
+        if form_no_upper == "L-1":
+            return "master_mapping_l1", "master_rows_l1"
+        elif form_no_upper == "L-3":
             return "master_mapping_l3", "master_rows_l3"
         return "master_mapping", "master_rows"
 
@@ -471,8 +474,9 @@ class DatabaseManager:
         """Insert or update master mapping table (per form).
 
         NOTE:
-        - In this DB, `master_mapping` and `master_mapping_l3` currently have ONLY a
-          PRIMARY KEY on `id` (no unique constraint on (company_id, form_no, variant_text)).
+        - In this DB, `master_mapping`, `master_mapping_l1`, and `master_mapping_l3` 
+          currently have ONLY a PRIMARY KEY on `id` (no unique constraint on 
+          (company_id, form_no, variant_text)).
         - Therefore, MySQL's `ON DUPLICATE KEY UPDATE` will NOT fire for logical
           duplicates and would keep inserting duplicates.
 

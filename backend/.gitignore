@@ -16,7 +16,10 @@ clean*.py
 *.md
 final*.py
 find*.py
-fix*.py
+fix*.
+verify*.py
+populate*.py
+create*.py
 
 extractions/*
 gemini_verified_json/*

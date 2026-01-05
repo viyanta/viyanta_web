@@ -178,21 +178,32 @@ class DatabaseStorageService:
         """Group data tables by period"""
         period_groups = {}
 
-        if isinstance(normalized_data, list):
-            for table in normalized_data:
-                if not isinstance(table, dict):
-                    continue
+        # Handle both list and dict formats
+        tables_list = []
+        if isinstance(normalized_data, dict) and "data" in normalized_data:
+            # Format: {"data": [table1, table2, ...]}
+            tables_list = normalized_data.get("data", [])
+        elif isinstance(normalized_data, list):
+            # Format: [table1, table2, ...]
+            tables_list = normalized_data
+        else:
+            print(f"[DB] WARNING: Unexpected data format: {type(normalized_data)}")
+            return period_groups
 
-                period = table.get("Period") or table.get(
-                    "period") or str(datetime.now().date())
+        for table in tables_list:
+            if not isinstance(table, dict):
+                continue
 
-                if period not in period_groups:
-                    period_groups[period] = []
+            period = table.get("Period") or table.get(
+                "period") or str(datetime.now().date())
 
-                period_groups[period].append(table)
+            if period not in period_groups:
+                period_groups[period] = []
 
-            print(
-                f"[DB] Found {len(period_groups)} unique periods: {list(period_groups.keys())}")
+            period_groups[period].append(table)
+
+        print(
+            f"[DB] Found {len(period_groups)} unique periods: {list(period_groups.keys())}")
 
         return period_groups
 
@@ -516,11 +527,46 @@ class DatabaseStorageService:
                         normalized_text = self._normalize_text(
                             str(particulars).strip())
 
-                        # Create extracted row entry - handle L-2 vs L-3 columns
+                        # Create extracted row entry - handle L-1, L-2, and L-3 columns
+                        # L-1 (Revenue Account) uses: business type breakdown columns (linked/non-linked, life/pension/health, etc.)
                         # L-2 (Revenue) uses: for_current_period, upto_current_period, for_previous_period, upto_previous_period
                         # L-3 (Balance Sheet) uses: as_at_current_period, as_at_previous_period
 
-                        if table_key == "l3":
+                        if table_key == "l1":
+                            # L-1 Revenue Account: business type breakdown columns
+                            extracted_row = ExtractedModel(
+                                report_id=report_id,
+                                company_id=company_id,  # Added for master mapping pipeline
+                                master_row_id=None,  # Will be populated by master mapping pipeline
+                                row_index=row_index,  # Added for ordering
+                                particulars=str(particulars).strip(),
+                                normalized_text=normalized_text,  # Added for master mapping
+                                schedule=str(schedule).strip() if schedule else None,
+                                # Linked Business columns
+                                linked_business_life=row_data.get("Linked_Business_Life") or row_data.get("linked_business_life"),
+                                linked_business_pension=row_data.get("Linked_Business_Pension") or row_data.get("linked_business_pension"),
+                                linked_business_health=row_data.get("Linked_Business_Health") or row_data.get("linked_business_health"),
+                                linked_business_variable_insurance=row_data.get("Linked_Business_Variable_Insurance") or row_data.get("linked_business_variable_insurance"),
+                                linked_business_total=row_data.get("Linked_Business_Total") or row_data.get("linked_business_total"),
+                                # Non-Linked Business - Participating columns
+                                non_linked_business_participating_life=row_data.get("Non_Linked_Business_Participating_Life") or row_data.get("non_linked_business_participating_life"),
+                                non_linked_business_participating_annuity=row_data.get("Non_Linked_Business_Participating_Annuity") or row_data.get("non_linked_business_participating_annuity"),
+                                non_linked_business_participating_pension=row_data.get("Non_Linked_Business_Participating_Pension") or row_data.get("non_linked_business_participating_pension"),
+                                non_linked_business_participating_health=row_data.get("Non_Linked_Business_Participating_Health") or row_data.get("non_linked_business_participating_health"),
+                                non_linked_business_participating_variable_insurance=row_data.get("Non_Linked_Business_Participating_Variable_Insurance") or row_data.get("non_linked_business_participating_variable_insurance"),
+                                non_linked_business_participating_total=row_data.get("Non_Linked_Business_Participating_Total") or row_data.get("non_linked_business_participating_total"),
+                                # Non-Linked Business - Non-Participating columns
+                                non_linked_business_non_participating_life=row_data.get("Non_Linked_Business_Non_Participating_Life") or row_data.get("non_linked_business_non_participating_life"),
+                                non_linked_business_non_participating_annuity=row_data.get("Non_Linked_Business_Non_Participating_Annuity") or row_data.get("non_linked_business_non_participating_annuity"),
+                                non_linked_business_non_participating_pension=row_data.get("Non_Linked_Business_Non_Participating_Pension") or row_data.get("non_linked_business_non_participating_pension"),
+                                non_linked_business_non_participating_health=row_data.get("Non_Linked_Business_Non_Participating_Health") or row_data.get("non_linked_business_non_participating_health"),
+                                non_linked_business_non_participating_variable_insurance=row_data.get("Non_Linked_Business_Non_Participating_Variable_Insurance") or row_data.get("non_linked_business_non_participating_variable_insurance"),
+                                non_linked_business_non_participating_total=row_data.get("Non_Linked_Business_Non_Participating_Total") or row_data.get("non_linked_business_non_participating_total"),
+                                # Total column
+                                total=row_data.get("Total") or row_data.get("total") or row_data.get("Grand_Total") or row_data.get("grand_total"),
+                                created_at=datetime.now()
+                            )
+                        elif table_key == "l3":
                             # L-3 Balance Sheet: only 2 "as at" columns
                             extracted_row = ExtractedModel(
                                 report_id=report_id,
