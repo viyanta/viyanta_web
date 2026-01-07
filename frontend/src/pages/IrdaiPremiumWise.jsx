@@ -377,7 +377,7 @@ const IrdaiPremiumWise = () => {
                             <div key={idx} id={chart.id} className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 <h4 style={{ marginBottom: '15px', color: '#555' }}>{chart.title}</h4>
                                 <div className="chart-scroll-wrapper">
-                                    <div className="chart-content" style={{ minWidth: '600px', height: 'auto' }}>
+                                    <div className="chart-content" style={{ height: 'auto' }}>
                                         <div style={{ overflowY: 'auto', width: '100%', height: '500px', paddingRight: '10px' }}>
                                             <div style={{ height: `${Math.max(500, companyData.length * 50)}px`, width: '100%' }}>
                                                 <ResponsiveContainer width="100%" height="100%">

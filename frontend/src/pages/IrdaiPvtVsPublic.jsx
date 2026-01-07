@@ -234,18 +234,20 @@ const IrdaiPvtVsPublic = () => {
                     <div key={idx} className="chart-section">
                         <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>{sec.sectionName}</h4>
                         <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            <div style={{ height: Math.max(sec.data.length * 50, 300) + 'px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart layout="vertical" data={sec.data} margin={{ left: 20, right: 50 }}>
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                        <XAxis type="number" />
-                                        <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 12 }} />
-                                        <Tooltip formatter={(val) => val.toLocaleString()} />
-                                        <Bar dataKey="premium" fill={sec.color} name="Premium" radius={[0, 4, 4, 0]}>
-                                            <LabelList dataKey="premium" position="right" formatter={(val) => val.toLocaleString()} fontSize={12} />
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content" style={{ height: Math.max(sec.data.length * 50, 300) + 'px' }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart layout="vertical" data={sec.data} margin={{ left: 20, right: 50 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                            <XAxis type="number" />
+                                            <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 12 }} />
+                                            <Tooltip formatter={(val) => val.toLocaleString()} />
+                                            <Bar dataKey="premium" fill={sec.color} name="Premium" radius={[0, 4, 4, 0]}>
+                                                <LabelList dataKey="premium" position="right" formatter={(val) => val.toLocaleString()} fontSize={12} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
                     </div>

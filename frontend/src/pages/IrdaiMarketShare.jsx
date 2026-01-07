@@ -361,109 +361,125 @@ const IrdaiMarketShare = () => {
                         {/* FYP Chart */}
                         <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium (%)</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart
-                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis
-                                        dataKey="type"
-                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
-                                        tick={{ fontSize: 10 }}
-                                        interval={0}
-                                    />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip
-                                        formatter={(value) => [`${value}%`, 'Share']}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                        <LabelList dataKey="values.premium" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="type"
+                                                tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                            />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(value) => [`${value}%`, 'Share']}
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                            />
+                                            <Bar dataKey="values.premium" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                <LabelList dataKey="values.premium" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* SA Chart */}
                         <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured (%)</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart
-                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis
-                                        dataKey="type"
-                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
-                                        tick={{ fontSize: 10 }}
-                                        interval={0}
-                                    />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip
-                                        formatter={(value) => [`${value}%`, 'Share']}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                        <LabelList dataKey="values.sum" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="type"
+                                                tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                            />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(value) => [`${value}%`, 'Share']}
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                            />
+                                            <Bar dataKey="values.sum" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                <LabelList dataKey="values.sum" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOP Chart */}
                         <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Policies (%)</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart
-                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis
-                                        dataKey="type"
-                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
-                                        tick={{ fontSize: 10 }}
-                                        interval={0}
-                                    />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip
-                                        formatter={(value) => [`${value}%`, 'Share']}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                        <LabelList dataKey="values.policies" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="type"
+                                                tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                            />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(value) => [`${value}%`, 'Share']}
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                            />
+                                            <Bar dataKey="values.policies" fill="#8884d8" name="Policies" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                <LabelList dataKey="values.policies" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOL Chart */}
                         <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>No. of Lives (%)</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart
-                                    data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis
-                                        dataKey="type"
-                                        tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
-                                        tick={{ fontSize: 10 }}
-                                        interval={0}
-                                    />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip
-                                        formatter={(value) => [`${value}%`, 'Share']}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                        <LabelList dataKey="values.lives" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={marketShareData.length > 0 && marketShareData[0].subRows ? marketShareData[0].subRows : []}
+                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="type"
+                                                tickFormatter={(val) => val.replace(' Individual', ' Ind').replace(' Group', ' Grp').replace(' Premium', '').replace(' Renewable', ' Ren')}
+                                                tick={{ fontSize: 10 }}
+                                                interval={0}
+                                            />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip
+                                                formatter={(value) => [`${value}%`, 'Share']}
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                            />
+                                            <Bar dataKey="values.lives" fill="#FF8042" name="Lives" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                <LabelList dataKey="values.lives" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

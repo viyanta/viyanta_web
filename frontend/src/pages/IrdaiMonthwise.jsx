@@ -255,7 +255,7 @@ const IrdaiMonthwise = () => {
                                     <div className="chart-container" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                         {/* Outer Scroll Wrapper for Mobile/Tablet */}
                                         <div className="chart-scroll-wrapper">
-                                            <div className="chart-content" style={{ minWidth: '600px', height: 'auto' }}>
+                                            <div className="chart-content" style={{ height: 'auto' }}>
                                                 {/* Inner Vertical Scroll for many bars */}
                                                 <div style={{ width: '100%', height: '600px', overflowY: 'auto', overflowX: 'hidden' }}>
                                                     {/* Chart Height Logic */}
