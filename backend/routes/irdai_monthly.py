@@ -50,7 +50,8 @@ def extract_report_month_from_filename(filename: str) -> str:
 
 @router.post("/upload-monthly-excel")
 async def upload_irdai_monthly_excel(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    sheet_name: str = Form(..., description="Sheet name to import")
 ):
     if not file.filename.lower().endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="Only .xlsx files allowed")
@@ -60,10 +61,11 @@ async def upload_irdai_monthly_excel(
         tmp_path = tmp.name
 
     try:
-        # 1️⃣ AUTO-DETECT SHEET NAME
-        wb = load_workbook(tmp_path, read_only=True)
-        sheet_name = wb.sheetnames[0]
-        wb.close()
+        # 1️⃣ SHEET NAME IS NOW REQUIRED
+        if not sheet_name or sheet_name.strip() == "":
+             raise HTTPException(status_code=400, detail="Sheet name is required")
+             
+        auto_detected_sheet = False
 
         # 2️⃣ AUTO-DETECT REPORT MONTH
         report_month = extract_report_month_from_filename(file.filename)
@@ -79,6 +81,7 @@ async def upload_irdai_monthly_excel(
         return {
             **result,
             "sheet_name": sheet_name,
+            "auto_detected_sheet": auto_detected_sheet,
             "source_file": file.filename,
         }
 
@@ -140,7 +143,7 @@ def get_period_options(
             """)
         else:
             # SQLite
-             sql = text("""
+            sql = text("""
                 SELECT
                   strftime('%m-%Y', MIN(report_month)) || ' - ' || strftime('%m-%Y', MAX(report_month)) AS label,
                   MIN(report_month) AS start_date,
@@ -454,14 +457,12 @@ def get_company_totals(
         "start_date": start_date,
         "end_date": end_date
     }).mappings().first()
-    
+
     if not row:
         return {}
-        
+
     # Normalize keys to lowercase to ensure consistency
     return {k.lower(): v for k, v in row.items()}
-
-
 
 
 # 8️⃣ COMPANY PREMIUM TYPE BREAKUP
@@ -952,6 +953,8 @@ def get_company_premium_growth(
     }).mappings().all()
 
 # 1️⃣6️⃣ MONTHWISE – ALL COMPANIES – ALL METRICS
+
+
 @router.get("/monthwise/all-companies-all-metrics")
 def get_monthwise_all_companies_all_metrics(
     start_date: str,
@@ -1022,6 +1025,8 @@ def get_monthwise_all_companies_all_metrics(
         "end_date": end_date
     }).mappings().all()
 # 1️⃣7️⃣ PRIVATE vs PUBLIC TABLE
+
+
 @router.get("/pvt-vs-public/table")
 def get_pvt_vs_public_table(
     start_date: str,
@@ -1104,6 +1109,7 @@ def get_pvt_vs_public_table(
 
   # 1️⃣8️⃣ PEER INSURERS LIST
 
+
 @router.get("/dropdown/insurers")
 def get_insurer_dropdown(db: Session = Depends(get_db)):
     sql = text("""
@@ -1165,18 +1171,18 @@ def get_peer_comparison(
     # ----------------------------
     # SQL (MANUAL IN CLAUSE for compatibility)
     # ----------------------------
-    
+
     # Create dynamic keys for insurers: :insurer_0, :insurer_1...
     insurer_binds = {}
     insurer_keys = []
-    
+
     for i, name in enumerate(insurers):
         key = f"insurer_{i}"
         insurer_binds[key] = name
         insurer_keys.append(f":{key}")
-    
+
     in_clause = ", ".join(insurer_keys)
-    
+
     # Base params
     params = {
         "premium_type": premium_type,

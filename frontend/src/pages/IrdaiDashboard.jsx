@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import TabLayout from './IrdaiSharedLayout';
+import Modal from '../components/Modal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, LabelList } from 'recharts';
 
 const IrdaiDashboard = () => {
@@ -14,6 +15,11 @@ const IrdaiDashboard = () => {
     const [periodTypes, setPeriodTypes] = useState([]);
     const [periodOptions, setPeriodOptions] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // Upload Modal State
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadSheetName, setUploadSheetName] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const [dashboardTotals, setDashboardTotals] = useState(null);
     const [tableData, setTableData] = useState([]);
@@ -208,25 +214,37 @@ const IrdaiDashboard = () => {
         setSortConfig({ key, direction });
     };
 
-    const handleFileUpload = async (event) => {
+    const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
+        setSelectedFile(file);
+        setUploadSheetName(''); // Reset sheet name
+        setIsUploadModalOpen(true);
+        event.target.value = ''; // Reset input to allow re-selecting same file
+    };
+
+    const handleConfirmUpload = async () => {
+        if (!selectedFile) return;
+        if (!uploadSheetName || uploadSheetName.trim() === "") {
+            alert("Sheet Name is required.");
+            return;
+        }
+
         try {
             setLoading(true);
-            await api.uploadIrdaiMonthlyExcel(file);
+            await api.uploadIrdaiMonthlyExcel(selectedFile, uploadSheetName);
             alert("File uploaded successfully!");
-            // Refresh data if we have a selected period
-            if (selectedPeriod && typeof selectedPeriod !== 'string') {
-                // Re-fetching logic is already in useEffect dependent on selectedPeriod, 
-                // but we might need to force it. For now, simple alert is enough as per user request.
-            }
+            setIsUploadModalOpen(false);
+            setUploadSheetName('');
+            setSelectedFile(null);
+
+            // Refresh logic if needed
         } catch (error) {
             console.error("Upload failed", error);
             alert(`Upload failed: ${error.message}`);
         } finally {
             setLoading(false);
-            event.target.value = ''; // Reset input
         }
     };
 
@@ -313,74 +331,90 @@ const IrdaiDashboard = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                    <div className="charts-row">
 
                         {/* FYP Chart */}
                         <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(val) => `₹${val / 1000}k`} width={50} />
-                                    <Tooltip formatter={(value) => [`₹ ${value.toLocaleString('en-IN')}`, 'Premium']} />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} minTickGap={30} />
+                                            <YAxis tickFormatter={(val) => `₹${val / 1000}k`} width={60} />
+                                            <Tooltip formatter={(value) => [`₹ ${value.toLocaleString('en-IN')}`, 'Premium']} />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#0088FE" name="FYP" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* SA Chart */}
                         <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(val) => `₹${val / 100000}L`} width={50} />
-                                    <Tooltip formatter={(value) => [`₹ ${value.toLocaleString('en-IN')}`, 'Sum Assured']} />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} minTickGap={30} />
+                                            <YAxis tickFormatter={(val) => `₹${val / 100000}L`} width={60} />
+                                            <Tooltip formatter={(value) => [`₹ ${value.toLocaleString('en-IN')}`, 'Sum Assured']} />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOL Chart */}
                         <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Number of Lives</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(val) => `${val / 100000}L`} width={50} />
-                                    <Tooltip formatter={(value) => [value.toLocaleString('en-IN'), 'Lives']} />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#8884d8" name="Lives" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} minTickGap={30} />
+                                            <YAxis tickFormatter={(val) => `${val / 100000}L`} width={60} />
+                                            <Tooltip formatter={(value) => [value.toLocaleString('en-IN'), 'Lives']} />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#8884d8" name="Lives" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOP Chart */}
                         <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>No of Policies</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(val) => `${val / 100000}L`} width={50} />
-                                    <Tooltip formatter={(value) => [value.toLocaleString('en-IN'), 'Policies']} />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#FF8042" name="Policies" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} minTickGap={30} />
+                                            <YAxis tickFormatter={(val) => `${val / 100000}L`} width={60} />
+                                            <Tooltip formatter={(value) => [value.toLocaleString('en-IN'), 'Policies']} />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#FF8042" name="Policies" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -425,6 +459,61 @@ const IrdaiDashboard = () => {
                     </div>
                 </div>
             )}
+
+            {/* Upload Modal */}
+            <Modal
+                open={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                title="Upload Monthly Data"
+            >
+                <div style={{ padding: '1rem', minWidth: '400px' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Selected File</label>
+                        <div style={{ padding: '0.5rem', background: '#f8f9fa', borderRadius: '4px', border: '1px solid #dee2e6' }}>
+                            {selectedFile ? selectedFile.name : 'No file selected'}
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Sheet Name <span style={{ color: 'red' }}>*</span></label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                border: '1px solid #ced4da',
+                                borderRadius: '4px',
+                                fontSize: '1rem'
+                            }}
+                            placeholder="e.g. as at 30th Sep 2025"
+                            value={uploadSheetName}
+                            onChange={(e) => setUploadSheetName(e.target.value)}
+                        />
+                        <small style={{ color: '#6c757d', marginTop: '0.25rem', display: 'block' }}>
+                            Please enter the exact name of the sheet to import.
+                        </small>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                        <button
+                            className="action-btn"
+                            style={{ background: '#6c757d' }}
+                            onClick={() => setIsUploadModalOpen(false)}
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="action-btn"
+                            onClick={handleConfirmUpload}
+                            disabled={loading}
+                        >
+                            {loading ? 'Uploading...' : 'Upload'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </TabLayout >
     );
 };

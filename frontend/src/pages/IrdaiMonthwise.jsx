@@ -23,7 +23,7 @@ const IrdaiMonthwise = () => {
         const fetchInitialData = async () => {
             try {
                 // 1. Fetch Insurers
-                const companies = await api.getCompanyList();
+                const companies = await api.getCompanyInsurersList();
                 const uniqueNames = companies.map(c => c.label);
                 setInsurerNames(uniqueNames);
                 if (uniqueNames.length > 0 && !insurerName) {
@@ -204,7 +204,7 @@ const IrdaiMonthwise = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="charts-grid" style={{ display: 'flex', flexDirection: 'column', gap: '30px', marginTop: '20px' }}>
+                    <div className="charts-grid">
                         {/* Filter out totals for charts */}
                         {(() => {
                             // Aggregate data by insurer name
@@ -250,30 +250,37 @@ const IrdaiMonthwise = () => {
                             };
 
                             const renderChart = (title, dataKey, name, color, id) => (
-                                <div id={id} className="chart-container" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                    <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>{title}</h3>
-                                    {/* Scrollable Container with fixed Max Height */}
-                                    <div style={{ width: '100%', height: '600px', overflowY: 'auto', overflowX: 'hidden' }}>
-                                        {/* Inner Container with Dynamic Height */}
-                                        <div style={{ width: '100%', height: `${dynamicHeight}px` }}>
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart
-                                                    layout="vertical" data={chartData}
-                                                    margin={{ top: 20, right: 80, left: 100, bottom: 20 }}
-                                                    barSize={20}
-                                                >
-                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                                    {/* YAxis is now Insurer Name (Category) */}
-                                                    <YAxis dataKey="insurer_name" type="category" width={150} tick={{ fontSize: 11 }} />
-                                                    {/* XAxis is now Value (Number) */}
-                                                    <XAxis type="number" />
-                                                    <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f5f5f5' }} />
-                                                    <Legend verticalAlign="top" height={36} />
-                                                    <Bar dataKey={dataKey} name={name} fill={color} radius={[0, 4, 4, 0]}>
-                                                        <LabelList dataKey={dataKey} position="right" formatter={(value) => value.toLocaleString()} style={{ fontSize: '11px', fill: '#333' }} />
-                                                    </Bar>
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                <div id={id} className="chart-section">
+                                    <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>{title}</h4>
+                                    <div className="chart-container" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                        {/* Outer Scroll Wrapper for Mobile/Tablet */}
+                                        <div className="chart-scroll-wrapper">
+                                            <div className="chart-content" style={{ minWidth: '600px', height: 'auto' }}>
+                                                {/* Inner Vertical Scroll for many bars */}
+                                                <div style={{ width: '100%', height: '600px', overflowY: 'auto', overflowX: 'hidden' }}>
+                                                    {/* Chart Height Logic */}
+                                                    <div style={{ width: '100%', height: `${dynamicHeight}px` }}>
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart
+                                                                layout="vertical" data={chartData}
+                                                                margin={{ top: 20, right: 80, left: 100, bottom: 20 }}
+                                                                barSize={20}
+                                                            >
+                                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                                {/* YAxis is now Insurer Name (Category) */}
+                                                                <YAxis dataKey="insurer_name" type="category" width={180} tick={{ fontSize: 11 }} />
+                                                                {/* XAxis is now Value (Number) */}
+                                                                <XAxis type="number" />
+                                                                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f5f5f5' }} />
+                                                                <Legend verticalAlign="top" height={36} />
+                                                                <Bar dataKey={dataKey} name={name} fill={color} radius={[0, 4, 4, 0]}>
+                                                                    <LabelList dataKey={dataKey} position="right" formatter={(value) => value.toLocaleString()} style={{ fontSize: '11px', fill: '#333' }} />
+                                                                </Bar>
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -281,10 +288,10 @@ const IrdaiMonthwise = () => {
 
                             return (
                                 <>
-                                    {renderChart("First Year Premium (Current)", "fyp_current", "FYP", "#0088FE", "chart-fyp")}
-                                    {renderChart("Sum Assured (Current)", "sa_current", "Sum Assured", "#00C49F", "chart-sa")}
-                                    {renderChart("No. of Lives (Current)", "nol_current", "No. of Lives", "#8884d8", "chart-nol")}
-                                    {renderChart("No of Policies (Current)", "nop_current", "No of Policies", "#FF8042", "chart-nop")}
+                                    {renderChart("First Year Premium", "fyp_current", "FYP", "#0088FE", "chart-fyp")}
+                                    {renderChart("Sum Assured", "sa_current", "Sum Assured", "#00C49F", "chart-sa")}
+                                    {renderChart("No. of Lives", "nol_current", "No. of Lives", "#8884d8", "chart-nol")}
+                                    {renderChart("No of Policies", "nop_current", "No of Policies", "#FF8042", "chart-nop")}
                                 </>
                             );
                         })()}

@@ -232,14 +232,14 @@ const IrdaiPvtVsPublic = () => {
                 {/* Breakdown Section */}
                 {sectionBreakdowns.map((sec, idx) => (
                     <div key={idx} className="chart-section">
-                        <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>{sec.sectionName} - Premium Breakdown</h3>
-                        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>{sec.sectionName}</h4>
+                        <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <div style={{ height: Math.max(sec.data.length * 50, 300) + 'px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart layout="vertical" data={sec.data} margin={{ left: 150, right: 50 }}>
+                                    <BarChart layout="vertical" data={sec.data} margin={{ left: 20, right: 50 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                         <XAxis type="number" />
-                                        <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12 }} />
+                                        <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 12 }} />
                                         <Tooltip formatter={(val) => val.toLocaleString()} />
                                         <Bar dataKey="premium" fill={sec.color} name="Premium" radius={[0, 4, 4, 0]}>
                                             <LabelList dataKey="premium" position="right" formatter={(val) => val.toLocaleString()} fontSize={12} />
@@ -320,10 +320,10 @@ const IrdaiPvtVsPublic = () => {
                 <div className="visuals-view" style={{ padding: '0 20px' }}>
                     {tableData.map((section, sIdx) => (
                         <div key={sIdx} style={{ marginBottom: '20px' }}>
-                            <h4 style={{ margin: '10px 0', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                            <h4 style={{ margin: '10px 0', fontSize: '1.1rem', fontWeight: 'bold', color: getSectionColor(section.section) }}>
                                 {section.section === 'Grand Total' ? 'TOTAL' : section.section}
                             </h4>
-                            <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+                            <div className="kpi-grid">
                                 <div className="kpi-card blue">
                                     <span className="kpi-unit">In Crs.</span>
                                     <h3 className="kpi-title">Premium</h3>

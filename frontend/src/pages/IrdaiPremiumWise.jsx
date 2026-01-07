@@ -367,46 +367,50 @@ const IrdaiPremiumWise = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                    <div className="charts-row">
                         {[
-                            { key: 'fyp', title: 'First Year Premium Distribution', unit: 'Crs', color: '#0088FE', id: 'chart-fyp' },
-                            { key: 'sa', title: 'Sum Assured Distribution', unit: 'Crs', color: '#00C49F', id: 'chart-sa' },
-                            { key: 'nol', title: 'Number of Lives Distribution', unit: 'Nos', color: '#8884d8', id: 'chart-nol' },
-                            { key: 'nop', title: 'No of Policies Distribution', unit: 'Nos', color: '#FF8042', id: 'chart-nop' }
+                            { key: 'fyp', title: 'First Year Premium', unit: 'Crs', color: '#0088FE', id: 'chart-fyp' },
+                            { key: 'sa', title: 'Sum Assured', unit: 'Crs', color: '#00C49F', id: 'chart-sa' },
+                            { key: 'nol', title: 'Number of Lives', unit: 'Nos', color: '#8884d8', id: 'chart-nol' },
+                            { key: 'nop', title: 'No of Policies', unit: 'Nos', color: '#FF8042', id: 'chart-nop' }
                         ].map((chart, idx) => (
-                            <div key={idx} id={chart.id} className="chart-card" style={{ background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e0e0e0' }}>
-                                <h4 style={{ marginBottom: '20px', color: '#333', fontSize: '16px', fontWeight: '600' }}>{chart.title}</h4>
-                                <div style={{ overflowY: 'auto', width: '100%', height: '500px', paddingRight: '10px' }}>
-                                    <div style={{ height: `${Math.max(500, companyData.length * 50)}px`, width: '100%' }}>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={companyData}
-                                                layout="vertical"
-                                                margin={{ top: 10, right: 50, left: 100, bottom: 5 }}
-                                                barSize={30}
-                                            >
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#eee" />
-                                                <XAxis type="number" tick={{ fontSize: 12, fill: '#666' }} />
-                                                <YAxis
-                                                    dataKey="insurer_name"
-                                                    type="category"
-                                                    width={150}
-                                                    tickFormatter={shortenCompanyName}
-                                                    tick={{ fontSize: 12, fill: '#666' }}
-                                                    interval={0}
-                                                />
-                                                <Tooltip
-                                                    cursor={{ fill: '#f5f5f5' }}
-                                                    formatter={(value) => [`${value.toLocaleString('en-IN')} ${chart.unit}`, chart.title.replace(' Distribution', '')]}
-                                                    labelStyle={{ color: 'black', fontWeight: 'bold' }}
-                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                                />
-                                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                                <Bar dataKey={chart.key} fill={chart.color} name={chart.title.replace(' Distribution', '')} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                                                    <LabelList dataKey={chart.key} position="right" style={{ fontSize: '10px', fill: '#666' }} />
-                                                </Bar>
-                                            </BarChart>
-                                        </ResponsiveContainer>
+                            <div key={idx} id={chart.id} className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                <h4 style={{ marginBottom: '15px', color: '#555' }}>{chart.title}</h4>
+                                <div className="chart-scroll-wrapper">
+                                    <div className="chart-content" style={{ minWidth: '600px', height: 'auto' }}>
+                                        <div style={{ overflowY: 'auto', width: '100%', height: '500px', paddingRight: '10px' }}>
+                                            <div style={{ height: `${Math.max(500, companyData.length * 50)}px`, width: '100%' }}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart
+                                                        data={companyData}
+                                                        layout="vertical"
+                                                        margin={{ top: 10, right: 50, left: 100, bottom: 5 }}
+                                                        barSize={30}
+                                                    >
+                                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#eee" />
+                                                        <XAxis type="number" tick={{ fontSize: 12, fill: '#666' }} />
+                                                        <YAxis
+                                                            dataKey="insurer_name"
+                                                            type="category"
+                                                            width={180}
+                                                            tickFormatter={shortenCompanyName}
+                                                            tick={{ fontSize: 12, fill: '#666' }}
+                                                            interval={0}
+                                                        />
+                                                        <Tooltip
+                                                            cursor={{ fill: '#f5f5f5' }}
+                                                            formatter={(value) => [`${value.toLocaleString('en-IN')} ${chart.unit}`, chart.title]}
+                                                            labelStyle={{ color: 'black', fontWeight: 'bold' }}
+                                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                        />
+                                                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                                        <Bar dataKey={chart.key} fill={chart.color} name={chart.title} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                                                            <LabelList dataKey={chart.key} position="right" style={{ fontSize: '11px', fill: '#666' }} />
+                                                        </Bar>
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import './StandardPageLayout.css';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * StandardPageLayout
@@ -18,6 +19,8 @@ const StandardPageLayout = ({
     sidebar,
     children
 }) => {
+    const { isAdmin } = useAuth();
+
     return (
         <div className="standard-page-layout">
             {/* Page Header with Hamburger and Title */}
@@ -37,8 +40,8 @@ const StandardPageLayout = ({
 
             <div className="main-content-wrapper">
                 <div className="content-layout">
-                    {/* Left Sidebar */}
-                    {sidebar && (
+                    {/* Left Sidebar - Only visible for Admins in page layout, as non-admins have it in SideMenu */}
+                    {sidebar && isAdmin && (
                         <div className="sidebar-container">
                             {sidebar}
                         </div>

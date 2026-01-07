@@ -58,7 +58,7 @@ const IrdaiMarketShare = () => {
     useEffect(() => {
         const fetchInsurers = async () => {
             try {
-                const data = await api.getInsurers();
+                const data = await api.getCompanyInsurersList();
                 if (Array.isArray(data)) {
                     setInsurerNames(data);
                     // Default to first insurer if available and none selected
@@ -292,7 +292,6 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Insurer Name</label>
                         <select
                             className="custom-select"
-                            style={{ width: '140px', minWidth: '140px' }}
                             value={insurerName}
                             onChange={(e) => setInsurerName(e.target.value)}
                         >
@@ -305,7 +304,6 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Premium Type</label>
                         <select
                             className="custom-select"
-                            style={{ width: '140px', minWidth: '140px' }}
                             value={premiumTypeSelection}
                             onChange={(e) => setPremiumTypeSelection(e.target.value)}
                         >
@@ -318,7 +316,6 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
-                            style={{ width: '100px', minWidth: '100px' }}
                             value={periodType}
                             onChange={(e) => setPeriodType(e.target.value)}
                         >
@@ -331,7 +328,6 @@ const IrdaiMarketShare = () => {
                         <label className="control-label">Select Period</label>
                         <select
                             className="custom-select"
-                            style={{ width: '100px', minWidth: '100px' }}
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
                             disabled={loadingPeriods}
@@ -474,7 +470,7 @@ const IrdaiMarketShare = () => {
             ) : (
                 <div className="data-view">
                     <div className="data-table-wrapper">
-                        <table className="irdai-data-table">
+                        <table className="irdai-data-table market-share-table">
                             <thead>
                                 <tr>
                                     <th style={{ backgroundColor: '#fff', border: 'none' }}></th>
