@@ -373,8 +373,15 @@
 .irdai-data-table td {
     padding: 12px 15px;
     border-bottom: 1px solid #eee;
-    text-align: left;
+    text-align: right;
+    /* Default to right alignment for numbers */
     font-size: 14px;
+}
+
+/* Keep first column (labels) left-aligned */
+.irdai-data-table th:first-child,
+.irdai-data-table td:first-child {
+    text-align: left;
 }
 
 .irdai-data-table th {
