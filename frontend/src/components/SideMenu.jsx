@@ -1,13 +1,36 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext.jsx'
 import CompanyInformationSidebar from './CompanyInformationSidebar.jsx'
+import apiService from '../services/api'
 
 export default function SideMenu({ isOpen = false, onClose = () => { } }) {
   const location = useLocation()
 
   const { isAdmin, selectedProduct, user } = useAuth()
+  const [stats, setStats] = useState({
+    total_files: 0,
+    processed_files: 0,
+    last_activity: null
+  })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (isAdmin) {
+        try {
+          const data = await apiService.getStats()
+          setStats(data)
+        } catch (error) {
+          console.error('Failed to fetch stats:', error)
+        }
+      }
+    }
+
+    if (isOpen) {
+      fetchStats()
+    }
+  }, [isAdmin, isOpen])
 
   const menuItems = [
     { path: '/insurance-dashboard', label: 'Insurance Dashboard', icon: '🏦', description: 'KPI & Analytics' },
