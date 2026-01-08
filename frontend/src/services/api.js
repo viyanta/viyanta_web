@@ -1,6 +1,50 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+import axios from 'axios';
+
+// Use environment variable or relative URL for production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
 
 class ApiService {
+
+
+  // ================================
+  // AUTH
+  // ================================
+  login = async (payload) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      payload
+    );
+    return response.data;
+  };
+
+  // ================================
+  // MENU
+  // ================================
+  async getMainMenus(userId, productKey) {
+    if (!userId || !productKey) {
+      console.warn('getMainMenus: userId or productKey missing', { userId, productKey });
+      return [];
+    }
+    const response = await fetch(`${API_BASE_URL}/menu/main-menus?user_id=${userId}&product_key=${productKey}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch main menus');
+    }
+    return response.json();
+  }
+
+  async getSubMenus(mainMenuId, productKey, userId) {
+    if (!mainMenuId || !productKey || !userId) {
+      console.warn('getSubMenus: Missing parameters', { mainMenuId, productKey, userId });
+      return [];
+    }
+    const response = await fetch(`${API_BASE_URL}/menu/sub-menus/${mainMenuId}?product_key=${productKey}&user_id=${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch sub menus');
+    }
+    return response.json();
+  }
+
   // Legacy file upload methods
   async uploadFile(file) {
     const formData = new FormData();
@@ -32,7 +76,7 @@ class ApiService {
 
     if (!response.ok) {
       let msg = 'Folder upload failed';
-      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      try { const err = await response.json(); msg = err.detail || msg; } catch { }
       throw new Error(msg);
     }
 
@@ -49,7 +93,7 @@ class ApiService {
 
     if (!response.ok) {
       let msg = 'Failed to create ZIP';
-      try { const err = await response.json(); msg = err.detail || msg; } catch {}
+      try { const err = await response.json(); msg = err.detail || msg; } catch { }
       throw new Error(msg);
     }
 
@@ -59,7 +103,7 @@ class ApiService {
   // PDF Table Extraction Methods
   async extractBulkPDFs(files, extractMode = 'both') {
     const formData = new FormData();
-    
+
     files.forEach(file => {
       formData.append('files', file);
     });
@@ -101,7 +145,7 @@ class ApiService {
 
   async getJobStatus(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/status/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch job status');
     }
@@ -111,7 +155,7 @@ class ApiService {
 
   async getJobResults(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/results/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch job results');
     }
@@ -121,7 +165,7 @@ class ApiService {
 
   async downloadJobResults(jobId, format = 'json') {
     const response = await fetch(`${API_BASE_URL}/extraction/download/${jobId}?format=${format}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download results');
     }
@@ -131,7 +175,7 @@ class ApiService {
 
   async listJobFiles(jobId) {
     const response = await fetch(`${API_BASE_URL}/extraction/files/${jobId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to list job files');
     }
@@ -141,7 +185,7 @@ class ApiService {
 
   async downloadSpecificFile(jobId, filename) {
     const response = await fetch(`${API_BASE_URL}/extraction/file/${jobId}/${filename}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download file');
     }
@@ -151,7 +195,7 @@ class ApiService {
 
   async listAllJobs() {
     const response = await fetch(`${API_BASE_URL}/extraction/jobs`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to list jobs');
     }
@@ -175,7 +219,7 @@ class ApiService {
 
   async downloadOriginalFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/original/${fileId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download file');
     }
@@ -185,7 +229,7 @@ class ApiService {
 
   async downloadParquetFile(fileId) {
     const response = await fetch(`${API_BASE_URL}/files/download/parquet/${fileId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to download parquet file');
     }
@@ -196,7 +240,7 @@ class ApiService {
   async previewFile(fileId, full = false) {
     const url = `${API_BASE_URL}/files/preview/${fileId}${full ? '?full=true' : ''}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error('Failed to preview file');
     }
@@ -207,7 +251,7 @@ class ApiService {
   async previewOriginalFile(fileId, full = false) {
     const url = `${API_BASE_URL}/files/preview/original/${fileId}${full ? '?full=true' : ''}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error('Failed to preview original file');
     }
@@ -217,7 +261,7 @@ class ApiService {
 
   async getDropdownData() {
     const response = await fetch(`${API_BASE_URL}/files/dropdown-data`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch dropdown data');
     }
@@ -226,7 +270,7 @@ class ApiService {
 
   async getS3Companies() {
     const response = await fetch(`${API_BASE_URL}/files/s3-companies`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch S3 companies');
     }
@@ -235,7 +279,7 @@ class ApiService {
 
   async getCompanyData(companyName) {
     const response = await fetch(`${API_BASE_URL}/files/company-data/${encodeURIComponent(companyName)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch company data');
     }
@@ -261,7 +305,7 @@ class ApiService {
 
   async getCompanyLforms(companyName) {
     const response = await fetch(`${API_BASE_URL}/files/company-lforms/${encodeURIComponent(companyName)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch company L-forms');
     }
@@ -271,7 +315,7 @@ class ApiService {
 
   async getCompaniesByLform(lform) {
     const response = await fetch(`${API_BASE_URL}/peers/companies-by-lform?lform=${encodeURIComponent(lform)}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch companies by L-Form');
     }
@@ -296,7 +340,7 @@ class ApiService {
     return response.json();
   }
 
- 
+
 
   async saveUserExtractionHistory(userId, extractionData) {
     const response = await fetch(`${API_BASE_URL}/extraction/user-history/${userId}`, {
@@ -331,10 +375,37 @@ class ApiService {
     return response.json();
   }
 
+  async getPvtVsPublicTable(startDate, endDate, sector = 'BOTH', premiumType = 'ALL') {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/pvt-vs-public/table?start_date=${startDate}&end_date=${endDate}&sector=${encodeURIComponent(sector)}&premium_type=${encodeURIComponent(premiumType)}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Pvt vs Public table');
+    }
+
+    return response.json();
+  }
+
+  async uploadIrdaiMonthlyExcel(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/upload-monthly-excel`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
   // Updated extraction methods with user context
   async extractBulkPDFsWithUser(files, extractMode = 'both', userId = null) {
     const formData = new FormData();
-    
+
     files.forEach(file => {
       formData.append('files', file);
     });
@@ -398,6 +469,22 @@ class ApiService {
     }
   }
 
+  async getStats() {
+    const response = await fetch(`${API_BASE_URL}/files/stats`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+    return response.json();
+  }
+
+  async getFiles() {
+    const response = await fetch(`${API_BASE_URL}/files/files`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch files');
+    }
+    return response.json();
+  }
+
   getApiOrigin() {
     try {
       const url = new URL(API_BASE_URL);
@@ -430,7 +517,7 @@ class ApiService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('mode', mode);
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -441,9 +528,9 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     formData.append('user_id', userId);
-    
+
     // Use a default folder name if not provided
     if (!folderName) {
       folderName = `upload_${new Date().toISOString().split('T')[0]}`;
@@ -468,7 +555,7 @@ class ApiService {
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('mode', mode);
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -479,9 +566,9 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     formData.append('user_id', userId);
-    
+
     // Use a default folder name if not provided
     if (!folderName) {
       folderName = `upload_${new Date().toISOString().split('T')[0]}`;
@@ -504,7 +591,7 @@ class ApiService {
   // Mode 3: Folder upload for tables only (fast)
   async uploadFolderTables(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required for folder table upload');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -515,7 +602,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -537,7 +624,7 @@ class ApiService {
   // Mode 4: Folder upload for text only (ultra-fast)
   async uploadFolderText(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required for folder text upload');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -548,7 +635,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -568,7 +655,7 @@ class ApiService {
   }
 
   // === NEW USER-BASED FOLDER MANAGEMENT ===
-  
+
   async getUserFolders(userId = null) {
     // Get user from localStorage if not provided
     if (!userId) {
@@ -580,7 +667,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/user_folders/${userId}`, {
       method: 'GET',
       headers: {
@@ -595,7 +682,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getUserFolderFiles(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/user_folder_files/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'GET',
@@ -611,7 +698,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getUserJsonData(userId, folderName, filename) {
     const response = await fetch(`${API_BASE_URL}/user_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
       method: 'GET',
@@ -627,7 +714,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async deleteUserFolder(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/user_folder/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'DELETE',
@@ -660,7 +747,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getAllUsersFolderFiles(userId, folderName) {
     const response = await fetch(`${API_BASE_URL}/all_users_files/${userId}/${encodeURIComponent(folderName)}`, {
       method: 'GET',
@@ -676,7 +763,7 @@ class ApiService {
 
     return response.json();
   }
-  
+
   async getAllUsersJsonData(userId, folderName, filename) {
     const response = await fetch(`${API_BASE_URL}/all_users_json_data/${userId}/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`, {
       method: 'GET',
@@ -694,11 +781,11 @@ class ApiService {
   }
 
   // === NEW S3 STRUCTURE METHODS (with Gemini verification) ===
-  
+
   // Upload folder with new S3 structure and Gemini verification
   async uploadFolderFilesNew(files, folderName, userId = null) {
     if (!folderName) throw new Error('Folder name is required');
-    
+
     // Get user from localStorage if not provided
     if (!userId) {
       const userData = localStorage.getItem('user');
@@ -709,7 +796,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('user_id', userId);
@@ -813,8 +900,8 @@ class ApiService {
   }
 
   // === UPLOAD HISTORY METHODS ===
-  
- 
+
+
 
   // Save upload to history
   async saveToUploadHistory(uploadData, userId = null) {
@@ -828,7 +915,7 @@ class ApiService {
         userId = 'default_user';
       }
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/upload-history/${userId}`, {
       method: 'POST',
       headers: {
@@ -854,6 +941,88 @@ class ApiService {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get companies from L-Forms API
+  async getLformCompanies() {
+    const response = await fetch(`${API_BASE_URL}/lforms/companies`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get forms for a specific company from L-Forms API
+  async getLformForms(company) {
+    const response = await fetch(`${API_BASE_URL}/lforms/forms?company=${encodeURIComponent(company)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get periods for a specific company and form from L-Forms API
+  async getLformPeriods(company, formNo) {
+    const response = await fetch(`${API_BASE_URL}/lforms/periods?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report types for a specific company, form, and period from L-Forms API
+  async getLformReportTypes(company, formNo, period) {
+    const response = await fetch(`${API_BASE_URL}/lforms/reporttypes?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Get report data for a specific company, form, period, and optional report type from L-Forms API
+  async getLformData(company, formNo, period, reportType = null) {
+    let url = `${API_BASE_URL}/lforms/data?company=${encodeURIComponent(company)}&form_no=${encodeURIComponent(formNo)}&period=${encodeURIComponent(period)}`;
+    if (reportType) {
+      url += `&report_type=${encodeURIComponent(reportType)}`;
+    }
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+
+      // Handle specific error cases
+      if (response.status === 404) {
+        // Return empty array for 404 instead of throwing error
+        // This is not really an error - just no data available
+        return [];
+      } else if (response.status === 500) {
+        throw new Error('Server error. Please check the data format.');
+      } else {
+        throw new Error(errorMessage);
+      }
     }
 
     return response.json();
@@ -892,23 +1061,23 @@ class ApiService {
   }
 
 
-// Update/Edit a company
-async updateCompany(companyId, updatedName) {
-  const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
-    method: 'PUT', // or 'PATCH' depending on your backend
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
-  });
+  // Update/Edit a company
+  async updateCompany(companyId, updatedName) {
+    const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
+      method: 'PUT', // or 'PATCH' depending on your backend
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: updatedName.toLowerCase().trim() }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   }
-
-  return response.json();
-}
 
 
   // === LEGACY METHODS (kept for compatibility) ===
@@ -933,7 +1102,9 @@ async updateCompany(companyId, updatedName) {
 
   // Get template API base URL
   getTemplateApiBase() {
-    return 'http://localhost:8000/templates';
+    // Use API_BASE_URL but replace /api with /templates
+    const baseUrl = API_BASE_URL.replace('/api', '');
+    return `${baseUrl}/templates`;
   }
 
   // PDF Splitter API methods
@@ -1009,12 +1180,12 @@ async updateCompany(companyId, updatedName) {
     formData.append('pdf_name', pdfName);
     formData.append('split_filename', splitFilename);
     formData.append('user_id', userId);
-    
+
     const response = await fetch(`${API_BASE_URL}/pdf-splitter/extract-form`, {
       method: 'POST',
       body: formData
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Form extraction failed');
@@ -1027,7 +1198,7 @@ async updateCompany(companyId, updatedName) {
     const response = await fetch(
       `${API_BASE_URL}/pdf-splitter/companies/${encodeURIComponent(companyName)}/pdfs/${encodeURIComponent(pdfName)}/splits/${encodeURIComponent(splitFilename)}/extraction`
     );
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to get extracted data');
@@ -1035,6 +1206,832 @@ async updateCompany(companyId, updatedName) {
 
     return response.json();
   }
+
+  // =====================
+  // ECONOMY APIs
+  // =====================
+  // 1️⃣ Get Premium Types
+  getPremiumTypes = async (dataType) => {
+    const response = await axios.get(`${API_BASE_URL}/economy/premium-types?data_type=${dataType}`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Categories
+  getCategories = async (dataType, premiumType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/categories?data_type=${dataType}&premium=${premiumType}`
+    );
+    return response.data;
+  };
+
+  // 3️⃣ Get Descriptions
+  getDescriptions = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+  // 3.5️⃣ Get Unique Values for Form Fields
+  getUniqueValues = async (dataType, field) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/unique-values?data_type=${dataType}&field=${field}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Economy Data
+  getEconomyData = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/economy/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+
+  // 5️⃣ Create New Economy Data
+  createEconomyData = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/add`, payload);
+    return response.data;
+  };
+
+  // 6️⃣ Update Existing Record by ID
+  updateEconomyData = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/economy/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 7️⃣ Delete Record by ID
+  deleteEconomyData = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/economy/delete/${id}`);
+    return response.data;
+  };
+
+  // 8️⃣ Get Dashboard Data for Selected Descriptions (Optimized)
+  getDashboardData = async (descriptions) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/dashboard-data`,
+      { descriptions: descriptions },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 9️⃣ Get Selected Descriptions (Global for all users)
+  getSelectedDescriptions = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // 🔟 Update Selected Descriptions (Save globally - admin only)
+  updateSelectedDescriptions = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`,
+      {
+        descriptions: descriptions,
+        removed_description: removedDescription
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 1️⃣1️⃣ Get Selected Row IDs for Dashboard
+  getSelectedRowIds = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // 1️⃣2️⃣ Update Selected Row IDs for Dashboard
+  updateSelectedRowIds = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 1️⃣3️⃣ Get Chart Configurations
+  getChartConfigs = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/chart-configs`);
+      return response.data || {};
+    } catch (error) {
+      console.error('Error fetching chart configs:', error);
+      return {};
+    }
+  };
+
+  // 1️⃣4️⃣ Save Chart Configurations
+  saveChartConfigs = async (configs) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/save-chart-configs`,
+      { configs },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+
+
+  // =====================
+  // INDUSTRY APIs
+  // =====================
+  // 1️⃣ Get Premium Types
+  getPremiumTypesIndustry = async (dataType) => {
+    const response = await axios.get(`${API_BASE_URL}/industry/premium-types?data_type=${dataType}`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Categories
+  getCategoriesIndustry = async (dataType, premiumType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/categories?data_type=${dataType}&premium=${premiumType}`
+    );
+    return response.data;
+  };
+
+  // 3️⃣ Get Industry Data
+  getIndustryDataIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/data?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+
+  // 4️⃣ Create New Industry Data
+  createIndustryDataIndustry = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/add`, payload);
+    return response.data;
+  };
+
+  // 5️⃣ Update Existing Record by ID
+  updateIndustryDataIndustry = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/industry/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 6️⃣ Delete Record by ID
+  deleteIndustryDataIndustry = async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/industry/delete/${id}`);
+    return response.data;
+  };
+
+  // Get Unique Values for Industry Form Fields
+  getUniqueValuesIndustry = async (dataType, field) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/unique-values?data_type=${dataType}&field=${field}`
+      );
+      return response.data;
+    } catch (err) {
+      // Return empty array if endpoint doesn't exist - DO NOT use economy data
+      console.warn(`Industry unique-values endpoint not available for ${field}, returning empty array`);
+      return [];
+    }
+  };
+
+  // Get Descriptions for Industry
+  getDescriptionsIndustry = async (dataType, premiumType, category) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/industry/descriptions?data_type=${dataType}&premium=${premiumType}&category=${category}`
+    );
+    return response.data;
+  };
+
+  // Get Selected Row IDs for Industry Dashboard
+  getSelectedRowIdsIndustry = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/industry/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Row IDs for Industry Dashboard
+  updateSelectedRowIdsIndustry = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // Get Selected Descriptions for Industry Dashboard (separate from Economy)
+  getSelectedDescriptionsIndustry = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/industry/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // Update Selected Descriptions for Industry Dashboard (separate from Economy)
+  updateSelectedDescriptionsIndustry = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/industry/update-selected-descriptions`,
+      {
+        descriptions: descriptions,
+        removed_description: removedDescription
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 7️⃣ Get Industry Dashboard Data
+  getIndustryDashboardData = async (descriptions) => {
+    const response = await axios.post(`${API_BASE_URL}/industry/dashboard-data`,
+      { descriptions: descriptions },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+
+
+
+  // =====================
+  // L-FORMS APIs
+  // =====================
+
+  // 1️⃣ Company Dropdown
+  getCompaniesForLForms = async () => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/companies`);
+    return res.data;
+  };
+
+
+
+  // 2️⃣ Period Dropdown
+  getPeriodsForLForms = async (company, form_no) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/periods`, {
+      params: { company, form_no }
+    });
+    return res.data;
+  };
+
+
+  // 3️⃣ Form Dropdown
+  getFormsForLForms = async (company) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/forms`, {
+      params: { company }
+    });
+    return res.data;
+  };
+
+  // 4️⃣ Report Type Dropdown
+  getReportTypesForLForms = async (company, form_no, period) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/reporttypes`, {
+      params: { company, form_no, period }
+    });
+    return res.data;
+  };
+
+  // 5️⃣ Final Table Data
+  getReportDataForLForms = async (company, form_no, period, report_type = null) => {
+    const res = await axios.get(`${API_BASE_URL}/lforms/data`, {
+      params: { company, form_no, period, report_type }
+    });
+    return res.data;
+  };
+
+
+
+  // =====================
+  // PERIOD SELECTION APIs
+  // =====================
+  // 1️⃣ Get all Financial Years
+  getFinancialYears = async () => {
+    const response = await axios.get(`${API_BASE_URL}/periods/years`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Period Types (Q1, HY, etc.) for a selected FY
+  getPeriodTypes = async (year) => {
+    const response = await axios.get(`${API_BASE_URL}/periods/types?year=${encodeURIComponent(year)}`);
+    return response.data;
+  };
+
+  // 3️⃣ Get Period Ranges (Apr 2021-Jun 2021...)
+  getPeriodRanges = async (year, periodType) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/ranges?year=${encodeURIComponent(year)}&period_type=${encodeURIComponent(periodType)}`
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Monthly Period Breakdown (dd-mm-yyyy format)
+  getMonthlyPeriods = async (rangeValue) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/periods/months?range_value=${encodeURIComponent(rangeValue)}`
+    );
+    return response.data;
+  };
+
+
+  // ==========================
+  // IRDAI MONTHLY DATA APIs 
+  // ==========================
+
+  // 1️⃣ Get Available Report Months
+  getIrdaiReportMonths = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/months`);
+    return response.data;
+  };
+
+  // 2️⃣ Get Insurers for a Selected Month
+  // Get Company Insurers List (Simple list for dropdowns)
+  getCompanyInsurersList = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/dropdown/insurers`);
+    // New API returns { options: ["Name1", "Name2"], ... }
+    // Transform to [{label, value}] for MultiSelectDropdown
+    if (response.data && Array.isArray(response.data.options)) {
+      return response.data.options.map(name => ({ label: name, value: name }));
+    }
+    return [];
+  };
+
+  getIrdaiInsurers = async (reportMonth) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/insurers`, {
+      params: { report_month: reportMonth },
+    });
+    return response.data.insurers;
+  };
+
+  // 3️⃣ Get Detailed Data For Selected Insurer
+  getIrdaiInsurerDetails = async (reportMonth, insurerName) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/details`, {
+      params: {
+        report_month: reportMonth,
+        insurer_name: insurerName,
+      },
+    });
+    return response.data; // includes both total + category rows
+  };
+
+  // 4️⃣ Get Premium Types
+  getIrdaiPremiumTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/types`);
+    return response.data;
+  };
+
+  // 5️⃣ Get Period Types
+  getIrdaiPeriodTypes = async () => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
+    return response.data;
+  };
+
+  // 6️⃣ Get Period Options
+  getIrdaiPeriodOptions = async (type) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/options`, {
+      params: { type },
+    });
+    return response.data; // Expecting list of { label, start_date, end_date } or similar
+  };
+
+  // 7️⃣ Get Peer Comparison
+  getIrdaiPeersComparison = async (insurers, metric, premiumType, startDate, endDate) => {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/peers/comparison`, {
+      params: {
+        insurers, // axios will serialize array as insurers[]=value by default. FastAPI expects insurers=value&insurers=value
+        metric,
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate,
+      },
+      paramsSerializer: params => {
+        // Custom serializer to match FastAPI expectation: repeated key for array
+        const searchParams = new URLSearchParams();
+        searchParams.append('metric', metric);
+        searchParams.append('premium_type', premiumType);
+        searchParams.append('start_date', startDate);
+        searchParams.append('end_date', endDate);
+        insurers.forEach(insurer => searchParams.append('insurers', insurer));
+        return searchParams.toString();
+      }
+    });
+    return response.data;
+  };
+
+  // ================================
+  // COMPANY METRICS APIs 
+  // ================================
+
+  // 1️⃣ Get All Companies
+  getCompaniesforMetrics = async () => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/companies`);
+    return response.data.companies;
+  };
+
+  // 2️⃣ Get Premium Types for a Company
+  getCompanyPremiumTypesforMetrics = async (company) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/premium-types`, {
+      params: { company },
+    });
+    return response.data.premium_types;
+  };
+
+  // 3️⃣ Get Categories for Company + Premium Type
+  getCompanyCategoriesforMetrics = async (company, premiumType) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/categories`, {
+      params: {
+        company,
+        premium_type: premiumType,
+      },
+    });
+    return response.data.categories;
+  };
+
+  // 4️⃣ Get Descriptions for Company + Premium Type + Category
+  getCompanyDescriptionsforMetrics = async (company, premiumType, category) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/descriptions`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+      },
+    });
+    return response.data.descriptions;
+  };
+
+  // 5️⃣ Get Full Details for the Selected Filters
+  // 5️⃣ Get Full Details for the Selected Filters
+  getMetricDetails = async (company, premiumType, category, description) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/details`, {
+      params: {
+        company,
+        premium_type: premiumType,
+        category,
+        description,
+      },
+    });
+    return response.data; // full record list
+  };
+
+  // ================================
+  // CRUD APIs 
+  // ================================
+
+  // 🟢 Create new record
+  createMetric = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/company-metrics/create`, payload);
+    return response.data;
+  };
+
+  // 🔵 Get a single record by ID
+  getMetricById = async (id) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/get/${id}`);
+    return response.data;
+  };
+
+  // 🟡 Full Update
+  updateMetric = async (id, payload) => {
+    const response = await axios.put(`${API_BASE_URL}/company-metrics/update/${id}`, payload);
+    return response.data;
+  };
+
+  // 🟣 Patch (partial update)
+  patchMetric = async (id, payload) => {
+    const response = await axios.patch(`${API_BASE_URL}/company-metrics/patch/${id}`, payload);
+    return response.data;
+  };
+
+  // 🔴 Delete record
+  deleteMetric = async (id) => {
+    try {
+      if (!id) {
+        throw new Error('Record ID is required');
+      }
+      const response = await axios.delete(`${API_BASE_URL}/company-metrics/delete/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in deleteMetric:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          throw new Error('Record not found. It may have already been deleted.');
+        } else if (error.response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        throw new Error(error.response.data?.detail || `Failed to delete record: ${error.response.statusText}`);
+      } else if (error.request) {
+        // Request was made but no response received
+        throw new Error('No response from server. Please check if the backend server is running.');
+      } else {
+        // Error setting up the request
+        throw new Error(`Error setting up delete request: ${error.message}`);
+      }
+    }
+  };
+
+  // 🔵 Get Unique Values for Form Fields
+  getCompanyMetricUniqueValues = async (company, field) => {
+    const response = await axios.get(`${API_BASE_URL}/company-metrics/unique-values`, {
+      params: { company, field },
+    });
+    return response.data;
+  };
+
+  // ================================
+  // METRICS DASHBOARD APIs
+  // ================================
+
+  // 1️⃣ Get Dashboard Data for Selected Descriptions (Metrics)
+  getMetricsDashboardData = async (descriptions) => {
+    try {
+      if (!descriptions || !Array.isArray(descriptions) || descriptions.length === 0) {
+        return [];
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/company-metrics/dashboard-data`,
+        { descriptions: descriptions },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Error in getMetricsDashboardData:', error);
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          console.error('Endpoint /api/company-metrics/dashboard-data not found. Please check backend route registration.');
+        }
+        throw error;
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response from server for dashboard-data endpoint.');
+        throw error;
+      } else {
+        // Error setting up the request
+        console.error('Error setting up dashboard-data request:', error.message);
+        throw error;
+      }
+    }
+  };
+
+  // 2️⃣ Get Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  getSelectedDescriptionsMetrics = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/economy/selected-descriptions`);
+      return response.data.descriptions || [];
+    } catch (error) {
+      console.error('Error fetching selected descriptions:', error);
+      return [];
+    }
+  };
+
+  // 3️⃣ Update Selected Descriptions for Metrics Dashboard (uses same table as Economy)
+  updateSelectedDescriptionsMetrics = async (descriptions, removedDescription = null) => {
+    const response = await axios.post(`${API_BASE_URL}/economy/update-selected-descriptions`,
+      {
+        descriptions: descriptions,
+        removed_description: removedDescription
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // 4️⃣ Get Selected Row IDs for Metrics Dashboard
+  getSelectedRowIdsMetrics = async (dataType, description) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/economy/selected-row-ids?data_type=${dataType}&description=${encodeURIComponent(description)}`
+      );
+      return response.data.row_ids || [];
+    } catch (error) {
+      console.error('Error fetching selected row IDs:', error);
+      return [];
+    }
+  };
+
+  // 5️⃣ Update Selected Row IDs for Metrics Dashboard
+  updateSelectedRowIdsMetrics = async (dataType, description, rowIds) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/economy/update-selected-row-ids`,
+      {
+        data_type: dataType,
+        description: description,
+        row_ids: rowIds
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  };
+
+  // ================================
+  // IRDAI Monthly Dashboard
+  // ================================
+  async getDashboardTotals(startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/dashboard/totals`,
+      {
+        params: { start_date: startDate, end_date: endDate }
+      }
+    );
+    return response.data;
+  }
+
+  async getMetricWisePremium(startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/dashboard/metric-wise-premium`,
+      {
+        params: { start_date: startDate, end_date: endDate }
+      }
+    );
+    return response.data;
+  }
+
+  async getInsurers() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  }
+
+  async getCompanyTotals(insurerName, startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/company/totals`,
+      {
+        params: {
+          insurer_name: insurerName,
+          start_date: startDate,
+          end_date: endDate
+        }
+      }
+    );
+    return response.data;
+  }
+
+  async getCompanyPremiumTypeBreakup(insurerName, startDate, endDate) {
+    const response = await fetch(`${API_BASE_URL}/irdai-monthly/company/premium-type?insurer_name=${encodeURIComponent(insurerName)}&start_date=${startDate}&end_date=${endDate}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch company premium type breakup');
+    }
+    return response.json();
+  }
+
+  async getCompanyMetricWisePremium(insurerName, startDate, endDate) {
+    const response = await axios.get(
+      `${API_BASE_URL}/irdai-monthly/company/metric-wise-premium`,
+      {
+        params: {
+          insurer_name: insurerName,
+          start_date: startDate,
+          end_date: endDate
+        }
+      }
+    );
+    return response.data;
+  }
+
+  // 1️⃣6️⃣ Monthwise All Companies All Metrics (Updated)
+  // Replaces getMonthwiseCompanyAllMetrics which used to take insurerName
+  getMonthwiseCompanyAllMetrics = async (insurerName, startDate, endDate) => {
+    // Calling updated backend endpoint which doesn't take insurer_name
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/monthwise/all-companies-all-metrics`, {
+      params: {
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  };
+
+  async getIrdaiPeriodTypes() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/types`);
+    return response.data;
+  }
+
+  async getIrdaiPeriodOptions(type) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/period/options?type=${type}`);
+    return response.data;
+  }
+
+  // 6️⃣ Get Premium Grand Totals
+  async getPremiumGrandTotals(premiumType, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/grand-totals`, {
+      params: {
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 7️⃣ Get Premium Wise Companies
+  async getPremiumWiseCompanies(premiumType, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/premium/companies`, {
+      params: {
+        premium_type: premiumType,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 8️⃣ Get Market Share Premium By Insurer
+  async getMarketSharePremiumByInsurer(insurerName, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/market-share/premium-by-insurer`, {
+      params: {
+        insurer_name: insurerName,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
+
+  // 9️⃣ Get Growth Metric Types
+  async getGrowthMetricTypes() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/growth/metric-types`);
+    return response.data;
+  }
+  // 10️⃣ Get Company List (Insurers)
+  async getCompanyList() {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/company/insurers`);
+    return response.data;
+  }
+  // 11️⃣ Get Company Premium Growth
+  async getCompanyPremiumGrowth(insurerName, metric, startDate, endDate) {
+    const response = await axios.get(`${API_BASE_URL}/irdai-monthly/growth/company-premium`, {
+      params: {
+        insurer_name: insurerName,
+        metric: metric,
+        start_date: startDate,
+        end_date: endDate
+      }
+    });
+    return response.data;
+  }
 }
 
 export default new ApiService();
+export { API_BASE_URL };

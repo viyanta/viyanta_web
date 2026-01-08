@@ -629,56 +629,390 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-  .dashboard-title {
-    font-size: 1.5rem;
+@media (max-width: 1200px) {
+  .insurance-dashboard {
+    padding: clamp(8px, 2vw, 15px);
   }
-  
+
   .kpi-row-layout {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: clamp(12px, 2vw, 18px);
   }
-  
+
+  .dropdowns-section {
+    padding: clamp(12px, 2vw, 20px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .insurance-dashboard {
+    padding: clamp(8px, 1.5vw, 15px);
+  }
+
+  .navigation-tabs-container {
+    padding: 0 clamp(8px, 1.5vw, 16px) !important;
+  }
+
+  .navigation-tabs {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: clamp(6px, 1.5vw, 10px) !important;
+  }
+
+  .kpi-card {
+    padding: clamp(12px, 2vw, 18px);
+  }
+
+  .chart-section {
+    min-height: clamp(150px, 25vw, 180px);
+  }
+}
+
+@media (max-width: 768px) {
+  .insurance-dashboard {
+    padding: clamp(6px, 1.5vw, 10px);
+  }
+
+  .dashboard-title {
+    font-size: clamp(18px, 4.5vw, 24px);
+    margin-bottom: clamp(8px, 2vw, 12px);
+  }
+
+  .dashboard-subtitle {
+    font-size: clamp(13px, 3.2vw, 15px);
+  }
+
+  .navigation-tabs-container {
+    padding: 0 clamp(6px, 1.2vw, 12px) !important;
+    margin-bottom: clamp(12px, 2.5vw, 18px) !important;
+  }
+
+  .navigation-tabs {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: clamp(6px, 1.5vw, 10px) !important;
+  }
+
+  .nav-tab {
+    padding: clamp(8px, 2vw, 12px) !important;
+    font-size: clamp(10px, 2.5vw, 12px) !important;
+    min-height: clamp(36px, 8vw, 44px) !important;
+  }
+
   .dropdowns-section {
     flex-direction: column;
-    gap: 1rem;
+    gap: clamp(12px, 2.5vw, 18px);
+    padding: clamp(12px, 2vw, 20px) clamp(8px, 1.5vw, 16px) !important;
   }
-  
-  .navigation-tabs {
-    padding: 0.25rem 0;
+
+  .dropdown-container {
+    width: 100%;
+    min-width: 100%;
   }
-  
-  .nav-tab {
-    padding: 0.75rem 1rem;
-    font-size: 0.8rem;
+
+  .dropdown-label {
+    font-size: clamp(13px, 3.2vw, 15px) !important;
+    margin-bottom: clamp(6px, 1.5vw, 10px) !important;
+  }
+
+  .dropdown-select {
+    width: 100%;
+    min-width: 100%;
+    padding: clamp(8px, 2vw, 12px) !important;
+    font-size: clamp(13px, 3vw, 15px) !important;
+  }
+
+  .kpi-card {
+    padding: clamp(12px, 2.5vw, 18px);
+    margin-bottom: clamp(12px, 2.5vw, 18px);
+  }
+
+  .kpi-row-layout {
+    grid-template-columns: 1fr;
+    gap: clamp(12px, 2.5vw, 18px);
+    flex-direction: column;
+  }
+
+  .metric-info {
+    flex: none;
+    min-width: 100%;
+    text-align: center;
+    margin-bottom: clamp(12px, 2.5vw, 18px);
+  }
+
+  .metric-icon {
+    width: clamp(40px, 10vw, 50px);
+    height: clamp(40px, 10vw, 50px);
+    font-size: clamp(20px, 5vw, 28px);
+    margin: 0 auto clamp(8px, 2vw, 12px);
+  }
+
+  .metric-title {
+    font-size: clamp(15px, 3.8vw, 18px) !important;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: clamp(16px, 4.5vw, 22px) !important;
+    text-align: center;
+  }
+
+  .metric-unit {
+    font-size: clamp(11px, 2.8vw, 13px);
+    text-align: center;
+  }
+
+  .chart-section {
+    flex: none;
+    min-height: clamp(150px, 30vw, 180px);
+    width: 100%;
+    margin-bottom: clamp(12px, 2.5vw, 18px);
+  }
+
+  .monthly-chart {
+    padding: clamp(8px, 1.5vw, 12px);
+    min-height: clamp(120px, 28vw, 150px);
+  }
+
+  .chart-container {
+    height: calc(100% - clamp(20px, 4vw, 30px));
+  }
+
+  .y-axis-labels {
+    width: clamp(30px, 7vw, 40px);
+    font-size: clamp(8px, 2vw, 10px);
+  }
+
+  .chart-bars {
+    gap: clamp(2px, 0.5vw, 4px);
+  }
+
+  .bar-container {
+    max-width: clamp(35px, 8vw, 45px);
+  }
+
+  .x-axis-labels {
+    padding-left: clamp(30px, 7vw, 40px);
+    margin-top: clamp(6px, 1.5vw, 10px);
+  }
+
+  .month-label {
+    font-size: clamp(8px, 2vw, 10px);
+  }
+
+  .value-label {
+    font-size: clamp(8px, 2vw, 10px);
+  }
+
+  .company-distribution-chart {
+    padding: clamp(8px, 1.5vw, 12px);
+  }
+
+  .company-boxes {
+    min-width: clamp(200px, 50vw, 250px);
+    max-height: clamp(120px, 30vw, 150px);
+    gap: clamp(2px, 0.5vw, 4px);
+  }
+
+  .company-box {
+    padding: clamp(3px, 0.8vw, 6px) clamp(4px, 1vw, 8px);
+    font-size: clamp(7px, 1.8vw, 9px);
+    min-height: clamp(25px, 6vw, 30px);
+  }
+
+  .treemap-section {
+    padding: clamp(12px, 2.5vw, 18px);
+    margin-bottom: clamp(16px, 3vw, 24px);
+  }
+
+  .treemap-title {
+    font-size: clamp(15px, 3.8vw, 18px);
+    margin-bottom: clamp(10px, 2.5vw, 15px);
+  }
+
+  .treemap-container {
+    min-height: clamp(100px, 25vw, 120px);
+    gap: clamp(2px, 0.5vw, 4px);
+  }
+
+  .treemap-box {
+    padding: clamp(6px, 1.5vw, 10px);
+    font-size: clamp(9px, 2.2vw, 11px);
+  }
+
+  .treemap-name {
+    font-size: clamp(8px, 2vw, 10px);
+  }
+
+  .treemap-percentage {
+    font-size: clamp(7px, 1.8vw, 9px);
   }
 }
 
 @media (max-width: 480px) {
-  .dashboard-header {
-    padding: 1rem;
+  .insurance-dashboard {
+    padding: clamp(5px, 1.2vw, 8px);
   }
-  
-  .dashboard-content {
-    padding: 0.5rem;
+
+  .dashboard-title {
+    font-size: clamp(16px, 4vw, 20px);
   }
-  
+
+  .dashboard-subtitle {
+    font-size: clamp(12px, 3vw, 14px);
+  }
+
+  .navigation-tabs {
+    grid-template-columns: 1fr !important;
+    gap: clamp(6px, 1.5vw, 8px) !important;
+  }
+
+  .nav-tab {
+    padding: clamp(10px, 2.5vw, 12px) !important;
+    font-size: clamp(11px, 2.8vw, 13px) !important;
+    min-height: clamp(40px, 10vw, 48px) !important;
+  }
+
+  .dropdowns-section {
+    padding: clamp(10px, 2vw, 16px) clamp(6px, 1.2vw, 12px) !important;
+    gap: clamp(10px, 2vw, 16px);
+  }
+
+  .dropdown-label {
+    font-size: clamp(12px, 3vw, 14px) !important;
+  }
+
+  .dropdown-select {
+    padding: clamp(8px, 2vw, 10px) !important;
+    font-size: clamp(12px, 3vw, 14px) !important;
+  }
+
   .kpi-card {
-    padding: 1rem;
+    padding: clamp(10px, 2vw, 14px);
+    margin-bottom: clamp(10px, 2vw, 14px);
   }
-  
+
   .metric-icon {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
+    width: clamp(35px, 9vw, 45px);
+    height: clamp(35px, 9vw, 45px);
+    font-size: clamp(18px, 4.5vw, 24px);
   }
-  
+
   .metric-title {
-    font-size: 1.1rem;
+    font-size: clamp(14px, 3.5vw, 16px) !important;
   }
-  
+
   .metric-value {
-    font-size: 1.2rem;
+    font-size: clamp(15px, 4vw, 20px) !important;
+  }
+
+  .metric-unit {
+    font-size: clamp(10px, 2.5vw, 12px);
+  }
+
+  .chart-section {
+    min-height: clamp(140px, 35vw, 170px);
+  }
+
+  .monthly-chart {
+    min-height: clamp(110px, 28vw, 140px);
+  }
+
+  .y-axis-labels {
+    width: clamp(25px, 6vw, 35px);
+    font-size: clamp(7px, 1.8vw, 9px);
+  }
+
+  .x-axis-labels {
+    padding-left: clamp(25px, 6vw, 35px);
+  }
+
+  .company-boxes {
+    min-width: clamp(180px, 45vw, 220px);
+    max-height: clamp(100px, 25vw, 120px);
+  }
+
+  .company-box {
+    padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.8vw, 6px);
+    font-size: clamp(6px, 1.5vw, 8px);
+    min-height: clamp(20px, 5vw, 25px);
+  }
+
+  .treemap-section {
+    padding: clamp(10px, 2vw, 14px);
+  }
+
+  .treemap-title {
+    font-size: clamp(14px, 3.5vw, 16px);
+  }
+
+  .treemap-container {
+    min-height: clamp(90px, 22vw, 110px);
+  }
+
+  .treemap-box {
+    padding: clamp(4px, 1vw, 8px);
+    font-size: clamp(8px, 2vw, 10px);
+  }
+
+  .insurer-dropdown-container {
+    justify-content: center !important;
+    padding: 0 clamp(6px, 1.2vw, 12px) !important;
+  }
+
+  .insurer-select {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+}
+
+/* Additional responsive utilities */
+@media (max-width: 360px) {
+  .dashboard-title {
+    font-size: clamp(14px, 3.5vw, 18px);
+  }
+
+  .navigation-tabs {
+    gap: clamp(4px, 1vw, 6px) !important;
+  }
+
+  .nav-tab {
+    padding: clamp(8px, 2vw, 10px) !important;
+    font-size: clamp(10px, 2.5vw, 12px) !important;
+  }
+
+  .kpi-card {
+    padding: clamp(8px, 1.5vw, 12px);
+  }
+
+  .metric-icon {
+    width: clamp(30px, 8vw, 40px);
+    height: clamp(30px, 8vw, 40px);
+    font-size: clamp(16px, 4vw, 20px);
+  }
+
+  .refresh-companies-btn {
+    font-size: clamp(12px, 3vw, 14px) !important;
+    padding: clamp(8px, 2vw, 10px) !important;
+  }
+}
+
+/* Responsive styles for error/success messages */
+@media (max-width: 768px) {
+  .insurance-dashboard p[style*="fontSize"] {
+    font-size: clamp(11px, 2.5vw, 12px) !important;
+  }
+
+  .insurance-dashboard div[style*="fontSize"] {
+    font-size: clamp(14px, 3.5vw, 18px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .insurance-dashboard p[style*="fontSize"] {
+    font-size: clamp(10px, 2.5vw, 11px) !important;
+  }
+
+  .insurance-dashboard div[style*="fontSize"] {
+    font-size: clamp(13px, 3.2vw, 16px) !important;
   }
 } 
 
@@ -686,8 +1020,8 @@
 @media (max-width: 1024px) {
   .main-content-with-sidebar {
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    gap: clamp(12px, 2vw, 16px);
+    padding: clamp(12px, 2vw, 16px);
   }
   
   .company-info-sidebar {
@@ -704,6 +1038,7 @@
   
   .sidebar-header {
     border-radius: 6px;
+    padding: clamp(12px, 2vw, 16px) clamp(16px, 3vw, 20px);
   }
   
   .sidebar-item:last-child {
@@ -713,38 +1048,23 @@
 
 @media (max-width: 768px) {
   .main-content-with-sidebar {
-    padding: 0.75rem;
+    padding: clamp(8px, 1.5vw, 12px);
   }
   
   .company-info-sidebar {
-    margin-bottom: 1rem;
+    margin-bottom: clamp(12px, 2.5vw, 16px);
   }
   
   .sidebar-header {
-    padding: 12px 16px;
+    padding: clamp(10px, 2vw, 14px) clamp(14px, 2.5vw, 18px);
+  }
+  
+  .sidebar-header h3 {
+    font-size: clamp(14px, 3.5vw, 16px);
   }
   
   .sidebar-item {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
-  
-  .kpi-row-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .dropdowns-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .dropdown-container {
-    width: 100%;
-  }
-  
-  .dropdown-select {
-    width: 100%;
-    min-width: auto;
+    padding: clamp(8px, 2vw, 12px) clamp(14px, 2.5vw, 18px);
+    font-size: clamp(12px, 3vw, 14px);
   }
 } 

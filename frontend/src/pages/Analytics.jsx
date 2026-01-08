@@ -6,7 +6,7 @@ import './Analytics.css';
 
 const Analytics = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { isNavItemActive } = useNavigation();
+  const { isNavItemActive, selectedSidebarItem } = useNavigation();
   const [prompt, setPrompt] = useState('');
   const [analysis, setAnalysis] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +16,9 @@ const Analytics = ({ onMenuClick }) => {
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
-    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches'
+    'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
+    'Domestic', 'International', 'Domestic Metrics', 'International Metrics',
+    'Irdai Monthly Data'
   ];
 
   // Filter to show only active tabs
@@ -37,6 +39,13 @@ const Analytics = ({ onMenuClick }) => {
       navigate('/lform');
     } else if (tab === 'Metrics') {
       navigate('/metrics');
+    } else if (tab === 'Dashboard') {
+      // Check if Economy is selected in sidebar
+      if (selectedSidebarItem === 1007) { // Economy
+        navigate('/economy-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else if (tab === 'Analytics') {
         // Stay on current page
         return;
@@ -66,6 +75,14 @@ const Analytics = ({ onMenuClick }) => {
       console.log('Term Plans clicked');
     } else if (tab === 'New Launches') {
       console.log('New Launches clicked');
+    } else if (tab === 'Domestic') {
+      navigate('/economy-domestic');
+    } else if (tab === 'International') {
+      navigate('/economy-international');
+    } else if (tab === 'Domestic Metrics') {
+      navigate('/industry-metrics-domestic');
+    } else if (tab === 'International Metrics') {
+      navigate('/industry-metrics-international');
     } else {
       // For other tabs, you can add navigation logic later
       console.log(`Clicked ${tab} tab`);

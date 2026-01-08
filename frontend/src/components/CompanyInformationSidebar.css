@@ -1,0 +1,88 @@
+.company-info-sidebar {
+    flex: 0 0 220px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    height: fit-content;
+    margin-bottom: 0;
+    position: static;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-width: 220px;
+    max-width: 220px;
+}
+
+.sidebar-menu-item {
+    padding: 8px 12px;
+    color: #495057;
+    background-color: transparent;
+    font-size: 12px;
+    font-weight: normal;
+    border-bottom: 1px solid #f1f3f4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+.sidebar-menu-item:last-child {
+    border-bottom: none;
+}
+
+.sidebar-menu-item:hover {
+    background-color: #f8f9fa;
+}
+
+.sidebar-menu-item.selected {
+    color: #ffffff;
+    background-color: #36659b;
+}
+
+.sidebar-menu-item.selected:hover {
+    background-color: #36659b;
+}
+
+.sidebar-menu-item.header-item {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 1024px) {
+    .company-info-sidebar {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: row;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin-bottom: 15px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        /* Firefox */
+    }
+
+    .company-info-sidebar::-webkit-scrollbar {
+        display: none;
+        /* Chrome/Safari */
+    }
+
+    .sidebar-content-wrapper {
+        display: flex;
+        flex-direction: row;
+        width: max-content;
+    }
+
+    .sidebar-menu-item {
+        border-bottom: none;
+        border-right: 1px solid #f1f3f4;
+        padding: 10px 15px;
+        justify-content: center;
+        white-space: nowrap;
+    }
+}

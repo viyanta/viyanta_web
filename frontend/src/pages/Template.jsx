@@ -7,7 +7,7 @@ function Template({ onMenuClick }) {
   const navigate = useNavigate();
   const { isNavItemActive, handleSidebarItemClick } = useNavigation();
   const [activeSection, setActiveSection] = useState('overview');
-  
+
   // Template management state
   const [selectedLForm, setSelectedLForm] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -21,7 +21,9 @@ function Template({ onMenuClick }) {
     'Dashboard', 'Background', 'L Forms', 'Metrics', 'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Child Plans', 'Investment Plans', 'Protection Plans', 'Term Plans', 'New Launches',
     'Define Template', 'Save Template',
-    'Screener Inputs', 'Screener Output Sheets'
+    'Templates', 'User Defined Templates',
+    'Screener Inputs', 'Screener Output Sheets',
+    'Irdai Monthly Data', 'Irdai Monthly'
   ];
 
   // Filter to show only active tabs
@@ -32,9 +34,9 @@ function Template({ onMenuClick }) {
     if (!isNavItemActive(tab)) {
       return;
     }
-    
+
     // Navigate to appropriate pages based on tab
-    switch(tab) {
+    switch (tab) {
       case 'Dashboard':
         navigate('/dashboard');
         break;
@@ -66,6 +68,16 @@ function Template({ onMenuClick }) {
       case 'Save Template':
         console.log('Save Template clicked');
         break;
+      case 'Templates':
+      case 'User Defined Templates':
+        // Stay on current page
+        break;
+      case 'Irdai Monthly Data':
+      case 'Irdai Monthly':
+        // Navigate to IRDAI Monthly Data page if route exists
+        console.log('Irdai Monthly Data clicked');
+        navigate('/irdai-monthly-data');
+        break;
       default:
         console.log(`${tab} clicked`);
     }
@@ -88,7 +100,7 @@ function Template({ onMenuClick }) {
   // L-Form options
   const lformOptions = [
     'L-1 Revenue Account',
-    'L-2 Premium Account', 
+    'L-2 Premium Account',
     'L-3 Claims Account',
     'L-4 Premium Schedule',
     'L-5 Commission Schedule',
@@ -138,8 +150,8 @@ function Template({ onMenuClick }) {
 
   // Handle field selection
   const handleFieldToggle = (field) => {
-    setSelectedFields(prev => 
-      prev.includes(field) 
+    setSelectedFields(prev =>
+      prev.includes(field)
         ? prev.filter(f => f !== field)
         : [...prev, field]
     );
@@ -151,12 +163,12 @@ function Template({ onMenuClick }) {
       alert('Please enter a template name');
       return;
     }
-    
+
     if (!selectedCompany) {
       alert('Please select a company');
       return;
     }
-    
+
     const newTemplate = {
       id: Date.now(),
       name: templateName,
@@ -165,7 +177,7 @@ function Template({ onMenuClick }) {
       fields: selectedFields,
       createdAt: new Date().toISOString()
     };
-    
+
     setTemplates(prev => [...prev, newTemplate]);
     setTemplateName('');
     setShowSaveModal(false);
@@ -185,13 +197,13 @@ function Template({ onMenuClick }) {
       minHeight: '100vh'
     }}>
       {/* Page Header */}
-      <div style={{ 
+      <div style={{
         marginBottom: 'clamp(1.5rem, 4vw, 2rem)'
       }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 'clamp(0.5rem, 2vw, 1rem)', 
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'clamp(0.5rem, 2vw, 1rem)',
           marginBottom: 'clamp(0.3rem, 2vw, 0.5rem)',
           flexWrap: 'wrap'
         }}>
@@ -223,7 +235,7 @@ function Template({ onMenuClick }) {
           >
             ☰
           </button>
-          <h1 style={{ 
+          <h1 style={{
             margin: 0,
             fontSize: 'clamp(18px, 5vw, 28px)',
             lineHeight: '1.2',
@@ -405,7 +417,7 @@ function Template({ onMenuClick }) {
                     {selectedFields.length} selected
                   </span>
                 </div>
-                
+
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(2, 1fr)',
@@ -633,7 +645,7 @@ function Template({ onMenuClick }) {
             }}>
               Save Template
             </h3>
-            
+
             <div style={{ marginBottom: '20px' }}>
               <label style={{
                 display: 'block',

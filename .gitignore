@@ -2,6 +2,8 @@
 venv/
 .env/
 .venv/
+backend/venv310/
+backend/venv12/
 
 # Node.js
 node_modules/
@@ -29,10 +31,27 @@ __pycache__/
 *.pyo
 *.pyd
 
+
+*.db
 # Logs
 backend/extraction_debug.log
 backend/master working
 
+# Cleanup backups (all backup folders created during cleanup)
+_CLEANUP_BACKUP_*/
+*_CLEANUP_BACKUP_*/
+backend/_CLEANUP_BACKUP_*/
+_ROOT_CLEANUP_BACKUP_*/
+
+# Temporary documentation files
+CLEANUP_*.md
+FINAL_CLEANUP_*.md
+QUICK_REFERENCE_CLEANUP.md
+
+# Database files (optional - uncomment if you don't want to track DB in git)
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # OS / Editor junk
 .DS_Store

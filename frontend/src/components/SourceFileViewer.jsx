@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../services/api';
 
 function SourceFileViewer({ file, title }) {
   const [loading, setLoading] = useState(false);
@@ -196,7 +197,7 @@ function SourceFileViewer({ file, title }) {
             <div>
               <div style={{ flex: 1, minHeight: '600px', position: 'relative' }}>
                 <iframe
-                  src={`http://localhost:8000/api/extraction/s3/view/${encodeURIComponent(finalS3Key)}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
+                  src={`${API_BASE_URL}/extraction/s3/view/${encodeURIComponent(finalS3Key)}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
                   width="100%"
                   height="100%"
                   style={{
