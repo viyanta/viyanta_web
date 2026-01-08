@@ -326,22 +326,22 @@ const IrdaiPvtVsPublic = () => {
                                 {section.section === 'Grand Total' ? 'TOTAL' : section.section}
                             </h4>
                             <div className="kpi-grid">
-                                <div className="kpi-card blue">
+                                <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Crs.</span>
                                     <h3 className="kpi-title">Premium</h3>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.premium}</div>
                                 </div>
-                                <div className="kpi-card">
+                                <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Crs.</span>
                                     <h3 className="kpi-title">Sum Assured</h3>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.sum}</div>
                                 </div>
-                                <div className="kpi-card green-border">
+                                <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Nos.</span>
                                     <h3 className="kpi-title">Lives Covered</h3>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.lives}</div>
                                 </div>
-                                <div className="kpi-card purple-border">
+                                <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Nos.</span>
                                     <h3 className="kpi-title">No. of Policies</h3>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.policies}</div>

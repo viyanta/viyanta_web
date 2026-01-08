@@ -1073,32 +1073,7 @@ const EconomyInternational = ({ onMenuClick }) => {
         summaryText=""
         controls={
           <>
-            {/* Action Buttons - Only visible to Admin */}
-            {isAdmin && (
-              <div style={{ marginRight: '10px' }}>
-                <button
-                  onClick={handleAdd}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#36659b',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 4px rgba(54, 101, 155, 0.2)'
-                  }}
-                >
-                  <span>+</span>
-                  <span style={{ whiteSpace: 'nowrap' }}>Add New</span>
-                </button>
-              </div>
-            )}
+
 
             {/* Filter Dropdowns */}
             <div className="period-select-container">
@@ -1160,6 +1135,44 @@ const EconomyInternational = ({ onMenuClick }) => {
           </>
         }
       >
+
+
+        {/* Action Buttons */}
+        {isAdmin && (
+          <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleAdd}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#36659b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#2a4d75';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#36659b';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              }}
+            >
+              <span>➕</span>
+              <span>Add New Record</span>
+            </button>
+          </div>
+        )}
 
 
         {/* Description Selection Section - Only visible to Admin */}

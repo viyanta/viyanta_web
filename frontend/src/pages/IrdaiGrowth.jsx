@@ -358,7 +358,7 @@ const IrdaiGrowth = () => {
         >
             {viewMode === 'visuals' ? (
                 <div className="visuals-view">
-                    <div className="kpi-grid">
+                    <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                         {kpiData.map((kpi, idx) => (
                             <div
                                 key={idx}
