@@ -45,26 +45,41 @@ const IrdaiGrowth = () => {
             try {
                 // Fetch Metric Types
                 const types = await api.getGrowthMetricTypes();
-                setGrowthMetricTypes(types);
-                if (types.length > 0) {
-                    setGrowthMetricType(types[0].value);
+                if (Array.isArray(types)) {
+                    setGrowthMetricTypes(types);
+                    if (types.length > 0) {
+                        setGrowthMetricType(types[0].value);
+                    }
+                } else {
+                    console.warn("getGrowthMetricTypes returned non-array:", types);
+                    setGrowthMetricTypes([]);
                 }
 
                 // Fetch Insurer List
-                const companies = await api.getCompanyList();
-                const uniqueNames = companies.map(c => c.label);
-                setInsurerNames(uniqueNames);
+                const companies = await api.getCompanyInsurersList();
+                if (Array.isArray(companies)) {
+                    const uniqueNames = companies.map(c => c.label);
+                    setInsurerNames(uniqueNames);
 
-                // Default insurer selection if current one not in list
-                if (uniqueNames.length > 0 && !uniqueNames.includes(insurerName)) {
-                    setInsurerName(uniqueNames[0]);
+                    // Default insurer selection if current one not in list
+                    if (uniqueNames.length > 0 && !uniqueNames.includes(insurerName)) {
+                        setInsurerName(uniqueNames[0]);
+                    }
+                } else {
+                    console.warn("getCompanyList returned non-array:", companies);
+                    setInsurerNames([]);
                 }
 
                 // Fetch Period Types
                 const pTypes = await api.getIrdaiPeriodTypes();
-                setPeriodTypes(pTypes);
-                if (pTypes.length > 0) {
-                    setPeriodType(pTypes[0].value);
+                if (Array.isArray(pTypes)) {
+                    setPeriodTypes(pTypes);
+                    if (pTypes.length > 0) {
+                        setPeriodType(pTypes[0].value);
+                    }
+                } else {
+                    console.warn("getIrdaiPeriodTypes returned non-array:", pTypes);
+                    setPeriodTypes([]);
                 }
 
             } catch (error) {
@@ -80,10 +95,16 @@ const IrdaiGrowth = () => {
             if (!periodType) return;
             try {
                 const options = await api.getIrdaiPeriodOptions(periodType);
-                setPeriodOptions(options);
-                if (options.length > 0) {
-                    setSelectedPeriod(options[0].label); // Default to first available period
+                if (Array.isArray(options)) {
+                    setPeriodOptions(options);
+                    if (options.length > 0) {
+                        setSelectedPeriod(options[0].label); // Default to first available period
+                    } else {
+                        setSelectedPeriod('');
+                    }
                 } else {
+                    console.warn("getIrdaiPeriodOptions returned non-array:", options);
+                    setPeriodOptions([]);
                     setSelectedPeriod('');
                 }
             } catch (error) {
@@ -132,46 +153,51 @@ const IrdaiGrowth = () => {
             try {
                 const data = await api.getCompanyPremiumGrowth(insurerName, growthMetricType, startDate, endDate);
 
-                // Transform Data
-                // API returns flat list. 
-                // Row with `row_order === 0` is the total/main row.
-                // Others are subrows.
+                if (Array.isArray(data)) {
+                    // Transform Data
+                    // API returns flat list. 
+                    // Row with `row_order === 0` is the total/main row.
+                    // Others are subrows.
 
-                const mainRow = data.find(r => r.row_order === 0) || {};
-                const subRows = data.filter(r => r.row_order !== 0);
+                    const mainRow = data.find(r => r.row_order === 0) || {};
+                    const subRows = data.filter(r => r.row_order !== 0);
 
-                const formattedData = [{
-                    insurer: insurerName,
-                    values: {
-                        for23: (mainRow.previous_value || 0).toFixed(2),
-                        for24: (mainRow.current_value || 0).toFixed(2),
-                        growthFor: (mainRow.growth_pct || 0).toFixed(2),
-                        upTo23: (mainRow.ytd_previous_value || 0).toFixed(2),
-                        upTo24: (mainRow.ytd_value || 0).toFixed(2),
-                        growthUpTo: (mainRow.ytd_growth_pct || 0).toFixed(2),
-                        marketShare: (mainRow.market_share || 0).toFixed(2)
-                    },
-                    subRows: subRows.map(sub => ({
-                        type: sub.premium_type,
+                    const formattedData = [{
+                        insurer: insurerName,
                         values: {
-                            for23: (sub.previous_value || 0).toFixed(2),
-                            for24: (sub.current_value || 0).toFixed(2),
-                            growthFor: (sub.growth_pct || 0).toFixed(2),
-                            upTo23: (sub.ytd_previous_value || 0).toFixed(2),
-                            upTo24: (sub.ytd_value || 0).toFixed(2),
-                            growthUpTo: (sub.ytd_growth_pct || 0).toFixed(2),
-                            marketShare: (sub.market_share || 0).toFixed(2)
-                        }
-                    }))
-                }];
+                            for23: (mainRow.previous_value || 0).toFixed(2),
+                            for24: (mainRow.current_value || 0).toFixed(2),
+                            growthFor: (mainRow.growth_pct || 0).toFixed(2),
+                            upTo23: (mainRow.ytd_previous_value || 0).toFixed(2),
+                            upTo24: (mainRow.ytd_value || 0).toFixed(2),
+                            growthUpTo: (mainRow.ytd_growth_pct || 0).toFixed(2),
+                            marketShare: (mainRow.market_share || 0).toFixed(2)
+                        },
+                        subRows: subRows.map(sub => ({
+                            type: sub.premium_type,
+                            values: {
+                                for23: (sub.previous_value || 0).toFixed(2),
+                                for24: (sub.current_value || 0).toFixed(2),
+                                growthFor: (sub.growth_pct || 0).toFixed(2),
+                                upTo23: (sub.ytd_previous_value || 0).toFixed(2),
+                                upTo24: (sub.ytd_value || 0).toFixed(2),
+                                growthUpTo: (sub.ytd_growth_pct || 0).toFixed(2),
+                                marketShare: (sub.market_share || 0).toFixed(2)
+                            }
+                        }))
+                    }];
 
-                setGrowthData(formattedData);
+                    setGrowthData(formattedData);
 
-                // Update KPI Cards using the main row data
-                setKpiData([
-                    { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
-                    { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
-                ]);
+                    // Update KPI Cards using the main row data
+                    setKpiData([
+                        { title: 'Growth (For)', value: `${(mainRow.growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'green', targetId: 'chart-growth-for' },
+                        { title: 'Growth (UpTo)', value: `${(mainRow.ytd_growth_pct || 0).toFixed(2)}%`, unit: 'Percentage', color: 'purple', targetId: 'chart-growth-upto' }
+                    ]);
+                } else {
+                    console.warn("getCompanyPremiumGrowth returned non-array:", data);
+                    setGrowthData([]);
+                }
 
             } catch (error) {
                 console.error("Failed to fetch growth data", error);
@@ -332,7 +358,7 @@ const IrdaiGrowth = () => {
         >
             {viewMode === 'visuals' ? (
                 <div className="visuals-view">
-                    <div className="kpi-grid">
+                    <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                         {kpiData.map((kpi, idx) => (
                             <div
                                 key={idx}
@@ -348,68 +374,72 @@ const IrdaiGrowth = () => {
                         ))}
                     </div>
                     {growthData.length > 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                        <div className="charts-row">
                             <div id="chart-growth-for" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>For the Month Comparison</h4>
-                                <div style={{ height: '300px' }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={growthData[0].subRows.map(s => ({
-                                                name: s.type.replace('Premium', '').trim(),
-                                                growth: parseFloat(s.values.growthFor || 0)
-                                            }))}
-                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis
-                                                dataKey="name"
-                                                tick={{ fontSize: 10 }}
-                                                interval={0}
-                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
-                                            />
-                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}%`, 'Growth']}
-                                            />
-                                            <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>For the Month Comparison</h4>
+                                <div className="chart-scroll-wrapper">
+                                    <div className="chart-content">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={growthData[0].subRows.map(s => ({
+                                                    name: s.type.replace('Premium', '').trim(),
+                                                    growth: parseFloat(s.values.growthFor || 0)
+                                                }))}
+                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fontSize: 11 }}
+                                                    interval={0}
+                                                    tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                                />
+                                                <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                                                    formatter={(value) => [`${value}%`, 'Growth']}
+                                                />
+                                                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
+                                                <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                    <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
 
                             <div id="chart-growth-upto" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>Up to the Month Comparison</h4>
-                                <div style={{ height: '300px' }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={growthData[0].subRows.map(s => ({
-                                                name: s.type.replace('Premium', '').trim(),
-                                                growth: parseFloat(s.values.growthUpTo || 0)
-                                            }))}
-                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis
-                                                dataKey="name"
-                                                tick={{ fontSize: 10 }}
-                                                interval={0}
-                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
-                                            />
-                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}%`, 'Growth']}
-                                            />
-                                            <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>Up to the Month Comparison</h4>
+                                <div className="chart-scroll-wrapper">
+                                    <div className="chart-content">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={growthData[0].subRows.map(s => ({
+                                                    name: s.type.replace('Premium', '').trim(),
+                                                    growth: parseFloat(s.values.growthUpTo || 0)
+                                                }))}
+                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fontSize: 11 }}
+                                                    interval={0}
+                                                    tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                                />
+                                                <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                                                    formatter={(value) => [`${value}%`, 'Growth']}
+                                                />
+                                                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
+                                                <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                    <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
                         </div>

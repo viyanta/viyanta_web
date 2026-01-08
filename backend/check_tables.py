@@ -1,19 +1,27 @@
 import sqlite3
+import os
 
-conn = sqlite3.connect('viyanta_web.db')
-cursor = conn.cursor()
+DATABASE_PATH = "viyanta_web.db"
 
-# List all tables
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = cursor.fetchall()
+def check_tables():
+    if not os.path.exists(DATABASE_PATH):
+        print(f"Database file not found at {DATABASE_PATH}")
+        return
 
-print("Tables in viyanta_web.db:")
-for table in tables:
-    print(f"  - {table[0]}")
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
     
-    # Get row count for each table
-    cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
-    count = cursor.fetchone()[0]
-    print(f"    Rows: {count}")
+    try:
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        print("Tables in database:")
+        for table in tables:
+            print(table[0])
+            
+    except Exception as e:
+        print(f"Error listing tables: {e}")
+    finally:
+        conn.close()
 
-conn.close()
+if __name__ == "__main__":
+    check_tables()

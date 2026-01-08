@@ -1407,3 +1407,56 @@ li {
   scrollbar-width: thin !important;
   scrollbar-color: #555 #e8e8e8 !important;
 }
+
+/* Standardized Grids for Dashboard Pages */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.charts-row,
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Ensure data tables scroll horizontally */
+.data-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.irdai-data-table {
+  width: 100%;
+  min-width: 800px;
+  /* Ensure table doesn't squish too much */
+  border-collapse: collapse;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-row,
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ensure padding in main content is manageable on mobile */
+  .visuals-view,
+  .data-view {
+    padding: 0 !important;
+    /* Override inline styles if any */
+  }
+}

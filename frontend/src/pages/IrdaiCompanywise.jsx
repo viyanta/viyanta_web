@@ -38,11 +38,17 @@ const IrdaiCompanywise = () => {
     useEffect(() => {
         const fetchInsurers = async () => {
             try {
-                const data = await api.getInsurers();
-                setInsurerOptions(data);
-                // Default to first insurer if available
-                if (data.length > 0) {
-                    setInsurerName(data[0].value);
+                const data = await api.getCompanyInsurersList();
+
+                if (Array.isArray(data)) {
+                    setInsurerOptions(data);
+                    // Default to first insurer if available
+                    if (data.length > 0) {
+                        setInsurerName(data[0].value);
+                    }
+                } else {
+                    console.warn("getCompanyInsurersList returned non-array:", data);
+                    setInsurerOptions([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch insurers", error);
@@ -56,10 +62,15 @@ const IrdaiCompanywise = () => {
         const fetchTypes = async () => {
             try {
                 const types = await api.getIrdaiPeriodTypes();
-                setPeriodTypes(types);
-                // Default to first type if available
-                if (types.length > 0) {
-                    setPeriodType(types[0].value);
+                if (Array.isArray(types)) {
+                    setPeriodTypes(types);
+                    // Default to first type if available
+                    if (types.length > 0) {
+                        setPeriodType(types[0].value);
+                    }
+                } else {
+                    console.warn("getIrdaiPeriodTypes returned non-array:", types);
+                    setPeriodTypes([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch period types", error);
@@ -76,11 +87,17 @@ const IrdaiCompanywise = () => {
             setLoading(true);
             try {
                 const options = await api.getIrdaiPeriodOptions(periodType);
-                setPeriodOptions(options);
-                // Default to first option (latest date) if available
-                if (options.length > 0) {
-                    setSelectedPeriod(options[0]);
+                if (Array.isArray(options)) {
+                    setPeriodOptions(options);
+                    // Default to first option (latest date) if available
+                    if (options.length > 0) {
+                        setSelectedPeriod(options[0]);
+                    } else {
+                        setSelectedPeriod(null);
+                    }
                 } else {
+                    console.warn("getIrdaiPeriodOptions returned non-array:", options);
+                    setPeriodOptions([]);
                     setSelectedPeriod(null);
                 }
             } catch (error) {
@@ -137,13 +154,17 @@ const IrdaiCompanywise = () => {
 
                 const shorten = (name) => name.replace(' Premium', '').replace(' Renewable', '');
 
-                metrics.forEach(item => {
-                    const name = shorten(item.premium_type);
-                    chartDataObj.fyp.push({ name, value: item.fyp });
-                    chartDataObj.sa.push({ name, value: item.sa });
-                    chartDataObj.nop.push({ name, value: item.nop });
-                    chartDataObj.nol.push({ name, value: item.nol });
-                });
+                if (Array.isArray(metrics)) {
+                    metrics.forEach(item => {
+                        const name = shorten(item.premium_type);
+                        chartDataObj.fyp.push({ name, value: item.fyp });
+                        chartDataObj.sa.push({ name, value: item.sa });
+                        chartDataObj.nop.push({ name, value: item.nop });
+                        chartDataObj.nol.push({ name, value: item.nol });
+                    });
+                } else {
+                    console.warn("getCompanyPremiumTypeBreakup returned non-array:", metrics);
+                }
 
                 setCompanyChartData(chartDataObj);
 
@@ -173,19 +194,21 @@ const IrdaiCompanywise = () => {
                         period: selectedPeriod.label
                     };
 
-                    metrics.forEach(item => {
-                        const key = typeKeyMap[item.premium_type];
-                        if (key) {
-                            // Extract correct value based on metricCode
-                            let val = 0;
-                            if (metricCode === 'FYP') val = item.fyp;
-                            else if (metricCode === 'SA') val = item.sa;
-                            else if (metricCode === 'NOL') val = item.nol;
-                            else if (metricCode === 'NOP') val = item.nop;
+                    if (Array.isArray(metrics)) {
+                        metrics.forEach(item => {
+                            const key = typeKeyMap[item.premium_type];
+                            if (key) {
+                                // Extract correct value based on metricCode
+                                let val = 0;
+                                if (metricCode === 'FYP') val = item.fyp;
+                                else if (metricCode === 'SA') val = item.sa;
+                                else if (metricCode === 'NOL') val = item.nol;
+                                else if (metricCode === 'NOP') val = item.nop;
 
-                            rowData[key] = val;
-                        }
-                    });
+                                rowData[key] = val;
+                            }
+                        });
+                    }
 
                     return rowData;
                 });
@@ -353,69 +376,85 @@ const IrdaiCompanywise = () => {
                         {/* FYP Chart */}
                         <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#0088FE" name="First Year Premium" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#0088FE" name="First Year Premium" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* SA Chart */}
                         <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOL Chart */}
                         <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Number of Lives</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#8884d8" name="Number of Lives" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#8884d8" name="Number of Lives" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOP Chart */}
                         <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>No of Policies</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#FF8042" name="No of Policies" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#FF8042" name="No of Policies" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                     </div>

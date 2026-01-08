@@ -3,9 +3,20 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import {
+    LayoutDashboard,
+    Factory,
+    Building2,
+    FileText,
+    Search,
+    Tag,
+    Newspaper,
+    Globe,
+    Info
+} from 'lucide-react';
 import './CompanyInformationSidebar.css';
 
-function CompanyInformationSidebar() {
+function CompanyInformationSidebar({ variant = 'default' }) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [menuItems, setMenuItems] = useState([]);
@@ -135,6 +146,9 @@ function CompanyInformationSidebar() {
     // Filter menu items based on theme/access
     const getVisibleMenuItems = () => {
         return menuItems.filter(item => {
+            // Remove "Navigation" header (assuming ID 1000 or Name "Navigation")
+            if (item.MainMenuName === 'Navigation' || item.MainMenuID === 1000) return false;
+
             const features = item.features || {};
             // If features are missing, assume visible? Or strict? 
             // Better to rely on what features says.
@@ -146,17 +160,84 @@ function CompanyInformationSidebar() {
         });
     };
 
+    // Icon and Description mapping for integrated view
+    const ICON_MAPPING = {
+        'IRDAI Monthly Data': { icon: LayoutDashboard, description: 'Monthly Data' },
+        'Industry Metrics': { icon: Factory, description: 'Metrics & Analysis' },
+        'Industry Aggregates': { icon: Building2, description: 'Aggregated Data' },
+        'Report Generator': { icon: FileText, description: 'Create Reports' },
+        'Screener': { icon: Search, description: 'Screen Data' },
+        'Products': { icon: Tag, description: 'Product Info' },
+        'News': { icon: Newspaper, description: 'Latest Updates' },
+        'Economy Metrics': { icon: Globe, description: 'Economic Indicators' },
+        'Company Information': { icon: Info, description: 'Company Details' }
+    };
+
+    if (variant === 'integrated') {
+        return (
+            <nav className="sidebar__navigation">
+                <ul className="sidebar__menu">
+                    {getVisibleMenuItems().map((item) => {
+
+                        const isSelected = selectedItem === item.MainMenuID || selectedSidebarItem === item.MainMenuID;
+                        const meta = ICON_MAPPING[item.MainMenuName] || { icon: FileText, description: 'Module' };
+                        const IconComponent = meta.icon;
+
+                        return (
+                            <li key={item.MainMenuID} className="sidebar__menu-item">
+                                <div
+                                    className={`sidebar__menu-link ${isSelected ? 'sidebar__menu-link--active' : ''}`}
+                                    onClick={() => {
+                                        setSelectedItem(item.MainMenuID);
+                                        handleSidebarItemClick(item.MainMenuID, item.MainMenuName);
+
+                                        // Navigate based on sidebar item
+                                        if (item.MainMenuName === 'News') {
+                                            navigate('/news');
+                                        } else if (item.MainMenuName === 'Economy Metrics') {
+                                            navigate('/economy-dashboard');
+                                        } else {
+                                            const route = ROUTE_MAPPING[item.MainMenuID];
+                                            if (route) {
+                                                navigate(route);
+                                            }
+                                        }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <IconComponent className="sidebar-icon" size={18} />
+                                    <div className="sidebar__menu-content" style={{ marginLeft: '4px' }}>
+                                        <div className="sidebar__menu-label">
+                                            {item.MainMenuName}
+                                        </div>
+                                        <div className="sidebar__menu-description">
+                                            {meta.description}
+                                        </div>
+                                    </div>
+                                    {isSelected && (
+                                        <div className="sidebar__menu-indicator" />
+                                    )}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </nav>
+        );
+    }
+
     return (
         <div className="company-info-sidebar">
             <div className="sidebar-content-wrapper">
                 {getVisibleMenuItems().map((item) => {
                     const isSelected = selectedItem === item.MainMenuID || selectedSidebarItem === item.MainMenuID;
-                    const isHeader = item.MainMenuID === 1000;
+                    const meta = ICON_MAPPING[item.MainMenuName] || { icon: FileText, description: 'Module' };
+                    const IconComponent = meta.icon;
 
                     return (
                         <div
                             key={item.MainMenuID}
-                            className={`sidebar-menu-item ${isSelected ? 'selected' : ''} ${isHeader ? 'header-item' : ''}`}
+                            className={`sidebar-menu-item ${isSelected ? 'selected' : ''}`}
                             onClick={() => {
                                 setSelectedItem(item.MainMenuID);
                                 handleSidebarItemClick(item.MainMenuID, item.MainMenuName);
@@ -175,7 +256,8 @@ function CompanyInformationSidebar() {
                                 // Add more navigation cases as needed
                             }}
                         >
-                            {item.MainMenuName}
+                            <IconComponent className="sidebar-icon" size={20} />
+                            <span className="sidebar-text">{item.MainMenuName}</span>
                         </div>
                     );
                 })}
