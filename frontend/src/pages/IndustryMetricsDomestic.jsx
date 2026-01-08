@@ -5,6 +5,7 @@ import { useNavigation } from '../context/NavigationContext';
 import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api';
 import './IndustryMetricsDomestic.css';
+import IndustryMetricsSharedLayout from './IndustryMetricsSharedLayout';
 
 const IndustryMetricsDomestic = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -992,9 +993,9 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
       <div className="main-content-wrapper">
         <div className="content-layout">
           {/* Left Sidebar */}
-          <div className="sidebar-container">
+          {isAdmin && (
             <CompanyInformationSidebar />
-          </div>
+          )}
 
           {/* Main Content Area */}
           <div className="main-content-area">
@@ -1057,799 +1058,677 @@ const IndustryMetricsDomestic = ({ onMenuClick }) => {
               </div>
             </div>
 
-            {/* View Toggle */}
-            <div className="page-title-section">
-              <div className="view-toggle-container">
-                <button
-                  className={`view-toggle-btn ${viewMode === 'data' ? 'active' : ''}`}
-                  onClick={() => setViewMode('data')}
-                >
-                  Data
-                </button>
-                <button
-                  className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
-                  onClick={() => setViewMode('visuals')}
-                  disabled
-                >
-                  Visuals
-                </button>
-              </div>
-            </div>
+            {/* Shared Layout */}
+            <IndustryMetricsSharedLayout
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              visualsEnabled={false}
+              controls={
+                <>
+                  <div className="period-select-container">
+                    <label htmlFor="premium-type" className="control-label">Category Long Name</label>
+                    <select
+                      id="premium-type"
+                      value={selectedPremiumType}
+                      onChange={(e) => setSelectedPremiumType(e.target.value)}
+                      className="custom-select"
+                      disabled={loading}
+                    >
+                      <option value="">Select Category...</option>
+                      {premiumTypes.length > 0 ? (
+                        premiumTypes.map((type, index) => (
+                          <option key={index} value={type}>{type}</option>
+                        ))
+                      ) : (
+                        !loading && <option value="" disabled>No categories available</option>
+                      )}
+                    </select>
+                  </div>
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="success-message" style={{
-                padding: '10px',
-                margin: '10px 0',
-                backgroundColor: '#dfd',
-                color: '#3a3',
-                borderRadius: '4px'
-              }}>
-                {successMessage}
-              </div>
-            )}
+                  <div className="period-select-container">
+                    <label htmlFor="category" className="control-label">Sub Category Long Name</label>
+                    <select
+                      id="category"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="custom-select"
+                      disabled={loading || !selectedPremiumType}
+                    >
+                      <option value="">Select Sub Category...</option>
+                      {categories.length > 0 ? (
+                        categories.map((category, index) => (
+                          <option key={index} value={category}>{category}</option>
+                        ))
+                      ) : (
+                        selectedPremiumType && !loading && <option value="" disabled>No categories available</option>
+                      )}
+                    </select>
+                  </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="error-message" style={{
-                padding: '10px',
-                margin: '10px 0',
-                backgroundColor: '#fee',
-                color: '#c33',
-                borderRadius: '4px'
-              }}>
-                {error}
-              </div>
-            )}
+                  <div className="period-select-container">
+                    <label htmlFor="description" className="control-label">Select Description</label>
+                    <select
+                      id="description"
+                      value={selectedDescription}
+                      onChange={(e) => setSelectedDescription(e.target.value)}
+                      className="custom-select"
+                      disabled={loading || !selectedPremiumType || !selectedCategory}
+                    >
+                      <option value="">Select Description...</option>
+                      {descriptions.length > 0 ? (
+                        descriptions.map((desc, index) => (
+                          <option key={index} value={desc}>{desc}</option>
+                        ))
+                      ) : (
+                        selectedPremiumType && selectedCategory && !loading && <option value="" disabled>No descriptions available</option>
+                      )}
+                    </select>
+                  </div>
+                </>
+              }
+            >
+              {/* Messages */}
+              {successMessage && (
+                <div className="success-message" style={{
+                  padding: '10px',
+                  margin: '10px 0',
+                  backgroundColor: '#dfd',
+                  color: '#3a3',
+                  borderRadius: '4px'
+                }}>
+                  {successMessage}
+                </div>
+              )}
+              {error && (
+                <div className="error-message" style={{
+                  padding: '10px',
+                  margin: '10px 0',
+                  backgroundColor: '#fee',
+                  color: '#c33',
+                  borderRadius: '4px'
+                }}>
+                  {error}
+                </div>
+              )}
 
-            {/* Action Buttons */}
-            {isAdmin && (
-              <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={handleAddNew}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#36659b',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#2a4d75';
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = '#36659b';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                  }}
-                >
-                  <span>➕</span>
-                  <span>Add New Record</span>
-                </button>
-              </div>
-            )}
-
-            {/* Filter Dropdowns */}
-            <div className="filters-section">
-              <div className="filter-group">
-                <label htmlFor="premium-type">Select Category Long Name</label>
-                <select
-                  id="premium-type"
-                  value={selectedPremiumType}
-                  onChange={(e) => setSelectedPremiumType(e.target.value)}
-                  className="filter-select"
-                  disabled={loading}
-                >
-                  <option value="">Select Category...</option>
-                  {premiumTypes.length > 0 ? (
-                    premiumTypes.map((type, index) => (
-                      <option key={index} value={type}>{type}</option>
-                    ))
-                  ) : (
-                    !loading && <option value="" disabled>No categories available</option>
-                  )}
-                </select>
-                {error && (
-                  <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    {error}
-                  </small>
-                )}
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="category">Select Sub Category Long Name</label>
-                <select
-                  id="category"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="filter-select"
-                  disabled={loading || !selectedPremiumType}
-                >
-                  <option value="">Select Sub Category...</option>
-                  {categories.length > 0 ? (
-                    categories.map((category, index) => (
-                      <option key={index} value={category}>{category}</option>
-                    ))
-                  ) : (
-                    selectedPremiumType && !loading && <option value="" disabled>No categories available</option>
-                  )}
-                </select>
-                {!selectedPremiumType && (
-                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Please select a Category first
-                  </small>
-                )}
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="description">Select Description</label>
-                <select
-                  id="description"
-                  value={selectedDescription}
-                  onChange={(e) => setSelectedDescription(e.target.value)}
-                  className="filter-select"
-                  disabled={loading || !selectedPremiumType || !selectedCategory}
-                >
-                  <option value="">Select Description...</option>
-                  {descriptions.length > 0 ? (
-                    descriptions.map((desc, index) => (
-                      <option key={index} value={desc}>{desc}</option>
-                    ))
-                  ) : (
-                    selectedPremiumType && selectedCategory && !loading && <option value="" disabled>No descriptions available</option>
-                  )}
-                </select>
-                {(!selectedPremiumType || !selectedCategory) && (
-                  <small style={{ color: '#999', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                    Please select Category and Sub Category first
-                  </small>
-                )}
-              </div>
+              {/* Action Buttons */}
+              {isAdmin && (
+                <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={handleAddNew}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#36659b',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#2a4d75';
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = '#36659b';
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    }}
+                  >
+                    <span>➕</span>
+                    <span>Add New Record</span>
+                  </button>
+                </div>
+              )}
 
               {loading && (
                 <div style={{ padding: '10px', color: '#666' }}>
                   Loading...
                 </div>
               )}
-            </div>
 
-            {/* Description Selection Section - Only visible to Admin */}
-            {isAdmin && selectedPremiumType && selectedCategory && selectedDescription && descriptionsWithContext.length > 0 && (
-              <div className="description-selection-container">
-                <div className="description-selection-card">
-                  {/* Header Section */}
-                  <div className="description-selection-header">
-                    <div className="description-selection-header-content">
-                      <div>
-                        <h3 className="description-selection-title">
-                          Select Descriptions
-                        </h3>
-                        <p className="description-selection-subtitle">
-                          Choose descriptions to visualize in Dashboard
-                        </p>
-                      </div>
-                      {selectedDescriptions && selectedDescriptions.length > 0 && (
-                        <div className="description-selection-counter">
-                          {selectedDescriptions.length}
+              {/* Description Selection Section - Only visible to Admin */}
+              {isAdmin && selectedPremiumType && selectedCategory && selectedDescription && descriptionsWithContext.length > 0 && (
+                <div className="description-selection-container">
+                  <div className="description-selection-card">
+                    {/* Header Section */}
+                    <div className="description-selection-header">
+                      <div className="description-selection-header-content">
+                        <div>
+                          <h3 className="description-selection-title">
+                            Select Descriptions
+                          </h3>
+                          <p className="description-selection-subtitle">
+                            Choose descriptions to visualize in Dashboard
+                          </p>
                         </div>
-                      )}
+                        {selectedDescriptions && selectedDescriptions.length > 0 && (
+                          <div className="description-selection-counter">
+                            {selectedDescriptions.length}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Cards Container */}
+                    <div className="description-cards-container">
+                      {descriptionsWithContext.map((item, index) => {
+                        const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
+                        const isDisabled = false; // No limit on number of descriptions
+
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => !isDisabled && handleDescriptionToggle(item.description)}
+                            className={`description-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+                            onMouseEnter={(e) => {
+                              if (!isDisabled && !isMobile) {
+                                e.currentTarget.style.borderColor = '#3F72AF';
+                                e.currentTarget.style.boxShadow = '0 12px 24px rgba(63, 114, 175, 0.2), 0 0 0 4px rgba(63, 114, 175, 0.1)';
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isDisabled && !isMobile) {
+                                e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
+                                e.currentTarget.style.boxShadow = isSelected
+                                  ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)'
+                                  : '0 2px 4px rgba(0, 0, 0, 0.06)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }
+                            }}
+                          >
+                            {/* Custom Checkbox */}
+                            <div className="description-checkbox">
+                              <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
+                                {isSelected && (
+                                  <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                      d="M13.3333 4L6 11.3333L2.66667 8"
+                                      stroke="white"
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Description Text */}
+                            <div className="description-text">
+                              <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
+                                {item.description}
+                              </div>
+                            </div>
+
+                            {/* Selection Indicator */}
+                            {isSelected && (
+                              <div className="description-indicator" />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+                </div>
+              )}
 
-                  {/* Cards Container */}
-                  <div className="description-cards-container">
-                    {descriptionsWithContext.map((item, index) => {
-                      const isSelected = selectedDescriptions && selectedDescriptions.includes(item.description);
-                      const isDisabled = false; // No limit on number of descriptions
+              {/* Data Table or Visuals */}
+              {viewMode === 'data' ? (
+                // For non-admin users, show pivot tables grouped by ProcessedPeriodType
+                !isAdmin && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+                  <div className="pivot-tables-container" style={{ marginTop: '20px' }}>
+                    {Object.keys(pivotTableData).sort().map(periodType => {
+                      const periodData = pivotTableData[periodType];
+                      if (!periodData) return null;
+
+                      const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, categoryName = '', subCategoryName = '' } = periodData;
+
+                      if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
+                        return null;
+                      }
+
+                      // Build breadcrumb: Category Long Name >> Sub Category Long Name >> Period Type
+                      const categoryLongName = selectedPremiumType || categoryName || '';
+                      const subCategoryLongName = selectedCategory || subCategoryName || '';
+                      const breadcrumbParts = [];
+                      if (categoryLongName) breadcrumbParts.push(categoryLongName);
+                      if (subCategoryLongName) breadcrumbParts.push(subCategoryLongName);
+                      if (periodType) breadcrumbParts.push(periodType);
+                      const breadcrumbText = breadcrumbParts.join(' >> ');
 
                       return (
-                        <div
-                          key={index}
-                          onClick={() => !isDisabled && handleDescriptionToggle(item.description)}
-                          className={`description-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
-                          onMouseEnter={(e) => {
-                            if (!isDisabled && !isMobile) {
-                              e.currentTarget.style.borderColor = '#3F72AF';
-                              e.currentTarget.style.boxShadow = '0 12px 24px rgba(63, 114, 175, 0.2), 0 0 0 4px rgba(63, 114, 175, 0.1)';
-                              e.currentTarget.style.transform = 'translateY(-4px)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isDisabled && !isMobile) {
-                              e.currentTarget.style.borderColor = isSelected ? '#3F72AF' : '#e5e7eb';
-                              e.currentTarget.style.boxShadow = isSelected
-                                ? '0 8px 16px rgba(63, 114, 175, 0.15), 0 0 0 4px rgba(63, 114, 175, 0.1)'
-                                : '0 2px 4px rgba(0, 0, 0, 0.06)';
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }
-                          }}
-                        >
-                          {/* Custom Checkbox */}
-                          <div className="description-checkbox">
-                            <div className={`description-checkbox-box ${isSelected ? 'selected' : ''}`}>
-                              {isSelected && (
-                                <svg className="description-checkbox-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path
-                                    d="M13.3333 4L6 11.3333L2.66667 8"
-                                    stroke="white"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
+                        <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
+                          <h3 className="period-type-title" style={{
+                            marginBottom: '16px',
+                            fontSize: '18px',
+                            fontWeight: '600',
+                            color: '#111827',
+                            paddingBottom: '8px',
+                            borderBottom: '2px solid #3F72AF'
+                          }}>
+                            {breadcrumbText}
+                          </h3>
+                          <div className="data-table-wrapper">
+                            <table className="irdai-data-table">
+                              <thead>
+                                <tr>
+                                  <th>Description</th>
+                                  <th>Period Unit</th>
+                                  <th>Period</th>
+                                  {periods.map(period => (
+                                    <th key={period}>{period}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {descriptions.map((desc, descIndex) => {
+                                  const descMetadata = descriptionMetadata[desc] || {};
 
-                          {/* Description Text */}
-                          <div className="description-text">
-                            <div className={`description-text-content ${isSelected ? 'selected' : ''}`}>
-                              {item.description}
-                            </div>
+                                  return (
+                                    <tr key={descIndex}>
+                                      <td>{desc}</td>
+                                      <td>{units[desc] || '-'}</td>
+                                      <td>{periodType}</td>
+                                      {periods.map(period => (
+                                        <td key={period}>
+                                          {pivot[desc] && pivot[desc][period] !== undefined
+                                            ? pivot[desc][period]
+                                            : '-'}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
                           </div>
-
-                          {/* Selection Indicator */}
-                          {isSelected && (
-                            <div className="description-indicator" />
-                          )}
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Data Table or Visuals */}
-            {viewMode === 'data' ? (
-              // For non-admin users, show pivot tables grouped by ProcessedPeriodType
-              !isAdmin && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
-                <div className="pivot-tables-container" style={{ marginTop: '20px' }}>
-                  {Object.keys(pivotTableData).sort().map(periodType => {
-                    const periodData = pivotTableData[periodType];
-                    if (!periodData) return null;
-
-                    const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {}, categoryName = '', subCategoryName = '' } = periodData;
-
-                    if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
-                      return null;
-                    }
-
-                    // Build breadcrumb: Category Long Name >> Sub Category Long Name >> Period Type
-                    const categoryLongName = selectedPremiumType || categoryName || '';
-                    const subCategoryLongName = selectedCategory || subCategoryName || '';
-                    const breadcrumbParts = [];
-                    if (categoryLongName) breadcrumbParts.push(categoryLongName);
-                    if (subCategoryLongName) breadcrumbParts.push(subCategoryLongName);
-                    if (periodType) breadcrumbParts.push(periodType);
-                    const breadcrumbText = breadcrumbParts.join(' >> ');
-
-                    return (
-                      <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
-                        <h3 className="period-type-title" style={{
-                          marginBottom: '16px',
-                          fontSize: '18px',
-                          fontWeight: '600',
-                          color: '#111827',
-                          paddingBottom: '8px',
-                          borderBottom: '2px solid #3F72AF'
-                        }}>
-                          {breadcrumbText}
-                        </h3>
-                        <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                          <table className="data-table pivot-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                              <tr>
-                                <th className="pivot-table-header-desc" style={{
-                                  position: 'sticky',
-                                  left: 0,
-                                  backgroundColor: '#3F72AF',
-                                  color: '#ffffff',
-                                  zIndex: 10,
-                                  minWidth: isMobile ? '200px' : '300px',
-                                  textAlign: 'left',
-                                  padding: '12px',
-                                  border: '1px solid #2c5a8a'
-                                }}>
-                                  Description
-                                </th>
-                                <th className="pivot-table-header-unit" style={{
-                                  position: 'sticky',
-                                  left: isMobile ? '200px' : '300px',
-                                  backgroundColor: '#3F72AF',
-                                  color: '#ffffff',
-                                  zIndex: 10,
-                                  minWidth: isMobile ? '60px' : '80px',
-                                  textAlign: 'center',
-                                  padding: '12px',
-                                  border: '1px solid #2c5a8a'
-                                }}>
-                                  Period Unit
-                                </th>
-                                <th className="pivot-table-header-period-type" style={{
-                                  position: 'sticky',
-                                  left: isMobile ? '260px' : '380px',
-                                  backgroundColor: '#3F72AF',
-                                  color: '#ffffff',
-                                  zIndex: 10,
-                                  minWidth: isMobile ? '80px' : '100px',
-                                  textAlign: 'center',
-                                  padding: '12px',
-                                  border: '1px solid #2c5a8a'
-                                }}>
-                                  Period
-                                </th>
-                                {periods.map(period => (
-                                  <th key={period} className="pivot-table-header-period" style={{
-                                    minWidth: isMobile ? '80px' : '100px',
-                                    textAlign: 'center',
-                                    backgroundColor: '#3F72AF',
-                                    color: '#ffffff',
-                                    padding: '12px',
-                                    border: '1px solid #2c5a8a'
-                                  }}>
-                                    {period}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {descriptions.map((desc, descIndex) => {
-                                const descMetadata = descriptionMetadata[desc] || {};
-
-                                return (
-                                  <tr key={descIndex} style={{
-                                    backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                    borderBottom: '1px solid #e5e7eb'
-                                  }}>
-                                    <td className="pivot-table-cell-desc" style={{
-                                      position: 'sticky',
-                                      left: 0,
-                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                      zIndex: 5,
-                                      padding: '12px',
-                                      borderRight: '2px solid #e5e7eb',
-                                      minWidth: isMobile ? '200px' : '300px',
-                                      fontWeight: '500'
-                                    }}>
-                                      {desc}
-                                    </td>
-                                    <td className="pivot-table-cell-unit" style={{
-                                      position: 'sticky',
-                                      left: isMobile ? '200px' : '300px',
-                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                      zIndex: 5,
-                                      padding: '12px',
-                                      borderRight: '2px solid #e5e7eb',
-                                      fontSize: '12px',
-                                      color: '#6b7280',
-                                      whiteSpace: 'nowrap',
-                                      textAlign: 'center'
-                                    }}>
-                                      {units[desc] || '-'}
-                                    </td>
-                                    <td className="pivot-table-cell-period-type" style={{
-                                      position: 'sticky',
-                                      left: isMobile ? '260px' : '380px',
-                                      backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                      zIndex: 5,
-                                      padding: '12px',
-                                      borderRight: '2px solid #e5e7eb',
-                                      fontSize: '12px',
-                                      color: '#374151',
-                                      whiteSpace: 'nowrap',
-                                      textAlign: 'center',
-                                      fontWeight: '500'
-                                    }}>
-                                      {periodType}
-                                    </td>
-                                    {periods.map(period => (
-                                      <td key={period} className="pivot-table-cell-data" style={{
-                                        textAlign: 'right',
-                                        padding: '12px',
-                                        borderRight: '1px solid #e5e7eb',
-                                        backgroundColor: descIndex % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                        fontSize: '13px',
-                                        whiteSpace: 'nowrap'
-                                      }}>
-                                        {pivot[desc] && pivot[desc][period] !== undefined
-                                          ? pivot[desc][period]
-                                          : '-'}
-                                      </td>
-                                    ))}
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : isAdmin ? (
-                // For admin users, show regular table
-                <div className="table-container">
-                  <table className="industry-metrics-table">
-                    <thead>
-                      <tr>
-                        {isAdmin && <th>Status</th>}
-                        {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
-                        {isAdmin && (
-                          <th style={{
-                            textAlign: 'center',
-                            minWidth: '120px',
-                            opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                          }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                              <span style={{
-                                color: isDescriptionSelectedInDashboard ? '#333' : '#999',
-                                fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
-                              }}>
-                                Select for Dashboard
-                              </span>
-                              {!isDescriptionSelectedInDashboard && selectedDescription && (
-                                <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
-                                  Select in Dashboard first
-                                </span>
-                              )}
-                              {filteredData && filteredData.length > 0 && isDescriptionSelectedInDashboard && (
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={allRowsSelected}
-                                    ref={selectAllCheckboxRef}
-                                    onChange={(e) => handleSelectAll(e.target.checked)}
-                                    style={{
-                                      width: '16px',
-                                      height: '16px',
-                                      cursor: 'pointer'
-                                    }}
-                                    title={allRowsSelected ? 'Deselect all' : someRowsSelected ? 'Select all' : 'Select all'}
-                                  />
-                                  <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
-                                </label>
-                              )}
-                            </div>
-                          </th>
-                        )}
-                        <th>Description</th>
-                        <th>ProcessedPeriodType</th>
-                        <th>CountryName</th>
-                        <th>ProcessedFYYear</th>
-                        <th>ReportedUnit</th>
-                        <th>ReportedValue</th>
-                        <th>Category Long Name</th>
-                        <th>Sub Category Long Name</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading && (
+                ) : isAdmin ? (
+                  // For admin users, show regular table
+                  <div className="data-table-wrapper">
+                    <table className="irdai-data-table">
+                      <thead>
                         <tr>
-                          <td colSpan={isAdmin ? 11 : 8} className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
-                            Loading data...
-                          </td>
+                          {isAdmin && <th>Status</th>}
+                          {isAdmin && <th style={{ textAlign: 'center', minWidth: '140px' }}>Actions</th>}
+                          {isAdmin && (
+                            <th style={{
+                              textAlign: 'center',
+                              minWidth: '120px',
+                              opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                            }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                <span style={{
+                                  color: isDescriptionSelectedInDashboard ? '#333' : '#999',
+                                  fontWeight: isDescriptionSelectedInDashboard ? 'normal' : 'normal'
+                                }}>
+                                  Select for Dashboard
+                                </span>
+                                {!isDescriptionSelectedInDashboard && selectedDescription && (
+                                  <span style={{ fontSize: '10px', color: '#ff6b6b', textAlign: 'center' }}>
+                                    Select in Dashboard first
+                                  </span>
+                                )}
+                                {filteredData && filteredData.length > 0 && isDescriptionSelectedInDashboard && (
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'normal' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={allRowsSelected}
+                                      ref={selectAllCheckboxRef}
+                                      onChange={(e) => handleSelectAll(e.target.checked)}
+                                      style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        cursor: 'pointer'
+                                      }}
+                                      title={allRowsSelected ? 'Deselect all' : someRowsSelected ? 'Select all' : 'Select all'}
+                                    />
+                                    <span style={{ fontSize: '11px', color: '#666' }}>Select All</span>
+                                  </label>
+                                )}
+                              </div>
+                            </th>
+                          )}
+                          <th>Description</th>
+                          <th>ProcessedPeriodType</th>
+                          <th>CountryName</th>
+                          <th>ProcessedFYYear</th>
+                          <th>ReportedUnit</th>
+                          <th>ReportedValue</th>
+                          <th>Category Long Name</th>
+                          <th>Sub Category Long Name</th>
                         </tr>
-                      )}
-                      {!loading && sortedData.length > 0 ? (
-                        sortedData.map((row, index) => (
-                          <tr key={row.id || index}>
-                            {isAdmin && (
-                              <td>
-                                <label
-                                  style={{
-                                    position: 'relative',
-                                    display: 'inline-block',
-                                    width: '50px',
-                                    height: '24px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={row.IsActive === 1 || row.IsActive === true}
-                                    onChange={async (e) => {
-                                      const newStatus = e.target.checked;
-                                      try {
-                                        await ApiService.updateIndustryData(row.id, { IsActive: newStatus });
-                                        // Update local state
-                                        setFilteredData(prevData =>
-                                          prevData.map(item =>
-                                            item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
-                                          )
-                                        );
-                                      } catch (err) {
-                                        console.error('Error updating status:', err);
-                                        alert('Failed to update status. Please try again.');
-                                      }
-                                    }}
+                      </thead>
+                      <tbody>
+                        {loading && (
+                          <tr>
+                            <td colSpan={isAdmin ? 11 : 8} className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                              Loading data...
+                            </td>
+                          </tr>
+                        )}
+                        {!loading && sortedData.length > 0 ? (
+                          sortedData.map((row, index) => (
+                            <tr key={row.id || index}>
+                              {isAdmin && (
+                                <td>
+                                  <label
                                     style={{
-                                      opacity: 0,
-                                      width: 0,
-                                      height: 0
-                                    }}
-                                  />
-                                  <span
-                                    style={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      bottom: 0,
-                                      backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
-                                      borderRadius: '24px',
-                                      transition: 'background-color 0.3s',
+                                      position: 'relative',
+                                      display: 'inline-block',
+                                      width: '50px',
+                                      height: '24px',
                                       cursor: 'pointer'
                                     }}
                                   >
+                                    <input
+                                      type="checkbox"
+                                      checked={row.IsActive === 1 || row.IsActive === true}
+                                      onChange={async (e) => {
+                                        const newStatus = e.target.checked;
+                                        try {
+                                          await ApiService.updateIndustryData(row.id, { IsActive: newStatus });
+                                          // Update local state
+                                          setFilteredData(prevData =>
+                                            prevData.map(item =>
+                                              item.id === row.id ? { ...item, IsActive: newStatus ? 1 : 0 } : item
+                                            )
+                                          );
+                                        } catch (err) {
+                                          console.error('Error updating status:', err);
+                                          alert('Failed to update status. Please try again.');
+                                        }
+                                      }}
+                                      style={{
+                                        opacity: 0,
+                                        width: 0,
+                                        height: 0
+                                      }}
+                                    />
                                     <span
                                       style={{
                                         position: 'absolute',
-                                        content: '""',
-                                        height: '18px',
-                                        width: '18px',
-                                        left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
-                                        bottom: '3px',
-                                        backgroundColor: 'white',
-                                        borderRadius: '50%',
-                                        transition: 'left 0.3s',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        backgroundColor: (row.IsActive === 1 || row.IsActive === true) ? '#4CAF50' : '#ccc',
+                                        borderRadius: '24px',
+                                        transition: 'background-color 0.3s',
+                                        cursor: 'pointer'
                                       }}
-                                    />
-                                  </span>
-                                </label>
-                              </td>
-                            )}
-                            {isAdmin && (
-                              <td>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                                  <button
-                                    onClick={() => handleEdit(row)}
+                                    >
+                                      <span
+                                        style={{
+                                          position: 'absolute',
+                                          content: '""',
+                                          height: '18px',
+                                          width: '18px',
+                                          left: (row.IsActive === 1 || row.IsActive === true) ? '26px' : '3px',
+                                          bottom: '3px',
+                                          backgroundColor: 'white',
+                                          borderRadius: '50%',
+                                          transition: 'left 0.3s',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        }}
+                                      />
+                                    </span>
+                                  </label>
+                                </td>
+                              )}
+                              {isAdmin && (
+                                <td>
+                                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                                    <button
+                                      onClick={() => handleEdit(row)}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#007bff',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '5px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#0056b3';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = '#007bff';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                      }}
+                                    >
+                                      <span>✏️</span>
+                                      <span>Edit</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(row)}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#dc3545',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '5px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#c82333';
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = '#dc3545';
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                                      }}
+                                    >
+                                      <span>🗑️</span>
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                              {isAdmin && (
+                                <td style={{
+                                  textAlign: 'center',
+                                  opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
+                                }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedRowIds.has(row.id)}
+                                    onChange={(e) => handleRowSelection(row.id, e.target.checked)}
+                                    disabled={!isDescriptionSelectedInDashboard}
                                     style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#007bff',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '13px',
-                                      fontWeight: '500',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      width: '18px',
+                                      height: '18px',
+                                      cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
+                                      opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
                                     }}
-                                    onMouseEnter={(e) => {
-                                      e.target.style.backgroundColor = '#0056b3';
-                                      e.target.style.transform = 'translateY(-1px)';
-                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.target.style.backgroundColor = '#007bff';
-                                      e.target.style.transform = 'translateY(0)';
-                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                    }}
-                                  >
-                                    <span>✏️</span>
-                                    <span>Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(row)}
-                                    style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#dc3545',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '13px',
-                                      fontWeight: '500',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                      transition: 'all 0.2s ease',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.target.style.backgroundColor = '#c82333';
-                                      e.target.style.transform = 'translateY(-1px)';
-                                      e.target.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.target.style.backgroundColor = '#dc3545';
-                                      e.target.style.transform = 'translateY(0)';
-                                      e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                                    }}
-                                  >
-                                    <span>🗑️</span>
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                            {isAdmin && (
-                              <td style={{
-                                textAlign: 'center',
-                                opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                              }}>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedRowIds.has(row.id)}
-                                  onChange={(e) => handleRowSelection(row.id, e.target.checked)}
-                                  disabled={!isDescriptionSelectedInDashboard}
-                                  style={{
-                                    width: '18px',
-                                    height: '18px',
-                                    cursor: isDescriptionSelectedInDashboard ? 'pointer' : 'not-allowed',
-                                    opacity: isDescriptionSelectedInDashboard ? 1 : 0.5
-                                  }}
-                                  title={isDescriptionSelectedInDashboard
-                                    ? "Select this row to display in dashboard"
-                                    : "Please select this description in the Dashboard first"}
-                                />
-                              </td>
-                            )}
-                            <td>{row.Description || '-'}</td>
-                            <td>{row.ProcessedPeriodType || '-'}</td>
-                            <td>{row.CountryName || '-'}</td>
-                            <td>{row.ProcessedFYYear || '-'}</td>
-                            <td>{row.ReportedUnit || '-'}</td>
-                            <td>{row.ReportedValue || '-'}</td>
-                            <td>{row.PremiumTypeLongName || '-'}</td>
-                            <td>{row.CategoryLongName || '-'}</td>
+                                    title={isDescriptionSelectedInDashboard
+                                      ? "Select this row to display in dashboard"
+                                      : "Please select this description in the Dashboard first"}
+                                  />
+                                </td>
+                              )}
+                              <td>{row.Description || '-'}</td>
+                              <td>{row.ProcessedPeriodType || '-'}</td>
+                              <td>{row.CountryName || '-'}</td>
+                              <td>{row.ProcessedFYYear || '-'}</td>
+                              <td>{row.ReportedUnit || '-'}</td>
+                              <td>{row.ReportedValue || '-'}</td>
+                              <td>{row.PremiumTypeLongName || '-'}</td>
+                              <td>{row.CategoryLongName || '-'}</td>
+                            </tr>
+                          ))
+                        ) : !loading ? (
+                          <tr>
+                            <td colSpan={isAdmin ? 11 : 8} className="no-data">
+                              {selectedPremiumType && selectedCategory
+                                ? 'No data available for the selected criteria.'
+                                : 'Please select Premium Type and Category to view data.'}
+                            </td>
                           </tr>
-                        ))
-                      ) : !loading ? (
-                        <tr>
-                          <td colSpan={isAdmin ? 11 : 8} className="no-data">
-                            {selectedPremiumType && selectedCategory
-                              ? 'No data available for the selected criteria.'
-                              : 'Please select Premium Type and Category to view data.'}
-                          </td>
-                        </tr>
-                      ) : null}
-                    </tbody>
-                  </table>
-                </div>
+                        ) : null}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  // For non-admin users without pivot data, show message
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                    {!selectedPremiumType || !selectedCategory
+                      ? 'Please select Premium Type and Category to view data'
+                      : 'No data available for selected filters'}
+                  </div>
+                )
               ) : (
-                // For non-admin users without pivot data, show message
-                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                  {!selectedPremiumType || !selectedCategory
-                    ? 'Please select Premium Type and Category to view data'
-                    : 'No data available for selected filters'}
-                </div>
-              )
-            ) : (
-              <div className="visuals-container">
-                <div className="visuals-grid">
-                  {/* Chart 1: Insurance Premium Growth */}
-                  <div className="visual-card">
-                    <h3>Insurance Premium Growth</h3>
-                    <div className="chart-wrapper">
-                      <div className="bar-chart">
-                        {filteredData
-                          .filter(item => item.category === 'Insurance Premium')
-                          .map((item, index) => (
-                            <div key={index} className="chart-item">
-                              <div className="chart-bar-container">
-                                <div
-                                  className="chart-bar"
-                                  style={{
-                                    height: `${(parseFloat(item.reportedValue) / 10) * 100}%`,
-                                    backgroundColor: '#36659b'
-                                  }}
-                                >
-                                  <span className="bar-value">{item.reportedValue}%</span>
-                                </div>
-                              </div>
-                              <div className="chart-label">{item.countryName}</div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart 2: Demographics - Population */}
-                  <div className="visual-card">
-                    <h3>Population Demographics</h3>
-                    <div className="chart-wrapper">
-                      <div className="bar-chart">
-                        {filteredData
-                          .filter(item => item.category === 'Demographics' && item.categoryLongName === 'Population')
-                          .map((item, index) => (
-                            <div key={index} className="chart-item">
-                              <div className="chart-bar-container">
-                                <div
-                                  className="chart-bar"
-                                  style={{
-                                    height: `${(parseFloat(item.reportedValue) / 300) * 100}%`,
-                                    backgroundColor: '#3F72AF'
-                                  }}
-                                >
-                                  <span className="bar-value">{item.reportedValue}</span>
-                                </div>
-                              </div>
-                              <div className="chart-label">{item.description.split(' - ')[0]}</div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart 3: Life Insurance Penetration */}
-                  <div className="visual-card">
-                    <h3>Life Insurance Penetration by Country</h3>
-                    <div className="chart-wrapper">
-                      <div className="bar-chart">
-                        {filteredData
-                          .filter(item => item.category === 'Life Insurance Penetration')
-                          .map((item, index) => (
-                            <div key={index} className="chart-item">
-                              <div className="chart-bar-container">
-                                <div
-                                  className="chart-bar"
-                                  style={{
-                                    height: `${(parseFloat(item.reportedValue) / 20) * 100}%`,
-                                    backgroundColor: '#5a8fc7'
-                                  }}
-                                >
-                                  <span className="bar-value">{item.reportedValue}%</span>
-                                </div>
-                              </div>
-                              <div className="chart-label">{item.countryName}</div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart 4: Summary Statistics */}
-                  <div className="visual-card">
-                    <h3>Summary Statistics</h3>
-                    <div className="stats-grid">
-                      <div className="stat-item">
-                        <div className="stat-value">
-                          {filteredData.length}
-                        </div>
-                        <div className="stat-label">Total Records</div>
-                      </div>
-                      <div className="stat-item">
-                        <div className="stat-value">
-                          {[...new Set(filteredData.map(item => item.category))].length}
-                        </div>
-                        <div className="stat-label">Categories</div>
-                      </div>
-                      <div className="stat-item">
-                        <div className="stat-value">
-                          {[...new Set(filteredData.map(item => item.countryName))].length}
-                        </div>
-                        <div className="stat-label">Countries</div>
-                      </div>
-                      <div className="stat-item">
-                        <div className="stat-value">
+                <div className="visuals-container">
+                  <div className="visuals-grid">
+                    {/* Chart 1: Insurance Premium Growth */}
+                    <div className="visual-card">
+                      <h3>Insurance Premium Growth</h3>
+                      <div className="chart-wrapper">
+                        <div className="bar-chart">
                           {filteredData
-                            .filter(item => item.units === 'in %')
-                            .reduce((sum, item) => sum + parseFloat(item.reportedValue || 0), 0)
-                            .toFixed(1)}%
+                            .filter(item => item.category === 'Insurance Premium')
+                            .map((item, index) => (
+                              <div key={index} className="chart-item">
+                                <div className="chart-bar-container">
+                                  <div
+                                    className="chart-bar"
+                                    style={{
+                                      height: `${(parseFloat(item.reportedValue) / 10) * 100}%`,
+                                      backgroundColor: '#36659b'
+                                    }}
+                                  >
+                                    <span className="bar-value">{item.reportedValue}%</span>
+                                  </div>
+                                </div>
+                                <div className="chart-label">{item.countryName}</div>
+                              </div>
+                            ))}
                         </div>
-                        <div className="stat-label">Avg Growth</div>
+                      </div>
+                    </div>
+
+                    {/* Chart 2: Demographics - Population */}
+                    <div className="visual-card">
+                      <h3>Population Demographics</h3>
+                      <div className="chart-wrapper">
+                        <div className="bar-chart">
+                          {filteredData
+                            .filter(item => item.category === 'Demographics' && item.categoryLongName === 'Population')
+                            .map((item, index) => (
+                              <div key={index} className="chart-item">
+                                <div className="chart-bar-container">
+                                  <div
+                                    className="chart-bar"
+                                    style={{
+                                      height: `${(parseFloat(item.reportedValue) / 300) * 100}%`,
+                                      backgroundColor: '#3F72AF'
+                                    }}
+                                  >
+                                    <span className="bar-value">{item.reportedValue}</span>
+                                  </div>
+                                </div>
+                                <div className="chart-label">{item.description.split(' - ')[0]}</div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart 3: Life Insurance Penetration */}
+                    <div className="visual-card">
+                      <h3>Life Insurance Penetration by Country</h3>
+                      <div className="chart-wrapper">
+                        <div className="bar-chart">
+                          {filteredData
+                            .filter(item => item.category === 'Life Insurance Penetration')
+                            .map((item, index) => (
+                              <div key={index} className="chart-item">
+                                <div className="chart-bar-container">
+                                  <div
+                                    className="chart-bar"
+                                    style={{
+                                      height: `${(parseFloat(item.reportedValue) / 20) * 100}%`,
+                                      backgroundColor: '#5a8fc7'
+                                    }}
+                                  >
+                                    <span className="bar-value">{item.reportedValue}%</span>
+                                  </div>
+                                </div>
+                                <div className="chart-label">{item.countryName}</div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart 4: Summary Statistics */}
+                    <div className="visual-card">
+                      <h3>Summary Statistics</h3>
+                      <div className="stats-grid">
+                        <div className="stat-item">
+                          <div className="stat-value">
+                            {filteredData.length}
+                          </div>
+                          <div className="stat-label">Total Records</div>
+                        </div>
+                        <div className="stat-item">
+                          <div className="stat-value">
+                            {[...new Set(filteredData.map(item => item.category))].length}
+                          </div>
+                          <div className="stat-label">Categories</div>
+                        </div>
+                        <div className="stat-item">
+                          <div className="stat-value">
+                            {[...new Set(filteredData.map(item => item.countryName))].length}
+                          </div>
+                          <div className="stat-label">Countries</div>
+                        </div>
+                        <div className="stat-item">
+                          <div className="stat-value">
+                            {filteredData
+                              .filter(item => item.units === 'in %')
+                              .reduce((sum, item) => sum + parseFloat(item.reportedValue || 0), 0)
+                              .toFixed(1)}%
+                          </div>
+                          <div className="stat-label">Avg Growth</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </IndustryMetricsSharedLayout>
           </div>
         </div>
       </div>

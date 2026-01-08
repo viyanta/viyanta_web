@@ -295,7 +295,7 @@ const IrdaiPeers = () => {
             summaryText={`Peer comparison of First Year Premium >> ${selectedDate}`}
             controls={
                 <>
-                    <div className="period-select-container">
+                    <div className="period-select-container insurer-select-container">
                         <label className="control-label">Select Insurers (Max 5)</label>
                         <MultiSelectDropdown
                             options={insurerOptions}
@@ -333,11 +333,11 @@ const IrdaiPeers = () => {
                             ))}
                         </select>
                     </div>
+                    <div style={{ width: '100%' }}></div>
                     <div className="period-select-container">
                         <label className="control-label">Select Period Type</label>
                         <select
                             className="custom-select"
-                            style={{ minWidth: '120px' }}
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
                         >
@@ -352,7 +352,6 @@ const IrdaiPeers = () => {
                         <label className="control-label">Select Period</label>
                         <select
                             className="custom-select"
-                            style={{ minWidth: '120px' }}
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                         >
@@ -371,7 +370,7 @@ const IrdaiPeers = () => {
                     <table className="peers-comparison-table">
                         <thead>
                             <tr>
-                                <th style={{ width: '30%', textAlign: 'left', paddingLeft: '15px' }}>Metric</th>
+                                <th style={{ width: '30%', textAlign: 'center' }}>Metric</th>
                                 <th style={{ width: '8%', textAlign: 'center' }}>Unit</th>
                                 <th style={{ width: '12%', textAlign: 'center' }}>Period</th>
                                 {/* Dynamic Headers for Selected Companies */}
@@ -389,7 +388,7 @@ const IrdaiPeers = () => {
                         <tbody>
                             {comparisonData ? (
                                 <tr className="data-row" style={{ display: 'table-row' }}>
-                                    <td className="row-label" style={{ paddingLeft: '15px', verticalAlign: 'middle' }}>
+                                    <td className="row-label" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                         <div style={{ fontWeight: '600', color: '#111827' }}>{comparisonData.metric}</div>
                                         <div style={{ fontSize: '0.85em', color: '#6b7280', marginTop: '4px' }}>
                                             {comparisonData.premium_type}
@@ -423,54 +422,58 @@ const IrdaiPeers = () => {
                     </table>
                 </div>
             ) : (
-                <div className="peers-visuals-container" style={{ width: '100%', height: '500px', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                <div className="peers-visuals-container" style={{ width: '100%', padding: '20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                     {comparisonData && chartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={chartData}
-                                margin={{
-                                    top: 30,
-                                    right: 30,
-                                    left: 20,
-                                    bottom: 40,
-                                }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis
-                                    dataKey="shortName"
-                                    tick={{ fontSize: 12, fill: '#666' }}
-                                    interval={0}
-                                    angle={0}
-                                    textAnchor="middle"
-                                    height={30}
-                                />
-                                <YAxis
-                                    tick={{ fontSize: 12, fill: '#666' }}
-                                    tickFormatter={(value) => value.toLocaleString()}
-                                />
-                                <Tooltip />
-                                <Legend />
-                                <Bar
-                                    dataKey="value"
-                                    name={comparisonData.metric || "Value"}
-                                    fill={
-                                        selectedCategory === 'FYP' ? '#0088FE' :
-                                            selectedCategory === 'SA' ? '#00C49F' :
-                                                selectedCategory === 'NOL' ? '#8884d8' :
-                                                    selectedCategory === 'NOP' ? '#FF8042' : '#0088FE'
-                                    }
-                                    radius={[4, 4, 0, 0]}
-                                    barSize={60}
-                                >
-                                    <LabelList
-                                        dataKey="value"
-                                        position="top"
-                                        formatter={(val) => val.toLocaleString()}
-                                        style={{ fontSize: '12px', fill: '#666', fontWeight: '600' }}
-                                    />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div className="chart-scroll-wrapper">
+                            <div className="chart-content">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={chartData}
+                                        margin={{
+                                            top: 30,
+                                            right: 30,
+                                            left: 20,
+                                            bottom: 40,
+                                        }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis
+                                            dataKey="shortName"
+                                            tick={{ fontSize: 12, fill: '#666' }}
+                                            interval={0}
+                                            angle={-30}
+                                            textAnchor="end"
+                                            height={60}
+                                        />
+                                        <YAxis
+                                            tick={{ fontSize: 12, fill: '#666' }}
+                                            tickFormatter={(value) => value.toLocaleString()}
+                                        />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar
+                                            dataKey="value"
+                                            name={comparisonData.metric || "Value"}
+                                            fill={
+                                                selectedCategory === 'FYP' ? '#0088FE' :
+                                                    selectedCategory === 'SA' ? '#00C49F' :
+                                                        selectedCategory === 'NOL' ? '#8884d8' :
+                                                            selectedCategory === 'NOP' ? '#FF8042' : '#0088FE'
+                                            }
+                                            radius={[4, 4, 0, 0]}
+                                            maxBarSize={60}
+                                        >
+                                            <LabelList
+                                                dataKey="value"
+                                                position="top"
+                                                formatter={(val) => val.toLocaleString()}
+                                                style={{ fontSize: '12px', fill: '#666', fontWeight: '600' }}
+                                            />
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af' }}>
                             {selectedInsurers.length === 0 ? (

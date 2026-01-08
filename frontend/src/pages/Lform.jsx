@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api'
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar'
 import './Lform.css'
@@ -8,6 +9,7 @@ import './Lform.css'
 function Lform({ onMenuClick }) {
     const navigate = useNavigate();
     const { isNavItemActive } = useNavigation();
+    const { isAdmin } = useAuth();
 
     // Define tabs for Industry Aggregates (and potential others)
     const allTabs = [
@@ -368,9 +370,11 @@ function Lform({ onMenuClick }) {
             <div className="main-content-wrapper">
                 <div className="content-layout">
                     {/* Left Sidebar */}
-                    <div className="sidebar-container">
-                        <CompanyInformationSidebar />
-                    </div>
+                    {isAdmin && (
+                        <div className="sidebar-container">
+                            <CompanyInformationSidebar />
+                        </div>
+                    )}
 
                     {/* Main Content Area */}
                     <div className="main-content-area">

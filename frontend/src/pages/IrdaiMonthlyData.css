@@ -398,6 +398,10 @@
     text-align: right;
 }
 
+.irdai-data-table.market-share-table td {
+    text-align: right;
+}
+
 .irdai-data-table th {
     text-align: center;
 }
@@ -411,15 +415,7 @@
     text-align: center;
 }
 
-.irdai-data-table th:nth-child(2),
-.irdai-data-table td:nth-child(2) {
-    text-align: center;
-}
 
-.irdai-data-table th:nth-child(3),
-.irdai-data-table td:nth-child(3) {
-    text-align: center;
-}
 
 .irdai-data-table thead tr:first-child th {
     background-color: rgb(54, 101, 155);

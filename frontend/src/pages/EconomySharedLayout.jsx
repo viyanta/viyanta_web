@@ -1,8 +1,8 @@
 import React from 'react';
-import './IrdaiCommon.css';
+import './EconomySharedLayout.css';
 
-const TabLayout = ({ controls, summaryText, viewMode, setViewMode, children }) => (
-    <div className="dashboard-content-wrapper">
+const EconomySharedLayout = ({ controls, summaryText, viewMode, setViewMode, children, visualsEnabled = true }) => (
+    <div className="economy-dashboard-wrapper">
         <div className="dashboard-controls">
             <div className="controls-left">
                 {controls}
@@ -11,10 +11,13 @@ const TabLayout = ({ controls, summaryText, viewMode, setViewMode, children }) =
                 <div className="view-toggle-container">
                     <button
                         className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
-                        onClick={() => setViewMode('visuals')}
+                        onClick={() => visualsEnabled && setViewMode('visuals')}
+                        disabled={!visualsEnabled}
+                        style={{ opacity: visualsEnabled ? 1 : 0.5, cursor: visualsEnabled ? 'pointer' : 'not-allowed' }}
                     >
                         Visuals
                     </button>
+                    <div className="view-toggle-separator"></div>
                     <button
                         className={`view-toggle-btn ${viewMode === 'data' ? 'active' : ''}`}
                         onClick={() => setViewMode('data')}
@@ -25,12 +28,14 @@ const TabLayout = ({ controls, summaryText, viewMode, setViewMode, children }) =
             </div>
         </div>
 
-        <div className="visual-summary-header">
-            {summaryText}
-        </div>
+        {summaryText && (
+            <div className="visual-summary-header">
+                {summaryText}
+            </div>
+        )}
 
         {children}
     </div>
 );
 
-export default TabLayout;
+export default EconomySharedLayout;

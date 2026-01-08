@@ -38,7 +38,8 @@ const IrdaiCompanywise = () => {
     useEffect(() => {
         const fetchInsurers = async () => {
             try {
-                const data = await api.getInsurers();
+                const data = await api.getCompanyInsurersList();
+
                 if (Array.isArray(data)) {
                     setInsurerOptions(data);
                     // Default to first insurer if available
@@ -46,7 +47,7 @@ const IrdaiCompanywise = () => {
                         setInsurerName(data[0].value);
                     }
                 } else {
-                    console.warn("getInsurers returned non-array:", data);
+                    console.warn("getCompanyInsurersList returned non-array:", data);
                     setInsurerOptions([]);
                 }
             } catch (error) {
@@ -375,69 +376,85 @@ const IrdaiCompanywise = () => {
                         {/* FYP Chart */}
                         <div id="chart-fyp" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>First Year Premium</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#0088FE" name="First Year Premium" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.fyp} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#0088FE" name="First Year Premium" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* SA Chart */}
                         <div id="chart-sa" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Sum Assured</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.sa} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#00C49F" name="Sum Assured" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOL Chart */}
                         <div id="chart-nol" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>Number of Lives</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#8884d8" name="Number of Lives" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.nol} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#8884d8" name="Number of Lives" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                         {/* NOP Chart */}
                         <div id="chart-nop" className="chart-card" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             <h4 style={{ marginBottom: '15px', color: '#555' }}>No of Policies</h4>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={companyChartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#FF8042" name="No of Policies" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-scroll-wrapper">
+                                <div className="chart-content">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={companyChartData.nop} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                            <YAxis tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey="value" fill="#FF8042" name="No of Policies" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
                         </div>
 
                     </div>

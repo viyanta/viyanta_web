@@ -51,7 +51,7 @@ def extract_report_month_from_filename(filename: str) -> str:
 @router.post("/upload-monthly-excel")
 async def upload_irdai_monthly_excel(
     file: UploadFile = File(...),
-    sheet_name: str = Form(None, description="Sheet name to import (leave empty for auto-detection)")
+    sheet_name: str = Form(..., description="Sheet name to import")
 ):
     if not file.filename.lower().endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="Only .xlsx files allowed")
@@ -61,14 +61,11 @@ async def upload_irdai_monthly_excel(
         tmp_path = tmp.name
 
     try:
-        # 1️⃣ AUTO-DETECT SHEET NAME IF NOT PROVIDED
+        # 1️⃣ SHEET NAME IS NOW REQUIRED
         if not sheet_name or sheet_name.strip() == "":
-            wb = load_workbook(tmp_path, read_only=True)
-            sheet_name = wb.sheetnames[0]
-            wb.close()
-            auto_detected_sheet = True
-        else:
-            auto_detected_sheet = False
+             raise HTTPException(status_code=400, detail="Sheet name is required")
+             
+        auto_detected_sheet = False
 
         # 2️⃣ AUTO-DETECT REPORT MONTH
         report_month = extract_report_month_from_filename(file.filename)

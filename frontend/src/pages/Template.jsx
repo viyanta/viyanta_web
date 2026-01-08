@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../context/AuthContext';
 
 function Template({ onMenuClick }) {
   const navigate = useNavigate();
   const { isNavItemActive, handleSidebarItemClick } = useNavigation();
+  const { isAdmin } = useAuth();
   const [activeSection, setActiveSection] = useState('overview');
 
   // Template management state
@@ -311,7 +313,7 @@ function Template({ onMenuClick }) {
         flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
       }}>
         {/* Left Sidebar - Company Information */}
-        <CompanyInformationSidebar />
+        {isAdmin && <CompanyInformationSidebar />}
 
         {/* Right Content Area */}
         <div style={{

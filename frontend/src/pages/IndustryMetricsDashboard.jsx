@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api';
 import './IndustryMetricsDashboard.css';
 import StandardPageLayout from '../components/StandardPageLayout';
+import IndustryMetricsSharedLayout from './IndustryMetricsSharedLayout';
 
 const IndustryMetricsDashboard = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -489,694 +490,567 @@ const IndustryMetricsDashboard = ({ onMenuClick }) => {
         </div>
       </div>
 
-      {/* View Toggle */}
-      <div className="page-title-section">
-        <div className="view-toggle-container">
-          <button
-            className={`view-toggle-btn ${viewMode === 'data' ? 'active' : ''}`}
-            onClick={() => setViewMode('data')}
-          >
-            Data
-          </button>
-          <button
-            className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
-            onClick={() => setViewMode('visuals')}
-          >
-            Visuals
-          </button>
-        </div>
-      </div>
-
-      {/* Selected Descriptions Display - Only for Admin */}
-      {isAdmin && selectedDescriptions.length > 0 && (
-        <div className="selected-descriptions-container" style={{
-          marginBottom: '24px',
-          padding: '0',
-          backgroundColor: '#ffffff',
-          borderRadius: '16px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-          overflow: 'hidden'
-        }}>
-          {/* Header Section */}
-          <div className="selected-descriptions-header" style={{
-            background: 'linear-gradient(135deg, #3F72AF 0%, #5a8fc7 100%)',
-            padding: '20px 24px',
-            color: '#ffffff'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px'
-            }}>
-              <div>
-                <h3 className="selected-descriptions-title" style={{
-                  margin: 0,
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  marginBottom: '6px',
-                  letterSpacing: '-0.01em'
-                }}>
-                  Selected Descriptions for Dashboard
-                </h3>
-                <p className="selected-descriptions-subtitle" style={{
-                  margin: 0,
-                  fontSize: '13px',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  fontWeight: 400
-                }}>
-                  {selectedDescriptions.length} selected. {isAdmin ? 'Click on a card to remove.' : 'Only admin can modify selections.'}
-                </p>
-              </div>
-              <div className="selected-descriptions-count" style={{
-                padding: '8px 16px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '10px',
-                fontSize: '15px',
-                fontWeight: 700,
-                color: '#ffffff',
-                minWidth: '60px',
-                textAlign: 'center',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}>
-                {selectedDescriptions.length}
-              </div>
-            </div>
-          </div>
-
-          {/* Cards Container */}
-          <div className="selected-descriptions-cards" style={{
-            padding: '20px 24px',
-            display: 'grid',
-            gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '16px',
-            backgroundColor: '#f9fafb'
-          }}>
-            {selectedDescriptionsWithContext.length > 0 ? (
-              selectedDescriptionsWithContext.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={isAdmin ? () => handleDescriptionDeselect(item.description) : undefined}
-                  style={{
-                    padding: '18px',
-                    backgroundColor: '#ffffff',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
-                    cursor: isAdmin ? 'pointer' : 'default',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                    opacity: isAdmin ? 1 : 0.95
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isMobile && isAdmin) {
-                      e.currentTarget.style.borderColor = '#ef4444';
-                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(239, 68, 68, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isMobile && isAdmin) {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.06)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }
-                  }}
-                >
-                  {/* Remove Button - Only visible to Admin */}
-                  {isAdmin && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      padding: '6px 10px',
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                      border: '1px solid #fecaca',
-                      transition: 'all 0.2s ease'
-                    }}>
-                      Remove
-                    </div>
-                  )}
-
-                  {/* Description Title */}
-                  <div style={{
-                    fontWeight: 600,
-                    color: '#111827',
-                    lineHeight: '1.5',
-                    fontSize: '15px',
-                    paddingRight: isAdmin ? '80px' : '0',
-                    marginTop: '4px'
-                  }}>
-                    {item.description}
-                  </div>
-
-                  {/* Metadata */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    paddingTop: '12px',
-                    borderTop: '1px solid #f3f4f6'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px'
-                    }}>
-                      <span style={{
-                        padding: '4px 8px',
-                        backgroundColor: '#eff6ff',
-                        color: '#1e40af',
-                        borderRadius: '6px',
-                        fontWeight: 600,
-                        fontSize: '11px',
-                        minWidth: '80px',
-                        textAlign: 'center'
-                      }}>
-                        Premium Type
-                      </span>
-                      <span style={{ color: '#6b7280', fontWeight: 500 }}>
-                        {item.premiumType}
-                      </span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px'
-                    }}>
-                      <span style={{
-                        padding: '4px 8px',
-                        backgroundColor: '#f0fdf4',
-                        color: '#059669',
-                        borderRadius: '6px',
-                        fontWeight: 600,
-                        fontSize: '11px',
-                        minWidth: '80px',
-                        textAlign: 'center'
-                      }}>
-                        Category
-                      </span>
-                      <span style={{ color: '#6b7280', fontWeight: 500 }}>
-                        {item.category}
-                      </span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px'
-                    }}>
-                      <span style={{
-                        padding: '4px 8px',
-                        backgroundColor: '#fef3c7',
-                        color: '#d97706',
-                        borderRadius: '6px',
-                        fontWeight: 600,
-                        fontSize: '11px',
-                        minWidth: '80px',
-                        textAlign: 'center'
-                      }}>
-                        Data Type
-                      </span>
-                      <span style={{ color: '#6b7280', fontWeight: 500 }}>
-                        {item.dataType}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              selectedDescriptions.map((description, index) => (
-                <div
-                  key={index}
-                  onClick={isAdmin ? () => handleDescriptionDeselect(description) : undefined}
-                  style={{
-                    padding: '18px',
-                    backgroundColor: '#ffffff',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
-                    cursor: isAdmin ? 'pointer' : 'default',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
-                    position: 'relative',
-                    opacity: isAdmin ? 1 : 0.95
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isMobile && isAdmin) {
-                      e.currentTarget.style.borderColor = '#ef4444';
-                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(239, 68, 68, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isMobile && isAdmin) {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.06)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }
-                  }}
-                >
-                  {/* Remove Button - Only visible to Admin */}
-                  {isAdmin && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      padding: '6px 10px',
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                      border: '1px solid #fecaca'
-                    }}>
-                      Remove
-                    </div>
-                  )}
-                  <div style={{
-                    fontWeight: 600,
-                    color: '#111827',
-                    lineHeight: '1.5',
-                    fontSize: '15px',
-                    paddingRight: isAdmin ? '80px' : '0',
-                    marginTop: '4px'
-                  }}>
-                    {description}
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    color: '#9ca3af',
-                    marginTop: '12px',
-                    paddingTop: '12px',
-                    borderTop: '1px solid #f3f4f6',
-                    fontStyle: 'italic'
-                  }}>
-                    Loading context...
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Dashboard Content */}
-      <div className="dashboard-content">
-        {loadingData && (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-            Loading data for selected descriptions...
-          </div>
-        )}
-
-        {!loadingData && selectedDescriptions.length === 0 && (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-            Please select descriptions to view data and visuals
-          </div>
-        )}
-
-        {!loadingData && selectedDescriptions.length > 0 && dashboardData.length === 0 && (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-            No data found for selected descriptions
-          </div>
-        )}
-
-        {!loadingData && selectedDescriptions.length > 0 && dashboardData.length > 0 && viewMode === 'visuals' ? (
-          <div className="dashboard-charts-grid">
-            {/* Dynamically render charts for all selected descriptions */}
-            {selectedDescriptions.map((description, index) => {
-              const chartIndex = index;
-              const option = chartOptions[chartIndex] || 'country';
-              let chartData = [];
-              let labels = [];
-
-              if (option === 'country') {
-                const data = dashboardData
-                  .filter(item => item.Description === description && item.CountryName && item.ReportedValue)
-                  .reduce((acc, item) => {
-                    const country = item.CountryName;
-                    if (!acc[country]) {
-                      acc[country] = { label: country, value: 0 };
-                    }
-                    acc[country].value += parseFloat(item.ReportedValue) || 0;
-                    return acc;
-                  }, {});
-                chartData = Object.values(data).sort((a, b) => b.value - a.value).slice(0, 6);
-                labels = chartData.map(d => d.label);
-              } else if (option === 'year') {
-                const data = dashboardData
-                  .filter(item => item.Description === description && item.ProcessedFYYear && item.ReportedValue)
-                  .reduce((acc, item) => {
-                    const year = item.ProcessedFYYear;
-                    if (!acc[year]) {
-                      acc[year] = { label: year, value: 0 };
-                    }
-                    acc[year].value += parseFloat(item.ReportedValue) || 0;
-                    return acc;
-                  }, {});
-                chartData = Object.values(data).sort((a, b) => a.label.localeCompare(b.label));
-                labels = chartData.map(d => d.label);
-              }
-
-              const maxValue = Math.max(...chartData.map(d => d.value), 1);
-
-              return (
-                <div key={chartIndex} className="dashboard-chart-card">
-                  <div className="chart-header">
-                    <h3 className="chart-title">{description}</h3>
-                    <select
-                      value={option}
-                      onChange={(e) => setChartOptions({ ...chartOptions, [chartIndex]: e.target.value })}
-                      className="chart-dimension-select"
-                    >
-                      <option value="country">Country by Value</option>
-                      <option value="year">Year by Value</option>
-                    </select>
-                  </div>
-                  <div className="chart-container">
-                    <div className="bar-chart-vertical">
-                      {chartData.length > 0 ? chartData.map((item, itemIndex) => (
-                        <div key={itemIndex} className="bar-item">
-                          <div className="bar-wrapper">
-                            <div
-                              className="bar-vertical"
-                              style={{ height: `${(item.value / maxValue) * 100}%` }}
-                            >
-                              <span className="bar-value-top">{item.value.toFixed(1)}</span>
-                            </div>
-                          </div>
-                          <div className="bar-label-bottom" style={{ fontSize: '11px' }}>
-                            {item.label.length > 12 ? item.label.substring(0, 12) + '...' : item.label}
-                          </div>
-                        </div>
-                      )) : (
-                        <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data available</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          // Data Table View - Pivot Format
-          !loadingData && selectedDescriptions && selectedDescriptions.length > 0 && dashboardData.length > 0 && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
-            <div className="pivot-tables-container">
-              {/* Premium Filter Dropdown */}
-              <div className="premium-filter" style={{
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 16px',
-                backgroundColor: '#f9fafb',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                flexWrap: 'wrap'
-              }}>
-                <label className="filter-label" style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#374151',
-                  minWidth: isMobile ? '100%' : '200px',
-                  flex: isMobile ? '1 1 100%' : '0 0 auto'
-                }}>
-                  Filter by Category Long Name:
-                </label>
+      {/* Shared Layout including View Toggle */}
+      <IndustryMetricsSharedLayout
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        controls={
+          viewMode === 'data' ? (
+            <>
+              <div className="period-select-container">
+                <label className="control-label">Filter by Premium</label>
                 <select
-                  className="filter-select-dropdown"
+                  className="custom-select"
                   value={selectedPremium}
                   onChange={(e) => setSelectedPremium(e.target.value)}
-                  style={{
-                    flex: isMobile ? '1 1 100%' : '1',
-                    maxWidth: isMobile ? '100%' : '400px',
-                    padding: '10px 12px',
-                    fontSize: '14px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    backgroundColor: '#ffffff',
-                    color: '#111827',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#3F72AF'}
-                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                 >
-                  <option value="">All Premiums</option>
-                  {premiumOptions.map((option, index) => (
-                    <option key={index} value={option}>
-                      {option}
-                    </option>
+                  <option value="">All Premium Types</option>
+                  {premiumOptions.map((opt, idx) => (
+                    <option key={idx} value={opt}>{opt}</option>
                   ))}
                 </select>
-                {selectedPremium && (
-                  <button
-                    className="clear-filter-btn"
-                    onClick={() => setSelectedPremium('')}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '13px',
-                      backgroundColor: '#ef4444',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                      transition: 'all 0.2s',
-                      flex: isMobile ? '1 1 100%' : '0 0 auto',
-                      whiteSpace: 'nowrap'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
-                  >
-                    Clear Filter
-                  </button>
-                )}
               </div>
-
-              {/* Category Filter Dropdown - Only enabled when Premium is selected */}
-              <div className="category-filter" style={{
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 16px',
-                backgroundColor: '#f9fafb',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                flexWrap: 'wrap',
-                opacity: selectedPremium ? 1 : 0.6
-              }}>
-                <label className="filter-label" style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#374151',
-                  minWidth: isMobile ? '100%' : '200px',
-                  flex: isMobile ? '1 1 100%' : '0 0 auto'
-                }}>
-                  Filter by Sub Category Long Name:
-                </label>
+              <div className="period-select-container">
+                <label className="control-label">Filter by Category</label>
                 <select
-                  className="filter-select-dropdown"
+                  className="custom-select"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   disabled={!selectedPremium}
-                  style={{
-                    flex: isMobile ? '1 1 100%' : '1',
-                    maxWidth: isMobile ? '100%' : '400px',
-                    padding: '10px 12px',
-                    fontSize: '14px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    backgroundColor: selectedPremium ? '#ffffff' : '#f3f4f6',
-                    color: selectedPremium ? '#111827' : '#9ca3af',
-                    cursor: selectedPremium ? 'pointer' : 'not-allowed',
-                    outline: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onFocus={(e) => {
-                    if (selectedPremium) {
-                      e.target.style.borderColor = '#3F72AF';
-                    }
-                  }}
-                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  style={{ opacity: !selectedPremium ? 0.6 : 1, cursor: !selectedPremium ? 'not-allowed' : 'pointer' }}
                 >
                   <option value="">All Categories</option>
-                  {categoryOptions.map((option, index) => (
-                    <option key={index} value={option}>
-                      {option}
-                    </option>
+                  {categoryOptions.map((opt, idx) => (
+                    <option key={idx} value={opt}>{opt}</option>
                   ))}
                 </select>
-                {selectedCategory && (
-                  <button
-                    className="clear-filter-btn"
-                    onClick={() => setSelectedCategory('')}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '13px',
-                      backgroundColor: '#ef4444',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                      transition: 'all 0.2s',
-                      flex: isMobile ? '1 1 100%' : '0 0 auto',
-                      whiteSpace: 'nowrap'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
-                  >
-                    Clear Filter
-                  </button>
-                )}
               </div>
+            </>
+          ) : null
+        }
+        summaryText=""
+      >
+        {/* Selected Descriptions Display - Only for Admin */}
+        {isAdmin && selectedDescriptions.length > 0 && (
+          <div className="selected-descriptions-container" style={{
+            marginBottom: '24px',
+            padding: '0',
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            overflow: 'hidden'
+          }}>
+            {/* Header Section */}
+            <div className="selected-descriptions-header" style={{
+              background: 'linear-gradient(135deg, #3F72AF 0%, #5a8fc7 100%)',
+              padding: '20px 24px',
+              color: '#ffffff'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div>
+                  <h3 className="selected-descriptions-title" style={{
+                    margin: 0,
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    marginBottom: '6px',
+                    letterSpacing: '-0.01em'
+                  }}>
+                    Selected Descriptions for Dashboard
+                  </h3>
+                  <p className="selected-descriptions-subtitle" style={{
+                    margin: 0,
+                    fontSize: '13px',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontWeight: 400
+                  }}>
+                    {selectedDescriptions.length} selected. {isAdmin ? 'Click on a card to remove.' : 'Only admin can modify selections.'}
+                  </p>
+                </div>
+                <div className="selected-descriptions-count" style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  minWidth: '60px',
+                  textAlign: 'center',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                }}>
+                  {selectedDescriptions.length}
+                </div>
+              </div>
+            </div>
 
-              {Object.keys(pivotTableData).sort().map(periodType => {
-                const periodData = pivotTableData[periodType];
-                if (!periodData) return null;
+            {/* Cards Container */}
+            <div className="selected-descriptions-cards" style={{
+              padding: '20px 24px',
+              display: 'grid',
+              gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '16px',
+              backgroundColor: '#f9fafb'
+            }}>
+              {selectedDescriptionsWithContext.length > 0 ? (
+                selectedDescriptionsWithContext.map((item, index) => (
+                  <div
+                    key={index}
+                    onClick={isAdmin ? () => handleDescriptionDeselect(item.description) : undefined}
+                    style={{
+                      padding: '18px',
+                      backgroundColor: '#ffffff',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      cursor: isAdmin ? 'pointer' : 'default',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      opacity: isAdmin ? 1 : 0.95
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isMobile && isAdmin) {
+                        e.currentTarget.style.borderColor = '#ef4444';
+                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(239, 68, 68, 0.15)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isMobile && isAdmin) {
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.06)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }
+                    }}
+                  >
+                    {/* Remove Button - Only visible to Admin */}
+                    {isAdmin && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        padding: '6px 10px',
+                        backgroundColor: '#fee2e2',
+                        color: '#dc2626',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        border: '1px solid #fecaca',
+                        transition: 'all 0.2s ease'
+                      }}>
+                        Remove
+                      </div>
+                    )}
 
-                const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {} } = periodData;
+                    {/* Description Title */}
+                    <div style={{
+                      fontWeight: 600,
+                      color: '#111827',
+                      lineHeight: '1.5',
+                      fontSize: '15px',
+                      paddingRight: isAdmin ? '80px' : '0',
+                      marginTop: '4px'
+                    }}>
+                      {item.description}
+                    </div>
 
-                if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
-                  return null;
+                    {/* Metadata */}
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid #f3f4f6'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#eff6ff',
+                          color: '#1e40af',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          fontSize: '11px',
+                          minWidth: '80px',
+                          textAlign: 'center'
+                        }}>
+                          Premium Type
+                        </span>
+                        <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                          {item.premiumType}
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#f0fdf4',
+                          color: '#059669',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          fontSize: '11px',
+                          minWidth: '80px',
+                          textAlign: 'center'
+                        }}>
+                          Category
+                        </span>
+                        <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                          {item.category}
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px'
+                      }}>
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#fef3c7',
+                          color: '#d97706',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          fontSize: '11px',
+                          minWidth: '80px',
+                          textAlign: 'center'
+                        }}>
+                          Data Type
+                        </span>
+                        <span style={{ color: '#6b7280', fontWeight: 500 }}>
+                          {item.dataType}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                selectedDescriptions.map((description, index) => (
+                  <div
+                    key={index}
+                    onClick={isAdmin ? () => handleDescriptionDeselect(description) : undefined}
+                    style={{
+                      padding: '18px',
+                      backgroundColor: '#ffffff',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      cursor: isAdmin ? 'pointer' : 'default',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
+                      position: 'relative',
+                      opacity: isAdmin ? 1 : 0.95
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isMobile && isAdmin) {
+                        e.currentTarget.style.borderColor = '#ef4444';
+                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(239, 68, 68, 0.15)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isMobile && isAdmin) {
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.06)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }
+                    }}
+                  >
+                    {/* Remove Button - Only visible to Admin */}
+                    {isAdmin && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        padding: '6px 10px',
+                        backgroundColor: '#fee2e2',
+                        color: '#dc2626',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        border: '1px solid #fecaca'
+                      }}>
+                        Remove
+                      </div>
+                    )}
+                    <div style={{
+                      fontWeight: 600,
+                      color: '#111827',
+                      lineHeight: '1.5',
+                      fontSize: '15px',
+                      paddingRight: isAdmin ? '80px' : '0',
+                      marginTop: '4px'
+                    }}>
+                      {description}
+                    </div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#9ca3af',
+                      marginTop: '12px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid #f3f4f6',
+                      fontStyle: 'italic'
+                    }}>
+                      Loading context...
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Dashboard Content */}
+        <div className="dashboard-content">
+          {loadingData && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              Loading data for selected descriptions...
+            </div>
+          )}
+
+          {!loadingData && selectedDescriptions.length === 0 && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+              Please select descriptions to view data and visuals
+            </div>
+          )}
+
+          {!loadingData && selectedDescriptions.length > 0 && dashboardData.length === 0 && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+              No data found for selected descriptions
+            </div>
+          )}
+
+          {!loadingData && selectedDescriptions.length > 0 && dashboardData.length > 0 && viewMode === 'visuals' ? (
+            <div className="dashboard-charts-grid">
+              {/* Dynamically render charts for all selected descriptions */}
+              {selectedDescriptions.map((description, index) => {
+                const chartIndex = index;
+                const option = chartOptions[chartIndex] || 'country';
+                let chartData = [];
+                let labels = [];
+
+                if (option === 'country') {
+                  const data = dashboardData
+                    .filter(item => item.Description === description && item.CountryName && item.ReportedValue)
+                    .reduce((acc, item) => {
+                      const country = item.CountryName;
+                      if (!acc[country]) {
+                        acc[country] = { label: country, value: 0 };
+                      }
+                      acc[country].value += parseFloat(item.ReportedValue) || 0;
+                      return acc;
+                    }, {});
+                  chartData = Object.values(data).sort((a, b) => b.value - a.value).slice(0, 6);
+                  labels = chartData.map(d => d.label);
+                } else if (option === 'year') {
+                  const data = dashboardData
+                    .filter(item => item.Description === description && item.ProcessedFYYear && item.ReportedValue)
+                    .reduce((acc, item) => {
+                      const year = item.ProcessedFYYear;
+                      if (!acc[year]) {
+                        acc[year] = { label: year, value: 0 };
+                      }
+                      acc[year].value += parseFloat(item.ReportedValue) || 0;
+                      return acc;
+                    }, {});
+                  chartData = Object.values(data).sort((a, b) => a.label.localeCompare(b.label));
+                  labels = chartData.map(d => d.label);
                 }
 
-                return (
-                  <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
-                    <h3 className="period-type-title" style={{
-                      marginBottom: '16px',
-                      fontSize: '18px',
-                      fontWeight: '600',
-                      color: '#111827',
-                      paddingBottom: '8px',
-                      borderBottom: '2px solid #3F72AF'
-                    }}>
-                      {periodType} Data
-                    </h3>
-                    <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                      <table className="data-table pivot-table">
-                        <thead>
-                          <tr>
-                            <th className="pivot-table-header-desc" style={{
-                              position: 'sticky',
-                              left: 0,
-                              backgroundColor: '#3F72AF',
-                              zIndex: 10,
-                              minWidth: isMobile ? '200px' : '300px',
-                              textAlign: 'center'
-                            }}>
-                              Description
-                            </th>
-                            <th className="pivot-table-header-unit" style={{
-                              position: 'sticky',
-                              left: isMobile ? '200px' : '300px',
-                              backgroundColor: '#3F72AF',
-                              zIndex: 10,
-                              minWidth: isMobile ? '60px' : '80px',
-                              textAlign: 'center'
-                            }}>
-                              Unit
-                            </th>
-                            {periods.map(period => (
-                              <th key={period} className="pivot-table-header-period" style={{
-                                minWidth: isMobile ? '80px' : '100px',
-                                textAlign: 'center'
-                              }}>
-                                {period}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {descriptions.map((desc, descIndex) => {
-                            const metadata = descriptionMetadata[desc] || { category: 'N/A', premiumType: 'N/A' };
-                            const rowColor = getCategoryPremiumColor(metadata.category, metadata.premiumType);
+                const maxValue = Math.max(...chartData.map(d => d.value), 1);
 
-                            return (
-                              <tr key={descIndex} style={{
-                                backgroundColor: rowColor.bg,
-                                borderBottom: `2px solid ${rowColor.border}`
-                              }}>
-                                <td className="pivot-table-cell-desc" style={{
-                                  position: 'sticky',
-                                  left: 0,
-                                  backgroundColor: rowColor.bg,
-                                  zIndex: 5,
-                                  padding: '12px',
-                                  borderRight: `2px solid ${rowColor.border}`,
-                                  minWidth: isMobile ? '200px' : '300px'
-                                }}>
-                                  <div style={{
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    color: '#111827',
-                                    wordBreak: 'break-word',
-                                    lineHeight: '1.4'
-                                  }}>
-                                    {desc}
-                                  </div>
-                                </td>
-                                <td className="pivot-table-cell-unit" style={{
-                                  position: 'sticky',
-                                  left: isMobile ? '200px' : '300px',
-                                  backgroundColor: rowColor.bg,
-                                  zIndex: 5,
-                                  padding: '12px',
-                                  borderRight: `2px solid ${rowColor.border}`,
-                                  fontSize: '12px',
-                                  color: '#6b7280',
-                                  whiteSpace: 'nowrap'
-                                }}>
-                                  {units[desc] || '-'}
-                                </td>
-                                {periods.map(period => (
-                                  <td key={period} className="pivot-table-cell-data" style={{
-                                    textAlign: 'right',
-                                    padding: '12px',
-                                    borderRight: '1px solid #e5e7eb',
-                                    backgroundColor: rowColor.bg,
-                                    fontSize: '13px',
-                                    whiteSpace: 'nowrap'
-                                  }}>
-                                    {pivot[desc] && pivot[desc][period] !== undefined
-                                      ? pivot[desc][period]
-                                      : '-'}
-                                  </td>
-                                ))}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                return (
+                  <div key={chartIndex} className="dashboard-chart-card">
+                    <div className="chart-header">
+                      <h3 className="chart-title">{description}</h3>
+                      <select
+                        value={option}
+                        onChange={(e) => setChartOptions({ ...chartOptions, [chartIndex]: e.target.value })}
+                        className="chart-dimension-select"
+                      >
+                        <option value="country">Country by Value</option>
+                        <option value="year">Year by Value</option>
+                      </select>
+                    </div>
+                    <div className="chart-container">
+                      <div className="bar-chart-vertical">
+                        {chartData.length > 0 ? chartData.map((item, itemIndex) => (
+                          <div key={itemIndex} className="bar-item">
+                            <div className="bar-wrapper">
+                              <div
+                                className="bar-vertical"
+                                style={{ height: `${(item.value / maxValue) * 100}%` }}
+                              >
+                                <span className="bar-value-top">{item.value.toFixed(1)}</span>
+                              </div>
+                            </div>
+                            <div className="bar-label-bottom" style={{ fontSize: '11px' }}>
+                              {item.label.length > 12 ? item.label.substring(0, 12) + '...' : item.label}
+                            </div>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data available</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-              No data available to display
-            </div>
-          ))}
-      </div>
+            // Data Table View - Pivot Format
+            !loadingData && selectedDescriptions && selectedDescriptions.length > 0 && dashboardData.length > 0 && pivotTableData && Object.keys(pivotTableData).length > 0 ? (
+              <div className="pivot-tables-container">
+
+
+                {Object.keys(pivotTableData).sort().map(periodType => {
+                  const periodData = pivotTableData[periodType];
+                  if (!periodData) return null;
+
+                  const { periods = [], descriptions = [], pivot = {}, units = {}, descriptionMetadata = {} } = periodData;
+
+                  if (!periods || !descriptions || periods.length === 0 || descriptions.length === 0) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={periodType} className="period-type-section" style={{ marginBottom: '40px' }}>
+                      <h3 className="period-type-title" style={{
+                        marginBottom: '16px',
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: '#111827',
+                        paddingBottom: '8px',
+                        borderBottom: '2px solid #3F72AF'
+                      }}>
+                        {periodType} Data
+                      </h3>
+                      <div className="data-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <table className="data-table pivot-table">
+                          <thead>
+                            <tr>
+                              <th className="pivot-table-header-desc" style={{
+                                position: 'sticky',
+                                left: 0,
+                                backgroundColor: '#3F72AF',
+                                zIndex: 10,
+                                minWidth: isMobile ? '200px' : '300px',
+                                textAlign: 'center'
+                              }}>
+                                Description
+                              </th>
+                              <th className="pivot-table-header-unit" style={{
+                                position: 'sticky',
+                                left: isMobile ? '200px' : '300px',
+                                backgroundColor: '#3F72AF',
+                                zIndex: 10,
+                                minWidth: isMobile ? '60px' : '80px',
+                                textAlign: 'center'
+                              }}>
+                                Unit
+                              </th>
+                              {periods.map(period => (
+                                <th key={period} className="pivot-table-header-period" style={{
+                                  minWidth: isMobile ? '80px' : '100px',
+                                  textAlign: 'center'
+                                }}>
+                                  {period}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {descriptions.map((desc, descIndex) => {
+                              const metadata = descriptionMetadata[desc] || { category: 'N/A', premiumType: 'N/A' };
+                              const rowColor = getCategoryPremiumColor(metadata.category, metadata.premiumType);
+
+                              return (
+                                <tr key={descIndex} style={{
+                                  backgroundColor: rowColor.bg,
+                                  borderBottom: `2px solid ${rowColor.border}`
+                                }}>
+                                  <td className="pivot-table-cell-desc" style={{
+                                    position: 'sticky',
+                                    left: 0,
+                                    backgroundColor: rowColor.bg,
+                                    zIndex: 5,
+                                    padding: '12px',
+                                    borderRight: `2px solid ${rowColor.border}`,
+                                    minWidth: isMobile ? '200px' : '300px'
+                                  }}>
+                                    <div style={{
+                                      fontSize: '14px',
+                                      fontWeight: '600',
+                                      color: '#111827',
+                                      wordBreak: 'break-word',
+                                      lineHeight: '1.4'
+                                    }}>
+                                      {desc}
+                                    </div>
+                                  </td>
+                                  <td className="pivot-table-cell-unit" style={{
+                                    position: 'sticky',
+                                    left: isMobile ? '200px' : '300px',
+                                    backgroundColor: rowColor.bg,
+                                    zIndex: 5,
+                                    padding: '12px',
+                                    borderRight: `2px solid ${rowColor.border}`,
+                                    fontSize: '12px',
+                                    color: '#6b7280',
+                                    whiteSpace: 'nowrap'
+                                  }}>
+                                    {units[desc] || '-'}
+                                  </td>
+                                  {periods.map(period => (
+                                    <td key={period} className="pivot-table-cell-data" style={{
+                                      textAlign: 'right',
+                                      padding: '12px',
+                                      borderRight: '1px solid #e5e7eb',
+                                      backgroundColor: rowColor.bg,
+                                      fontSize: '13px',
+                                      whiteSpace: 'nowrap'
+                                    }}>
+                                      {pivot[desc] && pivot[desc][period] !== undefined
+                                        ? pivot[desc][period]
+                                        : '-'}
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                No data available to display
+              </div>
+            ))}
+        </div>
+      </IndustryMetricsSharedLayout>
     </StandardPageLayout>
   );
 };

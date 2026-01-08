@@ -32,18 +32,19 @@
 }
 
 .peers-comparison-table th {
-    background-color: #f9fafb;
+    background-color: rgb(54, 101, 155);
     padding: 12px 16px;
-    text-align: left;
+    text-align: center;
     font-weight: 600;
     border-bottom: 1px solid #e5e7eb;
-    color: #374151;
+    color: #000;
 }
 
 .peers-comparison-table td {
     padding: 12px 16px;
-    border-bottom: 1px solid #f3f4f6;
-    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    text-align: right;
 }
 
 .data-row:last-child td {
@@ -76,4 +77,54 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
+}
+
+/* Fix for Layout Shift in Controls */
+.insurer-select-container {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    flex-shrink: 0;
+}
+
+/* Ensure the dropdown itself doesn't cause issues */
+.insurer-select-container .peers-dropdown {
+    width: 100%;
+    white-space: nowrap;
+}
+
+/* Enhancing truncation inside the dropdown to prevent height jump */
+.insurer-select-container .peers-dropdown>div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Force Toggle to the right */
+/* Force Toggle to the right */
+
+
+/* Ensure dashboard controls justify properly on this page */
+
+
+/* Removed conflicting dropdown overrides to use IrdaiCommon.css standards */
+
+/* Specific adjustment for Insurer container to stay aligned */
+.insurer-select-container {
+    width: 220px;
+}
+
+/* Adjust gap to fit everything */
+.controls-left {
+    gap: 15px !important;
+    flex-wrap: wrap !important;
+}
+
+/* Toggle button container alignment */
+
+@media (max-width: 768px) {
+    .insurer-select-container {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
 }

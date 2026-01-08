@@ -385,9 +385,12 @@ class ApiService {
     return response.json();
   }
 
-  async uploadIrdaiMonthlyExcel(file) {
+  async uploadIrdaiMonthlyExcel(file, sheetName) {
     const formData = new FormData();
     formData.append('file', file);
+    if (sheetName) {
+      formData.append('sheet_name', sheetName);
+    }
 
     const response = await fetch(`${API_BASE_URL}/irdai-monthly/upload-monthly-excel`, {
       method: 'POST',

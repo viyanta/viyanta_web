@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import { useNavigation } from '../context/NavigationContext';
+import { useAuth } from '../context/AuthContext';
 import './News.css';
 
 const News = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { isNavItemActive, activeNavItems, selectedSidebarItem } = useNavigation();
+  const { isAdmin } = useAuth();
 
   // State for insurer selection and news data
   const [selectedInsurer, setSelectedInsurer] = useState('HDFC Life');
@@ -210,7 +212,7 @@ const News = ({ onMenuClick }) => {
   };
 
   const allTabs = [
-    'Dashboard', 'Background', 'L Forms', 'Metrics', 
+    'Dashboard', 'Background', 'L Forms', 'Metrics',
     'Analytics', 'Annual Data', 'Documents', 'Peers', 'News',
     'Define Template', 'Save Template',
     'Screener Inputs', 'Screener Output Sheets',
@@ -226,7 +228,7 @@ const News = ({ onMenuClick }) => {
     if (!isNavItemActive(tab)) {
       return;
     }
-    
+
     if (tab === 'Dashboard') {
       // Check which sidebar item is selected
       if (selectedSidebarItem === 1001) { // Industry Metrics
@@ -240,12 +242,12 @@ const News = ({ onMenuClick }) => {
       navigate('/lform');
     } else if (tab === 'Metrics') {
       navigate('/metrics');
-      } else if (tab === 'Analytics') {
-        navigate('/analytics');
-      } else if (tab === 'Annual Data') {
-        navigate('/annual-data');
-      } else if (tab === 'Documents') {
-        navigate('/documents');
+    } else if (tab === 'Analytics') {
+      navigate('/analytics');
+    } else if (tab === 'Annual Data') {
+      navigate('/annual-data');
+    } else if (tab === 'Documents') {
+      navigate('/documents');
     } else if (tab === 'Peers') {
       navigate('/peers');
     } else if (tab === 'News') {
@@ -287,10 +289,10 @@ const News = ({ onMenuClick }) => {
       minHeight: '100vh',
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: 'clamp(0.5rem, 2vw, 1rem)', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'clamp(0.5rem, 2vw, 1rem)',
         marginBottom: 'clamp(1rem, 3vw, 2rem)',
         flexWrap: 'wrap'
       }}>
@@ -329,26 +331,26 @@ const News = ({ onMenuClick }) => {
         >
           ☰
         </button>
-        <h1 style={{ 
+        <h1 style={{
           margin: 0,
           fontSize: 'clamp(18px, 5vw, 28px)',
           lineHeight: '1.2'
         }}>News</h1>
       </div>
 
-        <div className="navigation-tabs-container" style={{
-          marginBottom: 'clamp(15px, 3vw, 20px)',
-          padding: '0 clamp(10px, 3vw, 20px)'
+      <div className="navigation-tabs-container" style={{
+        marginBottom: 'clamp(15px, 3vw, 20px)',
+        padding: '0 clamp(10px, 3vw, 20px)'
+      }}>
+        <div className="navigation-tabs" style={{
+          display: 'flex',
+          gap: tabs.length <= 3 ? 'clamp(15px, 3vw, 20px)' : 'clamp(8px, 2vw, 12px)',
+          width: '100%',
+          overflowX: 'auto',
+          overflowY: 'visible',
+          paddingBottom: '5px',
+          justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
         }}>
-          <div className="navigation-tabs" style={{
-            display: 'flex',
-            gap: tabs.length <= 3 ? 'clamp(15px, 3vw, 20px)' : 'clamp(8px, 2vw, 12px)',
-            width: '100%',
-            overflowX: 'auto',
-            overflowY: 'visible',
-            paddingBottom: '5px',
-            justifyContent: tabs.length <= 3 ? 'center' : 'flex-start'
-          }}>
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -378,7 +380,7 @@ const News = ({ onMenuClick }) => {
           ))}
         </div>
       </div>
-      
+
       {/* Main Content Area with Sidebar */}
       <div style={{
         display: 'flex',
@@ -387,13 +389,15 @@ const News = ({ onMenuClick }) => {
         flexDirection: window.innerWidth <= 768 ? 'column' : 'row'
       }}>
         {/* Left Sidebar - Company Information */}
-        <div style={{
-          flex: '0 0 clamp(200px, 25vw, 220px)',
-          minWidth: '200px',
-          maxWidth: '220px'
-        }}>
-          <CompanyInformationSidebar />
-        </div>
+        {isAdmin && (
+          <div style={{
+            flex: '0 0 clamp(200px, 25vw, 220px)',
+            minWidth: '200px',
+            maxWidth: '220px'
+          }}>
+            <CompanyInformationSidebar />
+          </div>
+        )}
 
         {/* Right Content Area */}
         <div style={{
@@ -458,7 +462,7 @@ const News = ({ onMenuClick }) => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 'clamp(0.5rem, 2vw, 1rem)', 
+              gap: 'clamp(0.5rem, 2vw, 1rem)',
               marginBottom: 'clamp(20px, 3vw, 25px)',
               flexWrap: 'wrap'
             }}>
@@ -513,31 +517,31 @@ const News = ({ onMenuClick }) => {
               flexDirection: 'column',
               gap: 'clamp(25px, 4vw, 35px)'
             }}>
-                {/* Domestic News Section */}
-                <div>
-                  <h4 style={{
-                    fontSize: 'clamp(18px, 3vw, 20px)',
-                    fontWeight: '600',
-                    color: '#1f2937',
-                    margin: '0 0 clamp(15px, 2vw, 20px) 0',
-                    paddingBottom: 'clamp(8px, 1vw, 10px)',
-                    borderBottom: '2px solid #3b82f6'
-                  }}>
-                    🇮🇳 Domestic News
-                  </h4>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 'clamp(12px, 2vw, 15px)'
-                  }}>
-                    {domesticNews.map((news) => (
-                      <div key={news.id} style={{
-                        padding: 'clamp(15px, 3vw, 20px)',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        backgroundColor: '#f9fafb',
-                        transition: 'all 0.2s ease'
-                      }}
+              {/* Domestic News Section */}
+              <div>
+                <h4 style={{
+                  fontSize: 'clamp(18px, 3vw, 20px)',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  margin: '0 0 clamp(15px, 2vw, 20px) 0',
+                  paddingBottom: 'clamp(8px, 1vw, 10px)',
+                  borderBottom: '2px solid #3b82f6'
+                }}>
+                  🇮🇳 Domestic News
+                </h4>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'clamp(12px, 2vw, 15px)'
+                }}>
+                  {domesticNews.map((news) => (
+                    <div key={news.id} style={{
+                      padding: 'clamp(15px, 3vw, 20px)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      backgroundColor: '#f9fafb',
+                      transition: 'all 0.2s ease'
+                    }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#f3f4f6';
                         e.currentTarget.style.borderColor = '#3b82f6';
@@ -546,106 +550,106 @@ const News = ({ onMenuClick }) => {
                         e.currentTarget.style.backgroundColor = '#f9fafb';
                         e.currentTarget.style.borderColor = '#e5e7eb';
                       }}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: 'clamp(10px, 2vw, 15px)',
-                          marginBottom: 'clamp(8px, 1vw, 10px)'
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: 'clamp(10px, 2vw, 15px)',
+                        marginBottom: 'clamp(8px, 1vw, 10px)'
+                      }}>
+                        <h5 style={{
+                          fontSize: 'clamp(14px, 2vw, 16px)',
+                          fontWeight: '600',
+                          color: '#1f2937',
+                          margin: 0,
+                          flex: 1
                         }}>
-                          <h5 style={{
-                            fontSize: 'clamp(14px, 2vw, 16px)',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            margin: 0,
-                            flex: 1
-                          }}>
-                            {news.title}
-                          </h5>
-                          <span style={{
-                            fontSize: 'clamp(11px, 1.5vw, 12px)',
-                            color: '#6b7280',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {news.date}
-                          </span>
-                        </div>
-                        <p style={{
-                          fontSize: 'clamp(12px, 1.8vw, 14px)',
-                          color: '#4b5563',
-                          lineHeight: '1.5',
-                          margin: '0 0 clamp(10px, 2vw, 12px) 0'
+                          {news.title}
+                        </h5>
+                        <span style={{
+                          fontSize: 'clamp(11px, 1.5vw, 12px)',
+                          color: '#6b7280',
+                          whiteSpace: 'nowrap'
                         }}>
-                          {news.summary}
-                        </p>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <span style={{
-                            fontSize: 'clamp(11px, 1.5vw, 12px)',
-                            color: '#6b7280',
-                            fontStyle: 'italic'
-                          }}>
-                            Source: {news.source}
-                          </span>
-                          <a
-                            href={news.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              fontSize: 'clamp(12px, 1.8vw, 14px)',
-                              color: '#3b82f6',
-                              textDecoration: 'none',
-                              fontWeight: '500',
-                              padding: 'clamp(6px, 1vw, 8px) clamp(10px, 2vw, 12px)',
-                              border: '1px solid #3b82f6',
-                              borderRadius: '6px',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#3b82f6';
-                              e.target.style.color = 'white';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = 'transparent';
-                              e.target.style.color = '#3b82f6';
-                            }}
-                          >
-                            Read More →
-                          </a>
-                        </div>
+                          {news.date}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <p style={{
+                        fontSize: 'clamp(12px, 1.8vw, 14px)',
+                        color: '#4b5563',
+                        lineHeight: '1.5',
+                        margin: '0 0 clamp(10px, 2vw, 12px) 0'
+                      }}>
+                        {news.summary}
+                      </p>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          fontSize: 'clamp(11px, 1.5vw, 12px)',
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          Source: {news.source}
+                        </span>
+                        <a
+                          href={news.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: 'clamp(12px, 1.8vw, 14px)',
+                            color: '#3b82f6',
+                            textDecoration: 'none',
+                            fontWeight: '500',
+                            padding: 'clamp(6px, 1vw, 8px) clamp(10px, 2vw, 12px)',
+                            border: '1px solid #3b82f6',
+                            borderRadius: '6px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#3b82f6';
+                            e.target.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#3b82f6';
+                          }}
+                        >
+                          Read More →
+                        </a>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                {/* International News Section */}
-                <div>
-                  <h4 style={{
-                    fontSize: 'clamp(18px, 3vw, 20px)',
-                    fontWeight: '600',
-                    color: '#1f2937',
-                    margin: '0 0 clamp(15px, 2vw, 20px) 0',
-                    paddingBottom: 'clamp(8px, 1vw, 10px)',
-                    borderBottom: '2px solid #10b981'
-                  }}>
-                    🌍 International News
-                  </h4>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 'clamp(12px, 2vw, 15px)'
-                  }}>
-                    {internationalNews.map((news) => (
-                      <div key={news.id} style={{
-                        padding: 'clamp(15px, 3vw, 20px)',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        backgroundColor: '#f0fdf4',
-                        transition: 'all 0.2s ease'
-                      }}
+              {/* International News Section */}
+              <div>
+                <h4 style={{
+                  fontSize: 'clamp(18px, 3vw, 20px)',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  margin: '0 0 clamp(15px, 2vw, 20px) 0',
+                  paddingBottom: 'clamp(8px, 1vw, 10px)',
+                  borderBottom: '2px solid #10b981'
+                }}>
+                  🌍 International News
+                </h4>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'clamp(12px, 2vw, 15px)'
+                }}>
+                  {internationalNews.map((news) => (
+                    <div key={news.id} style={{
+                      padding: 'clamp(15px, 3vw, 20px)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      backgroundColor: '#f0fdf4',
+                      transition: 'all 0.2s ease'
+                    }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#ecfdf5';
                         e.currentTarget.style.borderColor = '#10b981';
@@ -654,81 +658,81 @@ const News = ({ onMenuClick }) => {
                         e.currentTarget.style.backgroundColor = '#f0fdf4';
                         e.currentTarget.style.borderColor = '#e5e7eb';
                       }}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: 'clamp(10px, 2vw, 15px)',
-                          marginBottom: 'clamp(8px, 1vw, 10px)'
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: 'clamp(10px, 2vw, 15px)',
+                        marginBottom: 'clamp(8px, 1vw, 10px)'
+                      }}>
+                        <h5 style={{
+                          fontSize: 'clamp(14px, 2vw, 16px)',
+                          fontWeight: '600',
+                          color: '#1f2937',
+                          margin: 0,
+                          flex: 1
                         }}>
-                          <h5 style={{
-                            fontSize: 'clamp(14px, 2vw, 16px)',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            margin: 0,
-                            flex: 1
-                          }}>
-                            {news.title}
-                          </h5>
-                          <span style={{
-                            fontSize: 'clamp(11px, 1.5vw, 12px)',
-                            color: '#6b7280',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {news.date}
-                          </span>
-                        </div>
-                        <p style={{
-                          fontSize: 'clamp(12px, 1.8vw, 14px)',
-                          color: '#4b5563',
-                          lineHeight: '1.5',
-                          margin: '0 0 clamp(10px, 2vw, 12px) 0'
+                          {news.title}
+                        </h5>
+                        <span style={{
+                          fontSize: 'clamp(11px, 1.5vw, 12px)',
+                          color: '#6b7280',
+                          whiteSpace: 'nowrap'
                         }}>
-                          {news.summary}
-                        </p>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <span style={{
-                            fontSize: 'clamp(11px, 1.5vw, 12px)',
-                            color: '#6b7280',
-                            fontStyle: 'italic'
-                          }}>
-                            Source: {news.source}
-                          </span>
-                          <a
-                            href={news.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              fontSize: 'clamp(12px, 1.8vw, 14px)',
-                              color: '#10b981',
-                              textDecoration: 'none',
-                              fontWeight: '500',
-                              padding: 'clamp(6px, 1vw, 8px) clamp(10px, 2vw, 12px)',
-                              border: '1px solid #10b981',
-                              borderRadius: '6px',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#10b981';
-                              e.target.style.color = 'white';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = 'transparent';
-                              e.target.style.color = '#10b981';
-                            }}
-                          >
-                            Read More →
-                          </a>
-                        </div>
+                          {news.date}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <p style={{
+                        fontSize: 'clamp(12px, 1.8vw, 14px)',
+                        color: '#4b5563',
+                        lineHeight: '1.5',
+                        margin: '0 0 clamp(10px, 2vw, 12px) 0'
+                      }}>
+                        {news.summary}
+                      </p>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          fontSize: 'clamp(11px, 1.5vw, 12px)',
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          Source: {news.source}
+                        </span>
+                        <a
+                          href={news.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: 'clamp(12px, 1.8vw, 14px)',
+                            color: '#10b981',
+                            textDecoration: 'none',
+                            fontWeight: '500',
+                            padding: 'clamp(6px, 1vw, 8px) clamp(10px, 2vw, 12px)',
+                            border: '1px solid #10b981',
+                            borderRadius: '6px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#10b981';
+                            e.target.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#10b981';
+                          }}
+                        >
+                          Read More →
+                        </a>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </div>
           </div>
         </div>
       </div>

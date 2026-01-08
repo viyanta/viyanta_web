@@ -56,7 +56,7 @@ const IrdaiGrowth = () => {
                 }
 
                 // Fetch Insurer List
-                const companies = await api.getCompanyList();
+                const companies = await api.getCompanyInsurersList();
                 if (Array.isArray(companies)) {
                     const uniqueNames = companies.map(c => c.label);
                     setInsurerNames(uniqueNames);
@@ -358,7 +358,7 @@ const IrdaiGrowth = () => {
         >
             {viewMode === 'visuals' ? (
                 <div className="visuals-view">
-                    <div className="kpi-grid">
+                    <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                         {kpiData.map((kpi, idx) => (
                             <div
                                 key={idx}
@@ -374,68 +374,72 @@ const IrdaiGrowth = () => {
                         ))}
                     </div>
                     {growthData.length > 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                        <div className="charts-row">
                             <div id="chart-growth-for" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>For the Month Comparison</h4>
-                                <div style={{ height: '300px' }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={growthData[0].subRows.map(s => ({
-                                                name: s.type.replace('Premium', '').trim(),
-                                                growth: parseFloat(s.values.growthFor || 0)
-                                            }))}
-                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis
-                                                dataKey="name"
-                                                tick={{ fontSize: 10 }}
-                                                interval={0}
-                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
-                                            />
-                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}%`, 'Growth']}
-                                            />
-                                            <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>For the Month Comparison</h4>
+                                <div className="chart-scroll-wrapper">
+                                    <div className="chart-content">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={growthData[0].subRows.map(s => ({
+                                                    name: s.type.replace('Premium', '').trim(),
+                                                    growth: parseFloat(s.values.growthFor || 0)
+                                                }))}
+                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fontSize: 11 }}
+                                                    interval={0}
+                                                    tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                                />
+                                                <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                                                    formatter={(value) => [`${value}%`, 'Growth']}
+                                                />
+                                                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
+                                                <Bar dataKey="growth" name="Growth %" fill="#82ca9d" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                    <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
 
                             <div id="chart-growth-upto" className="chart-card" style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                <h4 style={{ textAlign: 'center', marginBottom: '15px', color: '#333' }}>Up to the Month Comparison</h4>
-                                <div style={{ height: '300px' }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={growthData[0].subRows.map(s => ({
-                                                name: s.type.replace('Premium', '').trim(),
-                                                growth: parseFloat(s.values.growthUpTo || 0)
-                                            }))}
-                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis
-                                                dataKey="name"
-                                                tick={{ fontSize: 10 }}
-                                                interval={0}
-                                                tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
-                                            />
-                                            <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                                                formatter={(value) => [`${value}%`, 'Growth']}
-                                            />
-                                            <Legend />
-                                            <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                                                <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <h4 style={{ textAlign: 'left', marginBottom: '15px', color: '#555' }}>Up to the Month Comparison</h4>
+                                <div className="chart-scroll-wrapper">
+                                    <div className="chart-content">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={growthData[0].subRows.map(s => ({
+                                                    name: s.type.replace('Premium', '').trim(),
+                                                    growth: parseFloat(s.values.growthUpTo || 0)
+                                                }))}
+                                                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fontSize: 11 }}
+                                                    interval={0}
+                                                    tickFormatter={(val) => val.replace('Individual', 'Ind').replace('Group', 'Grp').replace('Yearly', 'Yly').replace('Renewable', 'Ren')}
+                                                />
+                                                <YAxis domain={[(min) => Math.min(0, Math.floor(min * 1.1)), (max) => Math.ceil(max * 1.1)]} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                                                    formatter={(value) => [`${value}%`, 'Growth']}
+                                                />
+                                                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
+                                                <Bar dataKey="growth" name="Growth %" fill="#8884d8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                                                    <LabelList dataKey="growth" position="top" style={{ fontSize: '10px', fill: '#666' }} />
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
                         </div>
