@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 import api from '../services/api';
 
 const IrdaiGrowth = () => {
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState('MONTH'); // Default to MONTH value
     const [selectedPeriod, setSelectedPeriod] = useState('');
     const [periodOptions, setPeriodOptions] = useState([]); // List of available periods
@@ -299,9 +300,7 @@ const IrdaiGrowth = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            summaryText={`Growth Summary of First Year Premium > ${selectedPeriod}`}
+            summaryText={`Growth Analysis - ${growthMetricType} for ${insurerName}`}
             controls={
                 <>
                     <div className="period-select-container">
@@ -368,7 +367,7 @@ const IrdaiGrowth = () => {
                             >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
+                                <div className="kpi-value">{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod}</div>
                             </div>
                         ))}
@@ -462,43 +461,43 @@ const IrdaiGrowth = () => {
                                         Premium Type / Insurer
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('for23')}
                                     >
                                         Previous Year{getSortIndicator('for23')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('for24')}
                                     >
                                         Current Year ({selectedPeriod}){getSortIndicator('for24')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('growthFor')}
                                     >
                                         Growth (%){getSortIndicator('growthFor')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('upTo23')}
                                     >
                                         Previous YTD{getSortIndicator('upTo23')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('upTo24')}
                                     >
                                         Current YTD ({selectedPeriod}){getSortIndicator('upTo24')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('growthUpTo')}
                                     >
                                         Growth (%){getSortIndicator('growthUpTo')}
                                     </th>
                                     <th
-                                        style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ fontWeight: 'bold', cursor: 'pointer', textAlign: 'right' }}
                                         onClick={() => handleSort('marketShare')}
                                     >
                                         Market Share (%){getSortIndicator('marketShare')}
@@ -518,24 +517,24 @@ const IrdaiGrowth = () => {
                                                     {expandedInsurers[idx] ? '−' : '+'}
                                                 </button>
                                             </td>
-                                            <td>{row.values.for23}</td>
-                                            <td>{row.values.for24}</td>
-                                            <td>{row.values.growthFor !== null && row.values.growthFor !== 'NaN' ? row.values.growthFor : '-'}</td>
-                                            <td>{row.values.upTo23}</td>
-                                            <td>{row.values.upTo24}</td>
-                                            <td>{row.values.growthUpTo !== null && row.values.growthUpTo !== 'NaN' ? row.values.growthUpTo : '-'}</td>
-                                            <td>{row.values.marketShare}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.for23}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.for24}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.growthFor !== null && row.values.growthFor !== 'NaN' ? row.values.growthFor : '-'}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.upTo23}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.upTo24}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.growthUpTo !== null && row.values.growthUpTo !== 'NaN' ? row.values.growthUpTo : '-'}</td>
+                                            <td style={{ textAlign: 'right' }}>{row.values.marketShare}</td>
                                         </tr>
                                         {expandedInsurers[idx] && row.subRows.map((sub, sIdx) => (
                                             <tr key={`${idx}-${sIdx}`} style={{ backgroundColor: '#f9f9f9' }}>
-                                                <td style={{ paddingLeft: '20px', color: '#555' }}>{sub.type}</td>
-                                                <td>{sub.values.for23}</td>
-                                                <td>{sub.values.for24}</td>
-                                                <td>{sub.values.growthFor !== null && sub.values.growthFor !== 'NaN' ? sub.values.growthFor : '-'}</td>
-                                                <td>{sub.values.upTo23}</td>
-                                                <td>{sub.values.upTo24}</td>
-                                                <td>{sub.values.growthUpTo !== null && sub.values.growthUpTo !== 'NaN' ? sub.values.growthUpTo : '-'}</td>
-                                                <td>{sub.values.marketShare}</td>
+                                                <td style={{ paddingLeft: '20px', color: '#555', textAlign: 'left' }}>{sub.type}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.for23}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.for24}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.growthFor !== null && sub.values.growthFor !== 'NaN' ? sub.values.growthFor : '-'}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.upTo23}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.upTo24}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.growthUpTo !== null && sub.values.growthUpTo !== 'NaN' ? sub.values.growthUpTo : '-'}</td>
+                                                <td style={{ textAlign: 'right' }}>{sub.values.marketShare}</td>
                                             </tr>
                                         ))}
                                     </React.Fragment>

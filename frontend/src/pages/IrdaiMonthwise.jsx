@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 import api from '../services/api';
 
 const IrdaiMonthwise = () => {
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState('MONTH');
     const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('');
     const [insurerName, setInsurerName] = useState('');
     const [insurerNames, setInsurerNames] = useState([]);
+    const [expandedInsurers, setExpandedInsurers] = useState({});
+
+    const toggleInsurer = (name) => {
+        setExpandedInsurers(prev => ({ ...prev, [name]: !prev[name] }));
+    };
 
     const [periodTypes, setPeriodTypes] = useState([]);
     const [periodOptions, setPeriodOptions] = useState([]);
@@ -152,8 +158,6 @@ const IrdaiMonthwise = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`Monthwise Data Summary of ${insurerName} > ${selectedPeriodLabel}`}
             controls={
                 <>
@@ -199,7 +203,7 @@ const IrdaiMonthwise = () => {
                             >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{kpi.value}</div>
+                                <div className="kpi-value">{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriodLabel}</div>
                             </div>
                         ))}
@@ -311,9 +315,9 @@ const IrdaiMonthwise = () => {
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th rowSpan="2" style={{ minWidth: '50px' }}>Sl No.</th>
-                                    <th rowSpan="2" style={{ minWidth: '200px' }}>Insurer Name</th>
-                                    <th rowSpan="2" style={{ minWidth: '200px' }}>Premium Type</th>
+                                    <th rowSpan="2" style={{ minWidth: '50px', textAlign: 'left' }}>Sl No.</th>
+                                    <th rowSpan="2" style={{ minWidth: '200px', textAlign: 'left' }}>Insurer Name</th>
+                                    <th rowSpan="2" style={{ minWidth: '200px', textAlign: 'left' }}>Premium Type</th>
 
                                     <th colSpan="7" style={{ textAlign: 'center' }}>First Year Premium</th>
                                     <th colSpan="7" style={{ textAlign: 'center' }}>Sum Assured</th>
@@ -337,53 +341,143 @@ const IrdaiMonthwise = () => {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan="30" style={{ textAlign: 'center', padding: '20px' }}>Loading data...</td></tr>
+                                    <tr><td colSpan="31" style={{ textAlign: 'center', padding: '20px' }}>Loading data...</td></tr>
                                 ) : companyMetrics.length > 0 ? (
-                                    companyMetrics.map((row, index) => (
-                                        <tr key={index} style={{ backgroundColor: '#fff' }}>
-                                            <td>{index + 1}</td>
-                                            <td style={{ fontWeight: 'bold' }}>{row.insurer_name}</td>
-                                            <td style={{ fontWeight: 'bold' }}>{row.premium_type}</td>
+                                    (() => {
+                                        // Group data by Insurer Name
+                                        const grouped = {};
+                                        companyMetrics.forEach(row => {
+                                            if (!grouped[row.insurer_name]) grouped[row.insurer_name] = [];
+                                            grouped[row.insurer_name].push(row);
+                                        });
 
-                                            {/* FYP */}
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_previous || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_current || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_ytd_previous || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_ytd_current || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_ytd_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.fyp_market_share || 0).toFixed(2)}</td>
+                                        return Object.keys(grouped).map((insurer, idx) => {
+                                            const rows = grouped[insurer];
+                                            // Find the "Total" row (where premium_type == insurer_name)
+                                            // Fallback to first row if not found (though backend should provide it)
+                                            const totalRow = rows.find(r => r.premium_type === insurer) || rows[0];
+                                            const subRows = rows.filter(r => r !== totalRow);
 
-                                            {/* SA */}
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_previous || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_current || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_ytd_previous || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_ytd_current || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_ytd_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.sa_market_share || 0).toFixed(2)}</td>
+                                            const isExpanded = expandedInsurers[insurer];
+                                            const hasSubRows = subRows.length > 0;
 
-                                            {/* NOP */}
-                                            <td style={{ textAlign: 'right' }}>{row.nop_previous || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nop_current || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nop_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nop_ytd_previous || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nop_ytd_current || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nop_ytd_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nop_market_share || 0).toFixed(2)}</td>
+                                            return (
+                                                <React.Fragment key={insurer}>
+                                                    {/* TOTAL ROW (BOLD) */}
+                                                    <tr style={{ backgroundColor: '#fff', fontWeight: 'bold' }}>
+                                                        <td style={{ textAlign: 'left' }}>{idx + 1}</td>
+                                                        <td style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {hasSubRows && (
+                                                                <button
+                                                                    onClick={() => toggleInsurer(insurer)}
+                                                                    style={{
+                                                                        cursor: 'pointer',
+                                                                        border: '1px solid #ccc',
+                                                                        borderRadius: '4px',
+                                                                        backgroundColor: '#f0f0f0',
+                                                                        width: '20px',
+                                                                        height: '20px',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        fontSize: '14px',
+                                                                        padding: 0
+                                                                    }}
+                                                                >
+                                                                    {isExpanded ? '−' : '+'}
+                                                                </button>
+                                                            )}
+                                                            {totalRow.insurer_name}
+                                                        </td>
+                                                        <td style={{ textAlign: 'left' }}>Total</td>
 
-                                            {/* NOL */}
-                                            <td style={{ textAlign: 'right' }}>{row.nol_previous || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nol_current || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nol_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nol_ytd_previous || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{row.nol_ytd_current || 0}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nol_ytd_growth || 0).toFixed(2)}</td>
-                                            <td style={{ textAlign: 'right' }}>{(row.nol_market_share || 0).toFixed(2)}</td>
-                                        </tr>
-                                    ))
+                                                        {/* FYP */}
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_previous || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_current || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_ytd_previous || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_ytd_current || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_ytd_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.fyp_market_share || 0).toFixed(2)}</td>
+
+                                                        {/* SA */}
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_previous || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_current || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_ytd_previous || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_ytd_current || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_ytd_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.sa_market_share || 0).toFixed(2)}</td>
+
+                                                        {/* NOP */}
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nop_previous || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nop_current || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nop_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nop_ytd_previous || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nop_ytd_current || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nop_ytd_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nop_market_share || 0).toFixed(2)}</td>
+
+                                                        {/* NOL */}
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nol_previous || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nol_current || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nol_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nol_ytd_previous || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{totalRow.nol_ytd_current || 0}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nol_ytd_growth || 0).toFixed(2)}</td>
+                                                        <td style={{ textAlign: 'right' }}>{(totalRow.nol_market_share || 0).toFixed(2)}</td>
+                                                    </tr>
+
+                                                    {/* SUB ROWS (NORMAL) */}
+                                                    {isExpanded && subRows.map((sub, sIdx) => (
+                                                        <tr key={`${insurer}-${sIdx}`} style={{ backgroundColor: '#f9f9f9' }}>
+                                                            <td></td> {/* Empty Sl No */}
+                                                            <td></td> {/* Empty Insurer Name */}
+                                                            <td style={{ textAlign: 'left' }}>{sub.premium_type}</td>
+
+                                                            {/* FYP */}
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_previous || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_current || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_ytd_previous || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_ytd_current || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_ytd_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.fyp_market_share || 0).toFixed(2)}</td>
+
+                                                            {/* SA */}
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_previous || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_current || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_ytd_previous || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_ytd_current || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_ytd_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.sa_market_share || 0).toFixed(2)}</td>
+
+                                                            {/* NOP */}
+                                                            <td style={{ textAlign: 'right' }}>{sub.nop_previous || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nop_current || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nop_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nop_ytd_previous || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nop_ytd_current || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nop_ytd_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nop_market_share || 0).toFixed(2)}</td>
+
+                                                            {/* NOL */}
+                                                            <td style={{ textAlign: 'right' }}>{sub.nol_previous || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nol_current || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nol_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nol_ytd_previous || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{sub.nol_ytd_current || 0}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nol_ytd_growth || 0).toFixed(2)}</td>
+                                                            <td style={{ textAlign: 'right' }}>{(sub.nol_market_share || 0).toFixed(2)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </React.Fragment>
+                                            );
+                                        });
+                                    })()
                                 ) : (
-                                    <tr><td colSpan="30" style={{ textAlign: 'center', padding: '20px' }}>No data available</td></tr>
+                                    <tr><td colSpan="31" style={{ textAlign: 'center', padding: '20px' }}>No data available</td></tr>
                                 )}
                             </tbody>
                         </table>

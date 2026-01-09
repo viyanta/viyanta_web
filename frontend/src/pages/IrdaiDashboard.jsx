@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import api from '../services/api';
 import TabLayout from './IrdaiSharedLayout';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 import Modal from '../components/Modal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, LabelList } from 'recharts';
 
 const IrdaiDashboard = () => {
     // Local State for Dashboard Tab
-    // Local State for Dashboard Tab
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState(''); // Stores the 'value' (e.g., 'MONTH')
     const [selectedPeriod, setSelectedPeriod] = useState(null); // Stores the full period object
 
@@ -259,8 +259,6 @@ const IrdaiDashboard = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`${viewMode === 'visuals' ? 'Dashboard-Visual' : 'Dashboard Data'} for the ${periodType === 'MONTH' ? 'Month' : ''} Period > ${selectedPeriod ? selectedPeriod.label : ''}`}
             controls={
                 <>
@@ -326,7 +324,7 @@ const IrdaiDashboard = () => {
                             >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
-                                <div className="kpi-value" style={{ fontSize: '18px', fontWeight: 'bold' }}>{kpi.value}</div>
+                                <div className="kpi-value">{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod ? selectedPeriod.label : ''}</div>
                             </div>
                         ))}
@@ -434,24 +432,24 @@ const IrdaiDashboard = () => {
                                     <th colSpan="5" style={{ textAlign: 'center', backgroundColor: '#f0f0f0' }}>Premium Type Long Name</th>
                                 </tr>
                                 <tr>
-                                    <th onClick={() => requestSort('groupNonSingle')} style={{ cursor: 'pointer' }}>Group Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupNonSingle')}</th>
-                                    <th onClick={() => requestSort('indSingle')} style={{ cursor: 'pointer' }}>Individual Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indSingle')}</th>
-                                    <th onClick={() => requestSort('indNonSingle')} style={{ cursor: 'pointer' }}>Individual Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indNonSingle')}</th>
-                                    <th onClick={() => requestSort('groupYearly')} style={{ cursor: 'pointer' }}>Group Yearly<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Renewable Premium</span>{getSortIndicator('groupYearly')}</th>
-                                    <th onClick={() => requestSort('groupSingle')} style={{ cursor: 'pointer' }}>Group Single Premium<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupSingle')}</th>
+                                    <th onClick={() => requestSort('groupNonSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupNonSingle')}</th>
+                                    <th onClick={() => requestSort('indSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Individual Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indSingle')}</th>
+                                    <th onClick={() => requestSort('indNonSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Individual Non-Single<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('indNonSingle')}</th>
+                                    <th onClick={() => requestSort('groupYearly')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Yearly<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Renewable Premium</span>{getSortIndicator('groupYearly')}</th>
+                                    <th onClick={() => requestSort('groupSingle')} style={{ cursor: 'pointer', textAlign: 'right' }}>Group Single Premium<br /><span style={{ fontSize: '10px', textDecoration: 'underline' }}>Premium</span>{getSortIndicator('groupSingle')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {sortedTableData.map((row, idx) => (
                                     <tr key={idx}>
-                                        <td>{row.category}</td>
-                                        <td>{row.unit}</td>
-                                        <td>{row.period}</td>
-                                        <td>{row.groupNonSingle.toLocaleString('en-IN')}</td>
-                                        <td>{row.indSingle.toLocaleString('en-IN')}</td>
-                                        <td>{row.indNonSingle.toLocaleString('en-IN')}</td>
-                                        <td>{row.groupYearly.toLocaleString('en-IN')}</td>
-                                        <td>{row.groupSingle.toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'left' }}>{row.category}</td>
+                                        <td style={{ textAlign: 'left' }}>{row.unit}</td>
+                                        <td style={{ textAlign: 'left' }}>{row.period}</td>
+                                        <td style={{ textAlign: 'right' }}>{row.groupNonSingle.toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{row.indSingle.toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{row.indNonSingle.toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{row.groupYearly.toLocaleString('en-IN')}</td>
+                                        <td style={{ textAlign: 'right' }}>{row.groupSingle.toLocaleString('en-IN')}</td>
                                     </tr>
                                 ))}
                             </tbody>

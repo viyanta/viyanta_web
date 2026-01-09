@@ -103,6 +103,7 @@
     width: 100%;
     position: relative;
     /* Anchor for absolute right controls */
+    z-index: 50;
     min-height: 50px;
     /* Ensure space */
 }

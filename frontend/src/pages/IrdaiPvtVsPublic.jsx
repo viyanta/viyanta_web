@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
     PieChart, Pie, Cell
 } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
 import api from '../services/api';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 
 const IrdaiPvtVsPublic = () => {
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [loading, setLoading] = useState(false);
 
     // Filters
@@ -258,8 +259,6 @@ const IrdaiPvtVsPublic = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`${viewMode === 'visuals' ? 'Pvt. Vs Public-Visual' : 'Pvt. Vs Public Data'} > ${getSelectedPeriodLabel()}`}
             controls={
                 <>
@@ -329,22 +328,22 @@ const IrdaiPvtVsPublic = () => {
                                 <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Crs.</span>
                                     <h3 className="kpi-title">Premium</h3>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.premium}</div>
+                                    <div className="kpi-value">{section.values.premium}</div>
                                 </div>
                                 <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Crs.</span>
                                     <h3 className="kpi-title">Sum Assured</h3>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.sum}</div>
+                                    <div className="kpi-value">{section.values.sum}</div>
                                 </div>
                                 <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Nos.</span>
                                     <h3 className="kpi-title">Lives Covered</h3>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.lives}</div>
+                                    <div className="kpi-value">{section.values.lives}</div>
                                 </div>
                                 <div className="kpi-card" style={{ border: `1px solid ${getSectionColor(section.section)}`, borderLeftWidth: '5px' }}>
                                     <span className="kpi-unit">In Nos.</span>
                                     <h3 className="kpi-title">No. of Policies</h3>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>{section.values.policies}</div>
+                                    <div className="kpi-value">{section.values.policies}</div>
                                 </div>
                             </div>
                         </div>

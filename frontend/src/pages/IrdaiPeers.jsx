@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import ApiService from '../services/api';
 import {
     BarChart,
@@ -12,6 +12,7 @@ import {
     LabelList
 } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 import './IrdaiPeers.css';
 
 // Custom MultiSelect Component with Premium Design
@@ -26,134 +27,109 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
                 setIsOpen(false);
             }
         };
+
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
-    const toggleOption = (value) => {
-        let newSelected;
-        if (selected.includes(value)) {
-            newSelected = selected.filter(item => item !== value);
+    const toggleOption = (option) => {
+        if (selected.includes(option)) {
+            onChange(selected.filter(item => item !== option));
         } else {
-            // Limit to 5 selections if needed, or allow unlimited. Authenticity?
-            // Backend validation says max 5.
-            if (selected.length >= 5) {
-                alert("You can select a maximum of 5 insurers.");
-                return;
+            if (selected.length < 5) {
+                onChange([...selected, option]);
+            } else {
+                alert("You can select up to 5 insurers only.");
             }
-            newSelected = [...selected, value];
         }
-        onChange(newSelected);
-    };
-
-    const handleRemove = (e, value) => {
-        e.stopPropagation();
-        onChange(selected.filter(item => item !== value));
     };
 
     return (
-        <div className="custom-multiselect" ref={dropdownRef} style={{ position: 'relative' }}>
+        <div className="multiselect-container" ref={dropdownRef} style={{ width: '100%', position: 'relative', zIndex: 1001 }}>
             <div
-                className="peers-dropdown wide full-width"
+                className="multiselect-header"
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    minHeight: '38px',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: '#fff',
-                    maxWidth: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    background: '#fff',
+                    minHeight: '38px'
                 }}
             >
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: 1, minWidth: 0 }}>
-                    {selected.length > 0 ? (
-                        selected.slice(0, 2).map(val => (
-                            <span key={val} style={{
+                <div className="selected-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {selected.length === 0 ? (
+                        <span style={{ color: '#999' }}>{placeholder}</span>
+                    ) : (
+                        selected.map(item => (
+                            <span key={item} style={{
                                 background: '#e0e7ff',
                                 color: '#3730a3',
                                 padding: '2px 8px',
                                 borderRadius: '12px',
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px',
-                                whiteSpace: 'nowrap'
+                                gap: '4px'
                             }}>
-                                {val}
+                                {item}
                                 <span
-                                    onClick={(e) => handleRemove(e, val)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleOption(item);
+                                    }}
                                     style={{ cursor: 'pointer', fontWeight: 'bold' }}
-                                >×</span>
+                                >
+                                    ×
+                                </span>
                             </span>
                         ))
-                    ) : (
-                        <span style={{ color: '#999', fontSize: '14px' }}>{placeholder}</span>
-                    )}
-                    {selected.length > 2 && (
-                        <span style={{
-                            fontSize: '11px',
-                            color: '#666',
-                            alignSelf: 'center',
-                            background: '#f3f4f6',
-                            padding: '2px 6px',
-                            borderRadius: '10px'
-                        }}>
-                            +{selected.length - 2} more
-                        </span>
                     )}
                 </div>
-                <span style={{ color: '#666', fontSize: '10px', marginLeft: '8px' }}>▼</span>
+                <span className={`arrow ${isOpen ? 'up' : 'down'}`} style={{ color: '#666', fontSize: '12px' }}>▼</span>
             </div>
-
             {isOpen && (
                 <div className="multiselect-options" style={{
                     position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    border: '1px solid #ccc',
+                    borderTop: 'none',
+                    borderRadius: '0 0 4px 4px',
+                    background: '#fff',
                     zIndex: 1000,
-                    background: 'white',
-                    border: '1px solid #d1d5db',
-                    width: '100%',
-                    maxHeight: '250px',
+                    maxHeight: '200px',
                     overflowY: 'auto',
-                    marginTop: '4px',
-                    borderRadius: '6px',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                 }}>
-                    {options.length > 0 ? (
-                        options.map(opt => (
-                            <div
-                                key={opt.value}
-                                className="multiselect-option"
-                                onClick={() => toggleOption(opt.value)}
-                                style={{
-                                    padding: '8px 12px',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px',
-                                    borderBottom: '1px solid #f3f4f6',
-                                    background: selected.includes(opt.value) ? '#f0f9ff' : 'white'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(opt.value) ? '#f0f9ff' : 'white'}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selected.includes(opt.value)}
-                                    readOnly
-                                    style={{ cursor: 'pointer', accentColor: '#36659b' }}
-                                />
-                                <span style={{ fontSize: '13px', color: '#374151' }}>{opt.label}</span>
-                            </div>
-                        ))
-                    ) : (
-                        <div style={{ padding: '10px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
-                            Loading insurers...
+                    {options.map(option => (
+                        <div
+                            key={option}
+                            className={`option ${selected.includes(option) ? 'selected' : ''}`}
+                            onClick={() => toggleOption(option)}
+                            style={{
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                background: selected.includes(option) ? '#f0f9ff' : 'transparent',
+                                borderBottom: '1px solid #eee'
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={selected.includes(option)}
+                                readOnly
+                                style={{ marginRight: '8px' }}
+                            />
+                            {option}
                         </div>
-                    )}
+                    ))}
                 </div>
             )}
         </div>
@@ -173,7 +149,7 @@ const IrdaiPeers = () => {
     const [periodTypeOptions, setPeriodTypeOptions] = useState([]);
     const [periodOptions, setPeriodOptions] = useState([]);
     const [comparisonData, setComparisonData] = useState(null);
-    const [viewMode, setViewMode] = useState('Data'); // 'Data' or 'Visuals'
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
 
     // Fetch Insurers on mount
     useEffect(() => {
@@ -183,7 +159,9 @@ const IrdaiPeers = () => {
                 // Fetch Insurers
                 const insurersData = await ApiService.getCompanyInsurersList();
                 if (insurersData && Array.isArray(insurersData)) {
-                    setInsurerOptions(insurersData);
+                    // Extract values if the API returns objects {label, value}
+                    const simpleOptions = insurersData.map(opt => (typeof opt === 'object' && opt.value) ? opt.value : opt);
+                    setInsurerOptions(simpleOptions);
                 }
 
                 // Fetch Premium Types
@@ -290,8 +268,6 @@ const IrdaiPeers = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode === 'Visuals' ? 'visuals' : 'data'}
-            setViewMode={(mode) => setViewMode(mode === 'visuals' ? 'Visuals' : 'Data')}
             summaryText={`Peer comparison of First Year Premium >> ${selectedDate}`}
             controls={
                 <>
@@ -333,7 +309,7 @@ const IrdaiPeers = () => {
                             ))}
                         </select>
                     </div>
-                    <div style={{ width: '100%' }}></div>
+
                     <div className="period-select-container">
                         <label className="control-label">Select Period Type</label>
                         <select
@@ -365,7 +341,7 @@ const IrdaiPeers = () => {
                 </>
             }
         >
-            {viewMode === 'Data' ? (
+            {viewMode === 'data' ? (
                 <div className="peers-table-container">
                     <table className="peers-comparison-table">
                         <thead>
@@ -441,8 +417,8 @@ const IrdaiPeers = () => {
                                             dataKey="shortName"
                                             tick={{ fontSize: 12, fill: '#666' }}
                                             interval={0}
-                                            angle={-30}
-                                            textAnchor="end"
+                                            angle={0}
+                                            textAnchor="middle"
                                             height={60}
                                         />
                                         <YAxis
