@@ -8,7 +8,7 @@ from datetime import datetime
 import calendar
 from openpyxl import load_workbook
 import tempfile
-from services.irdai_excel_importer import import_irdai_excel
+from services.irdai_excel_importer_enhanced import import_irdai_excel
 
 router = APIRouter()
 

@@ -11,7 +11,6 @@ import Login from './pages/Login.jsx'
 import Welcome from './pages/Welcome.jsx'
 import SignUp from './pages/SignUp.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
-import { StatsProvider } from './context/StatsContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
 import Lform from './pages/Lform.jsx'
@@ -404,16 +403,14 @@ function App() {
 
   return (
     <AuthProvider>
-      <StatsProvider>
-        {/* <DuplicateWindowPreventer /> */}
-        <Router>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Welcome />} />
-            <Route path="/welcome" element={<Welcome />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Welcome />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Protected Routes */}
             <Route path="/*" element={
@@ -488,7 +485,6 @@ function App() {
             } />
           </Routes>
         </Router>
-      </StatsProvider>
     </AuthProvider>
   )
 }

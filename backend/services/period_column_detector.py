@@ -33,12 +33,17 @@ class PeriodColumnDetector:
             r'ended?\s+\w+\s+\d+,?\s+\d{4}',  # "ended June 30, 2024"
             r'quarter\s+ended',
             r'period\s+ended',
-            r'for\s+the\s+\w+\s+\d+',
+            # "For the Quarter" but NOT "For the Corresponding Quarter of the Previous Year"
+            r'for[_\s]+the[_\s]+quarter(?![_\s]+of[_\s]+the[_\s]+previous)',
+            r'for[_\s]+the[_\s]+\w+\s+\d+',
             r'q[1-4]\s+\d{4}',  # Q1 2024
             r'fy\s*\d{4}',  # FY2024
         ],
         'previous': [
             r'previous\s+period',
+            r'previous[_\s]+year',
+            # "For the Corresponding Quarter of the Previous Year"
+            r'corresponding[_\s]+quarter[_\s]+of[_\s]+the[_\s]+previous',
             r'ended?\s+\w+\s+\d+,?\s+\d{4}',  # Will be older date
             r'comparative\s+period',
             r'prior\s+period',
@@ -47,6 +52,8 @@ class PeriodColumnDetector:
         ],
         'upto_current': [
             r'upto\s+the\s+current',
+            # "Up to the Quarter" but NOT "Up to the Corresponding Quarter of the Previous Year"
+            r'up[_\s]+to[_\s]+the[_\s]+quarter(?![_\s]+of[_\s]+the[_\s]+previous)',
             r'upto\s+\w+\s+\d+,?\s+\d{4}',
             r'cumulative\s+current',
             r'ytd\s+current',
@@ -55,6 +62,8 @@ class PeriodColumnDetector:
         ],
         'upto_previous': [
             r'upto\s+the\s+previous',
+            # "Up to the Corresponding Quarter of the Previous Year"
+            r'up[_\s]+to[_\s]+the[_\s]+corresponding[_\s]+quarter[_\s]+of[_\s]+the[_\s]+previous',
             r'cumulative\s+previous',
             r'ytd\s+previous',
             r'upto\s+\w+\s+\d+,?\s+\d{4}',  # Will be older date
@@ -152,18 +161,21 @@ class PeriodColumnDetector:
         upto_previous_candidates = []
 
         for col in columns:
-            col_lower = col.lower()
+            col_lower = col.lower().replace('_', ' ')  # Normalize underscores to spaces
 
-            # Check for 'upto' patterns first (more specific)
-            if any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['upto_current']):
+            # Check for 'previous year' patterns first (most specific)
+            if any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['previous']):
+                # Check if it's an 'upto' variant
+                if any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['upto_previous']):
+                    upto_previous_candidates.append(col)
+                else:
+                    previous_candidates.append(col)
+            # Check for 'upto current' patterns (specific)
+            elif any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['upto_current']):
                 upto_current_candidates.append(col)
-            elif any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['upto_previous']):
-                upto_previous_candidates.append(col)
-            # Then check for regular period patterns
+            # Then check for regular current period patterns
             elif any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['current']):
                 current_candidates.append(col)
-            elif any(re.search(pattern, col_lower) for pattern in cls.PATTERNS['previous']):
-                previous_candidates.append(col)
 
         # Select best candidates (prefer more recent dates for current)
         if current_candidates:
@@ -245,17 +257,19 @@ class PeriodColumnDetector:
         # Separate columns into "upto/cumulative" and "for/regular" categories
         upto_columns = []
         for_columns = []
-        
+
         for col in columns:
             col_lower = col.lower()
             if any(keyword in col_lower for keyword in ['upto', 'cumulative', 'ytd', 'year to date', 'year-to-date']):
                 upto_columns.append(col)
             else:
                 for_columns.append(col)
-        
+
         # Sort each category by date (newest first)
-        upto_sorted = sorted(upto_columns, key=lambda x: cls._extract_date(x) or datetime(1900, 1, 1), reverse=True)
-        for_sorted = sorted(for_columns, key=lambda x: cls._extract_date(x) or datetime(1900, 1, 1), reverse=True)
+        upto_sorted = sorted(upto_columns, key=lambda x: cls._extract_date(
+            x) or datetime(1900, 1, 1), reverse=True)
+        for_sorted = sorted(for_columns, key=lambda x: cls._extract_date(
+            x) or datetime(1900, 1, 1), reverse=True)
 
         # Assign upto columns
         if len(upto_sorted) >= 1:

@@ -1158,36 +1158,8 @@ li {
   border-radius: 50%;
 }
 
-/* Sidebar Stats */
-.sidebar__stats {
-  margin-top: 2rem;
-  padding: 1rem;
-  background-color: var(--background-color);
-  border-radius: var(--border-radius);
-  border: 1px solid #e9ecef;
-}
 
-.sidebar__stats-title {
-  margin-bottom: 1rem;
-  color: var(--main-color);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
 
-.sidebar__stats-content {
-  font-size: 0.75rem;
-  color: var(--text-color-light);
-}
-
-.sidebar__stats-item {
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-}
-
-.sidebar__stats-item:last-child {
-  margin-bottom: 0;
-}
 
 /* Main content */
 .main-content {

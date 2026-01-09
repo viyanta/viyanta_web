@@ -3,9 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
-from routes.download import router as download_router
-from routes.dropdown import router as dropdown_router
-from routes.company_lforms import router as company_l_forms_router
 from routes.pdf_splitter import router as pdf_splitter_router
 # from routes.peers import router as peers_router
 from routes.economy import router as economy_router
@@ -37,23 +34,44 @@ logging.basicConfig(level=logging.WARNING)
 
 # from routes.pdf_upload import router as pdf_upload_router
 
-app = FastAPI(title="Viyanta File Processing API", version="1.0.0", docs_url="/docs",
-              openapi_url="/openapi.json",
-              redoc_url="/redoc")
+app = FastAPI(
+    title="Viyanta File Processing API",
+    version="1.0.0",
+    openapi_tags=[
+        {"name": "download", "description": "File download operations"},
+        {"name": "dropdown", "description": "Dropdown and filter operations"},
+        {"name": "company_l_forms", "description": "Company L-Forms operations"},
+        {"name": "pdf_splitter", "description": "PDF splitting operations"},
+        {"name": "Economy", "description": "Economy data operations"},
+        {"name": "L-Forms", "description": "L-Forms data extraction and retrieval"},
+    ]
+)
+
+# CORS setup - Allow both development and production origins
+allowed_origins = [
+    "http://localhost:5173",  # Development frontend
+    "http://localhost:3000",  # Alternative dev port
+    "http://localhost:5174",  # Alternative dev port
+]
+
+# Add production origin from environment variable if set
+production_origin = os.getenv("FRONTEND_URL")
+if production_origin:
+    allowed_origins.append(production_origin)
+
+# Also allow all origins in development (can be restricted in production)
+if os.getenv("ENVIRONMENT") != "production":
+    allowed_origins.append("*")
 
 app.add_middleware(
     CORSMiddleware,
-
-    # Allow frontend origins
-    allow_origins=["https://app.viyantainsights.com", "*"],
-
+    allow_origins=allowed_origins if os.getenv(
+        "ENVIRONMENT") == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-print("DEBUG S3_BUCKET_NAME:***************************",
-      os.getenv("S3_BUCKET_NAME"))
 
 # Create tables with error handling for concurrent DDL operations
 # This is needed when using multiple workers (e.g., hypercorn with --workers)
@@ -62,11 +80,13 @@ try:
 except (OperationalError, Exception) as e:
     # Handle MySQL concurrent DDL error (1684) when multiple workers try to create tables
     error_str = str(e)
-    # Check for MySQL error 1684 (concurrent DDL) or OperationalError with 1684
+    # Check for MySQL error 1684 (concurrent DDL) or 1050 (Structure exists)
     is_concurrent_ddl = (
         "1684" in error_str or
+        "1050" in error_str or
         "concurrent DDL" in error_str.lower() or
-        "was skipped since its definition is being modified" in error_str
+        "was skipped since its definition is being modified" in error_str or
+        "already exists" in error_str
     )
     if is_concurrent_ddl:
         # This is expected when multiple workers start simultaneously
@@ -91,10 +111,6 @@ async def startup_event():
         print(f"⚠️ Startup event failed: {e}")
 
 # Include routers
-app.include_router(download_router, prefix="/api/files", tags=["download"])
-app.include_router(dropdown_router, prefix="/api/files", tags=["dropdown"])
-app.include_router(company_l_forms_router,
-                   prefix="/api/files", tags=["company_l_forms"])
 app.include_router(pdf_splitter_router,
                    prefix="/api/pdf-splitter", tags=["pdf_splitter"])
 # app.include_router(peers_router, prefix="/api", tags=["peers"])
@@ -157,8 +173,6 @@ def read_root():
         "version": "1.0.0",
         "endpoints": {
             "upload": "/api/files/upload",
-            "files": "/api/files/files",
-            "stats": "/api/files/stats",
             "download_original": "/api/files/download/original/{file_id}",
             "download_parquet": "/api/files/download/parquet/{file_id}",
             "preview": "/api/files/preview/{file_id}",

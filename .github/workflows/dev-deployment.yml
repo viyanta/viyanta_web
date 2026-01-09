@@ -1,0 +1,54 @@
+name: 🚀 Development Deployment (Viyanta)
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ENVIRONMENT: dev
+  PROJECT_NAME: viyanta
+
+jobs:
+  deploy:
+    name: Deploy on Self-Hosted Runner
+    runs-on: [self-hosted]
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      # 🔔 Deployment Started Notification
+      - name: 🔔 Notify Deployment Started
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🚀 *Deployment Started*\n\n📌 *Project Name:* ${PROJECT_NAME}\n👤 *Committed By:* ${GITHUB_ACTOR}\n💬 *Commit Message:* ${{ github.event.head_commit.message }}\n🌱 *ENV:* ${ENVIRONMENT}\"
+          }" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
+
+      # 🚀 Run deployment script locally
+      - name: 🚀 Run deployment script
+        run: |
+          cd /home/ubuntu/deployment-script
+          ./deploy.sh
+
+      # ✅ Deployment Success Notification
+      - name: ✅ Notify Deployment Success
+        if: success()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"✅ *Deployment Completed Successfully*\n\n📌 *Project Name:* ${PROJECT_NAME}\n🌱 *ENV:* ${ENVIRONMENT}\n🌐 *URL:* https://app.viyantainsights.com\"
+          }" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"
+
+      # ❌ Deployment Failure Notification
+      - name: ❌ Notify Deployment Failure
+        if: failure()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"❌ *Deployment Failed*\n\n📌 *Project Name:* ${PROJECT_NAME}\n👤 *Committed By:* ${GITHUB_ACTOR}\n💬 *Commit Message:* ${{ github.event.head_commit.message }}\n🌱 *ENV:* ${ENVIRONMENT}\n🔍 *Action:* Check GitHub Actions logs\"
+          }" \
+          "${{ secrets.GOOGLE_CHAT_WEBHOOK }}"

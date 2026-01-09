@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import CompanyInformationSidebar from '../components/CompanyInformationSidebar';
 import BackgroundPage from './BackgroundPage';
-import { useStats } from '../context/StatsContext.jsx';
+// import { useStats } from '../context/StatsContext.jsx';
 import { useNavigation } from '../context/NavigationContext';
 import ApiService from '../services/api';
 import './InsuranceDashboard.css';
@@ -336,7 +336,6 @@ const TreemapSection = ({ title, data, colors }) => {
 };
 
 function InsuranceDashboard({ onMenuClick }) {
-  const { stats } = useStats();
   const { isNavItemActive, selectedSidebarItem } = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

@@ -111,23 +111,43 @@ class TextNormalizer:
         # Lowercase
         text = text.lower().strip()
 
-        # Remove numbering patterns: (a), (b), (i), (ii), 1., 2., etc.
-        text = re.sub(r'\([a-z]{1,3}\)', '', text)  # (a), (b), (ii)
-        text = re.sub(r'\d+\.', '', text)  # 1., 2., 3.
+        # FIX: Preserve UPPERCASE context letters (A), (B), (C) ONLY when they appear
+        # AFTER words like "total", "subtotal", etc. (not as list markers at start)
+        # These are important semantic distinctions that should NOT be clustered together
+        # Example: "total (a)" -> "total suffix_a", but "(a) interest" -> "interest"
+
+        # First, protect uppercase context markers that come AFTER words
+        # Look for word + space + (A), (B), (C)
+        text = re.sub(
+            r'(\w+)\s*\(([a-z])\)', lambda m: m.group(1) + '' + m.group(2), text)
+
+        # Remove lowercase sub-item markers at START of line (list numbering)
+        # Remove (a), (b), (c) at start only
+        text = re.sub(r'^\s*\([a-z]\)\s*', '', text)
+
+        # Remove other numbering patterns: (i), (ii), 1., 2., etc.
+        text = re.sub(r'\([ivxlcdm]{1,4}\)', '', text)  # (i), (ii), (iii)
+        text = re.sub(r'^\s*\d+\.\s*', '', text)  # Remove 1., 2., 3. at start
         text = re.sub(r'[ivxlcdm]+\.', '', text)  # i., ii., iii.
 
-        # Remove special characters but keep spaces and hyphens
-        text = re.sub(r'[^\w\s-]', ' ', text)
+        # Remove special characters but keep spaces, hyphens, and underscores
+        text = re.sub(r'[^\w\s\-]', ' ', text)
 
         # Tokenize
         tokens = text.split()
 
-        # Remove stopwords
-        tokens = [t for t in tokens if t not in stopwords and len(t) > 2]
+        # Remove stopwords (but keep our suffix markers!)
+        tokens = [t for t in tokens if (t.startswith('suffix_') or (
+            t not in stopwords and len(t) > 2))]
 
-        # Simple stemming (remove common suffixes)
+        # Simple stemming (remove common suffixes) BUT preserve our suffix_x markers
         stemmed = []
         for token in tokens:
+            # Don't stem our special suffix markers
+            if token.startswith('suffix_'):
+                stemmed.append(token)
+                continue
+
             # Remove plural 's'
             if token.endswith('s') and len(token) > 4:
                 token = token[:-1]
@@ -284,6 +304,52 @@ class DatabaseManager:
         self.engine = db_engine
         self.Session = sessionmaker(bind=self.engine)
 
+    def get_existing_masters(self, form_no: Optional[str] = None) -> pd.DataFrame:
+        """
+        Fetch all existing master rows with their normalized texts
+
+        Args:
+            form_no: Optional form number to filter (e.g., 'L-2')
+
+        Returns:
+            DataFrame with columns: master_row_id, cluster_label, master_name, normalized_text
+        """
+        if form_no:
+            # Get masters only for this form
+            query = text("""
+                SELECT DISTINCT
+                    mr.master_row_id,
+                    mr.cluster_label,
+                    mr.master_name,
+                    mm.normalized_text
+                FROM master_rows mr
+                LEFT JOIN master_mapping mm ON mr.cluster_label = mm.cluster_label
+                WHERE mm.form_no = :form_no
+                ORDER BY mr.cluster_label
+            """)
+            with self.engine.connect() as conn:
+                df = pd.read_sql(query, conn, params={"form_no": form_no})
+        else:
+            # Get all masters
+            query = text("""
+                SELECT DISTINCT
+                    mr.master_row_id,
+                    mr.cluster_label,
+                    mr.master_name,
+                    mm.normalized_text
+                FROM master_rows mr
+                LEFT JOIN master_mapping mm ON mr.cluster_label = mm.cluster_label
+                ORDER BY mr.cluster_label
+            """)
+            with self.engine.connect() as conn:
+                df = pd.read_sql(query, conn)
+
+        # Drop duplicates and keep first
+        df = df.drop_duplicates(subset=['cluster_label'], keep='first')
+
+        print(f"  📚 Loaded {len(df)} existing master rows")
+        return df
+
     def get_extracted_rows(self, form_no: str) -> pd.DataFrame:
         """
         Fetch all distinct rows from reports_l2_extracted for a form
@@ -292,7 +358,7 @@ class DatabaseManager:
             form_no: L-form number (e.g., 'L-2-A')
 
         Returns:
-            DataFrame with columns: id, report_id, company_id, particulars, normalized_text
+            DataFrame with columns: id, report_id, company_id, particulars, normalized_text, row_index
         """
         query = text("""
             SELECT DISTINCT
@@ -302,13 +368,14 @@ class DatabaseManager:
                 e.particulars,
                 e.normalized_text,
                 e.master_row_id,
+                e.row_index,
                 r.form_no
             FROM reports_l2_extracted e
             JOIN reports_l2 r ON e.report_id = r.id
             WHERE r.form_no = :form_no
                 AND e.particulars IS NOT NULL
                 AND e.particulars != ''
-            ORDER BY e.company_id, e.particulars
+            ORDER BY e.company_id, e.row_index
         """)
 
         with self.engine.connect() as conn:
@@ -332,7 +399,7 @@ class DatabaseManager:
             report_ids: List of report IDs to fetch
 
         Returns:
-            DataFrame with columns: id, report_id, company_id, particulars, normalized_text
+            DataFrame with columns: id, report_id, company_id, particulars, normalized_text, row_index
         """
         if not report_ids:
             return pd.DataFrame()
@@ -350,13 +417,14 @@ class DatabaseManager:
                 company_id,
                 particulars,
                 normalized_text,
-                master_row_id
+                master_row_id,
+                row_index
             FROM {extracted_table}
             WHERE company_id = :company_id
                 AND report_id IN ({placeholders})
                 AND particulars IS NOT NULL
                 AND particulars != ''
-            ORDER BY report_id, id
+            ORDER BY report_id, row_index
         """)
 
         # Build params dict
@@ -374,18 +442,14 @@ class DatabaseManager:
             print(f"  ❌ Error fetching rows from {extracted_table}: {e}")
             return pd.DataFrame()
 
-    def update_normalized_text(self, updates: List[Tuple[int, str]]):
-        """
-        Batch update normalized_text in reports_l2_extracted
-
-        Args:
-            updates: List of (id, normalized_text) tuples
-        """
+    def update_normalized_text(self, updates: List[Tuple[int, str]], table_key: str = "l2"):
+        """Batch update normalized_text in reports_{table_key}_extracted."""
         if not updates:
             return
 
-        query = text("""
-            UPDATE reports_l2_extracted
+        extracted_table = f"reports_{table_key}_extracted"
+        query = text(f"""
+            UPDATE {extracted_table}
             SET normalized_text = :normalized_text
             WHERE id = :id
         """)
@@ -397,69 +461,107 @@ class DatabaseManager:
 
         print(f"  ✅ Updated {len(updates)} normalized_text values")
 
-    def upsert_master_mapping(self, mappings: List[Dict]):
-        """
-        Insert or update master_mapping table
+    def _resolve_master_tables(self, form_no: str) -> tuple[str, str]:
+        """Return (master_mapping_table, master_rows_table) for a given form."""
+        form_no_upper = str(form_no).strip().upper()
+        if form_no_upper == "L-1":
+            return "master_mapping_l1", "master_rows_l1"
+        elif form_no_upper == "L-3":
+            return "master_mapping_l3", "master_rows_l3"
+        return "master_mapping", "master_rows"
 
-        Args:
-            mappings: List of dicts with keys: master_name, company_id, form_no,
-                     variant_text, normalized_text, cluster_label, similarity_score
+    def upsert_master_mapping(self, mappings: List[Dict], form_no: str = ""):
+        """Insert or update master mapping table (per form).
+
+        NOTE:
+        - In this DB, `master_mapping`, `master_mapping_l1`, and `master_mapping_l3` 
+          currently have ONLY a PRIMARY KEY on `id` (no unique constraint on 
+          (company_id, form_no, variant_text)).
+        - Therefore, MySQL's `ON DUPLICATE KEY UPDATE` will NOT fire for logical
+          duplicates and would keep inserting duplicates.
+
+        This method performs a safe manual upsert by keying on:
+            (company_id, form_no, variant_text)
         """
         if not mappings:
             return
 
-        query = text("""
-            INSERT INTO master_mapping (
+        master_mapping_table, _ = self._resolve_master_tables(
+            form_no or (mappings[0].get("form_no") if mappings else ""))
+
+        select_sql = text(
+            f"""
+            SELECT id
+            FROM {master_mapping_table}
+            WHERE company_id = :company_id
+              AND form_no = :form_no
+              AND variant_text = :variant_text
+            LIMIT 1
+            """
+        )
+
+        insert_sql = text(
+            f"""
+            INSERT INTO {master_mapping_table} (
                 master_name, company_id, form_no, variant_text,
-                normalized_text, cluster_label, similarity_score
+                normalized_text, cluster_label, similarity_score,
+                created_at, updated_at
             ) VALUES (
                 :master_name, :company_id, :form_no, :variant_text,
-                :normalized_text, :cluster_label, :similarity_score
+                :normalized_text, :cluster_label, :similarity_score,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             )
-            ON DUPLICATE KEY UPDATE
-                master_name = VALUES(master_name),
-                normalized_text = VALUES(normalized_text),
-                cluster_label = VALUES(cluster_label),
-                similarity_score = VALUES(similarity_score),
-                updated_at = CURRENT_TIMESTAMP
-        """)
+            """
+        )
 
+        update_sql = text(
+            f"""
+            UPDATE {master_mapping_table}
+            SET
+                master_name = :master_name,
+                normalized_text = :normalized_text,
+                cluster_label = :cluster_label,
+                similarity_score = :similarity_score,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            """
+        )
+
+        upserted = 0
         with self.engine.begin() as conn:
             for mapping in tqdm(mappings, desc="  💾 Upserting master_mapping"):
-                conn.execute(query, mapping)
+                existing = conn.execute(select_sql, mapping).fetchone()
+                if existing:
+                    conn.execute(update_sql, {**mapping, "id": existing[0]})
+                else:
+                    conn.execute(insert_sql, mapping)
+                upserted += 1
 
-        print(f"  ✅ Upserted {len(mappings)} master mapping entries")
+        print(f"  ✅ Upserted {upserted} master mapping entries")
 
     def get_cluster_master_row_ids(self, form_no: str) -> Dict[int, int]:
-        """
-        Get or create master_row_id for each cluster
+        """Get master_row_id for each cluster from the correct master_rows table."""
+        _, master_rows_table = self._resolve_master_tables(form_no)
 
-        Returns:
-            Dict mapping cluster_label -> master_row_id
-        """
-        query = text("""
-            SELECT cluster_label, MIN(id) as master_row_id
-            FROM master_mapping
-            WHERE form_no = :form_no
-            GROUP BY cluster_label
+        query = text(f"""
+            SELECT cluster_label, master_row_id
+            FROM {master_rows_table}
+            WHERE cluster_label IS NOT NULL
+            ORDER BY cluster_label
         """)
 
         with self.engine.connect() as conn:
-            result = conn.execute(query, {"form_no": form_no})
+            result = conn.execute(query)
             return {row[0]: row[1] for row in result}
 
-    def update_master_row_ids(self, updates: List[Tuple[int, int]]):
-        """
-        Batch update master_row_id in reports_l2_extracted
-
-        Args:
-            updates: List of (id, master_row_id) tuples
-        """
+    def update_master_row_ids(self, updates: List[Tuple[int, int]], table_key: str = "l2"):
+        """Batch update master_row_id in reports_{table_key}_extracted."""
         if not updates:
             return
 
-        query = text("""
-            UPDATE reports_l2_extracted
+        extracted_table = f"reports_{table_key}_extracted"
+        query = text(f"""
+            UPDATE {extracted_table}
             SET master_row_id = :master_row_id
             WHERE id = :id
         """)
@@ -523,85 +625,102 @@ class MasterMappingPipeline:
         ]
 
         if updates_normalized:
-            self.db.update_normalized_text(updates_normalized)
+            self.db.update_normalized_text(updates_normalized, table_key="l2")
             df['normalized_text'] = df['normalized_new']
 
-        # Step 3: Cluster rows
-        print("\n🤖 Step 3: Clustering rows...")
+        # Step 3: Assign clusters based on SEQUENCE (row_index)
+        print("\n🗂️  Step 3: Assigning clusters based on sequence...")
 
-        # Group by company for better clustering
+        # FIX: Use SEQUENTIAL clustering (0, 1, 2, 3...) instead of row_index
+        # This ensures each unique text gets its own sequential cluster number
+        # and prevents conflicts when processing multiple companies
+        print(f"\n  📊 Processing ALL companies together...")
+        print(f"     Companies found: {df['company_id'].nunique()}")
+        print(f"     Total rows: {len(df)}")
+
+        # Build list of unique texts in ORDER of first appearance
+        unique_texts_ordered = []
+        for _, row in df.sort_values(['company_id', 'row_index']).iterrows():
+            normalized_txt = row['normalized_text']
+            if normalized_txt not in unique_texts_ordered:
+                unique_texts_ordered.append(normalized_txt)
+
+        # Assign SEQUENTIAL cluster numbers (0, 1, 2, 3...) to each unique text
+        text_to_cluster = {text: idx for idx,
+                           text in enumerate(unique_texts_ordered)}
+        df['cluster_label'] = df['normalized_text'].map(text_to_cluster)
+
+        print(f"     Unique texts: {len(unique_texts_ordered)}")
+        print(f"     Cluster range: 0 to {df['cluster_label'].max()}")
+        print(f"     ✅ Clusters assigned sequentially based on first appearance order")
+
+        # Step 4: Create master mappings
+        print(f"\n  📝 Creating master mappings...")
         all_mappings = []
-        cluster_offset = 0  # Ensure unique cluster IDs across companies
 
-        for company_id in df['company_id'].unique():
-            print(f"\n  📊 Processing company_id: {company_id}")
-            company_df = df[df['company_id'] == company_id].copy()
+        # For each cluster (which is now based on row order), pick ONE master name
+        # Sort clusters by number to maintain order
+        unique_clusters = sorted(df['cluster_label'].unique())
 
-            # Get unique normalized texts
-            unique_texts = company_df['normalized_text'].unique().tolist()
+        print(f"     Total clusters: {len(unique_clusters)}")
 
-            if len(unique_texts) == 0:
-                continue
+        for cluster_id in unique_clusters:
+            # Get ALL rows in this cluster (from all companies)
+            cluster_mask = df['cluster_label'] == cluster_id
+            cluster_rows = df[cluster_mask]
 
-            # Cluster
-            cluster_labels, similarity_matrix = self.clusterer.fit_predict(
-                unique_texts)
+            # Pick the LONGEST, most complete text as the master name
+            # This ensures we get full descriptions, not abbreviated ones
+            cluster_texts = cluster_rows['particulars'].tolist()
 
-            # Adjust cluster labels to be globally unique
-            cluster_labels = cluster_labels + cluster_offset
-            cluster_offset = cluster_labels.max() + 1
+            # Choose master: longest text (most complete description)
+            master_text = max(cluster_texts, key=len)
 
-            # Map normalized_text -> cluster_label
-            text_to_cluster = dict(zip(unique_texts, cluster_labels))
-            company_df['cluster_label'] = company_df['normalized_text'].map(
-                text_to_cluster)
+            print(
+                f"       Cluster {cluster_id:3d}: {len(cluster_rows)} variant(s) → master: '{master_text[:60]}...'")
 
-            # Step 4: Create master mappings
-            print(f"  📝 Creating master mappings...")
+            # Apply this SAME master_text to ALL rows in the cluster
+            for _, row in cluster_rows.iterrows():
+                # Compute similarity (100% if exact match, fuzzy if variant)
+                from rapidfuzz import fuzz
+                similarity_score = fuzz.ratio(
+                    row['particulars'],
+                    master_text
+                ) / 100.0  # Convert to 0-1 scale
 
-            for cluster_id in np.unique(cluster_labels):
-                # Get all rows in this cluster
-                cluster_mask = company_df['cluster_label'] == cluster_id
-                cluster_rows = company_df[cluster_mask]
-
-                # Get texts for this cluster
-                cluster_texts = cluster_rows['particulars'].tolist()
-                cluster_normalized = cluster_rows['normalized_text'].tolist()
-
-                # Get similarity submatrix for this cluster
-                cluster_indices = [unique_texts.index(
-                    t) for t in cluster_normalized]
-                cluster_sim_matrix = similarity_matrix[np.ix_(
-                    cluster_indices, cluster_indices)]
-
-                # Choose representative (master) text
-                master_text, master_normalized = self.clusterer.get_cluster_representative(
-                    cluster_texts, cluster_normalized, cluster_sim_matrix
-                )
-
-                # Compute fuzzy match scores for all variants
-                for _, row in cluster_rows.iterrows():
-                    similarity_score = fuzz.ratio(
-                        row['normalized_text'],
-                        master_normalized
-                    ) / 100.0  # Convert to 0-1 scale
-
-                    all_mappings.append({
-                        'master_name': master_text,
-                        'company_id': int(company_id),
-                        'form_no': form_no,
-                        'variant_text': row['particulars'],
-                        'normalized_text': row['normalized_text'],
-                        'cluster_label': int(cluster_id),
-                        'similarity_score': float(similarity_score)
-                    })
+                all_mappings.append({
+                    'master_name': master_text,  # SAME master_name for all in cluster
+                    'company_id': int(row['company_id']),
+                    'form_no': form_no,
+                    'variant_text': row['particulars'],
+                    'normalized_text': row['normalized_text'],
+                    'cluster_label': int(cluster_id),
+                    'similarity_score': float(similarity_score)
+                })
 
         # Step 5: Upsert master mappings
         print("\n💾 Step 4: Upserting master mappings...")
-        self.db.upsert_master_mapping(all_mappings)
+        self.db.upsert_master_mapping(all_mappings, form_no=form_no)
 
-        # Step 6: Update master_row_ids
-        print("\n🔗 Step 5: Updating master_row_ids...")
+        # Step 5.5: CRITICAL - Sync master_rows table to ensure canonical master_row_ids exist
+        print("\n🔄 Step 4.5: Syncing master_rows table (canonical source)...")
+        from services.master_rows_sync_service import MasterRowsSyncService
+
+        sync_service = MasterRowsSyncService()
+        sync_result = sync_service.sync_master_rows(
+            form_no=form_no,
+            verbose=True
+        )
+
+        if not sync_result['success']:
+            print(f"❌ Failed to sync master_rows: {sync_result.get('error')}")
+            return
+
+        print(f"✅ Master rows synced: {sync_result['rows_synced']} rows")
+
+        # Step 6: Update master_row_ids in reports_l2_extracted
+        # CRITICAL: Now using master_rows.master_row_id (NOT master_mapping.id)
+        print("\n🔗 Step 5: Updating master_row_ids in reports_l2_extracted...")
         cluster_to_master_id = self.db.get_cluster_master_row_ids(form_no)
 
         # Map each extracted row to its master_row_id
@@ -707,57 +826,157 @@ class MasterMappingPipeline:
             ]
 
             if updates_normalized:
-                self.db.update_normalized_text(updates_normalized)
+                self.db.update_normalized_text(
+                    updates_normalized, table_key=table_key)
                 df['normalized_text'] = df['normalized_new']
 
-            # Step 3: Cluster rows
-            print(f"   Clustering rows...")
-            unique_texts = df['normalized_text'].unique().tolist()
+            # Step 3: Assign clusters - REUSE existing masters if similar, CREATE new if different
+            # This prevents duplicate masters for same financial line items across PDFs/companies
+            print(f"   Assigning clusters (with intelligent reuse)...")
 
-            if len(unique_texts) == 0:
+            if len(df) == 0:
                 return {
                     'success': True,
                     'master_rows_created': 0,
                     'rows_mapped': 0,
-                    'message': 'No unique texts to cluster'
+                    'message': 'No rows to process'
                 }
 
-            cluster_labels, similarity_matrix = self.clusterer.fit_predict(
-                unique_texts)
+            # Get existing masters for comparison
+            existing_masters_df = self.db.get_existing_masters(form_code)
 
-            # Map normalized_text -> cluster_label
-            text_to_cluster = dict(zip(unique_texts, cluster_labels))
+            # CRITICAL FIX: Get the MAXIMUM existing cluster_label from master_rows
+            # so new clusters start AFTER existing ones
+            max_existing_cluster_query = text("""
+                SELECT COALESCE(MAX(cluster_label), -1) as max_cluster
+                FROM master_rows
+            """)
+
+            with self.db.engine.connect() as conn:
+                result = conn.execute(max_existing_cluster_query)
+                max_existing_cluster = result.scalar()
+
+            # Prepare similarity matching using rapidfuzz
+            from rapidfuzz import fuzz
+
+            # Assign cluster_label for each row
+            text_to_cluster = {}
+            next_cluster_id = max_existing_cluster + 1
+            reused_count = 0
+            new_count = 0
+
+            # Build list of unique texts to process
+            unique_texts_ordered = []
+            for _, row in df.sort_values('row_index').iterrows():
+                normalized_txt = row['normalized_text']
+                if normalized_txt not in unique_texts_ordered:
+                    unique_texts_ordered.append(normalized_txt)
+
+            print(f"     Unique texts to process: {len(unique_texts_ordered)}")
+            print(f"     Existing masters: {len(existing_masters_df)}")
+            print(f"     Existing max cluster: {max_existing_cluster}")
+
+            # For each unique text, find best matching existing master or create new
+            for unique_text in unique_texts_ordered:
+                best_match_cluster = None
+                best_similarity = 0.0
+
+                # Check similarity with ALL existing masters
+                if not existing_masters_df.empty:
+                    for _, existing in existing_masters_df.iterrows():
+                        existing_normalized = existing.get(
+                            'normalized_text', '')
+                        if not existing_normalized:
+                            continue
+
+                        # Calculate similarity between normalized texts
+                        similarity = fuzz.ratio(
+                            unique_text, existing_normalized) / 100.0
+
+                        if similarity > best_similarity:
+                            best_similarity = similarity
+                            best_match_cluster = existing['cluster_label']
+
+                # Decision: REUSE if similarity >= 85%, CREATE NEW if < 85%
+                SIMILARITY_THRESHOLD = 0.85
+
+                if best_similarity >= SIMILARITY_THRESHOLD:
+                    # REUSE existing cluster
+                    text_to_cluster[unique_text] = best_match_cluster
+                    reused_count += 1
+                else:
+                    # CREATE NEW cluster
+                    text_to_cluster[unique_text] = next_cluster_id
+                    next_cluster_id += 1
+                    new_count += 1
+
+            # Map clusters to all rows
             df['cluster_label'] = df['normalized_text'].map(text_to_cluster)
+
+            print(f"     ✅ Reused {reused_count} existing clusters")
+            print(f"     ✅ Created {new_count} new clusters")
+            if new_count > 0:
+                print(
+                    f"     New cluster range: {max_existing_cluster + 1} to {next_cluster_id - 1}")
 
             # Step 4: Create master mappings
             print(f"   Creating master mappings...")
             all_mappings = []
             cluster_to_master_id = {}
 
-            for cluster_id in np.unique(cluster_labels):
+            # IMPORTANT FIX: Check if clusters already have master_names from previous runs
+            # Query existing master_names for this form to maintain consistency
+            existing_masters_query = text("""
+                SELECT DISTINCT cluster_label, master_name
+                FROM master_mapping
+                WHERE form_no = :form_no
+                GROUP BY cluster_label, master_name
+            """)
+
+            with self.db.engine.connect() as conn:
+                result = conn.execute(
+                    existing_masters_query, {'form_no': form_code})
+                existing_cluster_masters = {
+                    # cluster_label -> master_name
+                    row[0]: row[1] for row in result}
+
+            print(
+                f"   Found {len(existing_cluster_masters)} existing clusters with master names")
+
+            # For each cluster (which is now based on row order), pick ONE master name
+            # Sort clusters by number to maintain order
+            unique_clusters = sorted(df['cluster_label'].unique())
+            print(f"   Total clusters: {len(unique_clusters)}")
+
+            for cluster_id in unique_clusters:
                 cluster_mask = df['cluster_label'] == cluster_id
                 cluster_rows = df[cluster_mask]
 
                 cluster_texts = cluster_rows['particulars'].tolist()
-                cluster_normalized = cluster_rows['normalized_text'].tolist()
 
-                cluster_indices = [unique_texts.index(
-                    t) for t in cluster_normalized]
-                cluster_sim_matrix = similarity_matrix[np.ix_(
-                    cluster_indices, cluster_indices)]
+                # FIX: Check if this cluster already has a master_name
+                if cluster_id in existing_cluster_masters:
+                    # Use existing master_name to maintain consistency
+                    master_text = existing_cluster_masters[cluster_id]
+                    print(
+                        f"     Cluster {cluster_id}: Using existing master: '{master_text[:50]}...'")
+                else:
+                    # Create new master_name: pick the LONGEST text (most complete description)
+                    master_text = max(cluster_texts, key=len)
+                    print(
+                        f"     Cluster {cluster_id}: Creating new master: '{master_text[:50]}...'")
 
-                master_text, master_normalized = self.clusterer.get_cluster_representative(
-                    cluster_texts, cluster_normalized, cluster_sim_matrix
-                )
-
+                # Apply this SAME master_text to ALL rows in the cluster
                 for _, row in cluster_rows.iterrows():
+                    # Compute similarity (100% if exact match, fuzzy if variant)
+                    from rapidfuzz import fuzz
                     similarity_score = fuzz.ratio(
-                        row['normalized_text'],
-                        master_normalized
-                    ) / 100.0
+                        row['particulars'],
+                        master_text
+                    ) / 100.0  # Convert to 0-1 scale
 
                     all_mappings.append({
-                        'master_name': master_text,
+                        'master_name': master_text,  # SAME master_name for all in cluster
                         'company_id': int(company_id),
                         'form_no': form_code,
                         'variant_text': row['particulars'],
@@ -768,40 +987,45 @@ class MasterMappingPipeline:
 
             # Step 5: Upsert master mappings
             print(f"   Upserting {len(all_mappings)} mappings...")
-            self.db.upsert_master_mapping(all_mappings)
+            self.db.upsert_master_mapping(all_mappings, form_no=form_code)
 
-            # Step 6: Query for the inserted mappings to get their IDs
-            print(f"   Fetching master mapping IDs...")
-            query = text("""
-                SELECT id, company_id, form_no, variant_text, normalized_text, cluster_label
-                FROM master_mapping
-                WHERE company_id = :company_id AND form_no = :form_no
-            """)
+            # Step 5.5: CRITICAL - Sync master_rows table to ensure canonical master_row_ids exist
+            print(f"   Syncing master_rows table (canonical source)...")
+            from services.master_rows_sync_service import MasterRowsSyncService
 
-            with self.db.engine.connect() as conn:
-                result = conn.execute(
-                    query, {'company_id': company_id, 'form_no': form_code})
-                fetched_mappings = [dict(row._mapping) for row in result]
+            sync_service = MasterRowsSyncService()
+            sync_result = sync_service.sync_master_rows(
+                form_no=form_code,
+                company_id=company_id,
+                verbose=False
+            )
 
-            # Build a lookup from (cluster_label, normalized_text, variant_text) -> master_row_id
-            for mapping in fetched_mappings:
-                key = (mapping['cluster_label'],
-                       mapping['normalized_text'], mapping['variant_text'])
-                cluster_to_master_id[key] = mapping['id']
+            if not sync_result['success']:
+                print(
+                    f"   ⚠️ Master rows sync had issues: {sync_result.get('error')}")
+            else:
+                print(
+                    f"   ✅ Master rows synced: {sync_result['rows_synced']} rows")
+
+            # Step 6: Query master_rows to get canonical master_row_ids for each cluster
+            print(f"   Fetching canonical master_row_ids from master_rows...")
+            cluster_to_master_row_id = self.db.get_cluster_master_row_ids(
+                form_code)
 
             # Step 7: Update master_row_id in reports_l*_extracted
-            print(f"   Updating master_row_ids...")
+            print(
+                f"   Updating master_row_ids in reports_{table_key}_extracted...")
             updates_master_ids = []
 
             for _, row in df.iterrows():
-                key = (row['cluster_label'],
-                       row['normalized_text'], row['particulars'])
-                if key in cluster_to_master_id:
-                    master_row_id = cluster_to_master_id[key]
+                cluster_label = row['cluster_label']
+                if cluster_label in cluster_to_master_row_id:
+                    master_row_id = cluster_to_master_row_id[cluster_label]
                     updates_master_ids.append((row['id'], master_row_id))
 
             if updates_master_ids:
-                self.db.update_master_row_ids(updates_master_ids)
+                self.db.update_master_row_ids(
+                    updates_master_ids, table_key=table_key)
 
             print(f"✅ Targeted mapping complete")
             print(f"   Master mappings created: {len(all_mappings)}")
