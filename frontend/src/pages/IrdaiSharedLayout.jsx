@@ -1,28 +1,13 @@
 import React from 'react';
 import './IrdaiCommon.css';
 
-const TabLayout = ({ controls, summaryText, viewMode, setViewMode, children }) => (
+const TabLayout = ({ controls, summaryText, children }) => (
     <div className="dashboard-content-wrapper">
         <div className="dashboard-controls">
             <div className="controls-left">
                 {controls}
             </div>
-            <div className="controls-right">
-                <div className="view-toggle-container">
-                    <button
-                        className={`view-toggle-btn ${viewMode === 'visuals' ? 'active' : ''}`}
-                        onClick={() => setViewMode('visuals')}
-                    >
-                        Visuals
-                    </button>
-                    <button
-                        className={`view-toggle-btn ${viewMode === 'data' ? 'active' : ''}`}
-                        onClick={() => setViewMode('data')}
-                    >
-                        Data
-                    </button>
-                </div>
-            </div>
+            {/* Toggle moved to IrdaiPageLayout */}
         </div>
 
         <div className="visual-summary-header">

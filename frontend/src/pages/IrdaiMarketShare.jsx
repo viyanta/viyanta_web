@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import TabLayout from './IrdaiSharedLayout';
 import api from '../services/api';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
 
 const IrdaiMarketShare = () => {
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState('MONTH');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
     const [insurerName, setInsurerName] = useState('');
@@ -283,8 +284,6 @@ const IrdaiMarketShare = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`Market Share Summary of First Year Premium > ${selectedPeriod}`}
             controls={
                 <>
