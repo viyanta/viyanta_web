@@ -108,15 +108,14 @@
 
 /* Removed conflicting dropdown overrides to use IrdaiCommon.css standards */
 
-/* Specific adjustment for Insurer container to stay aligned */
-.insurer-select-container {
-    width: 220px;
-}
+
 
 /* Adjust gap to fit everything */
+/* Adjust gap to fit everything */
 .controls-left {
-    gap: 15px !important;
-    flex-wrap: wrap !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+    /* overflow-x: auto; Removed to allow dropdowns to show */
 }
 
 /* Toggle button container alignment */

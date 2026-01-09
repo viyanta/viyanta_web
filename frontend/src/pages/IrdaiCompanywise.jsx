@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import api from '../services/api';
 import {
     BarChart,
@@ -12,10 +12,11 @@ import {
     LabelList
 } from 'recharts';
 import TabLayout from './IrdaiSharedLayout';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 
 const IrdaiCompanywise = () => {
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState('');
     const [selectedPeriod, setSelectedPeriod] = useState(null);
     const [companyTotals, setCompanyTotals] = useState(null);
@@ -305,8 +306,6 @@ const IrdaiCompanywise = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`Data Summary of ${insurerName} > ${selectedPeriod ? selectedPeriod.label : ''}`}
             controls={
                 <>
@@ -366,7 +365,7 @@ const IrdaiCompanywise = () => {
                             >
                                 <span className="kpi-unit">{kpi.unit}</span>
                                 <h3 className="kpi-title">{kpi.title}</h3>
-                                <div className="kpi-value" style={{ fontSize: '18px', fontWeight: 'bold' }}>{kpi.value}</div>
+                                <div className="kpi-value">{kpi.value}</div>
                                 <div className="kpi-period">{selectedPeriod ? selectedPeriod.label : ''}</div>
                             </div>
                         ))}

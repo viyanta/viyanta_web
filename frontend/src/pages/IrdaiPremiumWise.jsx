@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import TabLayout from './IrdaiSharedLayout';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import api from '../services/api';
+import { IrdaiViewModeContext } from '../components/IrdaiPageLayout';
 
 const COLORS = ['#8889DD', '#9597E4', '#8DC77B', '#A5D297', '#E2CF45', '#F8C12D'];
 
@@ -97,7 +98,7 @@ const IrdaiPremiumWise = () => {
     };
 
     // Local State
-    const [viewMode, setViewMode] = useState('visuals');
+    const { viewMode, setViewMode } = useContext(IrdaiViewModeContext);
     const [periodType, setPeriodType] = useState('MONTH');
     const [selectedPeriod, setSelectedPeriod] = useState('Dec 24');
     const [premiumTypeSelection, setPremiumTypeSelection] = useState('Individual Single Premium');
@@ -304,8 +305,6 @@ const IrdaiPremiumWise = () => {
 
     return (
         <TabLayout
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             summaryText={`Data Summary of ${premiumTypeSelection} > ${selectedPeriod}`}
             controls={
                 <>
