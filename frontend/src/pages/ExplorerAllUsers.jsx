@@ -1,7 +1,7 @@
 import React from 'react'
 import Button from '../utils/Button.jsx'
 import ApiService, { API_BASE_URL } from '../services/api.js'
-import { useStats } from '../context/StatsContext.jsx'
+import { useStats as useStatsHook } from '../context/StatsContext.jsx'
 import DataTable from '../components/DataTable.jsx'
 import SourceFileViewer from '../components/SourceFileViewer.jsx'
 import SmartTableViewer from '../components/SmartTableViewer.jsx'
@@ -9,7 +9,7 @@ import { subscribeToAuthChanges } from '../firebase/auth.js'
 import StandardPageLayout from '../components/StandardPageLayout';
 
 function ExplorerAllUsers({ onMenuClick }) {
-    const { refreshStats } = useStats();
+    const { refreshStats } = useStatsHook();
     const [error, setError] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
     const [user, setUser] = React.useState(null);
@@ -1721,7 +1721,7 @@ function ExplorerAllUsers({ onMenuClick }) {
     const AllCompaniesView = () => {
         // Filter out any null or undefined companies
         const validCompanies = companiesData.filter(company => company && company.name);
-        
+
         if (validCompanies.length === 0) {
             return (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-color-light)' }}>
