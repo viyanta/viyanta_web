@@ -13,6 +13,7 @@ import SignUp from './pages/SignUp.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
+import { StatsProvider } from './context/StatsContext.jsx'
 import Lform from './pages/Lform.jsx'
 import DMML2Form from './pages/DMML2Form.jsx'
 import Analytics from './pages/Analytics.jsx'
@@ -412,10 +413,11 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected Routes */}
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <NavigationProvider>
+          {/* Protected Routes */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <NavigationProvider>
+                <StatsProvider>
                   <div className="app-container">
                     <Navbar
                       onMenuClick={openSidebar}
@@ -480,11 +482,12 @@ function App() {
                     {/* Mobile backdrop */}
                     <div className={`backdrop ${sidebarOpen ? 'show' : ''}`} onClick={closeSidebar} />
                   </div>
-                </NavigationProvider>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </Router>
+                </StatsProvider>
+              </NavigationProvider>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
     </AuthProvider>
   )
 }
